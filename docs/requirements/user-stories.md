@@ -27,18 +27,20 @@ Acceptance baseline:
 - The two-minute demo slice supports Backend API Triage with three tasks.
 - Any externally researched catalog metadata has a source URL, retrieval date, permitted-use review, and human approval before publication; CareerSim task content remains original or separately licensed.
 
-## US-03 Receive evidence-grounded guidance
+## US-03 Explore evidence with Syn
 
-As a student, I want the system to analyze my assessment and simulation results and explain strengths, difficulties, and possible next steps without making the career decision for me.
+As a student, I want to interact with Syn, an evidence-grounded exploration assistant, so that I can reflect on my assessment and simulation experiences, understand what I have practised, and form my own possible next steps without the system making a career decision for me.
 
 Acceptance baseline:
 
-- The backend constructs a minimal, authorized context from persisted evidence.
-- The LLM cannot query the database and never receives secrets or unrelated profile data.
-- The response follows a validated schema with strengths, difficulties, evidence references, limitations, and next steps.
-- The result identifies whether it came from AI or deterministic fallback.
-- Timeout, unavailable provider, malformed output, unsafe output, and empty evidence all have tested behavior.
-- Objective scores remain unchanged regardless of AI availability.
+- The Dashboard concisely presents progress, RIASEC signals, practised skills, recent results, and the current exploration plan.
+- Syn introduces its supporting role and explains RIASEC or simulation results only from authorized evidence.
+- Syn can compare interests, practised skills, and areas that need more evidence without certifying competence.
+- Result details appear as structured cards inside Syn and highlight evidence relevant to the current conversation.
+- Syn presents simulations, preparation activities, reflective questions, and plan drafts as options rather than final recommendations.
+- Saving an exploration plan requires explicit student confirmation.
+- Syn never calculates or modifies scores, reveals answer keys, predicts career success, or chooses a career for the student.
+- AI and deterministic fallback provenance are visible, and objective results remain available and unchanged when AI is unavailable.
 
 ## Supporting MVP capabilities
 

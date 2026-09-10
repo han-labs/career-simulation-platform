@@ -67,7 +67,7 @@ const journey = [
     icon: BrainCircuit,
     number: '03',
     title: 'Reflect on evidence',
-    copy: 'Compare objective results with your interests, then receive explainable guidance and practical next steps.',
+    copy: 'Bring your results together on the Dashboard, then explore the evidence and practical next steps with Syn.',
   },
 ]
 
@@ -162,8 +162,8 @@ function LandingPage() {
           <div className="hero-board__item">
             <span>3</span>
             <div>
-              <strong>Reflection report</strong>
-              <small>Strengths and next steps</small>
+              <strong>Dashboard + Syn</strong>
+              <small>Evidence and next steps</small>
             </div>
             <BrainCircuit size={24} aria-hidden="true" />
           </div>

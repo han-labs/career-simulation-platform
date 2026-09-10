@@ -7,6 +7,7 @@ const navigation = [
   { label: 'How it works', href: '/#how-it-works' },
   { label: 'Career simulations', to: '/simulations' },
   { label: 'RIASEC assessment', to: '/assessment' },
+  { label: 'Dashboard', to: '/dashboard' },
 ]
 
 function AppShell() {

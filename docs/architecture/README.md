@@ -34,7 +34,7 @@ flowchart TB
 | `assessment` | RIASEC questionnaire and deterministic scoring | Boundary reserved for US-01 |
 | `catalog` | Published simulation discovery | Working foundation slice |
 | `simulation` | Tasks, attempts, submissions, deterministic evaluation | Boundary reserved for US-02 |
-| `guidance` | Controlled evidence context, LLM adapter, schema validation, fallback reports | Boundary reserved for US-03 |
+| `guidance` | Dashboard summaries, controlled evidence context, Syn adapter, schema validation, and Standard fallback | Frontend contract implemented; backend boundary reserved for US-03 |
 | `enterprise` | Simulation authoring, publishing, and monitoring | Boundary reserved |
 | `common` | Narrow cross-cutting API/configuration/error primitives | Working foundation |
 | `system` | Health and operational endpoints | Working foundation |

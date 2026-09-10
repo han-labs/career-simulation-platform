@@ -35,7 +35,7 @@ The platform addresses the gap between reading about a career and experiencing r
 
 - **US-01:** Complete a RIASEC-based assessment and receive several IT directions to explore.
 - **US-02:** Complete representative tasks in a career simulation to experience the work.
-- **US-03:** Receive an explanation of strengths, difficulties, and possible next steps grounded in assessment and simulation evidence.
+- **US-03:** Explore assessment and simulation evidence with Syn and form possible next steps without surrendering the final decision.
 
 Detailed acceptance baselines live in `../docs/requirements/user-stories.md`.
 
@@ -47,7 +47,7 @@ Included:
 - deterministic RIASEC scoring;
 - IT simulations for frontend, backend, data analysis, software testing, and cybersecurity;
 - deterministic task evaluation using approved rules, answer keys, or test cases;
-- AI-assisted reports and guidance with validated structured output;
+- a concise student Dashboard and Syn, an evidence-grounded exploration assistant with validated structured output;
 - rule/template-based fallback;
 - enterprise simulation management;
 - PostgreSQL persistence, REST APIs, React UI, Docker Compose, Nginx, and Ubuntu VM deployment evidence.
@@ -94,7 +94,7 @@ Excluded:
 
 ## 7 Minimum demonstrable vertical slice
 
-The student opens **Backend API Triage**, completes three tasks, and submits answers. The backend validates the request, loads task definitions, scores without AI, persists the attempt/result, assembles controlled evidence, requests structured guidance, validates it, and returns the report. If AI fails, the student still receives the objective score and deterministic guidance.
+The student opens **Backend API Triage**, completes three tasks, and submits answers. The backend validates the request, loads task definitions, scores without AI, persists the attempt/result, and returns objective results to the Dashboard. When requested, Syn receives minimized evidence through approved backend tools and returns a validated explanation or plan draft. If AI fails, the student still receives objective results, deterministic result cards, and Standard guidance.
 
 ## 8 External product reference and academic data use
 
@@ -104,4 +104,4 @@ This approval does not extend to authenticated content, employer task descriptio
 
 ## 9 Current implementation checkpoint
 
-The repository foundation contains a working public catalog vertical slice, PostgreSQL migrations and original seed metadata, feature routes/placeholders, Nginx/Docker topology, CI, architecture tests, and shared agent rules. US-01, US-02, US-03, authentication, and enterprise management remain implementation work unless a report in `reports/` states otherwise.
+The repository foundation contains a working public catalog vertical slice, PostgreSQL migrations and original seed metadata, Nginx/Docker topology, CI, architecture tests, and shared agent rules. The US-03 Dashboard/Syn frontend demonstration is implemented with an API adapter and explicit preview/Standard fallback; its backend, US-01, US-02, authentication, and enterprise management remain implementation work.

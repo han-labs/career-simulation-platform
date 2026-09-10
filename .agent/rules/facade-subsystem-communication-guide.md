@@ -7,7 +7,7 @@ Expected examples:
 - `AssessmentService` for US-01.
 - `SimulationCatalogService` for catalog discovery.
 - `SimulationService` for US-02 attempt/task workflow.
-- `GuidanceService` for US-03 report generation/history.
+- `GuidanceService` for US-03 Dashboard summaries, Syn guidance, and plan history.
 - `SimulationManagementService` for enterprise content lifecycle.
 - `AuthService` or `IdentityService` for authentication/profile policy.
 

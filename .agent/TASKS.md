@@ -8,7 +8,7 @@ The supplied assignment is explicitly a **frontend assignment**:
 |---|---|---|
 | Võ Nguyễn Ngọc Bích | US-01 RIASEC assessment and landing page | Coordinate API contracts for assessment questions, autosave, submit, score, and directions |
 | Mai Trần Thùy Trang | US-02 career simulation | Coordinate catalog/detail, attempt lifecycle, task submission, and deterministic result contracts |
-| Huỳnh Gia Hân | Project/frontend setup and US-03 guidance/report | Own shared setup changes carefully; coordinate evidence, AI/fallback, provenance, and report contracts |
+| Huỳnh Gia Hân | Project/frontend setup and US-03 Dashboard/Syn | Own shared setup changes carefully; coordinate evidence, AI/fallback, provenance, and Syn contracts |
 
 Backend, database, AI integration, enterprise-management, and authentication ownership were not assigned in the supplied material. Do not infer an owner.
 
@@ -36,7 +36,7 @@ Each owner should still verify the full vertical slice with the responsible back
 | Authentication/profile | Not implemented | planned foundation dependency |
 | US-01 workflow | Not implemented | route and boundary reserved |
 | US-02 workflow | Not implemented | route and boundary reserved |
-| US-03 workflow | Not implemented | route and boundary reserved |
+| US-03 workflow | Frontend demonstration ready | `/dashboard`, Syn interactions, preview/Standard fallback, adapter tests; backend integration pending |
 | Enterprise management | Not implemented | boundary reserved |
 
 ## 3 Definition of Done for every story
@@ -84,8 +84,8 @@ Required tests: catalog states, unpublished inaccessible, start/resume, task val
 Owner: **Huỳnh Gia Hân**
 
 - Maintain shared app/router/API/style setup without breaking another feature boundary.
-- Guidance loading, ready, fallback, partial, retry, and historical report states.
-- Display strengths, difficulties, evidence, limitations, possible next steps, and source/provenance.
+- Dashboard loading, ready, preview/fallback, partial, and retry states.
+- Syn conversation, quick actions, inline result cards, plan drafting, limitations, and source/provenance.
 - Never hide fallback or imply AI certainty.
 
 Required tests: AI success, fallback, timeout, malformed response mapped to fallback, empty evidence, source label, and objective score stability.
