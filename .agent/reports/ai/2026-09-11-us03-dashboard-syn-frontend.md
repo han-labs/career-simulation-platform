@@ -39,6 +39,11 @@ User story: US-03 Explore evidence with Syn
 - Preview results are demonstration data and must be replaced by authorized per-student data after authentication is implemented.
 - Final human review and commit SHA are pending.
 
+## Follow-up documentation
+
+- After integrating the remote US-02 frontend, AI assistance was used to document the complete US-03 browser-to-render flow, file responsibilities, code syntax, presentation script, likely review questions, and backend integration checklist in `docs/evidence/us-03-frontend-walkthrough.md`.
+- The CSS merge resolution preserved both US-02 simulation selectors and US-03 Dashboard/Syn selectors; the combined frontend passed lint, 9 tests, production build, and browser smoke checks for both routes.
+
 ## Follow-up readability refinement
 
 - Removed repeated card metadata, secondary skill counts, the duplicated progress disclaimer, and the repeated composer disclaimer.
