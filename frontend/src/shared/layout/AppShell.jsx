@@ -16,7 +16,7 @@ function AppShell() {
     <div className="app-shell">
       <header className="site-header">
         <div className="site-header__inner">
-          <Link className="brand-link" to="/" aria-label="Career Compass home">
+          <Link className="brand-link" to="/" aria-label="CareerSim home">
             <BrandMark />
           </Link>
 

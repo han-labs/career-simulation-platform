@@ -8,5 +8,6 @@
 | Catalog foundation | landing and simulation catalog | `SimulationCatalogService` | published simulations | backend tests, API response, running landing page |
 | Identity foundation | auth/profile UI | `IdentityService` or `AuthService` | users, profiles, consent | role tests, inactive/locked tests, secret scan |
 | Enterprise content | enterprise workspace | `SimulationManagementService` | simulation/task lifecycle | ownership and publish-state tests |
+| External catalog research | future content-review tooling; no public runtime crawler | none until assigned | draft factual metadata plus per-record provenance | current terms/robots review, rate-limit evidence, field allowlist test, human publication approval |
 
 Create a sequence-to-code trace from `.agent/templates/sequence-to-code-trace.md` before implementing each vertical slice.

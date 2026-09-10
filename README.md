@@ -1,6 +1,6 @@
-# Career Simulation Platform for Students
+# CareerSim
 
-Career Simulation Platform for Students is an OOSE project that helps students explore IT careers through a RIASEC assessment, short task-based simulations, deterministic evaluation, and evidence-grounded AI guidance. The AI layer explains results; it never decides objective scores and is never required for the core workflow.
+CareerSim is the public shorthand for Career Simulation Platform for Students, an OOSE project that helps students explore IT careers through a RIASEC assessment, short task-based simulations, deterministic evaluation, and evidence-grounded AI guidance. The AI layer explains results; it never decides objective scores and is never required for the core workflow.
 
 This repository is an implementation-ready foundation derived from the approved proposal and the strongest architecture, traceability, testing, and AI-development conventions in PeerGrade Hub.
 
@@ -130,4 +130,4 @@ Read `AGENTS.md` and `.agent/README.md` before implementation. Every feature mus
 Proposal/SRS -> User story -> Acceptance criteria -> Sequence/domain design -> Code -> Tests -> Evidence -> Report update
 ```
 
-Do not commit `.env`, API keys, model credentials, private student data, or copied third-party simulation content.
+Do not commit `.env`, API keys, model credentials, private student data, or copied third-party simulation content. Public external catalog metadata may be collected for the non-commercial course project only under `docs/data/simulation-content-policy.md`; CareerSim simulation tasks remain original or separately licensed.

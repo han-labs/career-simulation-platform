@@ -1,5 +1,7 @@
 # Career Simulation Platform UI Design System
 
+Public product shorthand: **CareerSim**.
+
 ## 1 Product mood
 
 The product should feel curious, calm, practical, and student-centered. It should invite experimentation without looking childish or presenting career guidance as an authoritative verdict.
@@ -11,25 +13,28 @@ Avoid hard corporate-blue dashboards, dark page backgrounds, gradients, aggressi
 ## 2 Color tokens
 
 ```css
---page-bg: #F5F1E8;
---paper: #FCFBF7;
+--page-bg: #F4F2EC;
+--paper: #FBFAF7;
 --card: #FFFFFF;
---ink: #19211F;
---muted: #67716D;
---line: #DCDED8;
---accent: #DF6F49;
---accent-dark: #AA4425;
---sage: #DFEADD;
+--ink: #142421;
+--muted: #64726E;
+--line: #D7DDD9;
+--accent: #D96843;
+--accent-dark: #9F4026;
+--tech: #1F6679;
+--tech-deep: #174D5C;
+--tech-soft: #DCEEF2;
+--sage: #DFECE3;
 --sage-ink: #28583B;
---blue: #DCECF2;
---blue-ink: #245F74;
+--blue: #DCECF3;
+--blue-ink: #1C6178;
 --violet: #E8E1EF;
 --violet-ink: #604B78;
 --gold: #F1E5BE;
 --gold-ink: #735C15;
 ```
 
-Use color to classify tracks and express state, never as the only carrier of meaning. Text and icons must accompany success, warning, error, active, and fallback states.
+Warm neutral surfaces keep the product welcoming; restrained teal/blue accents communicate the technology focus without turning the experience into a corporate dashboard. Use color to classify tracks and express state, never as the only carrier of meaning. Text and icons must accompany success, warning, error, active, and fallback states.
 
 ## 3 Typography
 

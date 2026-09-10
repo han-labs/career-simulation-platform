@@ -25,6 +25,7 @@ Acceptance baseline:
 - Submission validation, scoring, and task-level outcomes are deterministic.
 - The completed attempt and evaluation result are persisted transactionally.
 - The two-minute demo slice supports Backend API Triage with three tasks.
+- Any externally researched catalog metadata has a source URL, retrieval date, permitted-use review, and human approval before publication; CareerSim task content remains original or separately licensed.
 
 ## US-03 Receive evidence-grounded guidance
 
@@ -45,6 +46,7 @@ Acceptance baseline:
 - Enterprise/content-provider authoring, editing, publishing, and monitoring.
 - Persistent PostgreSQL data and append-only Flyway migrations.
 - Containerized Ubuntu VM deployment through Docker Compose and Nginx.
+- Governed collection of permitted public factual metadata for IT-simulation catalog research in this non-commercial course project, subject to current source terms, `robots.txt`, provenance, rate limits, and human review.
 
 ## Out of scope for the initial MVP
 

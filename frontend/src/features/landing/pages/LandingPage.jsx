@@ -105,7 +105,7 @@ function LandingPage() {
         <div className="hero__copy">
           <span className="eyebrow">
             <Sparkles size={16} aria-hidden="true" />
-            Career exploration built around evidence
+            Explore skills through practice
           </span>
           <h1>
             Explore IT work before you choose a <em>direction.</em>
@@ -140,7 +140,9 @@ function LandingPage() {
               <strong>Interest signals</strong>
               <small>RIASEC profile</small>
             </div>
-            <span className="mini-chart"><i /><i /><i /><i /><i /><i /></span>
+            <span className="mini-chart" aria-hidden="true">
+              <i /><i /><i /><i /><i /><i />
+            </span>
           </div>
           <div className="hero-board__item">
             <span>2</span>

@@ -21,8 +21,8 @@ frontend/dist/
 frontend/coverage/
 
 # Runtime data
-uploads/
-data/
+/uploads/
+/data/
 
 # Temporary agent/tool outputs
 .codex-tmp/

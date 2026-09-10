@@ -7,7 +7,7 @@ function BrandMark({ compact = false }) {
         <Compass size={compact ? 18 : 22} strokeWidth={2.2} />
       </span>
       <span className="brand-mark__text">
-        Career<span>Compass</span>
+        Career<span>Sim</span>
       </span>
     </span>
   )

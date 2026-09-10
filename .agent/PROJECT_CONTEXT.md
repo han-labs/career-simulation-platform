@@ -3,6 +3,7 @@
 ## 1 Project identity
 
 Project name: **Career Simulation Platform for Students**  
+Public product shorthand: **CareerSim**
 Repository folder: **career-simulation-platform**  
 Course context: **New Technologies in Software Engineering / OOSE-style engineering evidence**  
 Product type: **Experiential IT career exploration web platform**
@@ -95,9 +96,11 @@ Excluded:
 
 The student opens **Backend API Triage**, completes three tasks, and submits answers. The backend validates the request, loads task definitions, scores without AI, persists the attempt/result, assembles controlled evidence, requests structured guidance, validates it, and returns the report. If AI fails, the student still receives the objective score and deterministic guidance.
 
-## 8 External product reference
+## 8 External product reference and academic data use
 
-The Forage is used only as interaction/product research: searchable catalog, duration and difficulty metadata, self-paced simulations, task sequences, model-answer comparison, and reflection. Do not copy employer tasks, answers, brand assets, or datasets. See `../docs/data/simulation-content-policy.md`.
+The Forage is an external product reference for the non-commercial course project. The team may collect permitted, publicly accessible factual metadata about IT-related simulations for catalog research, such as the source URL, title, publisher attribution, track/category, public difficulty, duration, task count, and skill labels. Collection must follow the current source terms, `robots.txt`, technical controls, and a conservative rate limit; it must stop when permission cannot be verified.
+
+This approval does not extend to authenticated content, employer task descriptions, task files, model answers, certificates, personal data, brand assets, screenshots, or verbatim republication. CareerSim publishes original or separately licensed simulation tasks. Every external record requires provenance and human review under BR-16. See `../docs/data/simulation-content-policy.md`.
 
 ## 9 Current implementation checkpoint
 
