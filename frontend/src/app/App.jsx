@@ -1,6 +1,6 @@
 import { Route, Routes } from 'react-router-dom'
 import AppShell from '../shared/layout/AppShell.jsx'
-import AssessmentPlaceholderPage from '../features/assessment/pages/AssessmentPlaceholderPage.jsx'
+import AssessmentPage from '../features/assessment/pages/AssessmentPage.jsx'
 import GuidancePlaceholderPage from '../features/guidance/pages/GuidancePlaceholderPage.jsx'
 import LandingPage from '../features/landing/pages/LandingPage.jsx'
 import SimulationPlaceholderPage from '../features/simulations/pages/SimulationPlaceholderPage.jsx'
@@ -10,7 +10,7 @@ function App() {
     <Routes>
       <Route element={<AppShell />}>
         <Route index element={<LandingPage />} />
-        <Route path="assessment" element={<AssessmentPlaceholderPage />} />
+        <Route path="assessment" element={<AssessmentPage />} />
         <Route
           path="simulations/:slug?"
           element={<SimulationPlaceholderPage />}

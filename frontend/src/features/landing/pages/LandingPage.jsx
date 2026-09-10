@@ -14,6 +14,8 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getPublishedSimulations } from '../../simulations/api/simulationCatalogApi.js'
 import SimulationCard from '../../simulations/components/SimulationCard.jsx'
+import { useAssessment } from '../../assessment/hooks/useAssessment.js'
+import { riasecDescriptions } from '../../assessment/data/mockQuestions.js'
 
 const fallbackSimulations = [
   {
@@ -79,6 +81,7 @@ const tracks = [
 function LandingPage() {
   const [simulations, setSimulations] = useState(fallbackSimulations)
   const [catalogStatus, setCatalogStatus] = useState('loading')
+  const { status, result } = useAssessment()
 
   useEffect(() => {
     let active = true
@@ -116,7 +119,11 @@ function LandingPage() {
           </p>
           <div className="hero__actions">
             <Link className="button" to="/assessment">
-              Start with RIASEC <ArrowRight size={18} aria-hidden="true" />
+              {status === 'completed' && result ? (
+                <>View your results <ArrowRight size={18} aria-hidden="true" /></>
+              ) : (
+                <>Start with RIASEC <ArrowRight size={18} aria-hidden="true" /></>
+              )}
             </Link>
             <Link className="button button--secondary" to="/simulations">
               Browse simulations
@@ -137,8 +144,8 @@ function LandingPage() {
           <div className="hero-board__item hero-board__item--active">
             <span>1</span>
             <div>
-              <strong>Interest signals</strong>
-              <small>RIASEC profile</small>
+              <strong>{status === 'completed' && result ? 'Your top interest' : 'Interest signals'}</strong>
+              <small>{status === 'completed' && result ? riasecDescriptions[result.topDimension]?.name || 'RIASEC profile' : 'RIASEC profile'}</small>
             </div>
             <span className="mini-chart" aria-hidden="true">
               <i /><i /><i /><i /><i /><i />
