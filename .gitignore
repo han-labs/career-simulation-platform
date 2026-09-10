@@ -1,0 +1,33 @@
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.local
+
+# IDE and operating system
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Java / Maven
+backend/target/
+*.log
+
+# Node / Vite
+frontend/node_modules/
+frontend/dist/
+frontend/coverage/
+
+# Runtime data
+uploads/
+data/
+
+# Temporary agent/tool outputs
+.codex-tmp/
+tmp/
+
+# Keep the shared project knowledge base tracked.
+!.agent/
+!.agent/**

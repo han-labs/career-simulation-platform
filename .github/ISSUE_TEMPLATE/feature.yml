@@ -1,0 +1,41 @@
+name: User story implementation
+description: Plan and track one traceable vertical slice
+title: "[US-XX] "
+labels: [feature]
+body:
+  - type: input
+    id: story
+    attributes:
+      label: User story
+      placeholder: US-01 RIASEC assessment
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Source and acceptance criteria
+      description: Link the proposal/SRS section, use-case spec, and current design artifacts.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Planned vertical slice
+      description: List frontend, controller/DTO, service, DAO/schema, tests, evidence, and report impact.
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risks and unresolved decisions
+  - type: checkboxes
+    id: guardrails
+    attributes:
+      label: Guardrails
+      options:
+        - label: Business rules will stay outside controllers.
+          required: true
+        - label: No secret or private data will be committed.
+          required: true
+        - label: AI will not determine objective scores.
+          required: true

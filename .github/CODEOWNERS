@@ -1,0 +1,3 @@
+# Add verified GitHub usernames only after the repository and team accounts exist.
+# Frontend responsibility is documented in .agent/TASKS.md; names are not
+# guessed here because CODEOWNERS requires real GitHub handles.
