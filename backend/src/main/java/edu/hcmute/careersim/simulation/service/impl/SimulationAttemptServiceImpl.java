@@ -53,13 +53,15 @@ public class SimulationAttemptServiceImpl implements SimulationAttemptService {
                 request.answers().size());
         // TODO(auth): replace header-based studentId with JWT claim when identity module is ready
         // Tracking: .agent/reports/ai/2026-09-11-us-02-frontend.md
-        var simulation = simulationDao.findBySlugAndStatus(slug, SimulationStatus.PUBLISHED)
-                .orElseThrow(() -> new NotFoundException("Published simulation was not found."));
+        var simulation =
+                simulationDao
+                        .findBySlugAndStatus(slug, SimulationStatus.PUBLISHED)
+                        .orElseThrow(
+                                () -> new NotFoundException("Published simulation was not found."));
         List<SimulationTask> tasks =
                 taskDao.findBySimulationIdOrderByDisplayOrderAsc(simulation.getId());
-        List<TaskOutcomeDto> outcomes = tasks.stream()
-                .map(task -> evaluateTask(task, request.answers()))
-                .toList();
+        List<TaskOutcomeDto> outcomes =
+                tasks.stream().map(task -> evaluateTask(task, request.answers())).toList();
         int correctCount = (int) outcomes.stream().filter(TaskOutcomeDto::isCorrect).count();
 
         SimulationAttempt attempt =
@@ -91,29 +93,34 @@ public class SimulationAttemptServiceImpl implements SimulationAttemptService {
         String explanation = stringValue(rule.get("explanation"));
         String selectedOption = answers.get(task.getId());
         boolean isCorrect = selectedOption != null && selectedOption.equals(correctOption);
-        return new TaskOutcomeDto(task.getId(), task.getTitle(), selectedOption, isCorrect, explanation);
+        return new TaskOutcomeDto(
+                task.getId(), task.getTitle(), selectedOption, isCorrect, explanation);
     }
 
     private void saveSubmissions(Long attemptId, Map<Long, String> answers) {
-        List<TaskSubmission> submissions = answers.entrySet().stream()
-                .map(entry -> TaskSubmission.create(
-                        attemptId,
-                        entry.getKey(),
-                        writeJson(Map.of("selectedOption", entry.getValue()))))
-                .toList();
+        List<TaskSubmission> submissions =
+                answers.entrySet().stream()
+                        .map(
+                                entry ->
+                                        TaskSubmission.create(
+                                                attemptId,
+                                                entry.getKey(),
+                                                writeJson(
+                                                        Map.of(
+                                                                "selectedOption",
+                                                                entry.getValue()))))
+                        .toList();
         submissionDao.saveAll(submissions);
     }
 
     private void saveResult(
-            Long attemptId,
-            int correctCount,
-            int totalTasks,
-            List<TaskOutcomeDto> outcomes) {
-        resultDao.save(EvaluationResult.create(
-                attemptId,
-                BigDecimal.valueOf(correctCount),
-                BigDecimal.valueOf(totalTasks),
-                writeJson(outcomes)));
+            Long attemptId, int correctCount, int totalTasks, List<TaskOutcomeDto> outcomes) {
+        resultDao.save(
+                EvaluationResult.create(
+                        attemptId,
+                        BigDecimal.valueOf(correctCount),
+                        BigDecimal.valueOf(totalTasks),
+                        writeJson(outcomes)));
     }
 
     private Map<String, Object> parseRule(String json) {
@@ -121,8 +128,7 @@ public class SimulationAttemptServiceImpl implements SimulationAttemptService {
             return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
         } catch (JsonProcessingException exception) {
             throw new ApiException(
-                    ErrorCode.INTERNAL_SERVER_ERROR,
-                    "Simulation evaluation data is invalid.");
+                    ErrorCode.INTERNAL_SERVER_ERROR, "Simulation evaluation data is invalid.");
         }
     }
 
@@ -131,8 +137,7 @@ public class SimulationAttemptServiceImpl implements SimulationAttemptService {
             return objectMapper.writeValueAsString(value);
         } catch (JsonProcessingException exception) {
             throw new ApiException(
-                    ErrorCode.INTERNAL_SERVER_ERROR,
-                    "Simulation result could not be saved.");
+                    ErrorCode.INTERNAL_SERVER_ERROR, "Simulation result could not be saved.");
         }
     }
 

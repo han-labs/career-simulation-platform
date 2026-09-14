@@ -33,13 +33,15 @@ public class SimulationQueryServiceImpl implements SimulationQueryService {
 
     @Override
     public SimulationDetailResponse getSimulationWithTasks(String slug) {
-        var simulation = simulationDao.findBySlugAndStatus(slug, SimulationStatus.PUBLISHED)
-                .orElseThrow(() -> new NotFoundException("Published simulation was not found."));
-        List<SimulationTaskDto> tasks = taskDao
-                .findBySimulationIdOrderByDisplayOrderAsc(simulation.getId())
-                .stream()
-                .map(this::toPublicTask)
-                .toList();
+        var simulation =
+                simulationDao
+                        .findBySlugAndStatus(slug, SimulationStatus.PUBLISHED)
+                        .orElseThrow(
+                                () -> new NotFoundException("Published simulation was not found."));
+        List<SimulationTaskDto> tasks =
+                taskDao.findBySimulationIdOrderByDisplayOrderAsc(simulation.getId()).stream()
+                        .map(this::toPublicTask)
+                        .toList();
 
         return new SimulationDetailResponse(
                 simulation.getSlug(),
@@ -66,8 +68,7 @@ public class SimulationQueryServiceImpl implements SimulationQueryService {
             return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {});
         } catch (JsonProcessingException exception) {
             throw new ApiException(
-                    ErrorCode.INTERNAL_SERVER_ERROR,
-                    "Simulation evaluation data is invalid.");
+                    ErrorCode.INTERNAL_SERVER_ERROR, "Simulation evaluation data is invalid.");
         }
     }
 
@@ -79,9 +80,11 @@ public class SimulationQueryServiceImpl implements SimulationQueryService {
         return options.stream()
                 .filter(Map.class::isInstance)
                 .map(Map.class::cast)
-                .map(option -> new OptionDto(
-                        String.valueOf(option.get("id")),
-                        String.valueOf(option.get("label"))))
+                .map(
+                        option ->
+                                new OptionDto(
+                                        String.valueOf(option.get("id")),
+                                        String.valueOf(option.get("label"))))
                 .toList();
     }
 }

@@ -4,5 +4,4 @@ package edu.hcmute.careersim.simulation.dao;
 import edu.hcmute.careersim.simulation.entity.EvaluationResult;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface EvaluationResultDao extends JpaRepository<EvaluationResult, Long> {
-}
+public interface EvaluationResultDao extends JpaRepository<EvaluationResult, Long> {}

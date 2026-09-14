@@ -2,9 +2,4 @@
 package edu.hcmute.careersim.simulation.dto;
 
 public record TaskOutcomeDto(
-        Long taskId,
-        String title,
-        String selectedOption,
-        Boolean isCorrect,
-        String explanation) {
-}
+        Long taskId, String title, String selectedOption, Boolean isCorrect, String explanation) {}

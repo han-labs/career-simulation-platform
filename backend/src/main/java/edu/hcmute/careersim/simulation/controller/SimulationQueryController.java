@@ -18,8 +18,7 @@ public class SimulationQueryController {
     private final SimulationQueryService simulationQueryService;
 
     @GetMapping("/{slug}/tasks")
-    public ApiResponse<SimulationDetailResponse> getSimulationWithTasks(
-            @PathVariable String slug) {
+    public ApiResponse<SimulationDetailResponse> getSimulationWithTasks(@PathVariable String slug) {
         return ApiResponse.success(simulationQueryService.getSimulationWithTasks(slug));
     }
 }

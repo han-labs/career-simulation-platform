@@ -39,7 +39,7 @@ export const previewDashboard = {
 }
 
 // The preview remains usable before US-03 endpoints or authentication are wired.
-const fallbackStatuses = new Set([0, 401, 403, 404, 500, 502, 503, 504])
+const fallbackStatuses = new Set([0, 401, 403, 404, 429, 500, 502, 503, 504])
 
 export function normalizeDashboard(data = {}) {
   return {

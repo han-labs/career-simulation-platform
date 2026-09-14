@@ -9,5 +9,4 @@ public record SimulationTaskDto(
         String title,
         String instructions,
         String taskType,
-        List<OptionDto> options) {
-}
+        List<OptionDto> options) {}

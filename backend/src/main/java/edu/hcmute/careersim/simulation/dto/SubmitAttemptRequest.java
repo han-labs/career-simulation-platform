@@ -5,8 +5,4 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 
-public record SubmitAttemptRequest(
-        @NotNull
-        @NotEmpty
-        Map<Long, String> answers) {
-}
+public record SubmitAttemptRequest(@NotNull @NotEmpty Map<Long, String> answers) {}

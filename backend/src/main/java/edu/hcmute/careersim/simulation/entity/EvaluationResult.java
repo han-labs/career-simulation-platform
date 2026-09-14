@@ -36,11 +36,7 @@ public class EvaluationResult {
     @Column(name = "evaluated_at", nullable = false, updatable = false)
     private Instant evaluatedAt;
 
-    EvaluationResult(
-            Long attemptId,
-            BigDecimal score,
-            BigDecimal maxScore,
-            String taskOutcomes) {
+    EvaluationResult(Long attemptId, BigDecimal score, BigDecimal maxScore, String taskOutcomes) {
         this.attemptId = attemptId;
         this.score = score;
         this.maxScore = maxScore;
@@ -50,10 +46,7 @@ public class EvaluationResult {
 
     // Creates an evaluation result while preserving constructor timestamp rules.
     public static EvaluationResult create(
-            Long attemptId,
-            BigDecimal score,
-            BigDecimal maxScore,
-            String taskOutcomes) {
+            Long attemptId, BigDecimal score, BigDecimal maxScore, String taskOutcomes) {
         return new EvaluationResult(attemptId, score, maxScore, taskOutcomes);
     }
 }

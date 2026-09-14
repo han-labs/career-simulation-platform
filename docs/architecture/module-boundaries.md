@@ -25,3 +25,20 @@ React page -> feature API adapter -> HTTP controller -> service interface
 - **Mapper:** API representations are created independently of persistence entities.
 
 Do not create a pattern class without a concrete variation, boundary, or failure mode that justifies it.
+
+## US-03 focused evidence access
+
+`GuidanceService` is the US-03 facade. It does not reach into assessment, simulation,
+or identity DAOs. Each source module exposes one narrow read contract:
+
+- `StudentAccountAccess` resolves the authenticated email and returns role/status.
+- `AssessmentEvidenceAccess` returns only the latest completed dimension scores.
+- `SimulationEvidenceAccess` returns only recent evaluated scores and safe task
+  outcomes; answer payloads and evaluation rules are never selected.
+
+`GuidanceDao` owns confirmed-plan persistence and guidance provenance.
+`StandardGuidancePolicy` is deterministic. `SynGuidanceProvider` is the provider-neutral
+port, while `OpenAiSynGuidanceProvider` and `GeminiSynGuidanceProvider` are selectable
+infrastructure adapters. The service selects AI only for consented, safe free-text
+input and otherwise uses the policy without changing controllers or objective
+evidence storage.

@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 @RequiredArgsConstructor
 public enum ErrorCode {
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "BAD_REQUEST", "The request is invalid."),
+    FORBIDDEN(HttpStatus.FORBIDDEN, "FORBIDDEN", "You are not allowed to perform this action."),
     NOT_FOUND(HttpStatus.NOT_FOUND, "NOT_FOUND", "The requested resource was not found."),
     VALIDATION_ERROR(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", "One or more fields are invalid."),
     INTERNAL_SERVER_ERROR(

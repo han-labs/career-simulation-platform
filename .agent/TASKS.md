@@ -34,9 +34,9 @@ Each owner should still verify the full vertical slice with the responsible back
 | Public simulation catalog API | Ready foundation slice | service/controller/architecture tests |
 | Docker Compose and Nginx | Ready for smoke verification | compose config and health/catalog endpoints |
 | Authentication/profile | Not implemented | planned foundation dependency |
-| US-01 workflow | Not implemented | route and boundary reserved |
-| US-02 workflow | Not implemented | route and boundary reserved |
-| US-03 workflow | Frontend demonstration ready | `/dashboard`, Syn interactions, preview/Standard fallback, adapter tests; backend integration pending |
+| US-01 workflow | Preliminary backend/frontend integration | deterministic assessment API and connected frontend from the latest team pull; full acceptance audit remains |
+| US-02 workflow | Preliminary backend/frontend integration | catalog/attempt/evaluation API and connected frontend from the latest team pull; full acceptance audit remains |
+| US-03 workflow | Backend/frontend and optional AI adapter ready | `/dashboard`, global three-mode Syn, protected guidance API, minimized evidence, consent-gated structured provider output, Standard fallback, plan persistence, provenance and tests; opt-in localhost demo identity verified while runtime login remains pending |
 | Enterprise management | Not implemented | boundary reserved |
 
 ## 3 Definition of Done for every story

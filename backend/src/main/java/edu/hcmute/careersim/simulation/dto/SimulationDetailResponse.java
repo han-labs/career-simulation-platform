@@ -9,5 +9,4 @@ public record SimulationDetailResponse(
         String summary,
         String difficulty,
         Integer estimatedMinutes,
-        List<SimulationTaskDto> tasks) {
-}
+        List<SimulationTaskDto> tasks) {}

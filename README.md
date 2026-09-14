@@ -44,6 +44,92 @@ No secret or local `.env` file is required for the demo foundation.
 docker compose up --build
 ```
 
+### Enable Syn's optional Gemini or OpenAI provider
+
+Standard guidance works without an API key. To enable AI for eligible free-text
+questions, create an ignored local environment file and edit it without sharing the
+key:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+For a Gemini key created in Google AI Studio, set these values in `.env`:
+
+```dotenv
+AI_PROVIDER=gemini
+GEMINI_API_KEY=replace-with-your-own-ai-studio-key
+GEMINI_MODEL=gemini-3.5-flash-lite
+GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta
+AI_TIMEOUT_SECONDS=8
+AI_MAX_OUTPUT_TOKENS=300
+```
+
+Until the full login UI is implemented, a local browser can exercise the protected
+guidance flow with the seeded synthetic student. This mode is opt-in and accepts
+guidance requests only when the request hostname is a loopback host:
+
+```dotenv
+LOCAL_DEMO_MODE=true
+LOCAL_DEMO_EMAIL=student@demo.com
+```
+
+Record consent for that synthetic profile once in the local database before making
+an external AI call:
+
+```powershell
+docker compose exec -T postgres psql -U career_sim -d career_simulation -c "UPDATE student_profiles SET consented_to_ai_at = COALESCE(consented_to_ai_at, CURRENT_TIMESTAMP) WHERE user_id = (SELECT id FROM app_users WHERE email = 'student@demo.com' AND role = 'STUDENT' AND status = 'ACTIVE');"
+```
+
+Keep `LOCAL_DEMO_MODE=false` in every shared or deployed environment. The mode is
+only a temporary localhost integration aid and does not replace production login.
+
+Alternatively, configure OpenAI:
+
+```dotenv
+AI_PROVIDER=openai
+OPENAI_API_KEY=replace-with-your-own-project-key
+AI_MODEL=gpt-5.6-luna
+AI_TIMEOUT_SECONDS=8
+AI_MAX_OUTPUT_TOKENS=300
+```
+
+Then rebuild only the affected services:
+
+```powershell
+docker compose up -d --build backend frontend gateway
+```
+
+The key is read only by the backend container. Never rename it with a `VITE_`
+prefix, paste it into React, commit `.env`, print it in screenshots, or put it in a
+Git command. Quick actions remain deterministic and do not call the provider. An
+AI call is attempted only for a safe free-text message from a consenting student;
+all other cases return Standard guidance.
+
+To test both adapters without sending real data or depending on unfinished runtime
+authentication, run the mocked tests:
+
+```powershell
+cd backend
+.\mvnw.cmd "-Dtest=GeminiSynGuidanceProviderTest,OpenAiSynGuidanceProviderTest" test
+```
+
+An optional live smoke spends a small amount of API usage and sends synthetic
+evidence only:
+
+```powershell
+$env:RUN_LIVE_GEMINI_TEST="true"
+$env:GEMINI_API_KEY="replace-with-your-own-ai-studio-key"
+$env:GEMINI_MODEL="gemini-3.5-flash-lite"
+.\mvnw.cmd "-Dtest=GeminiSynGuidanceLiveTest" test
+Remove-Item Env:RUN_LIVE_GEMINI_TEST,Env:GEMINI_API_KEY,Env:GEMINI_MODEL
+```
+
+Runtime browser calls normally require the planned identity/login foundation and
+recorded `consented_to_ai_at`. During local development only, the explicit demo mode
+above supplies the seeded principal while preserving the service's account, status,
+role, and consent checks.
+
 Open:
 
 - Application through Nginx: `http://localhost:8080`

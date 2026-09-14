@@ -68,10 +68,27 @@ function AppShell() {
 
       <footer className="site-footer">
         <div className="site-footer__inner">
-          <BrandMark compact />
-          <p>
-            Evidence for exploration, not a decision made on a student&apos;s behalf.
-          </p>
+          <div className="site-footer__brand">
+            <BrandMark compact />
+            <p>Explore IT careers through interests, practice, and evidence.</p>
+          </div>
+
+          <nav className="site-footer__nav" aria-label="Footer navigation">
+            <div>
+              <strong>Explore</strong>
+              <Link to="/assessment">RIASEC assessment</Link>
+              <Link to="/simulations">Career simulations</Link>
+            </div>
+            <div>
+              <strong>Your journey</strong>
+              <Link to="/dashboard">Dashboard &amp; Syn</Link>
+              <a href="/#how-it-works">How it works</a>
+            </div>
+          </nav>
+        </div>
+        <div className="site-footer__bottom">
+          <span>© {new Date().getFullYear()} CareerSim</span>
+          <span>Academic project · Guidance supports exploration, not final decisions.</span>
         </div>
       </footer>
     </div>

@@ -6,6 +6,5 @@ import edu.hcmute.careersim.simulation.dto.SubmitAttemptResponse;
 
 public interface SimulationAttemptService {
 
-    SubmitAttemptResponse submitAttempt(
-            String slug, Long studentId, SubmitAttemptRequest request);
+    SubmitAttemptResponse submitAttempt(String slug, Long studentId, SubmitAttemptRequest request);
 }

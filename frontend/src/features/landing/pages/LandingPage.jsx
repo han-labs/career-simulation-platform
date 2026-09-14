@@ -1,12 +1,7 @@
 import {
   ArrowRight,
-  BarChart3,
   BrainCircuit,
-  CheckCircle2,
-  Code2,
   FlaskConical,
-  Gauge,
-  ShieldCheck,
   Sparkles,
   Target,
 } from 'lucide-react'
@@ -71,13 +66,6 @@ const journey = [
   },
 ]
 
-const tracks = [
-  { icon: Code2, title: 'Build systems', tag: 'Backend', color: 'blue' },
-  { icon: Gauge, title: 'Shape experiences', tag: 'Frontend', color: 'violet' },
-  { icon: BarChart3, title: 'Find signal in data', tag: 'Data', color: 'gold' },
-  { icon: ShieldCheck, title: 'Protect what matters', tag: 'Security', color: 'green' },
-]
-
 function LandingPage() {
   const [simulations, setSimulations] = useState(fallbackSimulations)
   const [catalogStatus, setCatalogStatus] = useState('loading')
@@ -129,10 +117,6 @@ function LandingPage() {
               Browse simulations
             </Link>
           </div>
-          <p className="hero__trust">
-            <CheckCircle2 size={17} aria-hidden="true" />
-            Objective scoring remains deterministic, even when AI is unavailable.
-          </p>
         </div>
 
         <div className="hero-board" aria-label="Career exploration journey preview">
@@ -145,7 +129,9 @@ function LandingPage() {
             <span>1</span>
             <div>
               <strong>{status === 'completed' && result ? 'Your top interest' : 'Interest signals'}</strong>
-              <small>{status === 'completed' && result ? riasecDescriptions[result.topDimension]?.name || 'RIASEC profile' : 'RIASEC profile'}</small>
+              {status === 'completed' && result && (
+                <small>{riasecDescriptions[result.topDimension]?.name || 'RIASEC profile'}</small>
+              )}
             </div>
             <span className="mini-chart" aria-hidden="true">
               <i /><i /><i /><i /><i /><i />
@@ -155,7 +141,6 @@ function LandingPage() {
             <span>2</span>
             <div>
               <strong>Work samples</strong>
-              <small>Three focused tasks</small>
             </div>
             <span className="hero-board__score">0 / 3</span>
           </div>
@@ -163,13 +148,9 @@ function LandingPage() {
             <span>3</span>
             <div>
               <strong>Dashboard + Syn</strong>
-              <small>Evidence and next steps</small>
             </div>
             <BrainCircuit size={24} aria-hidden="true" />
           </div>
-          <p className="hero-board__note">
-            A recommendation is an invitation to explore, not a final career answer.
-          </p>
         </div>
       </section>
 
@@ -178,10 +159,6 @@ function LandingPage() {
           <div className="section-heading">
             <span className="eyebrow">A practical feedback loop</span>
             <h2>Move from curiosity to informed reflection</h2>
-            <p>
-              The platform joins interest signals and performance evidence instead of
-              relying on a single quiz result.
-            </p>
           </div>
           <div className="journey-grid">
             {journey.map(({ icon: Icon, number, title, copy }) => (
@@ -198,40 +175,11 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="section section-shell">
-        <div className="section-heading section-heading--split">
-          <div>
-            <span className="eyebrow">IT exploration tracks</span>
-            <h2>Start with the kind of problem you want to try</h2>
-          </div>
-          <p>
-            The first release stays intentionally focused on five IT directions so
-            each simulation can be short, credible, and testable.
-          </p>
-        </div>
-        <div className="track-grid">
-          {tracks.map(({ icon: Icon, title, tag, color }) => (
-            <article className={`track-card track-card--${color}`} key={tag}>
-              <Icon size={25} aria-hidden="true" />
-              <div>
-                <span>{tag}</span>
-                <h3>{title}</h3>
-              </div>
-              <ArrowRight size={20} aria-hidden="true" />
-            </article>
-          ))}
-        </div>
-      </section>
-
       <section className="section section--ink">
         <div className="section-shell">
           <div className="section-heading section-heading--inverse">
             <span className="eyebrow">Starter catalog</span>
             <h2>Try a compact simulation</h2>
-            <p>
-              Original demo scenarios are included for local development. Production
-              content requires review and provenance records.
-            </p>
           </div>
           {catalogStatus === 'fallback' && (
             <p className="catalog-notice" role="status">
@@ -251,15 +199,6 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="closing section-shell">
-        <div>
-          <span className="eyebrow">Your next step can stay small</span>
-          <h2>Learn something useful about yourself in under an hour.</h2>
-        </div>
-        <Link className="button" to="/assessment">
-          Begin exploration <ArrowRight size={18} aria-hidden="true" />
-        </Link>
-      </section>
     </>
   )
 }

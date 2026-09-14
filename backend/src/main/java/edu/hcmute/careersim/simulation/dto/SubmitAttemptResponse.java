@@ -8,5 +8,4 @@ public record SubmitAttemptResponse(
         Integer correctCount,
         Integer totalTasks,
         Integer percentage,
-        List<TaskOutcomeDto> outcomes) {
-}
+        List<TaskOutcomeDto> outcomes) {}

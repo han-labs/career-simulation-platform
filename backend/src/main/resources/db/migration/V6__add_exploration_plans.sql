@@ -1,0 +1,14 @@
+CREATE TABLE exploration_plans (
+    id BIGSERIAL PRIMARY KEY,
+    student_id BIGINT NOT NULL UNIQUE REFERENCES app_users(id) ON DELETE RESTRICT,
+    title VARCHAR(120) NOT NULL,
+    steps JSONB NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE' CHECK (status IN ('ACTIVE', 'ARCHIVED')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+ALTER TABLE guidance_reports
+    ADD COLUMN action_type VARCHAR(40),
+    ADD COLUMN generation_ms INTEGER CHECK (generation_ms IS NULL OR generation_ms >= 0);
+
