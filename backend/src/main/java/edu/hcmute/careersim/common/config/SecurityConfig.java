@@ -29,6 +29,8 @@ public class SecurityConfig {
                                         .permitAll()
                                         .requestMatchers(HttpMethod.GET, "/v1/simulations/**")
                                         .permitAll()
+                                        .requestMatchers("/v1/assessments/**")
+                                        .permitAll()
                                         .anyRequest()
                                         .denyAll())
                 .build();
@@ -42,7 +44,7 @@ public class SecurityConfig {
                 Arrays.stream(allowedOrigins.split(",")).map(String::trim).toList());
         configuration.setAllowedMethods(
                 List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Student-Id"));
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
