@@ -43,4 +43,9 @@ public class TaskSubmission {
         this.answerPayload = answerPayload;
         this.submittedAt = Instant.now();
     }
+
+    // Creates a persisted answer submission with its submission timestamp.
+    public static TaskSubmission create(Long attemptId, Long taskId, String answerPayload) {
+        return new TaskSubmission(attemptId, taskId, answerPayload);
+    }
 }

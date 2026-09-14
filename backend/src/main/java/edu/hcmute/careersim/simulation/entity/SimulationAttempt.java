@@ -50,4 +50,14 @@ public class SimulationAttempt {
         this.status = status;
         this.startedAt = Instant.now();
     }
+
+    // Creates an attempt that has completed server-side evaluation.
+    public static SimulationAttempt createEvaluated(Long simulationId, Long studentId) {
+        SimulationAttempt attempt =
+                new SimulationAttempt(simulationId, studentId, AttemptStatus.EVALUATED);
+        Instant now = Instant.now();
+        attempt.submittedAt = now;
+        attempt.evaluatedAt = now;
+        return attempt;
+    }
 }

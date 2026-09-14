@@ -47,4 +47,13 @@ public class EvaluationResult {
         this.taskOutcomes = taskOutcomes;
         this.evaluatedAt = Instant.now();
     }
+
+    // Creates an evaluation result while preserving constructor timestamp rules.
+    public static EvaluationResult create(
+            Long attemptId,
+            BigDecimal score,
+            BigDecimal maxScore,
+            String taskOutcomes) {
+        return new EvaluationResult(attemptId, score, maxScore, taskOutcomes);
+    }
 }
