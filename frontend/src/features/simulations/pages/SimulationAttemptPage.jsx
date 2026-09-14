@@ -1,21 +1,43 @@
-// Provides the Phase 1 Backend Developer attempt route with no API or AI dependency.
+// Loads simulation tasks from the API with mock fallback and submits through the API.
 import { useEffect, useRef, useState } from 'react'
-import { ArrowLeft, CircleCheck } from 'lucide-react'
+import { ArrowLeft, CircleCheck, LoaderCircle, TriangleAlert } from 'lucide-react'
 import { Link, useParams } from 'react-router-dom'
 import SimulationResult from '../components/SimulationResult.jsx'
 import SubmissionConfirmationDialog from '../components/SubmissionConfirmationDialog.jsx'
 import SimulationWorkspace from '../components/SimulationWorkspace.jsx'
 import SimulationNavigation from '../components/SimulationNavigation.jsx'
 import { backendDeveloperSimulation } from '../data/backendDeveloperSimulation.js'
+import { fetchSimulationDetail } from '../api/simulationApi.js'
 import { useSimulationAttempt } from '../hooks/useSimulationAttempt.js'
 
 function SimulationAttemptPage() {
   const { slug } = useParams()
-  const simulation = slug === backendDeveloperSimulation.id ? backendDeveloperSimulation : null
-  const attempt = useSimulationAttempt(simulation?.tasks ?? [])
+  const [state, setState] = useState({ status: 'loading', simulation: null })
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const errorSummaryRef = useRef(null)
   const submitButtonRef = useRef(null)
+
+  useEffect(() => {
+    let active = true
+    fetchSimulationDetail(slug)
+      .then((simulation) => {
+        if (active) setState({ status: 'ready', simulation })
+      })
+      .catch((error) => {
+        console.warn('Simulation attempt API unavailable; using mock data.', error)
+        if (!active) return
+        const fallback = slug === backendDeveloperSimulation.id
+          ? backendDeveloperSimulation
+          : null
+        setState({ status: 'ready', simulation: fallback })
+      })
+    return () => {
+      active = false
+    }
+  }, [slug])
+
+  const simulation = state.simulation
+  const attempt = useSimulationAttempt(simulation?.tasks ?? [], slug)
   const currentTask = simulation?.tasks[attempt.currentTaskIndex]
   const hasTaskError = Boolean(
     currentTask
@@ -26,6 +48,10 @@ function SimulationAttemptPage() {
   useEffect(() => {
     if (hasTaskError) errorSummaryRef.current?.focus()
   }, [hasTaskError])
+
+  if (state.status === 'loading') {
+    return <main className="catalog-page section-shell"><section className="catalog-state"><LoaderCircle className="spin" aria-hidden="true" /><p>Loading simulation...</p></section></main>
+  }
 
   if (!simulation) {
     return (
@@ -46,7 +72,7 @@ function SimulationAttemptPage() {
   }
 
   const handleConfirmSubmit = () => {
-    attempt.submit()
+    void attempt.submit()
     setIsDialogOpen(false)
   }
 
@@ -65,6 +91,7 @@ function SimulationAttemptPage() {
         <h1>{simulation.title}</h1>
         <p>Experience three representative backend tasks. Your result appears after you submit.</p>
       </header>
+      {attempt.submitError && <p className="form-summary" role="status"><TriangleAlert size={18} aria-hidden="true" /> API submit failed; showing the local deterministic result. {attempt.submitError}</p>}
       {attempt.result ? (
         <SimulationResult result={attempt.result} onRestart={attempt.restart} />
       ) : (
