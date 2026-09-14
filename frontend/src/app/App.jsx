@@ -16,7 +16,7 @@ function App() {
         <Route path="simulations" element={<SimulationCatalogPage />} />
         <Route path="simulations/:slug" element={<SimulationDetailPage />} />
         <Route
-          path="simulations/backend-developer/attempt"
+          path="simulations/:slug/attempt"
           element={<SimulationAttemptPage />}
         />
         <Route path="guidance" element={<GuidancePage />} />

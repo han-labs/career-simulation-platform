@@ -18,6 +18,7 @@ function SimulationAttemptPage() {
   const submitButtonRef = useRef(null)
 
   useEffect(() => {
+    if (!slug) return
     let active = true
     fetchSimulationDetail(slug)
       .then((simulation) => {
