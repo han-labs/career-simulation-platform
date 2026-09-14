@@ -822,6 +822,47 @@ a {
   background: var(--paper);
 }
 
+.dialog-backdrop {
+  position: fixed;
+  z-index: 40;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(20, 36, 33, 0.52);
+}
+
+.confirmation-dialog {
+  width: min(100%, 500px);
+  padding: clamp(22px, 5vw, 34px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--card);
+  box-shadow: 0 24px 70px rgba(20, 36, 33, 0.24);
+}
+
+.confirmation-dialog h2 {
+  margin: 0;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.6rem, 4vw, 2.1rem);
+  font-weight: 500;
+}
+
+.confirmation-dialog p {
+  margin: 16px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.confirmation-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 26px;
+}
+
 .task-list,
 .outcome-list {
   display: grid;
@@ -2019,6 +2060,10 @@ a {
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .save-status {
+    transition: none;
   }
 
   *,

@@ -1,4 +1,4 @@
-// Holds the Phase 1 attempt in memory; autosave and resume are intentionally deferred.
+// Manages the Phase 1 simulation attempt and deterministic evaluation.
 import { useState } from 'react'
 import { evaluateAttempt } from '../utils/simulationEvaluator.js'
 
