@@ -29,6 +29,8 @@ public class SecurityConfig {
                                         .permitAll()
                                         .requestMatchers(HttpMethod.GET, "/v1/simulations/**")
                                         .permitAll()
+                                        .requestMatchers(HttpMethod.POST, "/v1/simulations/*/attempts")
+                                        .permitAll() // TODO(auth): change to .hasRole("STUDENT") when identity module is ready
                                         .requestMatchers("/v1/assessments/**")
                                         .permitAll()
                                         .anyRequest()
