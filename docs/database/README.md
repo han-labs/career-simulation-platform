@@ -32,7 +32,11 @@ duplicated `dashboard` table.
 The existing `guidance_reports` table is reused as an internal provenance/audit record.
 V6 adds `action_type` and measured `generation_ms`. `V7__sync_seed_sequences.sql`
 repairs the `app_users` sequence after the explicit demo ID introduced by the pulled
-US-01 seed. Standard deterministic replies use database source `FALLBACK` and API
+US-01 seed. `V8__seed_complete_local_demo.sql` completes the synthetic localhost
+journey with 42 assessment answers and scores, one evaluated Backend Developer
+attempt, demo-only AI consent, and three original tasks for every published
+simulation. It does not seed a plan so that plan drafting, review, and explicit save
+remain demonstrable interactions. Standard deterministic replies use database source `FALLBACK` and API
 label `STANDARD`; successful provider replies use `AI` plus the configured model.
 Provider failures use `REPLACED_BY_FALLBACK`. No raw chat history, key, or prompt is
 stored. A record is created only when completed evidence grounds the response.

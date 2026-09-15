@@ -74,11 +74,17 @@ LOCAL_DEMO_MODE=true
 LOCAL_DEMO_EMAIL=student@demo.com
 ```
 
-Record consent for that synthetic profile once in the local database before making
-an external AI call:
+Flyway V8 prepares this synthetic profile for an immediate end-to-end demo. It adds
+a completed 42-question RIASEC baseline, one evaluated Backend Developer result,
+AI consent for this demo identity, and three original multiple-choice tasks for each
+published simulation. New assessment and simulation attempts are still persisted and
+become the latest evidence shown on Dashboard and used by Syn.
+
+Apply the migration and rebuild the application:
 
 ```powershell
-docker compose exec -T postgres psql -U career_sim -d career_simulation -c "UPDATE student_profiles SET consented_to_ai_at = COALESCE(consented_to_ai_at, CURRENT_TIMESTAMP) WHERE user_id = (SELECT id FROM app_users WHERE email = 'student@demo.com' AND role = 'STUDENT' AND status = 'ACTIVE');"
+docker compose up -d --build
+Invoke-RestMethod http://localhost:8080/api/health
 ```
 
 Keep `LOCAL_DEMO_MODE=false` in every shared or deployed environment. The mode is
@@ -127,8 +133,10 @@ Remove-Item Env:RUN_LIVE_GEMINI_TEST,Env:GEMINI_API_KEY,Env:GEMINI_MODEL
 
 Runtime browser calls normally require the planned identity/login foundation and
 recorded `consented_to_ai_at`. During local development only, the explicit demo mode
-above supplies the seeded principal while preserving the service's account, status,
-role, and consent checks.
+above supplies the V8 synthetic principal while preserving the service's account,
+status, role, and consent checks. Quick actions always use Standard guidance; enter a
+safe free-text question such as `What should I explore next based on my results?` to
+exercise the configured Gemini adapter.
 
 Open:
 

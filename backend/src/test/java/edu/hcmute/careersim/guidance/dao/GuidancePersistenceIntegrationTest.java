@@ -2,6 +2,7 @@ package edu.hcmute.careersim.guidance.dao;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import edu.hcmute.careersim.simulation.access.SimulationEvidenceAccess;
 import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.AfterEach;
@@ -36,6 +37,7 @@ class GuidancePersistenceIntegrationTest {
 
     @Autowired private GuidanceDao guidanceDao;
     @Autowired private JdbcTemplate jdbcTemplate;
+    @Autowired private SimulationEvidenceAccess simulationEvidenceAccess;
 
     private long studentId;
     private long assessmentAttemptId;
@@ -110,5 +112,66 @@ class GuidancePersistenceIntegrationTest {
                                 String.class,
                                 studentId))
                 .isEqualTo("FALLBACK:EXPLAIN_RIASEC");
+    }
+
+    @Test
+    void flywaySeedsACompleteSyntheticDemoJourney() {
+        Long demoStudentId =
+                jdbcTemplate.queryForObject(
+                        "SELECT id FROM app_users WHERE email = 'student@demo.com'", Long.class);
+
+        assertThat(demoStudentId).isNotNull();
+        assertThat(
+                        jdbcTemplate.queryForObject(
+                                """
+                                SELECT COUNT(*)
+                                FROM riasec_questions
+                                WHERE active = TRUE
+                                """,
+                                Integer.class))
+                .isEqualTo(42);
+        assertThat(
+                        jdbcTemplate.queryForObject(
+                                """
+                                SELECT COUNT(*)
+                                FROM career_simulations simulation
+                                WHERE simulation.status = 'PUBLISHED'
+                                  AND 3 = (
+                                      SELECT COUNT(*)
+                                      FROM simulation_tasks task
+                                      WHERE task.simulation_id = simulation.id
+                                  )
+                                """,
+                                Integer.class))
+                .isEqualTo(5);
+        assertThat(
+                        jdbcTemplate.queryForObject(
+                                """
+                                SELECT consented_to_ai_at IS NOT NULL
+                                FROM student_profiles
+                                WHERE user_id = ?
+                                """,
+                                Boolean.class,
+                                demoStudentId))
+                .isTrue();
+        assertThat(
+                        jdbcTemplate.queryForObject(
+                                """
+                                SELECT COUNT(*)
+                                FROM assessment_answers answer
+                                JOIN assessment_attempts attempt ON attempt.id = answer.attempt_id
+                                WHERE attempt.student_id = ? AND attempt.status = 'COMPLETED'
+                                """,
+                                Integer.class,
+                                demoStudentId))
+                .isEqualTo(42);
+
+        var simulations = simulationEvidenceAccess.findRecentEvaluated(demoStudentId, 3);
+        assertThat(simulations).hasSize(1);
+        assertThat(simulations.get(0).title()).isEqualTo("Backend Developer");
+        assertThat(simulations.get(0).score()).isEqualTo(67);
+        assertThat(simulations.get(0).outcomes())
+                .extracting(SimulationEvidenceAccess.TaskOutcome::status)
+                .containsExactly("OBSERVED_STRENGTH", "OBSERVED_STRENGTH", "NEEDS_MORE_EVIDENCE");
     }
 }

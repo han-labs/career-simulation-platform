@@ -56,7 +56,7 @@ class JdbcSimulationEvidenceAccess implements SimulationEvidenceAccess {
                 .intValue();
     }
 
-    private List<TaskOutcome> parseOutcomes(String rawJson) {
+    List<TaskOutcome> parseOutcomes(String rawJson) {
         if (rawJson == null || rawJson.isBlank()) {
             return List.of();
         }
@@ -69,8 +69,8 @@ class JdbcSimulationEvidenceAccess implements SimulationEvidenceAccess {
 
             List<TaskOutcome> parsed = new ArrayList<>();
             for (JsonNode item : outcomes) {
-                String label = firstText(item, "label", "skill", "name");
-                String status = item.path("status").asText("PRACTISED");
+                String label = firstText(item, "label", "skill", "name", "title");
+                String status = resolveStatus(item);
                 if (!label.isBlank() && ALLOWED_STATUSES.contains(status)) {
                     parsed.add(new TaskOutcome(label, status));
                 }
@@ -79,6 +79,17 @@ class JdbcSimulationEvidenceAccess implements SimulationEvidenceAccess {
         } catch (Exception ignored) {
             return List.of();
         }
+    }
+
+    private String resolveStatus(JsonNode item) {
+        String explicitStatus = item.path("status").asText("").trim();
+        if (!explicitStatus.isBlank()) {
+            return explicitStatus;
+        }
+        if (item.has("isCorrect") && item.path("isCorrect").isBoolean()) {
+            return item.path("isCorrect").asBoolean() ? "OBSERVED_STRENGTH" : "NEEDS_MORE_EVIDENCE";
+        }
+        return "PRACTISED";
     }
 
     private String firstText(JsonNode item, String... fields) {
