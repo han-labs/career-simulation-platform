@@ -9,6 +9,8 @@ import { fetchSimulationDetail } from '../api/simulationApi.js'
 function SimulationDetailPage() {
   const { slug } = useParams()
   const [state, setState] = useState({ status: 'loading', simulation: null })
+  console.log('Detail page state:', state)
+  console.log('Slug:', slug)
 
   useEffect(() => {
     let active = true

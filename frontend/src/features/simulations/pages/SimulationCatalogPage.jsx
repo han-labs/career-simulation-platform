@@ -1,5 +1,7 @@
 // Loads the simulation catalog from the API with a local mock fallback.
+import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import SimulationCatalog from '../components/SimulationCatalog.jsx'
 import { backendDeveloperSimulation } from '../data/backendDeveloperSimulation.js'
 import { fetchSimulations } from '../api/simulationApi.js'
@@ -27,11 +29,16 @@ function SimulationCatalogPage() {
   }
 
   return (
-    <main className="catalog-page section-shell">
-      <header className="catalog-page__intro">
-        <p className="eyebrow">Explore by doing</p>
-        <h1>Career simulations</h1>
-        <p>Explore IT career paths through representative tasks</p>
+    <main className="catalog-page us03-page section-shell">
+      <Link className="back-link" to="/">
+        <ArrowLeft size={17} aria-hidden="true" /> Back to overview
+      </Link>
+      <header className="dashboard-heading">
+        <div>
+          <p className="eyebrow">Explore by doing</p>
+          <h1>Career simulations</h1>
+          <p>Explore IT career paths through representative tasks</p>
+        </div>
       </header>
       <SimulationCatalog
         status={state.status}
