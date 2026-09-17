@@ -37,6 +37,13 @@ export function useAssessment() {
     }))
   }, [])
 
+  const setAllAnswers = useCallback((newAnswers) => {
+    setState(prev => ({
+      ...prev,
+      answers: { ...prev.answers, ...newAnswers }
+    }))
+  }, [])
+
   const fetchQuestions = useCallback(async () => {
     setIsLoading(true)
     setError(null)
@@ -116,6 +123,7 @@ export function useAssessment() {
     isLoading,
     error,
     setAnswer,
+    setAllAnswers,
     fetchQuestions,
     start,
     submit,

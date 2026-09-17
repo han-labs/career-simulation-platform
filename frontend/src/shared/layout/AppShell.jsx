@@ -5,13 +5,38 @@ import BrandMark from '../ui/BrandMark.jsx'
 
 const navigation = [
   { label: 'How it works', href: '/#how-it-works' },
-  { label: 'Career simulations', to: '/simulations' },
+  { label: 'Career simulations', href: '/#starter-catalog' },
   { label: 'RIASEC assessment', to: '/assessment' },
   { label: 'Dashboard', to: '/dashboard' },
 ]
 
 function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false)
+
+  const handleStartExploring = (e) => {
+    e.preventDefault();
+    setMenuOpen(false);
+    
+    const startY = window.scrollY;
+    const endY = document.body.scrollHeight - window.innerHeight;
+    const distance = endY - startY;
+    const duration = 5000;
+    let startTime = null;
+
+    const step = (timestamp) => {
+      if (!startTime) startTime = timestamp;
+      const progress = timestamp - startTime;
+      const percent = Math.min(progress / duration, 1);
+      
+      window.scrollTo(0, startY + distance * percent);
+      
+      if (progress < duration) {
+        window.requestAnimationFrame(step);
+      }
+    };
+    
+    window.requestAnimationFrame(step);
+  }
 
   return (
     <div className="app-shell">
@@ -51,13 +76,13 @@ function AppShell() {
                 </a>
               ),
             )}
-            <Link
+            <button
               className="button button--small"
-              to="/assessment"
-              onClick={() => setMenuOpen(false)}
+              onClick={handleStartExploring}
+              style={{ cursor: 'pointer' }}
             >
               Start exploring
-            </Link>
+            </button>
           </nav>
         </div>
       </header>

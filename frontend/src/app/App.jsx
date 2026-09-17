@@ -1,4 +1,5 @@
-import { Route, Routes } from 'react-router-dom'
+import { Route, Routes, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import AppShell from '../shared/layout/AppShell.jsx'
 import AssessmentPage from '../features/assessment/pages/AssessmentPage.jsx'
 import SynWidget from '../features/guidance/components/SynWidget.jsx'
@@ -8,9 +9,24 @@ import SimulationAttemptPage from '../features/simulations/pages/SimulationAttem
 import SimulationCatalogPage from '../features/simulations/pages/SimulationCatalogPage.jsx'
 import SimulationDetailPage from '../features/simulations/pages/SimulationDetailPage.jsx'
 
+function ScrollToTop() {
+  const { pathname, hash } = useLocation();
+
+  useEffect(() => {
+    if (!hash) {
+      setTimeout(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+      }, 0);
+    }
+  }, [pathname, hash]);
+
+  return null;
+}
+
 function ApplicationLayout() {
   return (
     <>
+      <ScrollToTop />
       <AppShell />
       <SynWidget />
     </>

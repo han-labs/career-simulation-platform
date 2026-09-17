@@ -175,7 +175,7 @@ function LandingPage() {
         </div>
       </section>
 
-      <section className="section section--ink">
+      <section className="section section--ink" id="starter-catalog">
         <div className="section-shell">
           <div className="section-heading section-heading--inverse">
             <span className="eyebrow">Starter catalog</span>

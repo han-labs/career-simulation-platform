@@ -9,7 +9,7 @@ const scaleOptions = [
   { value: 5, label: 'Strongly Like' },
 ]
 
-function AssessmentForm({ questions, answers, setAnswer, onSubmit, isLoading }) {
+function AssessmentForm({ questions, answers, setAnswer, setAllAnswers, onSubmit, isLoading }) {
   const [error, setError] = useState(null)
   const answeredCount = Object.keys(answers).length
   const totalCount = questions.length
@@ -40,6 +40,20 @@ function AssessmentForm({ questions, answers, setAnswer, onSubmit, isLoading }) 
     onSubmit()
   }
 
+  const handleDemo = (type) => {
+    const newAnswers = {}
+    questions.forEach((q, index) => {
+      if (type === 'backend') {
+        newAnswers[q.id] = (index % 6 === 1 || index % 6 === 5) ? 5 : ((index % 6 === 0) ? 4 : 2)
+      } else if (type === 'frontend') {
+        newAnswers[q.id] = (index % 6 === 2 || index % 6 === 3) ? 5 : ((index % 6 === 4) ? 4 : 2)
+      } else {
+        newAnswers[q.id] = (index % 6 === 4 || index % 6 === 5) ? 5 : ((index % 6 === 2) ? 4 : 2)
+      }
+    })
+    if (setAllAnswers) setAllAnswers(newAnswers)
+  }
+
   return (
     <form onSubmit={handleSubmit} className="assessment-form">
       {/* Sticky Progress Bar */}
@@ -68,12 +82,18 @@ function AssessmentForm({ questions, answers, setAnswer, onSubmit, isLoading }) 
         </div>
       </div>
 
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', justifyContent: 'flex-end' }}>
+        <button type="button" onClick={() => handleDemo('backend')} className="button button--small button--secondary">Demo Backend Profile</button>
+        <button type="button" onClick={() => handleDemo('frontend')} className="button button--small button--secondary">Demo Frontend Profile</button>
+        <button type="button" onClick={() => handleDemo('data')} className="button button--small button--secondary">Demo Data Profile</button>
+      </div>
+
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {questions.map((q, index) => {
           const isMissing = errorIds.includes(q.id)
           return (
             <div key={q.id} id={`question-container-${q.id}`} className="assessment-question" style={{ 
-              padding: '32px', 
+              padding: '20px', 
               background: isMissing ? '#fcebe6' : 'var(--card)', 
               borderRadius: '16px', 
               border: `1px solid ${isMissing ? 'var(--accent-dark)' : answers[q.id] ? 'var(--tech-soft)' : 'var(--line)'}`,
@@ -101,8 +121,7 @@ function AssessmentForm({ questions, answers, setAnswer, onSubmit, isLoading }) 
                       cursor: 'pointer',
                       background: isSelected ? 'var(--tech-soft)' : 'transparent',
                       color: isSelected ? 'var(--tech-deep)' : 'var(--ink)',
-                      flex: '1 1 auto',
-                      minWidth: '140px',
+                      flex: '1',
                       justifyContent: 'center',
                       transition: 'all 0.15s ease'
                     }}

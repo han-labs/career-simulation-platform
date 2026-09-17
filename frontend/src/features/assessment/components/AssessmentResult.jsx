@@ -20,8 +20,8 @@ function AssessmentResult({ result, onRestart }) {
   return (
     <div className="assessment-result">
       <div className="hero-board" style={{ 
-        marginBottom: '48px', 
-        padding: '48px', 
+        marginBottom: '32px', 
+        padding: '32px', 
         background: 'var(--card)', 
         borderRadius: '24px', 
         border: '1px solid var(--line)',
@@ -41,7 +41,7 @@ function AssessmentResult({ result, onRestart }) {
           {topInfo.description}
         </p>
 
-        <h3 style={{ fontSize: '1.1rem', marginTop: '40px', marginBottom: '16px', color: 'var(--ink)' }}>Exploration Directions</h3>
+        <h3 style={{ fontSize: '1.1rem', marginTop: '24px', marginBottom: '12px', color: 'var(--ink)' }}>Exploration Directions</h3>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           {topInfo.directions.map(dir => (
             <span key={dir} style={{ background: 'var(--page-bg)', color: 'var(--ink)', padding: '10px 16px', borderRadius: '12px', fontSize: '0.95rem', border: '1px solid var(--line)' }}>
@@ -51,11 +51,11 @@ function AssessmentResult({ result, onRestart }) {
         </div>
       </div>
 
-      <h3 style={{ fontSize: '1.5rem', marginBottom: '24px', fontFamily: 'Georgia, serif', color: 'var(--ink)' }}>Full Dimension Breakdown</h3>
-      <div style={{ display: 'grid', gap: '20px', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+      <h3 style={{ fontSize: '1.5rem', marginBottom: '20px', fontFamily: 'Georgia, serif', color: 'var(--ink)' }}>Full Dimension Breakdown</h3>
+      <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
         {sortedDimensions.map(({ dim, score, info }) => (
-          <div key={dim} style={{ padding: '24px', background: 'var(--card)', borderRadius: '16px', border: '1px solid var(--line)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
+          <div key={dim} style={{ padding: '16px', background: 'var(--card)', borderRadius: '16px', border: '1px solid var(--line)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', alignItems: 'center' }}>
               <span style={{ color: info.color, fontWeight: 'bold', fontSize: '1.1rem' }}>{info.name}</span>
               <span style={{ color: 'var(--muted)', fontSize: '0.95rem' }}>{score} / {maxPossibleScore}</span>
             </div>
@@ -74,8 +74,8 @@ function AssessmentResult({ result, onRestart }) {
         ))}
       </div>
 
-      <div style={{ marginTop: '64px', paddingTop: '32px', borderTop: '1px solid var(--line)', textAlign: 'center' }}>
-        <p style={{ color: 'var(--muted)', marginBottom: '32px', fontSize: '0.95rem', maxWidth: '600px', margin: '0 auto 32px' }}>
+      <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '1px solid var(--line)', textAlign: 'center' }}>
+        <p style={{ color: 'var(--muted)', marginBottom: '24px', fontSize: '0.95rem', maxWidth: '600px', margin: '0 auto 24px' }}>
           <strong>Implementation guardrail:</strong> These results are calculated by deterministic scoring rules and provide exploration options, not final career predictions. No AI was used to calculate this score.
         </p>
         <button 
