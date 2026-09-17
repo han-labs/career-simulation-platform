@@ -6,14 +6,13 @@ import edu.hcmute.careersim.common.exception.ApiException;
 import edu.hcmute.careersim.common.exception.ErrorCode;
 import edu.hcmute.careersim.common.exception.NotFoundException;
 import edu.hcmute.careersim.guidance.dao.GuidanceDao;
-import edu.hcmute.careersim.guidance.domain.StandardGuidancePolicy;
 import edu.hcmute.careersim.guidance.dto.DashboardResponse;
 import edu.hcmute.careersim.guidance.dto.PlanResponse;
 import edu.hcmute.careersim.guidance.dto.SavePlanRequest;
 import edu.hcmute.careersim.guidance.dto.SynMessageRequest;
 import edu.hcmute.careersim.guidance.dto.SynMessageResponse;
 import edu.hcmute.careersim.guidance.service.GuidanceService;
-import edu.hcmute.careersim.guidance.service.SynGuidanceProvider;
+import edu.hcmute.careersim.guidance.service.SynAgentOrchestrator;
 import edu.hcmute.careersim.identity.access.StudentAccountAccess;
 import edu.hcmute.careersim.identity.access.StudentAccountAccess.StudentAccount;
 import edu.hcmute.careersim.simulation.access.SimulationEvidenceAccess;
@@ -24,7 +23,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -48,8 +46,7 @@ public class GuidanceServiceImpl implements GuidanceService {
     private final AssessmentEvidenceAccess assessmentEvidenceAccess;
     private final SimulationEvidenceAccess simulationEvidenceAccess;
     private final GuidanceDao guidanceDao;
-    private final StandardGuidancePolicy standardGuidancePolicy;
-    private final List<SynGuidanceProvider> synGuidanceProviders;
+    private final SynAgentOrchestrator synAgentOrchestrator;
 
     @Override
     @Transactional(readOnly = true)
@@ -71,51 +68,14 @@ public class GuidanceServiceImpl implements GuidanceService {
             throw new NotFoundException("Completed simulation evidence was not found.");
         }
 
-        StandardGuidancePolicy.DraftReply draft =
-                standardGuidancePolicy.createReply(
-                        request.resolvedActionType(),
-                        request.message(),
+        SynAgentOrchestrator.AgentRun run =
+                synAgentOrchestrator.respond(
+                        student.id(),
+                        student.consentedToAiAt() != null,
+                        request,
                         dashboard,
                         requestedAttemptId);
-        SynMessageResponse response =
-                new SynMessageResponse(
-                        UUID.randomUUID().toString(),
-                        draft.text(),
-                        "STANDARD",
-                        draft.resultCard(),
-                        draft.suggestions(),
-                        draft.planDraft());
-        String auditSource = "FALLBACK";
-        String auditStatus = "READY";
-        String auditModel = null;
-
-        Optional<SynGuidanceProvider> availableProvider =
-                synGuidanceProviders.stream().filter(SynGuidanceProvider::isAvailable).findFirst();
-        boolean eligibleForAi =
-                "FREE_TEXT".equals(request.resolvedActionType())
-                        && student.consentedToAiAt() != null
-                        && availableProvider.isPresent()
-                        && !standardGuidancePolicy.requiresSafetyBoundary(request.message());
-        if (eligibleForAi) {
-            SynGuidanceProvider selectedProvider = availableProvider.orElseThrow();
-            try {
-                SynGuidanceProvider.AiReply aiReply =
-                        selectedProvider.generate(request.message(), dashboard);
-                response =
-                        new SynMessageResponse(
-                                UUID.randomUUID().toString(),
-                                aiReply.text(),
-                                "AI",
-                                null,
-                                aiReply.suggestions(),
-                                null);
-                auditSource = "AI";
-                auditModel = selectedProvider.modelName();
-            } catch (SynGuidanceProvider.ProviderException exception) {
-                auditStatus = "REPLACED_BY_FALLBACK";
-                log.warn("Syn provider fallback category={}", exception.kind());
-            }
-        }
+        SynMessageResponse response = run.response();
 
         Optional<AssessmentEvidence> assessment =
                 assessmentEvidenceAccess.findLatestCompleted(student.id());
@@ -138,13 +98,20 @@ public class GuidanceServiceImpl implements GuidanceService {
                     assessmentAttemptId,
                     simulationAttemptId,
                     request.resolvedActionType(),
-                    auditSource,
-                    auditStatus,
-                    auditModel,
+                    run.auditSource(),
+                    run.auditStatus(),
+                    run.modelName(),
                     response,
                     generationMs);
         }
         return response;
+    }
+
+    @Override
+    @Transactional
+    public boolean clearSynSession(String authenticatedEmail, java.util.UUID sessionId) {
+        StudentAccount student = requireActiveStudent(authenticatedEmail);
+        return synAgentOrchestrator.clearSession(student.id(), sessionId);
     }
 
     @Override

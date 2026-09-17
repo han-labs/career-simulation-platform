@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import edu.hcmute.careersim.simulation.access.SimulationEvidenceAccess;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,6 +37,7 @@ class GuidancePersistenceIntegrationTest {
     }
 
     @Autowired private GuidanceDao guidanceDao;
+    @Autowired private SynAgentDao synAgentDao;
     @Autowired private JdbcTemplate jdbcTemplate;
     @Autowired private SimulationEvidenceAccess simulationEvidenceAccess;
 
@@ -69,6 +71,7 @@ class GuidancePersistenceIntegrationTest {
     @AfterEach
     void removeSyntheticEvidence() {
         jdbcTemplate.update("DELETE FROM guidance_reports WHERE student_id = ?", studentId);
+        jdbcTemplate.update("DELETE FROM syn_sessions WHERE student_id = ?", studentId);
         jdbcTemplate.update("DELETE FROM exploration_plans WHERE student_id = ?", studentId);
         jdbcTemplate.update("DELETE FROM assessment_attempts WHERE student_id = ?", studentId);
         jdbcTemplate.update("DELETE FROM app_users WHERE id = ?", studentId);
@@ -173,5 +176,58 @@ class GuidancePersistenceIntegrationTest {
         assertThat(simulations.get(0).outcomes())
                 .extracting(SimulationEvidenceAccess.TaskOutcome::status)
                 .containsExactly("OBSERVED_STRENGTH", "OBSERVED_STRENGTH", "NEEDS_MORE_EVIDENCE");
+    }
+
+    @Test
+    void synSessionIsOwnedBoundedAndCanBeCleared() {
+        var created = synAgentDao.loadOrCreateSession(studentId, null);
+        synAgentDao.updateSession(
+                studentId,
+                created.id(),
+                "Last intent: COMPARE_PATHS.",
+                "COMPARE_PATHS",
+                List.of("BACKEND_DEVELOPMENT", "FRONTEND_DEVELOPMENT"));
+
+        var loaded = synAgentDao.loadOrCreateSession(studentId, created.id());
+
+        assertThat(loaded.lastPaths())
+                .containsExactly("BACKEND_DEVELOPMENT", "FRONTEND_DEVELOPMENT");
+        assertThat(synAgentDao.findPaths(loaded.lastPaths())).hasSize(2);
+        assertThat(synAgentDao.findResources(List.of("BACKEND_DEVELOPMENT"), 3)).isNotEmpty();
+        assertThat(synAgentDao.clearSession(studentId, created.id())).isTrue();
+        assertThat(
+                        jdbcTemplate.queryForObject(
+                                "SELECT COUNT(*) FROM syn_sessions WHERE id = ?",
+                                Integer.class,
+                                created.id()))
+                .isZero();
+    }
+
+    @Test
+    void foreignSessionIdNeverLoadsAnotherStudentsMemory() {
+        UUID foreignId = UUID.randomUUID();
+        jdbcTemplate.update(
+                "INSERT INTO syn_sessions (id, student_id, summary) VALUES (?, ?, ?)",
+                foreignId,
+                studentId,
+                "Private structured context");
+
+        long otherStudent =
+                jdbcTemplate.queryForObject(
+                        """
+                        INSERT INTO app_users
+                            (email, password_hash, display_name, role, status)
+                        VALUES ('guidance-other@example.test', 'test-only', 'Other', 'STUDENT', 'ACTIVE')
+                        RETURNING id
+                        """,
+                        Long.class);
+        try {
+            var loaded = synAgentDao.loadOrCreateSession(otherStudent, foreignId);
+            assertThat(loaded.id()).isNotEqualTo(foreignId);
+            assertThat(loaded.summary()).isEmpty();
+            synAgentDao.clearSession(otherStudent, loaded.id());
+        } finally {
+            jdbcTemplate.update("DELETE FROM app_users WHERE id = ?", otherStudent);
+        }
     }
 }

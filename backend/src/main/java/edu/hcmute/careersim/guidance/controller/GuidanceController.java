@@ -9,8 +9,11 @@ import edu.hcmute.careersim.guidance.dto.SynMessageResponse;
 import edu.hcmute.careersim.guidance.service.GuidanceService;
 import jakarta.validation.Valid;
 import java.security.Principal;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -32,6 +35,13 @@ public class GuidanceController {
     public ApiResponse<SynMessageResponse> sendMessage(
             Principal principal, @Valid @RequestBody SynMessageRequest request) {
         return ApiResponse.success(guidanceService.sendMessage(principal.getName(), request));
+    }
+
+    @DeleteMapping("/syn/sessions/{sessionId}")
+    public ApiResponse<Boolean> clearSession(Principal principal, @PathVariable UUID sessionId) {
+        return ApiResponse.success(
+                "Syn conversation memory cleared.",
+                guidanceService.clearSynSession(principal.getName(), sessionId));
     }
 
     @PostMapping("/plans")

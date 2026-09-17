@@ -40,3 +40,12 @@ remain demonstrable interactions. Standard deterministic replies use database so
 label `STANDARD`; successful provider replies use `AI` plus the configured model.
 Provider failures use `REPLACED_BY_FALLBACK`. No raw chat history, key, or prompt is
 stored. A record is created only when completed evidence grounds the response.
+
+`V9__add_syn_agent_context.sql` adds the bounded agent metadata. `syn_sessions`
+stores a short structured summary, last intent, and last compared path codes for 30
+days; it does not store raw messages. Every session is student-owned and may be
+deleted from the widget. `career_path_profiles` and `learning_resources` contain
+reviewed server-owned reference data, while `simulation_task_skills` maps original
+course-demo tasks to skills. These tables let the same deterministic tools operate
+when Gemini is disabled or unavailable. The LLM receives observations prepared by
+the service and never receives database access.

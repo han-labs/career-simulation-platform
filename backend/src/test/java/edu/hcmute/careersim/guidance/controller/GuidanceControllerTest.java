@@ -4,6 +4,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -16,6 +17,7 @@ import edu.hcmute.careersim.guidance.dto.PlanResponse;
 import edu.hcmute.careersim.guidance.dto.SynMessageResponse;
 import edu.hcmute.careersim.guidance.service.GuidanceService;
 import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
@@ -141,5 +143,18 @@ class GuidanceControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Exploration plan saved."))
                 .andExpect(jsonPath("$.data.saved").value(true));
+    }
+
+    @Test
+    void studentCanClearOnlyTheSessionHandledByTheService() throws Exception {
+        UUID sessionId = UUID.randomUUID();
+        when(guidanceService.clearSynSession("student@example.test", sessionId)).thenReturn(true);
+
+        mockMvc.perform(
+                        delete("/v1/guidance/syn/sessions/{sessionId}", sessionId)
+                                .with(user("student@example.test").roles("STUDENT")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data").value(true));
     }
 }

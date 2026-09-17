@@ -43,6 +43,8 @@ class GeminiSynGuidanceProviderTest {
                             assertThat(body).contains("\"responseJsonSchema\"");
                             assertThat(body).contains("\"maxOutputTokens\":240");
                             assertThat(body).contains("\"systemInstruction\"");
+                            assertThat(body).contains("response_language");
+                            assertThat(body).contains("covered_topics");
                             assertThat(body).doesNotContain("Mai Student");
                             assertThat(body).doesNotContain("student@example.test");
                         })
