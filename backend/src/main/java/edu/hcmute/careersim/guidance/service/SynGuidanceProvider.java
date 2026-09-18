@@ -10,9 +10,44 @@ public interface SynGuidanceProvider {
 
     String modelName();
 
-    AiReply generate(String message, DashboardResponse dashboard);
+    AiReply generate(String message, DashboardResponse dashboard, AgentContext agentContext);
+
+    default AiReply generate(String message, DashboardResponse dashboard) {
+        return generate(
+                message,
+                dashboard,
+                new AgentContext(
+                        "CAREER_QUESTION",
+                        "EN",
+                        "EVIDENCE_READY",
+                        "STANDARD",
+                        "",
+                        List.of(),
+                        List.of()));
+    }
 
     record AiReply(String text, List<String> suggestions) {}
+
+    record AgentContext(
+            String intent,
+            String responseLanguage,
+            String explorationStage,
+            String responseDepth,
+            String sessionSummary,
+            List<String> coveredTopics,
+            List<String> observations) {
+
+        public AgentContext(String intent, String sessionSummary, List<String> observations) {
+            this(
+                    intent,
+                    "EN",
+                    "EVIDENCE_READY",
+                    "STANDARD",
+                    sessionSummary,
+                    List.of(),
+                    observations);
+        }
+    }
 
     enum FailureKind {
         TIMEOUT_OR_TRANSPORT,

@@ -1,5 +1,6 @@
 import {
   Bot,
+  BookOpen,
   CircleAlert,
   FileSearch,
   Lightbulb,
@@ -10,22 +11,32 @@ import {
   RefreshCw,
   Send,
   Sparkles,
-  Target,
+  Trash2,
 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
+  clearSynSession,
   getExplorationDashboard,
   saveExplorationPlan,
   sendSynMessage,
 } from '../api/guidanceApi.js'
 
 const SYN_OPEN_EVENT = 'careersim:syn-open'
+const SYN_SESSION_KEY = 'careersim_syn_session_v1'
+const SYN_LANGUAGE_KEY = 'careersim_syn_language_v1'
 
 const quickActions = [
   { label: 'Understand my interests', type: 'EXPLAIN_RIASEC', icon: Sparkles },
-  { label: 'Review latest result', type: 'REVIEW_LATEST', icon: FileSearch },
+  { label: 'Compare backend and frontend', type: 'COMPARE_PATHS', icon: FileSearch },
   { label: 'Find evidence gaps', type: 'NEEDS_EVIDENCE', icon: Lightbulb },
-  { label: 'Draft a next-step plan', type: 'DRAFT_PLAN', icon: Target },
+  { label: 'Suggest a learning resource', type: 'LEARNING_RESOURCES', icon: BookOpen },
+]
+
+const newcomerQuickActions = [
+  { label: 'Help me get started', type: 'GET_STARTED', icon: Sparkles },
+  { label: 'Understand RIASEC', type: 'EXPLAIN_RIASEC', icon: Lightbulb },
+  { label: 'Compare backend and frontend', type: 'COMPARE_PATHS', icon: FileSearch },
+  { label: 'Show a learning resource', type: 'LEARNING_RESOURCES', icon: BookOpen },
 ]
 
 const initialMessage = {
@@ -77,18 +88,65 @@ function ResultCard({ result }) {
   )
 }
 
+function AgentCards({ message }) {
+  return (
+    <>
+      {message.comparisonCard?.paths?.length > 0 && (
+        <article className="syn-agent-card">
+          <strong>{message.comparisonCard.title}</strong>
+          {message.comparisonCard.paths.map((path) => (
+            <section key={path.code}>
+              <b>{path.title}</b>
+              <p>{path.evidenceSummary}</p>
+              <small>{path.nextExperiment}</small>
+            </section>
+          ))}
+        </article>
+      )}
+      {message.resourceCards?.length > 0 && (
+        <article className="syn-agent-card syn-resource-list">
+          <strong>Reviewed learning resources</strong>
+          {message.resourceCards.map((resource) => (
+            <a key={resource.url} href={resource.url} target="_blank" rel="noreferrer">
+              <span>{resource.title}</span>
+              <small>{resource.provider} · {resource.difficulty.toLowerCase()} · {resource.estimatedMinutes} min</small>
+            </a>
+          ))}
+        </article>
+      )}
+      {message.evidenceReferences?.length > 0 && (
+        <div className="syn-evidence-references" aria-label="Evidence used">
+          {message.evidenceReferences.map((reference) => (
+            <span key={`${reference.sourceType}-${reference.label}`}>{reference.label}</span>
+          ))}
+        </div>
+      )}
+      {message.activity?.length > 0 && (
+        <details className="syn-activity">
+          <summary>What Syn checked</summary>
+          <ul>{message.activity.map((item) => <li key={item}>{item}</li>)}</ul>
+        </details>
+      )}
+    </>
+  )
+}
+
 function SynMessage({ message, onSuggestion, onPlanReview }) {
   if (message.role === 'user') {
-    return <div className="syn-message syn-message--user">{message.text}</div>
+    return <div className="syn-message syn-message--user" data-message-id={message.id}>{message.text}</div>
   }
 
   return (
-    <div className="syn-message syn-message--assistant">
+    <div className="syn-message syn-message--assistant" data-message-id={message.id}>
       <span className="syn-message__avatar" aria-hidden="true"><Bot size={17} /></span>
       <div className="syn-message__body">
-        <p>{message.text}</p>
-        <ResultCard result={message.resultCard} />
-        {message.planDraft && (
+        <p>
+          {message.text}
+          {message.isRevealing && <span className="syn-typing-cursor" aria-hidden="true" />}
+        </p>
+        {!message.isRevealing && <AgentCards message={message} />}
+        {!message.isRevealing && <ResultCard result={message.resultCard} />}
+        {!message.isRevealing && message.planDraft && (
           <article className="syn-plan-draft">
             <span>Draft—not saved</span>
             <strong>{message.planDraft.title}</strong>
@@ -98,7 +156,7 @@ function SynMessage({ message, onSuggestion, onPlanReview }) {
             </button>
           </article>
         )}
-        {message.suggestions?.length > 0 && (
+        {!message.isRevealing && message.suggestions?.length > 0 && (
           <div className="syn-suggestions" aria-label="Suggested follow-up questions">
             {message.suggestions.map((suggestion) => (
               <button key={suggestion} type="button" onClick={() => onSuggestion(suggestion)}>
@@ -107,7 +165,7 @@ function SynMessage({ message, onSuggestion, onPlanReview }) {
             ))}
           </div>
         )}
-        <SourceBadge source={message.provenance} />
+        {!message.isRevealing && <SourceBadge source={message.provenance} />}
       </div>
     </div>
   )
@@ -120,9 +178,17 @@ function SynWidget() {
   const [messages, setMessages] = useState([initialMessage])
   const [draft, setDraft] = useState('')
   const [isReplying, setIsReplying] = useState(false)
+  const [isRevealing, setIsRevealing] = useState(false)
   const [pendingPlan, setPendingPlan] = useState(null)
+  const [sessionId, setSessionId] = useState(() => localStorage.getItem(SYN_SESSION_KEY))
+  const [responseLanguage, setResponseLanguage] = useState(
+    () => localStorage.getItem(SYN_LANGUAGE_KEY) ?? 'AUTO',
+  )
+  const [showJumpToLatest, setShowJumpToLatest] = useState(false)
   const composerRef = useRef(null)
   const conversationRef = useRef(null)
+  const pendingAnchorRef = useRef(null)
+  const activeRevealRef = useRef(null)
 
   const loadDashboard = useCallback(async () => {
     setLoadError('')
@@ -141,13 +207,63 @@ function SynWidget() {
     if (!dashboard && !loadError) loadDashboard()
   }, [dashboard, loadDashboard, loadError])
 
+  const finishActiveReveal = useCallback((showFullText = true) => {
+    const active = activeRevealRef.current
+    if (!active) return
+    window.clearInterval(active.timer)
+    if (showFullText) {
+      setMessages((current) => current.map((item) => (
+        item.id === active.id
+          ? { ...item, text: active.fullText, isRevealing: false }
+          : item
+      )))
+    }
+    setIsRevealing(false)
+    activeRevealRef.current = null
+    active.resolve()
+  }, [])
+
+  const revealReply = useCallback((reply) => new Promise((resolve) => {
+    const reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    if (reducedMotion || reply.text.length < 24) {
+      setMessages((current) => [...current, reply])
+      setIsRevealing(false)
+      resolve()
+      return
+    }
+
+    const fullText = reply.text
+    let visibleLength = 0
+    setIsRevealing(true)
+    setMessages((current) => [
+      ...current,
+      { ...reply, text: '', isRevealing: true },
+    ])
+    const timer = window.setInterval(() => {
+      visibleLength = Math.min(fullText.length, visibleLength + 12)
+      setMessages((current) => current.map((item) => (
+        item.id === reply.id
+          ? {
+            ...item,
+            text: fullText.slice(0, visibleLength),
+            isRevealing: visibleLength < fullText.length,
+          }
+          : item
+      )))
+      if (visibleLength >= fullText.length) finishActiveReveal(true)
+    }, 24)
+    activeRevealRef.current = { id: reply.id, fullText, timer, resolve }
+  }), [finishActiveReveal])
+
   const askSyn = useCallback(async (text, actionType = 'FREE_TEXT', contextDashboard = dashboard) => {
     const message = text.trim()
     if (!message || isReplying || !contextDashboard) return
 
+    const userMessageId = `user-${Date.now()}`
+    pendingAnchorRef.current = userMessageId
     setMessages((current) => [
       ...current,
-      { id: `user-${Date.now()}`, role: 'user', text: message },
+      { id: userMessageId, role: 'user', text: message },
     ])
     setDraft('')
     setIsReplying(true)
@@ -155,10 +271,16 @@ function SynWidget() {
       const reply = await sendSynMessage({
         message,
         actionType,
+        sessionId,
+        responseLanguage,
         dashboard: contextDashboard,
         context: { attemptId: contextDashboard.recentResults[0]?.id ?? null },
       })
-      setMessages((current) => [...current, reply])
+      if (reply.sessionId) {
+        localStorage.setItem(SYN_SESSION_KEY, reply.sessionId)
+        setSessionId(reply.sessionId)
+      }
+      await revealReply(reply)
     } catch {
       setMessages((current) => [...current, {
         id: `error-${Date.now()}`,
@@ -169,7 +291,16 @@ function SynWidget() {
     } finally {
       setIsReplying(false)
     }
-  }, [dashboard, isReplying])
+  }, [dashboard, isReplying, responseLanguage, revealReply, sessionId])
+
+  async function resetConversation() {
+    finishActiveReveal(false)
+    await clearSynSession(sessionId)
+    localStorage.removeItem(SYN_SESSION_KEY)
+    setSessionId(null)
+    setPendingPlan(null)
+    setMessages([initialMessage])
+  }
 
   useEffect(() => {
     async function handleOpen(event) {
@@ -188,11 +319,31 @@ function SynWidget() {
   }, [mode])
 
   useEffect(() => {
-    conversationRef.current?.scrollTo({
-      top: conversationRef.current.scrollHeight,
-      behavior: 'smooth',
+    const container = conversationRef.current
+    const anchorId = pendingAnchorRef.current
+    if (!container || !anchorId) return undefined
+    const frame = window.requestAnimationFrame(() => {
+      const anchor = container.querySelector(`[data-message-id="${anchorId}"]`)
+      if (anchor) {
+        container.scrollTo({ top: Math.max(0, anchor.offsetTop - 12), behavior: 'smooth' })
+        setShowJumpToLatest(false)
+      }
+      pendingAnchorRef.current = null
     })
+    return () => window.cancelAnimationFrame(frame)
+  }, [messages])
+
+  useEffect(() => {
+    const container = conversationRef.current
+    if (!container || pendingAnchorRef.current) return undefined
+    const frame = window.requestAnimationFrame(() => {
+      const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight
+      setShowJumpToLatest(distanceFromBottom > 56)
+    })
+    return () => window.cancelAnimationFrame(frame)
   }, [messages, isReplying])
+
+  useEffect(() => () => finishActiveReveal(false), [finishActiveReveal])
 
   useEffect(() => {
     function handleEscape(event) {
@@ -224,6 +375,31 @@ function SynWidget() {
   }
 
   const latestResult = dashboard?.recentResults[0]
+  const isNewStudent = dashboard
+    && dashboard.interestSignals.length === 0
+    && dashboard.recentResults.length === 0
+  const availableQuickActions = isNewStudent ? newcomerQuickActions : quickActions
+
+  function changeResponseLanguage(event) {
+    const language = event.target.value
+    localStorage.setItem(SYN_LANGUAGE_KEY, language)
+    setResponseLanguage(language)
+  }
+
+  function updateConversationPosition() {
+    const container = conversationRef.current
+    if (!container) return
+    const distanceFromBottom = container.scrollHeight - container.scrollTop - container.clientHeight
+    if (distanceFromBottom <= 32) setShowJumpToLatest(false)
+  }
+
+  function jumpToLatest() {
+    conversationRef.current?.scrollTo({
+      top: conversationRef.current.scrollHeight,
+      behavior: 'smooth',
+    })
+    setShowJumpToLatest(false)
+  }
 
   return (
     <aside
@@ -236,6 +412,9 @@ function SynWidget() {
         <span className="syn-avatar"><Bot size={23} /></span>
         <div><h2>Syn</h2><p>Explore your evidence</p></div>
         <div className="syn-window-actions">
+          <button type="button" onClick={resetConversation} aria-label="Clear Syn conversation memory">
+            <Trash2 size={16} />
+          </button>
           <button
             type="button"
             onClick={() => setMode(mode === 'expanded' ? 'compact' : 'expanded')}
@@ -252,9 +431,17 @@ function SynWidget() {
       {dashboard && (
         <div className="syn-context-row">
           <span className={`syn-mode-badge ${dashboard.source === 'PREVIEW' ? 'is-preview' : ''}`}>
-            {dashboard.source === 'PREVIEW' ? 'Preview · Standard' : 'Evidence ready'}
+            {dashboard.source === 'PREVIEW' ? 'Preview · Standard' : sessionId ? 'Memory on' : 'Evidence ready'}
           </span>
           {latestResult && <span className="context-chip"><FileSearch size={14} /> {latestResult.title}</span>}
+          <label className="syn-language-control">
+            <span className="sr-only">Syn reply language</span>
+            <select value={responseLanguage} onChange={changeResponseLanguage}>
+              <option value="AUTO">Auto</option>
+              <option value="EN">EN</option>
+              <option value="VI">VI</option>
+            </select>
+          </label>
         </div>
       )}
 
@@ -267,19 +454,31 @@ function SynWidget() {
         <div className="syn-loading"><LoaderCircle className="spin" size={20} /> Loading your evidence…</div>
       ) : (
         <>
-          <div className="syn-conversation" ref={conversationRef} aria-live="polite">
-            {messages.map((message) => (
-              <SynMessage
-                key={message.id}
-                message={message}
-                onSuggestion={askSyn}
-                onPlanReview={setPendingPlan}
-              />
-            ))}
-            {isReplying && (
-              <div className="syn-thinking">
-                <LoaderCircle className="spin" size={17} /> Syn is connecting your evidence…
-              </div>
+          <div className="syn-conversation-wrap">
+            <div
+              className="syn-conversation"
+              ref={conversationRef}
+              aria-live="polite"
+              onScroll={updateConversationPosition}
+            >
+              {messages.map((message) => (
+                <SynMessage
+                  key={message.id}
+                  message={message}
+                  onSuggestion={askSyn}
+                  onPlanReview={setPendingPlan}
+                />
+              ))}
+              {isReplying && !isRevealing && (
+                <div className="syn-thinking">
+                  <LoaderCircle className="spin" size={17} /> Syn is connecting your context…
+                </div>
+              )}
+            </div>
+            {showJumpToLatest && (
+              <button className="syn-jump-latest" type="button" onClick={jumpToLatest}>
+                Jump to latest
+              </button>
             )}
           </div>
 
@@ -295,7 +494,7 @@ function SynWidget() {
           )}
 
           <div className="quick-actions" aria-label="Quick actions">
-            {quickActions.map(({ label, type, icon: Icon }) => (
+            {availableQuickActions.map(({ label, type, icon: Icon }) => (
               <button key={type} type="button" disabled={isReplying} onClick={() => askSyn(label, type)}>
                 <Icon size={16} /> {label}
               </button>
@@ -312,6 +511,12 @@ function SynWidget() {
                 maxLength="600"
                 value={draft}
                 onChange={(event) => setDraft(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault()
+                    event.currentTarget.form?.requestSubmit()
+                  }
+                }}
                 placeholder="Ask about your results or next step…"
               />
               <button type="submit" aria-label="Send message" disabled={!draft.trim() || isReplying}>

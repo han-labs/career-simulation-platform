@@ -36,7 +36,7 @@ Each owner should still verify the full vertical slice with the responsible back
 | Authentication/profile | Not implemented | planned foundation dependency |
 | US-01 workflow | Preliminary backend/frontend integration; local demo data ready | deterministic assessment API, connected frontend, 42 questions, and a synthetic completed baseline; full acceptance audit remains |
 | US-02 workflow | Preliminary backend/frontend integration; local demo data ready | catalog/attempt/evaluation API, connected frontend, and three original tasks for each of five published simulations; full acceptance audit remains |
-| US-03 workflow | Backend/frontend and optional AI adapter ready | `/dashboard`, global three-mode Syn, protected guidance API, minimized evidence from new US-01/US-02 results, consent-gated structured provider output, Standard fallback, plan persistence, provenance and tests; opt-in localhost demo identity verified while runtime login remains pending |
+| US-03 workflow | Adaptive bounded agent backend/frontend verified | `/dashboard`, global three-mode Syn, structured memory and clear control, fixed intent/tool allowlist, new-student onboarding, English/Vietnamese replies, adaptive response depth, path comparison, evidence gaps, reviewed resources, Gemini phrasing, bilingual Standard fallback, anchored conversation viewport, confirmed plan persistence, provenance, 67 backend tests, 11 frontend tests, V9 migration and gateway/browser smoke; runtime login remains pending |
 | Enterprise management | Not implemented | boundary reserved |
 
 ## 3 Definition of Done for every story
@@ -86,6 +86,7 @@ Owner: **Huỳnh Gia Hân**
 - Maintain shared app/router/API/style setup without breaking another feature boundary.
 - Dashboard loading, ready, preview/fallback, partial, and retry states.
 - Syn conversation, quick actions, inline result cards, plan drafting, limitations, and source/provenance.
+- Syn contextual follow-up, path comparison, reviewed learning resources, visible tool activity, evidence references, and clear-memory control.
 - Never hide fallback or imply AI certainty.
 
 Required tests: AI success, fallback, timeout, malformed response mapped to fallback, empty evidence, source label, and objective score stability.

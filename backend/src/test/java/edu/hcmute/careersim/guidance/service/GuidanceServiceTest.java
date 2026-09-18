@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.nullable;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -14,7 +15,9 @@ import edu.hcmute.careersim.assessment.access.AssessmentEvidenceAccess;
 import edu.hcmute.careersim.common.exception.ApiException;
 import edu.hcmute.careersim.common.exception.NotFoundException;
 import edu.hcmute.careersim.guidance.dao.GuidanceDao;
+import edu.hcmute.careersim.guidance.dao.SynAgentDao;
 import edu.hcmute.careersim.guidance.domain.StandardGuidancePolicy;
+import edu.hcmute.careersim.guidance.domain.SynAgentPolicy;
 import edu.hcmute.careersim.guidance.dto.SavePlanRequest;
 import edu.hcmute.careersim.guidance.dto.SynMessageRequest;
 import edu.hcmute.careersim.guidance.service.impl.GuidanceServiceImpl;
@@ -22,6 +25,7 @@ import edu.hcmute.careersim.identity.access.StudentAccountAccess;
 import edu.hcmute.careersim.simulation.access.SimulationEvidenceAccess;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,6 +35,7 @@ class GuidanceServiceTest {
     private AssessmentEvidenceAccess assessmentAccess;
     private SimulationEvidenceAccess simulationAccess;
     private GuidanceDao guidanceDao;
+    private SynAgentDao synAgentDao;
     private SynGuidanceProvider synGuidanceProvider;
     private GuidanceService service;
 
@@ -40,15 +45,29 @@ class GuidanceServiceTest {
         assessmentAccess = mock(AssessmentEvidenceAccess.class);
         simulationAccess = mock(SimulationEvidenceAccess.class);
         guidanceDao = mock(GuidanceDao.class);
+        synAgentDao = mock(SynAgentDao.class);
         synGuidanceProvider = mock(SynGuidanceProvider.class);
+        StandardGuidancePolicy standardPolicy = new StandardGuidancePolicy();
+        SynAgentToolbox toolbox = new SynAgentToolbox(synAgentDao, standardPolicy);
+        SynAgentOrchestrator orchestrator =
+                new SynAgentOrchestrator(
+                        synAgentDao,
+                        new SynAgentPolicy(),
+                        toolbox,
+                        standardPolicy,
+                        List.of(synGuidanceProvider));
+        when(synAgentDao.loadOrCreateSession(eq(7L), nullable(UUID.class)))
+                .thenReturn(new SynAgentDao.SessionMemory(UUID.randomUUID(), "", null, List.of()));
+        when(synAgentDao.findPaths(any())).thenReturn(List.of());
+        when(synAgentDao.findResources(any(), anyInt())).thenReturn(List.of());
+        when(synAgentDao.findSimulations(any(), anyInt())).thenReturn(List.of());
         service =
                 new GuidanceServiceImpl(
                         accountAccess,
                         assessmentAccess,
                         simulationAccess,
                         guidanceDao,
-                        new StandardGuidancePolicy(),
-                        List.of(synGuidanceProvider));
+                        orchestrator);
     }
 
     @Test
@@ -141,7 +160,7 @@ class GuidanceServiceTest {
                         eq(null),
                         any(),
                         anyInt());
-        verify(synGuidanceProvider, never()).generate(any(), any());
+        verify(synGuidanceProvider, never()).generate(any(), any(), any());
     }
 
     @Test
@@ -151,7 +170,7 @@ class GuidanceServiceTest {
         when(guidanceDao.findCurrentPlan(7L)).thenReturn(Optional.empty());
         when(synGuidanceProvider.isAvailable()).thenReturn(true);
         when(synGuidanceProvider.modelName()).thenReturn("test-model");
-        when(synGuidanceProvider.generate(any(), any()))
+        when(synGuidanceProvider.generate(any(), any(), any()))
                 .thenReturn(
                         new SynGuidanceProvider.AiReply(
                                 "Compare both experiences before deciding.",
@@ -184,7 +203,7 @@ class GuidanceServiceTest {
         arrangeEvidence();
         when(guidanceDao.findCurrentPlan(7L)).thenReturn(Optional.empty());
         when(synGuidanceProvider.isAvailable()).thenReturn(true);
-        when(synGuidanceProvider.generate(any(), any()))
+        when(synGuidanceProvider.generate(any(), any(), any()))
                 .thenThrow(
                         new SynGuidanceProvider.ProviderException(
                                 SynGuidanceProvider.FailureKind.TIMEOUT_OR_TRANSPORT));
@@ -207,6 +226,41 @@ class GuidanceServiceTest {
                         eq(null),
                         any(),
                         anyInt());
+    }
+
+    @Test
+    void newVietnameseStudentReceivesOnboardingAndBoundedStructuredMemory() {
+        arrangeActiveStudent();
+        when(assessmentAccess.findLatestCompleted(7L)).thenReturn(Optional.empty());
+        when(simulationAccess.findRecentEvaluated(7L, 3)).thenReturn(List.of());
+        when(guidanceDao.findCurrentPlan(7L)).thenReturn(Optional.empty());
+
+        var response =
+                service.sendMessage(
+                        "student@example.test",
+                        new SynMessageRequest(
+                                "em moi vao, chua biet bat dau ntn",
+                                "FREE_TEXT",
+                                null,
+                                "AUTO",
+                                null));
+
+        assertThat(response.intent()).isEqualTo("GET_STARTED");
+        assertThat(response.responseLanguage()).isEqualTo("VI");
+        assertThat(response.explorationStage()).isEqualTo("NEW");
+        assertThat(response.text()).contains("chưa cần");
+        verify(synAgentDao)
+                .updateSession(
+                        eq(7L),
+                        any(UUID.class),
+                        org.mockito.ArgumentMatchers.argThat(
+                                summary ->
+                                        summary.startsWith("v=2|")
+                                                && summary.contains("lang=VI")
+                                                && summary.contains("goal=GET_STARTED")),
+                        eq("GET_STARTED"),
+                        eq(List.of()));
+        verify(synGuidanceProvider, never()).generate(any(), any(), any());
     }
 
     @Test

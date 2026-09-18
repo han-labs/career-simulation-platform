@@ -47,7 +47,7 @@ Included:
 - deterministic RIASEC scoring;
 - IT simulations for frontend, backend, data analysis, software testing, and cybersecurity;
 - deterministic task evaluation using approved rules, answer keys, or test cases;
-- a concise student Dashboard and Syn, an evidence-grounded exploration assistant with validated structured output;
+- a concise student Dashboard and Syn, a bounded evidence-grounded exploration agent with session memory, approved tools, and validated structured output;
 - rule/template-based fallback;
 - enterprise simulation management;
 - PostgreSQL persistence, REST APIs, React UI, Docker Compose, Nginx, and Ubuntu VM deployment evidence.
@@ -81,6 +81,8 @@ Excluded:
 - BR-15: Account status and role checks are server-side; the frontend is not a security boundary.
 - BR-16: Source and license/provenance are required for externally derived simulation content or datasets.
 - BR-17: No real student data is used as demo/seed data.
+- BR-18: Syn session memory stores only a bounded structured summary and can be cleared by its owning student.
+- BR-19: Syn may execute only backend-approved read tools; provider output cannot select SQL, change scores, or persist a plan.
 
 ## 6 Architecture decisions
 
@@ -104,4 +106,4 @@ This approval does not extend to authenticated content, employer task descriptio
 
 ## 9 Current implementation checkpoint
 
-The repository contains a working public catalog, preliminary US-01 assessment and US-02 simulation backends, PostgreSQL/Flyway, Nginx/Docker, CI, and shared agent rules. The synthetic V8 demo slice provides 42 assessment answers/scores, three original tasks for each of five published simulations, and evaluated evidence that can be replaced or extended through normal student actions. US-03 has a concise Dashboard, a global three-mode Syn widget, protected evidence aggregation, selectable consent-gated Gemini/OpenAI adapters, validated structured output, deterministic Standard fallback, provenance audit, and confirmed-plan persistence. Runtime authentication/login and enterprise management remain implementation work. An opt-in, localhost-only demo principal can exercise US-01 to US-03 with the seeded synthetic student during internal testing; it is disabled by default and is not a production identity mechanism.
+The repository contains a working public catalog, preliminary US-01 assessment and US-02 simulation backends, PostgreSQL/Flyway, Nginx/Docker, CI, and shared agent rules. The synthetic V8 demo slice provides 42 assessment answers/scores, three original tasks for each of five published simulations, and evaluated evidence that can be replaced or extended through normal student actions. US-03 has a concise Dashboard, a global three-mode Syn widget, protected evidence aggregation, bounded 30-day structured session memory, deterministic intent/tool routing, reviewed path/resource retrieval, new-student onboarding, English/Vietnamese replies, adaptive response depth, contextual follow-up, consent-gated Gemini/OpenAI adapters, validated structured output, deterministic bilingual Standard fallback, provenance audit, and confirmed-plan persistence. The conversation anchors a submitted question, progressively reveals only validated text, and never forces the reader to the bottom. Runtime authentication/login and enterprise management remain implementation work. An opt-in, localhost-only demo principal can exercise US-01 to US-03 with the seeded synthetic student during internal testing; it is disabled by default and is not a production identity mechanism.

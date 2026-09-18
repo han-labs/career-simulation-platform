@@ -932,13 +932,11 @@ a {
   padding-block: 64px 96px;
 }
 
-.catalog-page__intro,
 .detail-panel {
   max-width: 900px;
   margin-inline: auto;
 }
 
-.catalog-page__intro h1,
 .detail-panel h1 {
   margin: 10px 0 0;
   font-family: Georgia, "Times New Roman", serif;
@@ -947,7 +945,6 @@ a {
   letter-spacing: 0;
 }
 
-.catalog-page__intro>p:last-child,
 .detail-panel__lede {
   color: var(--muted);
   font-size: 1.05rem;
@@ -956,9 +953,9 @@ a {
 
 .catalog-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 18px;
-  margin: 40px auto 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 24px auto 0;
 }
 
 .catalog-card,
@@ -973,8 +970,16 @@ a {
 .catalog-card {
   display: flex;
   flex-direction: column;
-  min-height: 360px;
-  padding: 24px;
+  min-height: 300px;
+  padding: 20px;
+  transition:
+    transform 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.catalog-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 38px rgba(20, 36, 33, 0.14);
 }
 
 .catalog-card__icon {
@@ -982,7 +987,7 @@ a {
   place-items: center;
   width: 48px;
   height: 48px;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
   border-radius: 14px;
   color: var(--tech-deep);
   background: var(--tech-soft);
@@ -991,7 +996,7 @@ a {
 .catalog-card h2 {
   margin: 8px 0 0;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: 1.65rem;
+  font-size: 1.45rem;
   font-weight: 500;
 }
 
@@ -1034,7 +1039,7 @@ a {
 }
 
 .catalog-skeleton {
-  min-height: 360px;
+  min-height: 300px;
   background: linear-gradient(90deg, var(--paper), #eceae3, var(--paper));
   background-size: 200% 100%;
   animation: catalog-pulse 1.2s ease-in-out infinite;
@@ -1143,6 +1148,10 @@ a {
   margin-bottom: 24px;
 }
 
+.catalog-page > .back-link {
+  margin-bottom: 32px;
+}
+
 .dashboard-heading h1 {
   margin: 0 0 8px;
   font-family: Georgia, "Times New Roman", serif;
@@ -1152,7 +1161,7 @@ a {
   line-height: 0.95;
 }
 
-.dashboard-heading p {
+.dashboard-heading > div > p:not(.eyebrow) {
   max-width: 650px;
   margin: 0;
   color: var(--muted);
@@ -1555,6 +1564,30 @@ a {
   white-space: nowrap;
 }
 
+.syn-language-control {
+  flex: 0 0 auto;
+  margin-left: auto;
+}
+
+.syn-language-control select {
+  min-height: 32px;
+  padding: 4px 24px 4px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--tech-deep);
+  background: var(--card);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+}
+
+.syn-conversation-wrap {
+  position: relative;
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
 .syn-conversation {
   display: flex;
   flex-direction: column;
@@ -1563,6 +1596,23 @@ a {
   min-height: 0;
   padding: 18px;
   overflow-y: auto;
+}
+
+.syn-jump-latest {
+  position: absolute;
+  right: 18px;
+  bottom: 12px;
+  z-index: 2;
+  padding: 7px 10px;
+  border: 1px solid var(--tech);
+  border-radius: 99px;
+  color: #fff;
+  background: var(--tech-deep);
+  box-shadow: 0 5px 16px rgba(20, 36, 33, 0.18);
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 750;
+  cursor: pointer;
 }
 
 .syn-widget--expanded .syn-conversation {
@@ -1631,6 +1681,22 @@ a {
   line-height: 1.62;
 }
 
+.syn-typing-cursor {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 3px;
+  vertical-align: -0.12em;
+  background: var(--tech);
+  animation: syn-cursor-blink 0.8s steps(1) infinite;
+}
+
+@keyframes syn-cursor-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
 .source-badge {
   display: inline-flex;
   margin-top: 5px;
@@ -1651,12 +1717,90 @@ a {
 }
 
 .syn-result-card,
-.syn-plan-draft {
+.syn-plan-draft,
+.syn-agent-card {
   margin: 11px 0;
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--card);
+}
+
+.syn-agent-card>strong {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 0.82rem;
+}
+
+.syn-agent-card section {
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.syn-agent-card section b,
+.syn-resource-list a span {
+  display: block;
+  font-size: 0.82rem;
+}
+
+.syn-agent-card section p,
+.syn-agent-card section small {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 0.74rem;
+  line-height: 1.45;
+}
+
+.syn-resource-list a {
+  display: block;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+  color: var(--tech-deep);
+  text-decoration: none;
+}
+
+.syn-resource-list a:hover span {
+  text-decoration: underline;
+}
+
+.syn-resource-list a small {
+  display: block;
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.syn-evidence-references {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin: 8px 0;
+}
+
+.syn-evidence-references span {
+  padding: 4px 7px;
+  border-radius: 99px;
+  color: var(--blue-ink);
+  background: var(--blue);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.syn-activity {
+  margin: 7px 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.syn-activity summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.syn-activity ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  line-height: 1.5;
 }
 
 .syn-result-card__heading {
@@ -2125,6 +2269,10 @@ a {
 
   .save-status {
     transition: none;
+  }
+
+  .syn-typing-cursor {
+    animation: none;
   }
 
   *,

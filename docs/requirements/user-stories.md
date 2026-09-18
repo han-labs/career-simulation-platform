@@ -35,12 +35,20 @@ Acceptance baseline:
 
 - The Dashboard concisely presents progress, RIASEC signals, practised skills, recent results, and the current exploration plan.
 - Syn introduces its supporting role and explains RIASEC or simulation results only from authorized evidence.
+- A new student with no personal evidence receives honest onboarding from reviewed CareerSim paths and simulations; Syn does not fabricate strengths, gaps, or fit.
+- Syn can answer in English or Vietnamese, including common Vietnamese shorthand and IT abbreviations, while keeping the product interface in English.
 - Syn can compare interests, practised skills, and areas that need more evidence without certifying competence.
 - Result details appear as structured cards inside Syn and highlight evidence relevant to the current conversation.
 - Syn presents simulations, preparation activities, reflective questions, and plan drafts as options rather than final recommendations.
+- Syn uses bounded session memory to support contextual follow-up without retaining unrestricted raw conversation history.
+- Syn can answer career-exploration questions, compare exploration paths, identify possible evidence gaps, and suggest reviewed learning resources using the student's available evidence.
+- Syn may select from an approved set of read-only evidence, catalog, comparison, gap, and resource tools; it cannot query arbitrary data or perform autonomous background actions.
+- Syn exposes a concise activity summary and evidence references for agent-assisted responses without revealing hidden chain-of-thought.
 - Saving an exploration plan requires explicit student confirmation.
 - Syn never calculates or modifies scores, reveals answer keys, predicts career success, or chooses a career for the student.
 - AI and deterministic fallback provenance are visible, and objective results remain available and unchanged when AI is unavailable.
+- Response depth adapts within bounded limits: simple evidence questions stay concise while onboarding, comparison, and planning questions may be more explanatory.
+- Submitting a message anchors that question in view. A growing reply does not force the conversation to the bottom; the student can choose **Jump to latest**. Reduced-motion users receive the complete validated reply without animation.
 
 ## Supporting MVP capabilities
 
