@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
+import AssessmentProgressBar from './AssessmentProgressBar.jsx'
+import AssessmentDemoControls from './AssessmentDemoControls.jsx'
+import AssessmentQuestionCard from './AssessmentQuestionCard.jsx'
 
 const scaleOptions = [
   { value: 1, label: 'Strongly Dislike' },
@@ -56,92 +59,22 @@ function AssessmentForm({ questions, answers, setAnswer, setAllAnswers, onSubmit
 
   return (
     <form onSubmit={handleSubmit} className="assessment-form">
-      {/* Sticky Progress Bar */}
-      <div style={{ 
-        position: 'sticky', 
-        top: '20px', 
-        background: 'var(--card)', 
-        padding: '16px 24px', 
-        borderRadius: '16px', 
-        boxShadow: '0 4px 12px rgba(0,0,0,0.08)', 
-        zIndex: 10,
-        marginBottom: '32px',
-        border: '1px solid var(--line)'
-      }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--ink)' }}>
-          <span>Progress</span>
-          <span>{answeredCount} / {totalCount} completed</span>
-        </div>
-        <div style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden' }}>
-          <div style={{ 
-            height: '100%', 
-            background: 'var(--tech)', 
-            width: `${progressPercent}%`,
-            transition: 'width 0.3s ease-out'
-          }} />
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '24px', justifyContent: 'flex-end' }}>
-        <button type="button" onClick={() => handleDemo('backend')} className="button button--small button--secondary">Demo Backend Profile</button>
-        <button type="button" onClick={() => handleDemo('frontend')} className="button button--small button--secondary">Demo Frontend Profile</button>
-        <button type="button" onClick={() => handleDemo('data')} className="button button--small button--secondary">Demo Data Profile</button>
-      </div>
+      <AssessmentProgressBar answeredCount={answeredCount} totalCount={totalCount} progressPercent={progressPercent} />
+      
+      <AssessmentDemoControls onDemo={handleDemo} />
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-        {questions.map((q, index) => {
-          const isMissing = errorIds.includes(q.id)
-          return (
-            <div key={q.id} id={`question-container-${q.id}`} className="assessment-question" style={{ 
-              padding: '20px', 
-              background: isMissing ? '#fcebe6' : 'var(--card)', 
-              borderRadius: '16px', 
-              border: `1px solid ${isMissing ? 'var(--accent-dark)' : answers[q.id] ? 'var(--tech-soft)' : 'var(--line)'}`,
-              transition: 'all 0.3s',
-              boxShadow: answers[q.id] ? '0 2px 8px rgba(31, 102, 121, 0.05)' : 'none'
-            }}>
-            <h3 style={{ fontSize: '1.15rem', margin: '0 0 24px 0', color: 'var(--ink)' }}>
-              <span style={{ color: 'var(--muted)', marginRight: '12px' }}>{index + 1}.</span> 
-              {q.prompt || q.text}
-            </h3>
-            
-            <div className="assessment-options" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-              {scaleOptions.map(opt => {
-                const isSelected = answers[q.id] === opt.value
-                return (
-                  <label 
-                    key={opt.value} 
-                    style={{
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      gap: '8px',
-                      padding: '14px 16px',
-                      border: `2px solid ${isSelected ? 'var(--tech)' : 'var(--line)'}`,
-                      borderRadius: '12px',
-                      cursor: 'pointer',
-                      background: isSelected ? 'var(--tech-soft)' : 'transparent',
-                      color: isSelected ? 'var(--tech-deep)' : 'var(--ink)',
-                      flex: '1',
-                      justifyContent: 'center',
-                      transition: 'all 0.15s ease'
-                    }}
-                  >
-                    <input
-                      type="radio"
-                      name={`question-${q.id}`}
-                      value={opt.value}
-                      checked={isSelected}
-                      onChange={() => setAnswer(q.id, opt.value)}
-                      style={{ margin: 0, accentColor: 'var(--tech)' }}
-                    />
-                    <span style={{ fontSize: '0.9rem', fontWeight: isSelected ? '600' : '400' }}>{opt.label}</span>
-                  </label>
-                )
-              })}
-            </div>
-          </div>
-          )
-        })}
+        {questions.map((q, index) => (
+          <AssessmentQuestionCard
+            key={q.id}
+            question={q}
+            index={index}
+            answer={answers[q.id]}
+            setAnswer={setAnswer}
+            isMissing={errorIds.includes(q.id)}
+            scaleOptions={scaleOptions}
+          />
+        ))}
       </div>
 
       {error && (
