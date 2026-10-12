@@ -1,67 +1,111 @@
 import { Link } from 'react-router-dom'
-import { ArrowRight, Sparkles, BrainCircuit } from 'lucide-react'
+import { ArrowRight, Sparkles, BrainCircuit, CheckCircle2, Award } from 'lucide-react'
 import { riasecDescriptions } from '../../assessment/data/mockQuestions.js'
 
+const riasecNames = {
+  R: 'Realistic',
+  I: 'Investigative',
+  A: 'Artistic',
+  S: 'Social',
+  E: 'Enterprising',
+  C: 'Conventional',
+}
+
 function HeroSection({ status, result }) {
+  const isCompleted = status === 'completed' && result
+  const dimKey = result?.topDimension
+    ? (result.topDimension.length === 1 ? result.topDimension.toUpperCase() : result.topDimension.charAt(0).toUpperCase())
+    : null
+  const topDimensionName = isCompleted
+    ? (riasecNames[dimKey] || riasecDescriptions[dimKey]?.name || result.topDimension)
+    : null
+
   return (
-    <section className="hero section-shell">
+    <section className="hero section-shell" aria-labelledby="hero-title">
       <div className="hero__copy">
-        <span className="eyebrow">
+        <div className="eyebrow eyebrow--hero">
           <Sparkles size={16} aria-hidden="true" />
-          Explore skills through practice
-        </span>
-        <h1>
-          Explore IT work before you choose a <em>direction.</em>
+          <span>Practical IT Career Exploration · HCM-UTE</span>
+        </div>
+
+        <h1 id="hero-title" className="hero__title">
+          Experience IT careers before choosing your <em>direction.</em>
         </h1>
+
         <p className="hero__lede">
-          Discover what interests you, try realistic tasks, and understand what
-          your results mean. You stay in charge of the decision.
+          Designed for high school students: Discover personal strengths through standardized RIASEC assessment, complete authentic tech tasks, and receive transparent guidance to make informed future choices.
         </p>
+
         <div className="hero__actions">
-          <Link className="button" to="/assessment">
-            {status === 'completed' && result ? (
-              <>View your results <ArrowRight size={18} aria-hidden="true" /></>
+          <Link className="button button--primary" to="/assessment">
+            {isCompleted ? (
+              <>
+                View your RIASEC results <ArrowRight size={18} aria-hidden="true" />
+              </>
             ) : (
-              <>Start with RIASEC <ArrowRight size={18} aria-hidden="true" /></>
+              <>
+                Start with RIASEC assessment <ArrowRight size={18} aria-hidden="true" />
+              </>
             )}
           </Link>
           <Link className="button button--secondary" to="/simulations">
-            Browse simulations
+            Browse IT simulations
           </Link>
+        </div>
+
+        <div className="hero__highlights">
+          <div className="highlight-pill">
+            <CheckCircle2 size={16} aria-hidden="true" />
+            <span>Scientific Holland framework</span>
+          </div>
+          <div className="highlight-pill">
+            <CheckCircle2 size={16} aria-hidden="true" />
+            <span>5 real-world IT tracks</span>
+          </div>
+          <div className="highlight-pill">
+            <CheckCircle2 size={16} aria-hidden="true" />
+            <span>Explainable AI guidance</span>
+          </div>
         </div>
       </div>
 
-      <div className="hero-board" aria-label="Career exploration journey preview">
+      <div className="hero-board" aria-label="Career exploration roadmap">
         <div className="hero-board__header">
-          <span>Your exploration map</span>
-          <span className="pill pill--green">3 steps</span>
+          <span className="hero-board__tag">
+            <Award size={15} aria-hidden="true" /> Your Exploration Roadmap
+          </span>
+          <span className="pill pill--blue">3-step process</span>
         </div>
+
         <div className="hero-board__path" aria-hidden="true" />
-        <div className="hero-board__item hero-board__item--active">
-          <span>1</span>
-          <div>
-            <strong>{status === 'completed' && result ? 'Your top interest' : 'Interest signals'}</strong>
-            {status === 'completed' && result && (
-              <small>{riasecDescriptions[result.topDimension]?.name || 'RIASEC profile'}</small>
-            )}
+
+        <div className={`hero-board__item ${isCompleted ? 'hero-board__item--completed' : 'hero-board__item--active'}`}>
+          <span className="hero-board__step-number">1</span>
+          <div className="hero-board__item-content">
+            <strong>{isCompleted ? 'Dominant Trait' : 'Interest Assessment'}</strong>
+            <small>{isCompleted ? topDimensionName : '42-question Holland RIASEC questionnaire'}</small>
           </div>
-          <span className="mini-chart" aria-hidden="true">
+          <span className="mini-chart" aria-hidden="true" title="6 RIASEC dimensions chart">
             <i /><i /><i /><i /><i /><i />
           </span>
         </div>
+
         <div className="hero-board__item">
-          <span>2</span>
-          <div>
-            <strong>Work samples</strong>
+          <span className="hero-board__step-number">2</span>
+          <div className="hero-board__item-content">
+            <strong>Authentic IT Tasks</strong>
+            <small>Experience Frontend, Backend, Data, QA, Security...</small>
           </div>
-          <span className="hero-board__score">0 / 3</span>
+          <span className="hero-board__score">35 - 45 mins</span>
         </div>
+
         <div className="hero-board__item">
-          <span>3</span>
-          <div>
-            <strong>Dashboard + Syn</strong>
+          <span className="hero-board__step-number">3</span>
+          <div className="hero-board__item-content">
+            <strong>Dashboard &amp; Syn</strong>
+            <small>Synthesize skills &amp; explore recommendations</small>
           </div>
-          <BrainCircuit size={24} aria-hidden="true" />
+          <BrainCircuit size={22} className="hero-board__icon" aria-hidden="true" />
         </div>
       </div>
     </section>

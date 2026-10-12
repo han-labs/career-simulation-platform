@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CareerSim - US-01 Technical Story</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.5);
+            --secondary: #8b5cf6;
+            --accent: #10b981;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-light: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.15) 0%, transparent 50%);
+            min-height: 100vh;
+        }
+
+        header {
+            padding: 4rem 2rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-light);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 99px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px var(--primary-glow);
+        }
+
+        h1 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 3.5rem;
+            margin: 0;
+            background: linear-gradient(to right, #fff, #94a3b8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            color: var(--text-muted);
+            font-size: 1.25rem;
+            margin-top: 1rem;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 3rem auto;
+            padding: 0 2rem;
+            display: grid;
+            gap: 2rem;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-light);
+            border-radius: 20px;
+            padding: 2rem;
+            backdrop-filter: blur(10px);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.2);
+        }
+
+        .card h2 {
+            font-family: 'Outfit', sans-serif;
+            font-size: 1.8rem;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            color: var(--primary);
+        }
+
+        .status-badge {
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--accent);
+            padding: 0.25rem 0.75rem;
+            border-radius: 99px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        ul {
+            padding-left: 1.5rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+        }
+
+        li {
+            margin-bottom: 0.5rem;
+        }
+
+        .architecture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .component-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border-left: 4px solid var(--secondary);
+        }
+
+        .component-box h3 {
+            margin: 0 0 0.5rem 0;
+            color: #fff;
+            font-size: 1.1rem;
+        }
+
+        .component-box p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .flow-number {
+            background: var(--primary);
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-right: 1rem;
+            flex-shrink: 0;
+            box-shadow: 0 0 10px var(--primary-glow);
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="tag">Technical Story</div>
+        <h1>US-01: RIASEC Assessment</h1>
+        <p class="subtitle">Hoàn thành bài đánh giá nghề nghiệp định hướng Holland (Frontend Local State)</p>
+        <div style="margin-top: 1.5rem;">
+            <span class="status-badge">● Trạng thái: Đang triển khai (Draft)</span>
+            <span style="color: var(--text-muted); margin-left: 1rem; font-size: 0.9rem;">Người phụ trách: Võ Nguyễn Ngọc Bích</span>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <div class="card">
+            <h2>1. Phạm vi & Mục tiêu (Scope)</h2>
+            <p style="color: var(--text-muted); line-height: 1.7;">
+                Cung cấp cho sinh viên một giao diện làm bài test RIASEC, lưu trạng thái bài làm và tính toán kết quả nội bộ tại Frontend, 
+                chuẩn bị nền tảng trước khi tích hợp với Backend API.
+            </p>
+            <ul>
+                <li>Bắt đầu, tiếp tục (resume) và nộp bài đánh giá.</li>
+                <li>Hệ thống điểm dựa trên scale chuẩn, map tương ứng với 6 chỉ số RIASEC (R, I, A, S, E, C).</li>
+                <li>Hiển thị biểu đồ kết quả điểm số và chỉ ra xu hướng nổi bật nhất.</li>
+                <li><strong style="color: #fff;">Lưu ý:</strong> Hiện tại TẤT CẢ logic tính điểm và state lưu trữ (LocalStorage) đang chạy trực tiếp ở Frontend. Việc gọi API lưu kết quả sẽ bị loại trừ ở chặng này.</li>
+            </ul>
+        </div>
+
+        <div class="card">
+            <h2>2. Luồng thực thi chi tiết (E2E Flow) & Truy vết Code</h2>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem;">Dưới đây là luồng thực thi chi tiết đính kèm mã nguồn từ lúc khởi động web, đi qua trang chủ (Landing Page), đến lúc hoàn thành bài test (US-01).</p>
+            
+            <div class="flow-step">
+                <div class="flow-number">1</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; margin-bottom: 0.5rem; color: #fff;">Khởi động & Trang chủ (App.jsx -> LandingPage.jsx)</div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0;">Khi người dùng truy cập thư mục gốc <code>/</code>, React Router sẽ load <code>LandingPage</code> làm trang mặc định.</p>
+                    <pre style="background: #1e1e1e; padding: 1rem; border-radius: 8px; overflow-x: auto; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); margin: 0.5rem 0;">
+<span style="color: #569cd6;">import</span> LandingPage <span style="color: #569cd6;">from</span> <span style="color: #ce9178;">'../features/landing/pages/LandingPage.jsx'</span>;
+
+<span style="color: #569cd6;">function</span> <span style="color: #dcdcaa;">App</span>() {
+  <span style="color: #c586c0;">return</span> (
+    &lt;<span style="color: #4ec9b0;">Routes</span>&gt;
+      &lt;<span style="color: #4ec9b0;">Route</span> element={<span style="color: #808080;">&lt;</span><span style="color: #4ec9b0;">ApplicationLayout</span> <span style="color: #808080;">/&gt;</span>}&gt;
+        &lt;<span style="color: #4ec9b0;">Route</span> index element={<span style="color: #808080;">&lt;</span><span style="color: #4ec9b0;">LandingPage</span> <span style="color: #808080;">/&gt;</span>} /&gt; <span style="color: #6a9955;">// &lt;-- Load trang chủ</span>
+        &lt;<span style="color: #4ec9b0;">Route</span> path=<span style="color: #ce9178;">"assessment"</span> element={<span style="color: #808080;">&lt;</span><span style="color: #4ec9b0;">AssessmentPage</span> <span style="color: #808080;">/&gt;</span>} /&gt;
+...</pre>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="flow-number">2</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; margin-bottom: 0.5rem; color: #fff;">Tải dữ liệu Landing Page (LandingPage.jsx)</div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0;">Trang chủ dùng <code>useEffect</code> để fetch danh sách các bài Simulation đang có. Nếu API thành công, nó lưu kết quả. Nếu server lỗi hoặc chưa sẵn sàng, nó sẽ catch lỗi và load mảng dữ liệu mẫu (<code>fallbackSimulations</code>).</p>
+                    <pre style="background: #1e1e1e; padding: 1rem; border-radius: 8px; overflow-x: auto; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); margin: 0.5rem 0;">
+<span style="color: #569cd6;">const</span> [simulations, setSimulations] = <span style="color: #dcdcaa;">useState</span>(fallbackSimulations)
+
+<span style="color: #dcdcaa;">useEffect</span>(() <span style="color: #569cd6;">=&gt;</span> {
+  <span style="color: #dcdcaa;">getPublishedSimulations</span>() <span style="color: #6a9955;">// Hàm gọi API fetch dữ liệu (/api/v1/simulations/published)</span>
+    .<span style="color: #dcdcaa;">then</span>((data) <span style="color: #569cd6;">=&gt;</span> {
+      <span style="color: #c586c0;">if</span> (data.length &gt; <span style="color: #b5cea8;">0</span>) <span style="color: #dcdcaa;">setSimulations</span>(data.<span style="color: #dcdcaa;">slice</span>(<span style="color: #b5cea8;">0</span>, <span style="color: #b5cea8;">3</span>))
+      <span style="color: #dcdcaa;">setCatalogStatus</span>(<span style="color: #ce9178;">'ready'</span>)
+    })
+    .<span style="color: #dcdcaa;">catch</span>(() <span style="color: #569cd6;">=&gt;</span> {
+      <span style="color: #dcdcaa;">setCatalogStatus</span>(<span style="color: #ce9178;">'fallback'</span>) <span style="color: #6a9955;">// Server sập -&gt; Giữ nguyên fallbackSimulations</span>
+    })
+}, [])</pre>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="flow-number">3</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; margin-bottom: 0.5rem; color: #fff;">Chuyển hướng sang Bài Test (HeroSection -> AssessmentPage.jsx)</div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0;">Khi người dùng click vào nút "Start Assessment" trên trang chủ (trong component <code>HeroSection</code>), Router sẽ điều hướng sang route <code>/assessment</code> và thay đổi giao diện để render <code>AssessmentPage</code>.</p>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="flow-number">4</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; margin-bottom: 0.5rem; color: #fff;">Bắt đầu làm test (AssessmentPage.jsx -> useAssessment.js)</div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0;">Khi người dùng bấm "Start", hàm <code>handleStartOrResume</code> kích hoạt logic của Hook <code>useAssessment</code> để gọi Mock API tạo phiên làm bài mới và render form.</p>
+                    <pre style="background: #1e1e1e; padding: 1rem; border-radius: 8px; overflow-x: auto; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); margin: 0.5rem 0;">
+<span style="color: #569cd6;">const</span> { start, status } = <span style="color: #dcdcaa;">useAssessment</span>();
+<span style="color: #569cd6;">const</span> [isTakingTest, setIsTakingTest] = <span style="color: #dcdcaa;">useState</span>(<span style="color: #569cd6;">false</span>);
+
+<span style="color: #569cd6;">const</span> <span style="color: #dcdcaa;">handleStartOrResume</span> = () <span style="color: #569cd6;">=&gt;</span> {
+  <span style="color: #c586c0;">if</span> (status === <span style="color: #ce9178;">'intro'</span>) {
+    <span style="color: #dcdcaa;">start</span>(); <span style="color: #6a9955;">// Gửi POST /api/v1/assessments/attempts, đổi status 'in_progress'</span>
+  }
+  <span style="color: #dcdcaa;">setIsTakingTest</span>(<span style="color: #569cd6;">true</span>); <span style="color: #6a9955;">// Mở khóa UI Render AssessmentForm</span>
+}</pre>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="flow-number">5</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; margin-bottom: 0.5rem; color: #fff;">Lưu trạng thái chọn đáp án (AssessmentForm.jsx -> useAssessment.js)</div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0;">Form map qua từng thẻ câu hỏi. Khi chọn scale (1-5), callback <code>setAnswer</code> lưu vào state cục bộ, sau đó <code>useEffect</code> lưu xuống LocalStorage tự động lưu bài (Autosave).</p>
+                    <pre style="background: #1e1e1e; padding: 1rem; border-radius: 8px; overflow-x: auto; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); margin: 0.5rem 0;">
+<span style="color: #6a9955;">// Trong useAssessment.js (Hook)</span>
+<span style="color: #569cd6;">const</span> <span style="color: #dcdcaa;">setAnswer</span> = <span style="color: #dcdcaa;">useCallback</span>((questionId, value) <span style="color: #569cd6;">=&gt;</span> {
+  <span style="color: #dcdcaa;">setState</span>(prev <span style="color: #569cd6;">=&gt;</span> ({
+    ...prev,
+    answers: { ...prev.answers, [questionId]: value }
+  }))
+}, [])
+
+<span style="color: #6a9955;">// Autosave khi state thay đổi</span>
+<span style="color: #dcdcaa;">useEffect</span>(() <span style="color: #569cd6;">=&gt;</span> {
+  localStorage.<span style="color: #dcdcaa;">setItem</span>(STORAGE_KEY, JSON.<span style="color: #dcdcaa;">stringify</span>(state))
+}, [state])</pre>
+                </div>
+            </div>
+
+            <div class="flow-step">
+                <div class="flow-number">6</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; margin-bottom: 0.5rem; color: #fff;">Xác nhận nộp bài & Validate (AssessmentForm.jsx)</div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0;">Khi click "Submit", hàm kiểm tra số lượng câu đã trả lời. Nếu thiếu, tìm câu đầu tiên chưa làm (Dùng element ID) và cuộn chuột mượt mà tới đó.</p>
+                    <pre style="background: #1e1e1e; padding: 1rem; border-radius: 8px; overflow-x: auto; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); margin: 0.5rem 0;">
+<span style="color: #569cd6;">const</span> <span style="color: #dcdcaa;">handleSubmit</span> = (e) <span style="color: #569cd6;">=&gt;</span> {
+  e.<span style="color: #dcdcaa;">preventDefault</span>()
+  <span style="color: #c586c0;">if</span> (answeredCount &lt; totalCount) {
+    <span style="color: #569cd6;">const</span> missing = questions.<span style="color: #dcdcaa;">filter</span>(q <span style="color: #569cd6;">=&gt;</span> answers[q.id] === <span style="color: #569cd6;">undefined</span>).<span style="color: #dcdcaa;">map</span>(q <span style="color: #569cd6;">=&gt;</span> q.id)
+    <span style="color: #dcdcaa;">setErrorIds</span>(missing)
+    <span style="color: #dcdcaa;">setError</span>(<span style="color: #ce9178;">`Please answer all questions before submitting.`</span>)
+    
+    <span style="color: #6a9955;">// Tự động scroll tới câu lỗi</span>
+    <span style="color: #dcdcaa;">setTimeout</span>(() <span style="color: #569cd6;">=&gt;</span> {
+      <span style="color: #569cd6;">const</span> element = document.<span style="color: #dcdcaa;">getElementById</span>(<span style="color: #ce9178;">`question-container-${missing[0]}`</span>)
+      <span style="color: #c586c0;">if</span> (element) element.<span style="color: #dcdcaa;">scrollIntoView</span>({ behavior: <span style="color: #ce9178;">'smooth'</span>, block: <span style="color: #ce9178;">'center'</span> })
+    }, <span style="color: #b5cea8;">100</span>)
+    <span style="color: #c586c0;">return</span>
+  }
+  <span style="color: #dcdcaa;">onSubmit</span>() <span style="color: #6a9955;">// Gửi kết quả qua useAssessment.js</span>
+}</pre>
+                </div>
+            </div>
+            
+            <div class="flow-step">
+                <div class="flow-number">7</div>
+                <div style="flex: 1;">
+                    <div style="font-weight: bold; margin-bottom: 0.5rem; color: #fff;">Gọi Mock API & Trả kết quả (useAssessment.js)</div>
+                    <p style="color: var(--text-muted); font-size: 0.9rem; margin-top: 0;">Hàm <code>submit()</code> chuyển object đáp án thành array JSON. Gửi POST request. Nếu server trả về kết quả thành công, đổi state thành <code>completed</code> và render <code>AssessmentResult</code>.</p>
+                    <pre style="background: #1e1e1e; padding: 1rem; border-radius: 8px; overflow-x: auto; font-family: monospace; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.1); margin: 0.5rem 0;">
+<span style="color: #569cd6;">const</span> <span style="color: #dcdcaa;">submit</span> = <span style="color: #dcdcaa;">useCallback</span>(<span style="color: #569cd6;">async</span> () <span style="color: #569cd6;">=&gt;</span> {
+  <span style="color: #c586c0;">try</span> {
+    <span style="color: #569cd6;">const</span> answersPayload = Object.<span style="color: #dcdcaa;">entries</span>(state.answers).<span style="color: #dcdcaa;">map</span>(([qId, score]) <span style="color: #569cd6;">=&gt;</span> ({
+      questionId: <span style="color: #4ec9b0;">Number</span>(qId), score
+    }))
+
+    <span style="color: #6a9955;">// API POST lên hệ thống mock</span>
+    <span style="color: #569cd6;">const</span> res = <span style="color: #c586c0;">await</span> <span style="color: #dcdcaa;">fetch</span>(<span style="color: #ce9178;">`/api/v1/assessments/attempts/${state.attemptId}/submit`</span>, { 
+      method: <span style="color: #ce9178;">'POST'</span>,
+      headers: { <span style="color: #ce9178;">'Content-Type'</span>: <span style="color: #ce9178;">'application/json'</span> },
+      body: JSON.<span style="color: #dcdcaa;">stringify</span>({ answers: answersPayload })
+    })
+    <span style="color: #569cd6;">const</span> json = <span style="color: #c586c0;">await</span> res.<span style="color: #dcdcaa;">json</span>()
+    
+    <span style="color: #6a9955;">// Thay đổi trạng thái UI</span>
+    <span style="color: #dcdcaa;">setState</span>(prev <span style="color: #569cd6;">=&gt;</span> ({ ...prev, status: <span style="color: #ce9178;">'completed'</span>, result: json.data }))
+  } <span style="color: #c586c0;">catch</span> (err) { ... }
+}, [state.answers, state.attemptId])</pre>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>3. Thiết kế Kiến trúc Component (React)</h2>
+            <div class="architecture-grid">
+                <div class="component-box">
+                    <h3>AssessmentForm.jsx</h3>
+                    <p>Component cha. Chứa form submit, gọi validate và render danh sách các thẻ câu hỏi.</p>
+                </div>
+                <div class="component-box">
+                    <h3>AssessmentQuestionCard.jsx</h3>
+                    <p>Component con. Chịu trách nhiệm hiển thị 1 câu hỏi cụ thể, nhận Props là nội dung câu hỏi và hàm callback set đáp án.</p>
+                </div>
+                <div class="component-box" style="border-left-color: var(--accent);">
+                    <h3>useAssessment.js</h3>
+                    <p>Custom Hook trừu tượng hóa logic quản lý state và tương tác với LocalStorage (Autosave).</p>
+                </div>
+                <div class="component-box" style="border-left-color: var(--accent);">
+                    <h3>riasecScorer.js</h3>
+                    <p>Module Javascript thuần túy (Không phải Component). Chứa thuật toán tính điểm độc lập với UI.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="border-color: rgba(245, 158, 11, 0.3);">
+            <h2 style="color: #f59e0b;">4. Quyết định & Rủi ro Kỹ thuật</h2>
+            <div style="background: rgba(245, 158, 11, 0.1); padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #fbbf24;">Rủi ro: Backend chưa sẵn sàng API</h3>
+                <p style="margin: 0; color: var(--text-muted); font-size: 0.95rem;">
+                    <strong>Quyết định (Approved):</strong> Chấp nhận xây dựng Frontend sử dụng State Management cục bộ kết hợp LocalStorage để đảm bảo tiến độ UX/UI. 
+                    Mã nguồn được cấu trúc sạch sẽ thông qua các Custom Hooks để dễ dàng thay thế bằng các lệnh `fetch/axios` HTTP Calls khi Backend REST API hoàn thiện trong tương lai.
+                </p>
+            </div>
+        </div>
+
+    </div>
+
+</body>
+</html>

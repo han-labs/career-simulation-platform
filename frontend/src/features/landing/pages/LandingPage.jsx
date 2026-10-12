@@ -2,37 +2,40 @@ import { useEffect, useState } from 'react'
 import { getPublishedSimulations } from '../../simulations/api/simulationCatalogApi.js'
 import { useAssessment } from '../../assessment/hooks/useAssessment.js'
 import HeroSection from '../components/HeroSection.jsx'
+import FeaturesSection from '../components/FeaturesSection.jsx'
 import JourneySection from '../components/JourneySection.jsx'
+import TracksSection from '../components/TracksSection.jsx'
 import CatalogSection from '../components/CatalogSection.jsx'
+import CtaSection from '../components/CtaSection.jsx'
 
 const fallbackSimulations = [
   {
     id: 'fallback-1',
     slug: 'backend-api-triage',
-    title: 'Backend API Triage',
+    title: 'Backend API Triage: Incident Response',
     careerTrack: 'BACKEND_DEVELOPMENT',
     summary:
-      'Inspect an API response, choose a safe query, and identify the likely source of a server error.',
+      'Inspect API responses, select safe SQL statements, and identify the root cause of an unexpected 500 server error.',
     difficulty: 'INTRODUCTORY',
     estimatedMinutes: 35,
   },
   {
     id: 'fallback-2',
     slug: 'frontend-accessibility-review',
-    title: 'Frontend Accessibility Review',
+    title: 'Frontend Accessibility: UI Audit',
     careerTrack: 'FRONTEND_DEVELOPMENT',
     summary:
-      'Make evidence-based decisions about semantics, keyboard use, and interface feedback states.',
+      'Make design and code decisions on semantic HTML, keyboard navigation, and responsive accessibility.',
     difficulty: 'INTRODUCTORY',
     estimatedMinutes: 30,
   },
   {
     id: 'fallback-3',
     slug: 'data-quality-investigation',
-    title: 'Data Quality Investigation',
+    title: 'Data Quality Investigation: Anomaly Detection',
     careerTrack: 'DATA_ANALYSIS',
     summary:
-      'Find inconsistencies in a small dataset and select reproducible cleaning and validation steps.',
+      'Investigate discrepancies across student dataset records and identify proper data cleansing workflows.',
     difficulty: 'INTERMEDIATE',
     estimatedMinutes: 45,
   },
@@ -63,11 +66,14 @@ function LandingPage() {
   }, [])
 
   return (
-    <>
+    <div className="landing-page-container">
       <HeroSection status={status} result={result} />
+      <FeaturesSection />
       <JourneySection />
+      <TracksSection />
       <CatalogSection simulations={simulations} catalogStatus={catalogStatus} />
-    </>
+      <CtaSection />
+    </div>
   )
 }
 

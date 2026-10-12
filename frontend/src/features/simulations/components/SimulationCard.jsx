@@ -2,14 +2,22 @@ import { ArrowUpRight, Clock3 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const trackLabels = {
-  BACKEND_DEVELOPMENT: 'Backend development',
-  FRONTEND_DEVELOPMENT: 'Frontend development',
-  DATA_ANALYSIS: 'Data analysis',
-  SOFTWARE_TESTING: 'Software testing',
+  BACKEND_DEVELOPMENT: 'Backend Development',
+  FRONTEND_DEVELOPMENT: 'Frontend Development',
+  DATA_ANALYSIS: 'Data Analysis',
+  SOFTWARE_TESTING: 'Software Testing',
   CYBERSECURITY: 'Cybersecurity',
 }
 
+const difficultyLabels = {
+  INTRODUCTORY: 'Introductory',
+  INTERMEDIATE: 'Intermediate',
+  ADVANCED: 'Advanced',
+}
+
 function SimulationCard({ simulation }) {
+  const difficultyText = difficultyLabels[simulation.difficulty] ?? simulation.difficulty?.toLowerCase()
+
   return (
     <article className="simulation-card">
       <div className="simulation-card__topline">
@@ -23,13 +31,13 @@ function SimulationCard({ simulation }) {
       </div>
       <div>
         <p className="simulation-card__level">
-          {simulation.difficulty.toLowerCase()}
+          Level: {difficultyText}
         </p>
         <h3>{simulation.title}</h3>
         <p>{simulation.summary}</p>
       </div>
       <Link className="text-link" to={`/simulations/${simulation.slug}`}>
-        View simulation <ArrowUpRight size={17} aria-hidden="true" />
+        View Simulation <ArrowUpRight size={17} aria-hidden="true" />
       </Link>
     </article>
   )
