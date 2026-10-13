@@ -15,8 +15,9 @@ const riasecNames = {
 function HeroSection({ status, result }) {
   const { t } = useI18n()
   const isCompleted = status === 'completed' && result
-  const dimKey = result?.topDimension
-    ? (result.topDimension.length === 1 ? result.topDimension.toUpperCase() : result.topDimension.charAt(0).toUpperCase())
+  const firstTopDimension = result?.topDimensions?.[0] || result?.topDimension
+  const dimKey = firstTopDimension
+    ? (firstTopDimension.length === 1 ? firstTopDimension.toUpperCase() : firstTopDimension.charAt(0).toUpperCase())
     : null
   const topDimensionName = isCompleted
     ? (riasecNames[dimKey] || riasecDescriptions[dimKey]?.name || result.topDimension)
@@ -33,7 +34,9 @@ function HeroSection({ status, result }) {
         <h1 id="hero-title" className="hero__title"> {t("Experience IT careers before choosing your")} <em>{t("direction.")}</em>
         </h1>
 
-        <p className="hero__lede"> {t("Discover your interests, try practical tech tasks and explore your next steps with Syn.")} </p>
+        <p className="hero__lede">
+          {t('Designed for high school students: Explore your interests, complete authentic tech tasks, and use transparent guidance to reflect on possible next steps.')}
+        </p>
 
         <div className="hero__actions">
           <Link className="button button--primary" to="/assessment">
@@ -41,7 +44,7 @@ function HeroSection({ status, result }) {
               <> {t("View Career Assessment Results")} <ArrowRight size={18} aria-hidden="true" />
               </>
             ) : (
-              <> {t("Career Assessment")} <ArrowRight size={18} aria-hidden="true" />
+              <> {t('Explore career assessments')} <ArrowRight size={18} aria-hidden="true" />
               </>
             )}
           </Link>

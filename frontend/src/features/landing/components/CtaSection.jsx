@@ -10,13 +10,18 @@ function CtaSection() {
         <div className="cta-card">
           <div className="cta-card__content">
             <span className="eyebrow eyebrow--light">
-              <GraduationCap size={16} aria-hidden="true" /> {t("Ready to explore?")} </span>
-            <h2 id="cta-heading" className="cta-card__title"> {t("Start exploring your future")} </h2>
-            <p className="cta-card__text"> {t("Start with your interests, then try a career simulation.")} </p>
+              <GraduationCap size={16} aria-hidden="true" /> {t('Ready to Start Your Career Exploration?')}
+            </span>
+            <h2 id="cta-heading" className="cta-card__title">{t('Begin Discovering Your IT Potential Today')}</h2>
+            <p className="cta-card__text">
+              {t('Start with a 42-question RIASEC self-reflection, then explore possible IT directions at your own pace.')}
+            </p>
             <div className="cta-card__actions">
               <Link className="button button--cta-primary" to="/assessment">
-                <Sparkles size={17} aria-hidden="true" /> {t("Career Assessment")} </Link>
-              <Link className="button button--cta-secondary" to="/simulations"> {t("Browse IT Career Roles")} <ArrowRight size={17} aria-hidden="true" />
+                <Sparkles size={17} aria-hidden="true" /> {t('Explore career assessments')}
+              </Link>
+              <Link className="button button--cta-secondary" to="/simulations">
+                {t('Browse IT Career Roles')} <ArrowRight size={17} aria-hidden="true" />
               </Link>
             </div>
           </div>

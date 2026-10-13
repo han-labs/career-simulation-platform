@@ -1,11 +1,21 @@
 import { useI18n } from '../../../shared/i18n/useI18n.js'
-function AssessmentDemoControls({ onDemo }) {
+
+const riasecProfiles = [
+  { id: 'backend', label: 'Demo Backend Profile' },
+  { id: 'frontend', label: 'Demo Frontend Profile' },
+  { id: 'data', label: 'Demo Data Profile' },
+]
+
+function AssessmentDemoControls({ onDemo, profiles = riasecProfiles }) {
   const { t } = useI18n()
+
   return (
-    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', marginBottom: '24px', justifyContent: 'flex-end' }}>
-      <button type="button" onClick={() => onDemo('backend')} className="button button--small button--secondary">{t("Demo Backend Profile")}</button>
-      <button type="button" onClick={() => onDemo('frontend')} className="button button--small button--secondary">{t("Demo Frontend Profile")}</button>
-      <button type="button" onClick={() => onDemo('data')} className="button button--small button--secondary">{t("Demo Data Profile")}</button>
+    <div className="assessment-demo-controls" aria-label={t('Quick demo profiles')}>
+      {profiles.map((profile) => (
+        <button key={profile.id} type="button" onClick={() => onDemo(profile.id)} className="button button--small button--secondary">
+          {t(profile.label)}
+        </button>
+      ))}
     </div>
   )
 }

@@ -2,6 +2,8 @@ package edu.hcmute.careersim.assessment.service;
 
 import edu.hcmute.careersim.assessment.dto.AssessmentAttemptDto;
 import edu.hcmute.careersim.assessment.dto.AssessmentResultDto;
+import edu.hcmute.careersim.assessment.dto.CareerQuizQuestionDto;
+import edu.hcmute.careersim.assessment.dto.CareerQuizResultDto;
 import edu.hcmute.careersim.assessment.dto.RiasecQuestionDto;
 import edu.hcmute.careersim.assessment.dto.SubmitAnswersRequest;
 import java.util.List;
@@ -14,4 +16,13 @@ public interface AssessmentService {
     AssessmentResultDto submitAnswers(Long attemptId, Long studentId, SubmitAnswersRequest request);
 
     AssessmentResultDto getAttemptResult(Long attemptId, Long studentId);
+
+    List<CareerQuizQuestionDto> getQuizQuestions(String quizType);
+
+    AssessmentAttemptDto startQuizAttempt(String quizType, Long studentId);
+
+    CareerQuizResultDto submitQuizAnswers(
+            Long attemptId, Long studentId, SubmitAnswersRequest request);
+
+    CareerQuizResultDto getQuizAttemptResult(Long attemptId, Long studentId);
 }

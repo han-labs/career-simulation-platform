@@ -49,3 +49,30 @@ reviewed server-owned reference data, while `simulation_task_skills` maps origin
 course-demo tasks to skills. These tables let the same deterministic tools operate
 when Gemini is disabled or unavailable. The LLM receives observations prepared by
 the service and never receives database access.
+
+## US-01 career quizzes
+
+`V10__add_interests_and_abilities_quizzes.sql` adds a type discriminator to
+`assessment_attempts` while keeping existing RIASEC attempts and scoring intact.
+Original Interests and Abilities prompts are stored in `career_quiz_questions`;
+submitted responses and deterministic category totals are stored separately in
+`career_quiz_answers` and `career_quiz_scores`. Each quiz has 12 active questions,
+three per category, rated on a required 1–5 self-reflection scale. Attempt type,
+student ownership, question membership, response completeness, and category mapping
+are validated by the assessment service. Results are exploratory and do not claim
+validated aptitude or psychological measurement.
+
+`V11__add_work_activities_quiz.sql` extends the existing assessment-type constraints
+and seeds nine original Work Activities prompts into the same question table. Three
+items each measure a student's stated preference for Information, People, and Things;
+their responses and 3–15 category sums use the existing answer and score tables.
+This preference reflection complements the Interests and Abilities quizzes and does
+not match students to occupations or claim validated measurement.
+
+## Syn persistence migrations
+
+The persistent development database already records the assessment schema changes
+at V10 and V11. To keep those applied migration names and checksums intact, the
+Syn lifecycle, vector knowledge, and trace migrations use V12, V13, and V14,
+respectively. V13 requires the pgvector extension. The SQL contents of the Syn
+migrations are unchanged by this version reassignment.

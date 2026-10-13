@@ -37,7 +37,7 @@ flowchart TB
 | Module | Responsibility | Current state |
 |---|---|---|
 | `identity` | Authentication, roles, profiles, consent | Account/consent read boundary exists; runtime login remains pending |
-| `assessment` | RIASEC questionnaire and deterministic scoring | Preliminary US-01 backend implemented |
+| `assessment` | RIASEC, Interests, Abilities, and Work Activities assessments with deterministic scoring | US-01 APIs and persisted assessment results implemented; login remains pending |
 | `catalog` | Published simulation discovery | Working foundation slice |
 | `simulation` | Tasks, attempts, submissions, deterministic evaluation | Preliminary US-02 backend implemented |
 | `guidance` | Dashboard summaries, bounded session memory, typed read tools, bounded LLM tool calling, schema validation, and deterministic Standard fallback | US-03 bounded agent and global Syn widget implemented; runtime login remains pending |
@@ -85,7 +85,7 @@ The source architecture image is retained in `.agent/references/system-architect
 
 ## P1/P2 Syn core and vector RAG increment
 
-PostgreSQL now requires pgvector. V10 adds versioned turn/session lifecycle, V11 adds published knowledge document/version/chunk tables and `vector(768)`, V12 adds sanitized trace metadata. Business evidence remains relational and authoritative. No frontend-to-provider, model-to-SQL or model-to-plan-write path was added.
+PostgreSQL now requires pgvector. V12 adds versioned turn/session lifecycle, V13 adds published knowledge document/version/chunk tables and `vector(768)`, V14 adds sanitized trace metadata. These versions follow the already-applied assessment V10 and V11 migrations. Business evidence remains relational and authoritative. No frontend-to-provider, model-to-SQL or model-to-plan-write path was added.
 
 The production message flow uses short snapshot/begin/finalization transactions around an external-call phase, not one long transaction. The seventh read tool, SEARCH_KNOWLEDGE, combines exact vector retrieval and local full-text search. Publication is an internal reviewed workflow, independent of chat. Deadline/cancellation and shared schema validation protect the generation boundary. Runtime authentication remains a separate dependency; localhost demo is not a production identity mechanism.
 

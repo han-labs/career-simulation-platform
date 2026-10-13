@@ -10,7 +10,7 @@ A human must review factual correctness, provenance/license, section boundaries 
 
 ## Publish
 
-Use a pgvector database with migrations through V12 and backend-only GEMINI_API_KEY. Set KNOWLEDGE_EMBEDDING_ENABLED=true, then start the backend with:
+Use a pgvector database with migrations through V14 and backend-only GEMINI_API_KEY. Set KNOWLEDGE_EMBEDDING_ENABLED=true, then start the backend with:
 ```text
 --app.knowledge.ingest-file=/absolute/path/corpus.approved.json
 ```

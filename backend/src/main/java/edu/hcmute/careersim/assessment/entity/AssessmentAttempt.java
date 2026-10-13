@@ -18,6 +18,9 @@ public class AssessmentAttempt {
     @Column(name = "student_id", nullable = false)
     private Long studentId;
 
+    @Column(name = "assessment_type", length = 30, nullable = false)
+    private String assessmentType = "RIASEC";
+
     @Column(name = "status", length = 30, nullable = false)
     private String status; // IN_PROGRESS, COMPLETED
 

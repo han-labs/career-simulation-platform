@@ -15,7 +15,14 @@ function AssessmentQuestionCard({ question, index, answer, setAnswer, isMissing,
         {t(question.prompt || question.text)}
       </h3>
       
-      <div className="assessment-options" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+      <div
+        className="assessment-options"
+        role="radiogroup"
+        aria-label={`${index + 1}. ${question.prompt || question.text}`}
+        aria-invalid={isMissing || undefined}
+        aria-describedby={isMissing ? `question-error-${question.id}` : undefined}
+        style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}
+      >
         {scaleOptions.map(opt => {
           const isSelected = answer === opt.value
           return (
@@ -49,6 +56,11 @@ function AssessmentQuestionCard({ question, index, answer, setAnswer, isMissing,
           )
         })}
       </div>
+      {isMissing && (
+        <p id={`question-error-${question.id}`} className="assessment-question__error">
+          Choose one response before submitting.
+        </p>
+      )}
     </div>
   )
 }

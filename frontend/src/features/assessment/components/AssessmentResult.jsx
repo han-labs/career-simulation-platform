@@ -1,97 +1,100 @@
+import { Link } from 'react-router-dom'
 import { useI18n } from '../../../shared/i18n/useI18n.js'
 import { riasecDescriptions } from '../data/mockQuestions.js'
 
+const dimensionOrder = ['R', 'I', 'A', 'S', 'E', 'C']
+const maximumDimensionScore = 35
+
 function AssessmentResult({ result, onRestart }) {
   const { t } = useI18n()
-  const { scores, topDimensions } = result
-  
-  // Create a sorted list based on the scores returned from backend
-  const sortedDimensions = scores
-    .sort((a, b) => b.score - a.score)
-    .map(dimScore => ({
-      dim: dimScore.dimension,
-      score: dimScore.score,
-      info: riasecDescriptions[dimScore.dimension]
-    }))
+  const scores = Array.isArray(result?.scores) ? result.scores : []
+  const validScores = scores.filter(
+    ({ dimension, score }) => riasecDescriptions[dimension] && Number.isFinite(score),
+  )
+  const hasSixUniqueDimensions =
+    validScores.length === dimensionOrder.length &&
+    new Set(validScores.map(({ dimension }) => dimension)).size === dimensionOrder.length
 
-  const topDimension = topDimensions[0]
-  const topInfo = riasecDescriptions[topDimension]
+  if (!hasSixUniqueDimensions) {
+    return (
+      <section className="assessment-result assessment-result--empty" aria-labelledby="assessment-result-title">
+        <h1 id="assessment-result-title">{t('Your results are unavailable')}</h1>
+        <p>{t('The result is incomplete. You can return and take the assessment again.')}</p>
+        <button className="button button--secondary" type="button" onClick={onRestart}>{t('Retake assessment')}</button>
+      </section>
+    )
+  }
 
-  const maxPossibleScore = 35 // 7 questions per dimension * 5 max points
+  const orderedScores = [...validScores].sort(
+    (left, right) => dimensionOrder.indexOf(left.dimension) - dimensionOrder.indexOf(right.dimension),
+  )
+  const strongestScore = Math.max(...orderedScores.map(({ score }) => score))
+  const strongestDimensions = orderedScores.filter(({ score }) => score === strongestScore)
+  const explorationDirections = [...new Set(
+    strongestDimensions.flatMap(({ dimension }) => riasecDescriptions[dimension].directions),
+  )]
 
   return (
-    <div className="assessment-result">
-      <div className="hero-board" style={{ 
-        marginBottom: '32px', 
-        padding: '32px', 
-        background: 'var(--card)', 
-        borderRadius: '24px', 
-        border: '1px solid var(--line)',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.05)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px' }}>
-          <span style={{ color: 'var(--muted)', textTransform: 'uppercase', fontSize: '0.85rem', fontWeight: 'bold', letterSpacing: '1px' }}> {t("Your Strongest Interest Area")} </span>
-          <span className="pill" style={{ background: topInfo.bgColor, color: topInfo.color, padding: '4px 12px', borderRadius: '100px', fontSize: '0.85rem', fontWeight: 'bold' }}>
-            {t(topInfo.name)}
-          </span>
+    <section className="assessment-result" aria-labelledby="assessment-result-title">
+      <div className="assessment-result__summary">
+        <span className="eyebrow">{t('RIASEC results')}</span>
+        <h1 id="assessment-result-title">
+          {t(strongestDimensions.length > 1 ? 'Your strongest interest signals' : 'Your strongest interest signal')}
+        </h1>
+        <div className="assessment-result__strongest" aria-label={t('Highest-scoring interest dimensions')}>
+          {strongestDimensions.map(({ dimension }) => {
+            const info = riasecDescriptions[dimension]
+            return <span className="assessment-result__badge" key={dimension} style={{ color: info.color, backgroundColor: info.bgColor }}>{t(info.name)}</span>
+          })}
         </div>
-        
-        <h2 style={{ fontSize: '3.5rem', margin: '0 0 16px 0', fontFamily: 'Georgia, serif', color: 'var(--ink)' }}>{t(topInfo.name)}</h2>
-        <p style={{ color: 'var(--muted)', fontSize: '1.15rem', lineHeight: '1.7', maxWidth: '640px' }}>
-          {t(topInfo.description)}
+        <p className="assessment-result__interpretation">
+          {strongestDimensions.map(({ dimension }) => t(riasecDescriptions[dimension].description)).join(' ')}
         </p>
-
-        <h3 style={{ fontSize: '1.1rem', marginTop: '24px', marginBottom: '12px', color: 'var(--ink)' }}>{t("Exploration Directions")}</h3>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          {topInfo.directions.map(dir => (
-            <span key={dir} style={{ background: 'var(--page-bg)', color: 'var(--ink)', padding: '10px 16px', borderRadius: '12px', fontSize: '0.95rem', border: '1px solid var(--line)' }}>
-              {t(dir)}
-            </span>
-          ))}
-        </div>
+        <h2>{t('Directions to explore')}</h2>
+        <ul className="assessment-result__directions">
+          {explorationDirections.map((direction) => <li key={direction}>{t(direction)}</li>)}
+        </ul>
+        <p className="assessment-result__next-step">
+          {t('Try an IT simulation to experience a sample task, then reflect on how it felt to you.')}
+        </p>
       </div>
 
-      <h3 style={{ fontSize: '1.5rem', marginBottom: '20px', fontFamily: 'Georgia, serif', color: 'var(--ink)' }}>{t("Full Dimension Breakdown")}</h3>
-      <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))' }}>
-        {sortedDimensions.map(({ dim, score, info }) => (
-          <div key={dim} style={{ padding: '16px', background: 'var(--card)', borderRadius: '16px', border: '1px solid var(--line)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', alignItems: 'center' }}>
-              <span style={{ color: info.color, fontWeight: 'bold', fontSize: '1.1rem' }}>{t(info.name)}</span>
-              <span style={{ color: 'var(--muted)', fontSize: '0.95rem' }}>{t(score)} / {t(maxPossibleScore)}</span>
-            </div>
-            {/* Progress bar */}
-            <div style={{ height: '10px', background: 'var(--page-bg)', borderRadius: '5px', overflow: 'hidden' }}>
-              <div 
-                style={{ 
-                  height: '100%', 
-                  background: info.color, 
-                  width: `${(score / maxPossibleScore) * 100}%`,
-                  transition: 'width 1s cubic-bezier(0.22, 1, 0.36, 1)'
-                }} 
-              />
-            </div>
+      <div className="assessment-result__scores">
+        <div className="assessment-result__scores-heading">
+          <div>
+            <h2>{t('Your six interest dimensions')}</h2>
+            <p>{t('Each score is the sum of your answers in that dimension, from 7 to 35.')}</p>
           </div>
-        ))}
+          <Link className="button button--secondary" to="/simulations">{t('Explore IT simulations')}</Link>
+        </div>
+        <ul className="assessment-score-list">
+          {orderedScores.map(({ dimension, score }) => {
+            const info = riasecDescriptions[dimension]
+            const percentage = Math.max(0, Math.min(100, (score / maximumDimensionScore) * 100))
+            return (
+              <li className="assessment-score" key={dimension}>
+                <div className="assessment-score__label">
+                  <span>{t(info.name)}</span>
+                  <strong>{score} / {maximumDimensionScore}</strong>
+                </div>
+                <div className="assessment-score__track" role="progressbar" aria-label={`${t(info.name)}: ${score} out of ${maximumDimensionScore}`} aria-valuemin={0} aria-valuemax={maximumDimensionScore} aria-valuenow={score}>
+                  <span style={{ width: `${percentage}%`, backgroundColor: info.color }} />
+                </div>
+              </li>
+            )
+          })}
+        </ul>
       </div>
 
-      <div style={{ marginTop: '40px', paddingTop: '24px', borderTop: '1px solid var(--line)', textAlign: 'center' }}>
-        <p style={{ color: 'var(--muted)', marginBottom: '24px', fontSize: '0.95rem', maxWidth: '600px', margin: '0 auto 24px' }}>
-          <strong>{t("Implementation guardrail:")}</strong> {t("These results are calculated by deterministic scoring rules and provide exploration options, not final career predictions. No AI was used to calculate this score.")} </p>
-        <button 
-          onClick={onRestart}
-          style={{ 
-            background: 'transparent', 
-            color: 'var(--ink)', 
-            padding: '14px 28px', 
-            borderRadius: '12px', 
-            fontSize: '1rem', 
-            fontWeight: '600', 
-            border: '2px solid var(--line)', 
-            cursor: 'pointer' 
-          }}
-        > {t("Retake Assessment")} </button>
+      <div className="assessment-result__limitations">
+        <h2>{t('Keep your results in perspective')}</h2>
+        <p>{t('This is a self-reflection tool, not a psychological diagnosis or a measure of ability. The scores do not determine whether a career is right for you or predict your future. Your interests may change as you gain experience.')}</p>
       </div>
-    </div>
+
+      <div className="assessment-result__actions">
+        <button className="button button--primary" type="button" onClick={onRestart}>{t('Retake assessment')}</button>
+      </div>
+    </section>
   )
 }
 

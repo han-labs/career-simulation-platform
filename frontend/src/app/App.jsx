@@ -39,6 +39,7 @@ function App() {
       <Route element={<ApplicationLayout />}>
         <Route index element={<LandingPage />} />
         <Route path="assessment" element={<AssessmentPage />} />
+        <Route path="assessment/:assessmentType" element={<AssessmentPage />} />
         <Route path="simulations" element={<SimulationCatalogPage />} />
         <Route path="simulations/:slug" element={<SimulationDetailPage />} />
         <Route
