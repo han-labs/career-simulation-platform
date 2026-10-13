@@ -311,6 +311,7 @@ Memory on ⇢ Đang dùng bộ nhớ
 Evidence ready ⇢ Dữ liệu đã sẵn sàng
 Syn reply language ⇢ Ngôn ngữ trả lời của Syn
 Auto ⇢ Theo ngôn ngữ website
+Use website language ⇢ Theo ngôn ngữ website
 Syn could not load your exploration data. ⇢ Syn không tải được dữ liệu khám phá của bạn.
 Loading your evidence… ⇢ Đang tải dữ liệu thực hành…
 Syn is connecting your context… ⇢ Syn đang kết nối ngữ cảnh…
@@ -355,6 +356,10 @@ The service is temporarily unavailable. ⇢ Dịch vụ tạm thời không kh�
 The request is invalid. ⇢ Yêu cầu không hợp lệ.
 You are not allowed to perform this action. ⇢ Bạn không được phép thực hiện thao tác này.
 One or more fields are invalid. ⇢ Một hoặc nhiều trường dữ liệu không hợp lệ.
+Published simulation was not found. ⇢ Không tìm thấy mô phỏng đã được công bố.
+Answers must not be empty. ⇢ Câu trả lời không được để trống.
+Simulation evaluation data is invalid. ⇢ Dữ liệu chấm mô phỏng không hợp lệ.
+Simulation result could not be saved. ⇢ Không lưu được kết quả mô phỏng.
 AI processing requires your consent; this is standard guidance. ⇢ Chưa có sự đồng ý xử lý AI của bạn; đây là hướng dẫn tiêu chuẩn.
 Syn response ⇢ Câu trả lời của Syn
 Objective evidence ⇢ Kết quả khách quan làm căn cứ

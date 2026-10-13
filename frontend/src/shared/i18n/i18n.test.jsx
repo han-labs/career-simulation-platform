@@ -11,6 +11,7 @@ import AppShell from '../layout/AppShell.jsx'
 import AssessmentQuestionCard from '../../features/assessment/components/AssessmentQuestionCard.jsx'
 import SimulationWorkspace from '../../features/simulations/components/SimulationWorkspace.jsx'
 import SimulationCatalog from '../../features/simulations/components/SimulationCatalog.jsx'
+import SimulationResult from '../../features/simulations/components/SimulationResult.jsx'
 import { backendDeveloperSimulation } from '../../features/simulations/data/backendDeveloperSimulation.js'
 
 beforeEach(() => localStorage.clear())
@@ -76,4 +77,14 @@ it('synchronizes a valid preference change from another tab', () => {
   render(<I18nProvider><LanguageSwitcher /></I18nProvider>)
   fireEvent(window, new StorageEvent('storage', { key: LANGUAGE_KEY, newValue: 'vi' }))
   expect(screen.getByRole('combobox', { name: 'Ngôn ngữ website' }).value).toBe('vi')
+})
+it('switches server-supplied evaluated explanations without submitting again or changing the score', () => {
+  const result = { correctCount: 2, totalTasks: 3, percentage: 67, outcomes: [{ taskId: 15, title: 'Handle duplicate records', isCorrect: false, explanation: 'Original evaluated explanation', explanationVi: 'Lời giải tiếng Việt từ máy chủ' }] }
+  render(<I18nProvider><LanguageSwitcher /><SimulationResult result={result} /></I18nProvider>)
+  expect(screen.getByText(/Original evaluated explanation/)).toBeTruthy()
+  fireEvent.change(screen.getByRole('combobox', { name: 'Website language' }), { target: { value: 'vi' } })
+  expect(screen.getByText(/Lời giải tiếng Việt từ máy chủ/)).toBeTruthy()
+  expect(screen.getByText('67%')).toBeTruthy()
+  expect(result.percentage).toBe(67)
+  expect(result.outcomes[0].isCorrect).toBe(false)
 })

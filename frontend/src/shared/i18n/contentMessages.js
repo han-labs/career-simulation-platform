@@ -145,16 +145,4 @@ Inspect the validation path and sanitized server logs ⇢ Kiểm tra luồng xá
 Change the test to expect 500 ⇢ Sửa kiểm thử để mong đợi mã 500
 Delete the failing test ⇢ Xóa kiểm thử thất bại
 Retry until it passes ⇢ Chạy lại đến khi kiểm thử đạt
-One h1 for the page followed by h2 section headings creates a clear semantic outline. ⇢ Một h1 cho trang, sau đó là h2 cho các phần, tạo cấu trúc ngữ nghĩa rõ ràng.
-A native button provides keyboard activation, focus behavior, and semantics by default. ⇢ Phần tử button chuẩn sẵn có hỗ trợ kích hoạt bằng bàn phím, tiêu điểm và ngữ nghĩa.
-Text linked to the field and an error summary communicate the problem without relying on color alone. ⇢ Nội dung lỗi liên kết với trường và phần tổng hợp lỗi giúp thông báo vấn đề mà không chỉ dựa vào màu sắc.
-Measure and inspect the affected rows before choosing a documented cleaning rule. ⇢ Định lượng và kiểm tra các dòng bị ảnh hưởng trước khi chọn quy tắc làm sạch được ghi lại rõ ràng.
-A documented rule using a stable key and timestamp can be reviewed and repeated. ⇢ Quy tắc được ghi lại, sử dụng khóa ổn định và thời gian cập nhật, có thể được kiểm tra và thực hiện lại.
-Re-running explicit quality checks makes the result measurable and reproducible. ⇢ Chạy lại các kiểm tra chất lượng cụ thể giúp đo lường và tái lập kết quả.
-Values immediately below, on, and above each boundary expose off-by-one errors. ⇢ Giá trị ngay dưới, đúng tại và ngay trên mỗi biên giúp phát hiện lỗi lệch một đơn vị.
-Changed, high-impact payment behavior carries more immediate product risk. ⇢ Luồng thanh toán vừa thay đổi và có tác động lớn mang rủi ro trực tiếp cao hơn cho sản phẩm.
-The server logs and validation boundary help distinguish a missing validation rule from an internal defect. ⇢ Nhật ký máy chủ và ranh giới kiểm tra dữ liệu giúp phân biệt thiếu quy tắc kiểm tra với lỗi nội bộ.
-Containment plus evidence preservation reduces immediate risk without destroying investigation data. ⇢ Khoanh vùng kết hợp bảo toàn bằng chứng giúp giảm rủi ro trước mắt mà không phá hủy dữ liệu điều tra.
-A controlled snapshot and documented chain of custody preserve evidence for later analysis. ⇢ Bản chụp có kiểm soát và hồ sơ bàn giao, xử lý giúp bảo toàn bằng chứng cho phân tích sau này.
-Revoking and rotating the key limits further abuse; history and logs still need investigation. ⇢ Thu hồi và thay khóa giúp hạn chế lạm dụng tiếp diễn; vẫn cần kiểm tra lịch sử và nhật ký.
 `.trim().split('\n').map(line => line.split(' ⇢ ')))

@@ -1,5 +1,9 @@
 # Career Simulation Platform Project Context
 
+### Website EN/VI checkpoint — 2026-10-13
+
+Current public/student routes now share an accessible, persistent English/Vietnamese UI preference. Vietnamese institutional identity is "Đại học Công nghệ Kỹ thuật TP. HCM". Static UI, current 42 questions and five simulations are localized without changing identifiers/scoring. Evaluated explanationVi is a response-only server projection; new answer explanations are not shipped in frontend dictionaries. Syn future reply language follows website preference by default with explicit override; original conversations/source quotations remain untouched. Frontend 56 tests, backend 149 discovered / 145 executed / 4 opt-in skips, Docker/gateway and browser smoke passed. See `reports/site-localization-verification.md` and `../docs/architecture/site-localization.md`; future content requires reviewed translations. Production identity and existing demo limitations remain open.
+
 ## 1 Project identity
 
 Project name: **Career Simulation Platform for Students**  

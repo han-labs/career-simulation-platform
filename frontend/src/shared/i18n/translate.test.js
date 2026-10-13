@@ -45,11 +45,16 @@ it('contains valid non-empty translations without combining-mark corruption', ()
     expect(target.normalize('NFC')).toBe(target)
   }
 })
-it('covers titles, instructions and evaluated explanations for all twelve additional tasks', () => {
+it('covers public titles and instructions but does not ship evaluated explanations for the twelve additional tasks', () => {
   const sql = readFileSync(new URL('../../../../backend/src/main/resources/db/migration/V8__seed_complete_local_demo.sql', import.meta.url), 'utf8')
   const copy = [...sql.matchAll(/^\s{12}'([^'\n]+)',?\r?$/gm)].map(m => m[1]).filter(text => text.includes(' ') && !text.startsWith('['))
   expect(copy).toHaveLength(36)
-  for (const text of copy) expect(t(text), text).not.toBe(text)
+  for (let index = 0; index < copy.length; index += 3) {
+    expect(t(copy[index])).not.toBe(copy[index])
+    expect(t(copy[index + 1])).not.toBe(copy[index + 1])
+    expect(Object.hasOwn(contentMessages, copy[index + 2])).toBe(false)
+    expect(t(copy[index + 2])).toBe(copy[index + 2])
+  }
 })
 it('localizes transcript export labels but keeps model answers and source quotations original', () => {
   const md = buildSynResponseMarkdown({ text: 'Original model answer [K1]', provenance: 'AI', evidenceReferences: [{ label: 'Original citation' }] }, 'vi')

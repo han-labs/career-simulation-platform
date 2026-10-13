@@ -3,7 +3,7 @@ import { useI18n } from '../../../shared/i18n/useI18n.js'
 import { CheckCircle2, CircleX } from 'lucide-react'
 
 function SimulationResult({ result, onRestart }) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   return (
     <section className="simulation-result" aria-labelledby="result-title" tabIndex="-1">
       <p className="eyebrow">{t("Objective result")}</p>
@@ -18,7 +18,7 @@ function SimulationResult({ result, onRestart }) {
               : <CircleX aria-hidden="true" size={22} />}
             <div>
               <h3>{t(outcome.title)}</h3>
-              <p><strong>{t(outcome.isCorrect ? 'Correct.' : 'Needs review.')}</strong> {t(outcome.explanation)}</p>
+              <p><strong>{t(outcome.isCorrect ? 'Correct.' : 'Needs review.')}</strong> {locale === 'vi' && outcome.explanationVi ? outcome.explanationVi : t(outcome.explanation)}</p>
             </div>
           </li>
         ))}

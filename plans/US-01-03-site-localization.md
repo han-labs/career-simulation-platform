@@ -1,6 +1,6 @@
 # EN/VI website localization
 
-Status: Approved by explicit user request; implementation in progress
+Status: Implemented and technically verified; content-owner wording review recommended
 Owner: Shared frontend change requested by project lead; US-01/02/03 owners retain business ownership
 Date: 2026-10-13
 
@@ -35,11 +35,11 @@ Date: 2026-10-13
 
 ## 4 Change surface
 - Frontend: root, shared i18n, shell, all current page/component presentation.
-- Backend/DTO/services/domain/DAO/migrations/configuration: unchanged.
+- Backend: post-evaluation response mapper adds optional explanationVi to evaluated outcomes only; existing explanation and scoring remain unchanged. Public task DTO, services/domain/DAO/migrations/configuration unchanged.
 - Documentation: this plan, verification and AI assistance log.
 
 ## 5 API contract
-No contract changes. Existing Syn responseLanguage EN/VI reused; objective request IDs and answer values unchanged.
+POST /v1/simulations/{slug}/attempts: additive optional outcome.explanationVi for reviewed evaluated text. Existing Syn responseLanguage EN/VI reused; objective request IDs, answer values and English fields unchanged. No localized solutions shipped in the frontend for additional tasks.
 
 ## 6 Security privacy and AI
 - No new identity/access rules, external translation API, personal data upload or secrets.

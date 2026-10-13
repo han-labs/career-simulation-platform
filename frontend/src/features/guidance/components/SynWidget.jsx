@@ -368,12 +368,14 @@ function SynWidget() {
     contextDashboard = dashboard,
     requestContext = null,
     retryId = null,
+    retryLanguage = null,
   ) => {
     const message = text.trim()
     if (!message || busyRef.current || isReplying || isClearing || !contextDashboard) return
     busyRef.current = true
 
     const clientMessageId = retryId ?? crypto.randomUUID()
+    const requestLanguage = retryLanguage ?? effectiveResponseLanguage
     const userMessageId = `user-${Date.now()}`
     pendingAnchorRef.current = userMessageId
     setMessages((current) => [
@@ -388,7 +390,7 @@ function SynWidget() {
         actionType,
         sessionId,
         clientMessageId,
-        responseLanguage: effectiveResponseLanguage,
+        responseLanguage: requestLanguage,
         dashboard: contextDashboard,
         context: requestContext,
       })
@@ -402,7 +404,7 @@ function SynWidget() {
         setPendingPlan(lastPlanDraftRef.current)
       }
     } catch (error) {
-      setFailedRequest({ message, actionType, contextDashboard, requestContext, clientMessageId: error.code === 'TURN_FINISHED_WITHOUT_RESPONSE' ? crypto.randomUUID() : clientMessageId })
+      setFailedRequest({ message, actionType, contextDashboard, requestContext, responseLanguage: requestLanguage, clientMessageId: error.code === 'TURN_FINISHED_WITHOUT_RESPONSE' ? crypto.randomUUID() : clientMessageId })
       setMessages((current) => [...current, {
         id: `error-${Date.now()}`,
         role: 'assistant',
@@ -626,7 +628,7 @@ function SynWidget() {
           <label className="syn-language-control">
             <span className="sr-only">{t("Syn reply language")}</span>
             <select value={responseLanguage} onChange={changeResponseLanguage}>
-              <option value="AUTO">{t("Auto")}</option>
+              <option value="AUTO">{t("Use website language")}</option>
               <option value="EN">{t("EN")}</option>
               <option value="VI">{t("VI")}</option>
             </select>
@@ -672,7 +674,7 @@ function SynWidget() {
             )}
           </div>
 
-          {failedRequest && <button type="button" disabled={isReplying || isClearing} onClick={() => askSyn(failedRequest.message, failedRequest.actionType, failedRequest.contextDashboard, failedRequest.requestContext, failedRequest.clientMessageId)}>{t("Retry this message")}</button>}
+          {failedRequest && <button type="button" disabled={isReplying || isClearing} onClick={() => askSyn(failedRequest.message, failedRequest.actionType, failedRequest.contextDashboard, failedRequest.requestContext, failedRequest.clientMessageId, failedRequest.responseLanguage)}>{t("Retry this message")}</button>}
           {pendingPlan && (
             <section className="plan-confirm" aria-label={t("Confirm exploration plan")}>
               <strong>{t("Save this draft plan?")}</strong>

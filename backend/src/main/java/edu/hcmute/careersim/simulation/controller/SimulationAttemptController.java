@@ -4,6 +4,7 @@ package edu.hcmute.careersim.simulation.controller;
 import edu.hcmute.careersim.common.response.ApiResponse;
 import edu.hcmute.careersim.simulation.dto.SubmitAttemptRequest;
 import edu.hcmute.careersim.simulation.dto.SubmitAttemptResponse;
+import edu.hcmute.careersim.simulation.mapper.SimulationResultLocaleMapper;
 import edu.hcmute.careersim.simulation.service.SimulationAttemptService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class SimulationAttemptController {
 
     private final SimulationAttemptService simulationAttemptService;
+    private final SimulationResultLocaleMapper localeMapper;
 
     @PostMapping("/{slug}/attempts")
     public ApiResponse<SubmitAttemptResponse> submitAttempt(
@@ -29,6 +31,7 @@ public class SimulationAttemptController {
         // TODO(auth): replace header-based studentId with JWT claim when identity module is ready
         // Tracking: .agent/reports/ai/2026-09-11-us-02-frontend.md
         return ApiResponse.success(
-                simulationAttemptService.submitAttempt(slug, studentId, request));
+                localeMapper.localize(
+                        simulationAttemptService.submitAttempt(slug, studentId, request)));
     }
 }

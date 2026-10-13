@@ -52,7 +52,7 @@ function AssessmentResult({ result, onRestart }) {
       </div>
 
       <h3 style={{ fontSize: '1.5rem', marginBottom: '20px', fontFamily: 'Georgia, serif', color: 'var(--ink)' }}>{t("Full Dimension Breakdown")}</h3>
-      <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+      <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))' }}>
         {sortedDimensions.map(({ dim, score, info }) => (
           <div key={dim} style={{ padding: '16px', background: 'var(--card)', borderRadius: '16px', border: '1px solid var(--line)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', alignItems: 'center' }}>

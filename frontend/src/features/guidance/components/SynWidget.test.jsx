@@ -154,3 +154,16 @@ it('sends localized quick-action text and permits an explicit Syn-only reply-lan
   await screen.findByText('Response fixture')
   expect(sendSynMessage.mock.calls[0][0]).toMatchObject({ message: 'Giúp tôi bắt đầu', actionType: 'GET_STARTED', responseLanguage: 'EN' })
 })
+it('keeps retry idempotency language stable when the website language changes after a transport failure', async () => {
+  sendSynMessage.mockRejectedValueOnce(new Error('offline')).mockResolvedValueOnce({ id: 'reply', text: 'Retried original response', provenance: 'STANDARD' })
+  render(<I18nProvider><LanguageSwitcher /><SynWidget /></I18nProvider>)
+  fireEvent.click(screen.getByRole('button', { name: 'Open Syn assistant' }))
+  fireEvent.change(await screen.findByRole('textbox', { name: 'Ask Syn' }), { target: { value: 'Original request' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Send message' }))
+  await screen.findByRole('button', { name: 'Retry this message' })
+  const original = sendSynMessage.mock.calls[0][0]
+  fireEvent.change(screen.getByRole('combobox', { name: 'Website language' }), { target: { value: 'vi' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Gửi lại tin nhắn này' }))
+  await screen.findByText('Retried original response')
+  expect(sendSynMessage.mock.calls[1][0]).toMatchObject({ clientMessageId: original.clientMessageId, responseLanguage: original.responseLanguage, message: original.message })
+})
