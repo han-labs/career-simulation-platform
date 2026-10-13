@@ -1,3 +1,4 @@
+import { useI18n } from '../../../shared/i18n/useI18n.js'
 // Loads the simulation catalog from the API with a local mock fallback.
 import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -17,6 +18,7 @@ async function loadCatalog(setState) {
 }
 
 function SimulationCatalogPage() {
+  const { t } = useI18n()
   const [state, setState] = useState({ status: 'loading', simulations: [] })
 
   useEffect(() => {
@@ -31,13 +33,12 @@ function SimulationCatalogPage() {
   return (
     <main className="catalog-page us03-page section-shell">
       <Link className="back-link" to="/">
-        <ArrowLeft size={17} aria-hidden="true" /> Back to overview
-      </Link>
+        <ArrowLeft size={17} aria-hidden="true" /> {t("Back to overview")} </Link>
       <header className="dashboard-heading">
         <div>
-          <p className="eyebrow">Explore by doing</p>
-          <h1>Career simulations</h1>
-          <p>Explore IT career paths through representative tasks</p>
+          <p className="eyebrow">{t("Explore by doing")}</p>
+          <h1>{t("Career simulations")}</h1>
+          <p>{t("Explore IT career paths through representative tasks")}</p>
         </div>
       </header>
       <SimulationCatalog

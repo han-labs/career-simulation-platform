@@ -1,16 +1,19 @@
+import { useI18n } from '../i18n/useI18n.js'
 import { Menu, X, ArrowRight, Compass, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import BrandMark from '../ui/BrandMark.jsx'
+import LanguageSwitcher from '../i18n/LanguageSwitcher.jsx'
 
 const navigation = [
   { label: 'How It Works', href: '/#how-it-works' },
   { label: 'IT Career Tracks', to: '/simulations' },
-  { label: 'RIASEC Assessment', to: '/assessment' },
+  { label: 'Career Assessment', to: '/assessment' },
   { label: 'Dashboard & Syn', to: '/dashboard' },
 ]
 
 function AppShell() {
+  const { t } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
   const navigate = useNavigate()
 
@@ -25,25 +28,23 @@ function AppShell() {
       <div className="institutional-bar">
         <div className="institutional-bar__inner">
           <span className="institutional-bar__badge">
-            <Compass size={14} aria-hidden="true" />
-            Ho Chi Minh City University of Technology and Education (HCM-UTE) · IT Career Exploration Platform
-          </span>
-          <span className="institutional-bar__tagline">
-            Empowering high school students to explore tech careers and shape their future
-          </span>
+            <Compass size={14} aria-hidden="true" /> {t("Ho Chi Minh City University of Technology and Engineering (HCM-UTE) · Career Simulation Platform")} </span>
+          <span className="institutional-bar__tagline"> {t("Empowering students to explore tech careers and shape their future")} </span>
         </div>
       </div>
 
       <header className="site-header">
         <div className="site-header__inner">
-          <Link className="brand-link" to="/" aria-label="HCM-UTE Career Simulation Platform Home">
+          <Link className="brand-link" to="/" aria-label={t("HCM-UTE Career Simulation Platform Home")}>
             <BrandMark />
           </Link>
+
+          <LanguageSwitcher />
 
           <button
             className="menu-button"
             type="button"
-            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            aria-label={t(menuOpen ? 'Close menu' : 'Open menu')}
             aria-expanded={menuOpen}
             onClick={() => setMenuOpen((current) => !current)}
           >
@@ -58,7 +59,7 @@ function AppShell() {
                   to={item.to}
                   onClick={() => setMenuOpen(false)}
                 >
-                  {item.label}
+                  {t(item.label)}
                 </NavLink>
               ) : (
                 <a
@@ -66,7 +67,7 @@ function AppShell() {
                   href={item.href}
                   onClick={() => setMenuOpen(false)}
                 >
-                  {item.label}
+                  {t(item.label)}
                 </a>
               ),
             )}
@@ -74,8 +75,7 @@ function AppShell() {
               className="button button--small button--cta-header"
               type="button"
               onClick={handleStartExploring}
-            >
-              Get Started <ArrowRight size={15} aria-hidden="true" />
+            > {t("Career Assessment")} <ArrowRight size={15} aria-hidden="true" />
             </button>
           </nav>
         </div>
@@ -89,37 +89,33 @@ function AppShell() {
         <div className="site-footer__inner">
           <div className="site-footer__brand">
             <BrandMark compact />
-            <p className="site-footer__description">
-              IT career exploration and simulation platform for high school students developed by Ho Chi Minh City University of Technology and Education (HCM-UTE), fostering informed decisions through experiential learning, standardized assessments, and transparent evidence.
-            </p>
+            <p className="site-footer__description"> {t("Explore careers through practical tasks, career assessment and guidance from Ho Chi Minh City University of Technology and Engineering (HCM-UTE).")} </p>
             <div className="site-footer__trust">
               <ShieldCheck size={16} aria-hidden="true" />
-              <span>Holland RIASEC Framework · Objective Evaluation · Supervised AI Guidance</span>
+              <span>{t("Objective scores · Guidance you control")}</span>
             </div>
           </div>
 
-          <nav className="site-footer__nav" aria-label="Footer navigation links">
+          <nav className="site-footer__nav" aria-label={t("Footer navigation links")}>
             <div>
-              <strong>Career Exploration</strong>
-              <Link to="/assessment">RIASEC Assessment</Link>
-              <Link to="/simulations">IT Career Simulations</Link>
-              <a href="/#starter-catalog">Starter Projects</a>
+              <strong>{t("Career Exploration")}</strong>
+              <Link to="/assessment">{t("Career Assessment")}</Link>
+              <Link to="/simulations">{t("IT Career Simulations")}</Link>
+              <a href="/#starter-catalog">{t("Starter Projects")}</a>
             </div>
             <div>
-              <strong>Learning Journey</strong>
-              <Link to="/dashboard">Progress Dashboard</Link>
-              <Link to="/dashboard">Syn Guidance Assistant</Link>
-              <a href="/#how-it-works">3-Step Process</a>
+              <strong>{t("Learning Journey")}</strong>
+              <Link to="/dashboard">{t("Progress Dashboard")}</Link>
+              <Link to="/dashboard">{t("Syn Guidance Assistant")}</Link>
+              <a href="/#how-it-works">{t("3-Step Process")}</a>
             </div>
           </nav>
         </div>
 
         <div className="site-footer__bottom">
           <div className="site-footer__bottom-inner">
-            <span>© {new Date().getFullYear()} Ho Chi Minh City University of Technology and Education (HCM-UTE). Developed for OOSE / Scientific Research Project.</span>
-            <span className="site-footer__disclaimer">
-              Notice: This platform provides exploratory guidance and hands-on experience; it does not replace personal career decisions.
-            </span>
+            <span>© {t(new Date().getFullYear())} {t("Ho Chi Minh City University of Technology and Engineering (HCM-UTE). Developed for OOSE / Scientific Research Project.")}</span>
+            <span className="site-footer__disclaimer"> {t("Explore your options. Your career decisions remain yours.")} </span>
           </div>
         </div>
       </footer>

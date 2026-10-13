@@ -1,10 +1,12 @@
+import { useI18n } from '../../../shared/i18n/useI18n.js'
 // Displays catalog lifecycle states using local mock data only in Phase 2.
 import { ArrowRight, Clock3, Code2, ListChecks, TriangleAlert } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 function SimulationCatalog({ status, simulations, onRetry }) {
+  const { t } = useI18n()
   if (status === 'loading') {
-    return <div className="catalog-grid" aria-label="Loading simulations">
+    return <div className="catalog-grid" aria-label={t("Loading simulations")}>
       {[1, 2, 3].map((item) => <div className="catalog-skeleton" key={item} aria-hidden="true" />)}
     </div>
   }
@@ -12,17 +14,17 @@ function SimulationCatalog({ status, simulations, onRetry }) {
   if (status === 'error') {
     return <section className="catalog-state" role="alert">
       <TriangleAlert size={28} aria-hidden="true" />
-      <h2>Simulations are unavailable</h2>
-      <p>Try loading the local catalog again.</p>
-      <button className="button button--secondary" type="button" onClick={onRetry}>Try again</button>
+      <h2>{t("Simulations are unavailable")}</h2>
+      <p>{t("Try loading the local catalog again.")}</p>
+      <button className="button button--secondary" type="button" onClick={onRetry}>{t("Try again")}</button>
     </section>
   }
 
   if (simulations.length === 0) {
     return <section className="catalog-state">
       <ListChecks size={28} aria-hidden="true" />
-      <h2>No simulations yet</h2>
-      <p>New representative IT tasks will appear here when they are ready.</p>
+      <h2>{t("No simulations yet")}</h2>
+      <p>{t("New representative IT tasks will appear here when they are ready.")}</p>
     </section>
   }
 
@@ -30,15 +32,14 @@ function SimulationCatalog({ status, simulations, onRetry }) {
     {simulations.map((simulation) => (
       <article className="catalog-card" key={simulation.id}>
         <span className="catalog-card__icon"><Code2 size={25} aria-hidden="true" /></span>
-        <p className="eyebrow">{simulation.difficulty}</p>
-        <h2>{simulation.title}</h2>
-        <p>{simulation.description}</p>
+        <p className="eyebrow">{t(simulation.difficulty)}</p>
+        <h2>{t(simulation.title)}</h2>
+        <p>{t(simulation.description)}</p>
         <dl className="catalog-meta">
-          <div><dt><Clock3 size={16} aria-hidden="true" /> Duration</dt><dd>{simulation.duration}</dd></div>
-          <div><dt><ListChecks size={16} aria-hidden="true" /> Tasks</dt><dd>{simulation.taskCount}</dd></div>
+          <div><dt><Clock3 size={16} aria-hidden="true" /> {t("Duration")}</dt><dd>{t(simulation.duration)}</dd></div>
+          <div><dt><ListChecks size={16} aria-hidden="true" /> {t("Tasks")}</dt><dd>{t(simulation.taskCount)}</dd></div>
         </dl>
-        <Link className="button" to={`/simulations/${simulation.id}`}>
-          Start <ArrowRight size={17} aria-hidden="true" />
+        <Link className="button" to={`/simulations/${simulation.id}`}> {t("Start")} <ArrowRight size={17} aria-hidden="true" />
         </Link>
       </article>
     ))}

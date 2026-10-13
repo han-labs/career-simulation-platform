@@ -23,13 +23,11 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class GuidanceServiceImpl implements GuidanceService {
 
@@ -48,6 +46,24 @@ public class GuidanceServiceImpl implements GuidanceService {
     private final GuidanceDao guidanceDao;
     private final SynAgentOrchestrator synAgentOrchestrator;
 
+    private final edu.hcmute.careersim.guidance.service.SynTurnLifecycleService lifecycle;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public GuidanceServiceImpl(
+            StudentAccountAccess a,
+            AssessmentEvidenceAccess e,
+            SimulationEvidenceAccess s,
+            GuidanceDao d,
+            SynAgentOrchestrator o,
+            edu.hcmute.careersim.guidance.service.SynTurnLifecycleService lifecycle) {
+        studentAccountAccess = a;
+        assessmentEvidenceAccess = e;
+        simulationEvidenceAccess = s;
+        guidanceDao = d;
+        synAgentOrchestrator = o;
+        this.lifecycle = lifecycle;
+    }
+
     @Override
     @Transactional(readOnly = true)
     public DashboardResponse getDashboard(String authenticatedEmail) {
@@ -59,59 +75,50 @@ public class GuidanceServiceImpl implements GuidanceService {
     public SynMessageResponse sendMessage(String authenticatedEmail, SynMessageRequest request) {
         long startedAt = System.nanoTime();
         StudentAccount student = requireActiveStudent(authenticatedEmail);
-        DashboardResponse dashboard = buildDashboard(student);
-        Long requestedAttemptId = request.context() == null ? null : request.context().attemptId();
+        Long requestedAttemptId =
+                request.context() == null || request.context().attemptId() == null
+                        ? lifecycle.rememberedResult(
+                                student.id(), request.sessionId(), request.message())
+                        : request.context().attemptId();
+        DashboardResponse dashboard =
+                lifecycle.snapshot(() -> snapshotForRequest(student, requestedAttemptId));
 
-        if (requestedAttemptId != null
-                && dashboard.recentResults().stream()
-                        .noneMatch(result -> result.id() == requestedAttemptId)) {
-            throw new NotFoundException("Completed simulation evidence was not found.");
+        {
+            var turn = lifecycle.begin(student.id(), request);
+            if (turn.response() != null) return turn.response();
+            try (var scope =
+                    edu.hcmute.careersim.guidance.service.SynExecutionScope.open(
+                            java.time.Duration.ofSeconds(20),
+                            () ->
+                                    lifecycle.externalAllowed(
+                                            authenticatedEmail,
+                                            student.id(),
+                                            turn.sessionId(),
+                                            turn.id()))) {
+                var result =
+                        synAgentOrchestrator.respond(
+                                student.id(),
+                                student.consentedToAiAt() != null,
+                                request.withSession(turn.sessionId()),
+                                dashboard,
+                                requestedAttemptId);
+                return lifecycle.finish(
+                        authenticatedEmail,
+                        turn,
+                        result,
+                        (int) ((System.nanoTime() - startedAt) / 1_000_000));
+            } catch (RuntimeException exception) {
+                lifecycle.failed(student.id(), turn.id());
+                throw exception;
+            }
         }
-
-        SynAgentOrchestrator.AgentRun run =
-                synAgentOrchestrator.respond(
-                        student.id(),
-                        student.consentedToAiAt() != null,
-                        request,
-                        dashboard,
-                        requestedAttemptId);
-        SynMessageResponse response = run.response();
-
-        Optional<AssessmentEvidence> assessment =
-                assessmentEvidenceAccess.findLatestCompleted(student.id());
-        Long simulationAttemptId =
-                requestedAttemptId != null
-                        ? requestedAttemptId
-                        : dashboard.recentResults().stream()
-                                .findFirst()
-                                .map(DashboardResponse.RecentResult::id)
-                                .orElse(null);
-        Long assessmentAttemptId = assessment.map(AssessmentEvidence::attemptId).orElse(null);
-        if (assessmentAttemptId != null || simulationAttemptId != null) {
-            int generationMs =
-                    (int)
-                            Math.min(
-                                    Integer.MAX_VALUE,
-                                    Math.max(0, (System.nanoTime() - startedAt) / 1_000_000));
-            guidanceDao.recordGuidance(
-                    student.id(),
-                    assessmentAttemptId,
-                    simulationAttemptId,
-                    request.resolvedActionType(),
-                    run.auditSource(),
-                    run.auditStatus(),
-                    run.modelName(),
-                    response,
-                    generationMs);
-        }
-        return response;
     }
 
     @Override
     @Transactional
     public boolean clearSynSession(String authenticatedEmail, java.util.UUID sessionId) {
         StudentAccount student = requireActiveStudent(authenticatedEmail);
-        return synAgentOrchestrator.clearSession(student.id(), sessionId);
+        return lifecycle.clear(student.id(), sessionId);
     }
 
     @Override
@@ -122,6 +129,33 @@ public class GuidanceServiceImpl implements GuidanceService {
                 guidanceDao.saveCurrentPlan(
                         student.id(), request.title().trim(), sanitizedSteps(request.steps()));
         return new PlanResponse(saved.title(), saved.steps(), saved.status(), true);
+    }
+
+    @Override
+    public edu.hcmute.careersim.guidance.dto.SynTurnResponse getTurn(
+            String email, java.util.UUID id) {
+        var t = lifecycle.get(requireActiveStudent(email).id(), id);
+        return new edu.hcmute.careersim.guidance.dto.SynTurnResponse(
+                t.id(), t.state(), t.responseExpired() ? null : t.response());
+    }
+
+    @Override
+    public void cancelTurn(String email, java.util.UUID id) {
+        lifecycle.cancel(requireActiveStudent(email).id(), id);
+    }
+
+    @Override
+    public SynMessageResponse.EvidenceReference getKnowledgeSource(String email, long id) {
+        requireActiveStudent(email);
+        return lifecycle.source(id);
+    }
+
+    @Override
+    public edu.hcmute.careersim.guidance.dto.SynTurnResponse getRequestTurn(
+            String email, java.util.UUID requestId) {
+        var t = lifecycle.getRequest(requireActiveStudent(email).id(), requestId);
+        return new edu.hcmute.careersim.guidance.dto.SynTurnResponse(
+                t.id(), t.state(), t.responseExpired() ? null : t.response());
     }
 
     private StudentAccount requireActiveStudent(String email) {
@@ -138,11 +172,39 @@ public class GuidanceServiceImpl implements GuidanceService {
         return student;
     }
 
+    private DashboardResponse snapshotForRequest(StudentAccount student, Long requestedAttemptId) {
+        DashboardResponse dashboard = buildDashboard(student);
+        if (requestedAttemptId != null
+                && dashboard.recentResults().stream()
+                        .noneMatch(result -> result.id() == requestedAttemptId)) {
+            var owned =
+                    simulationEvidenceAccess
+                            .findOwnedEvaluated(student.id(), requestedAttemptId)
+                            .orElseThrow(
+                                    () ->
+                                            new NotFoundException(
+                                                    "Completed simulation evidence was not found."));
+            var results = new ArrayList<>(dashboard.recentResults());
+            results.add(toRecentResult(owned));
+            dashboard =
+                    new DashboardResponse(
+                            dashboard.source(),
+                            dashboard.studentName(),
+                            dashboard.progress(),
+                            dashboard.interestSignals(),
+                            dashboard.skills(),
+                            results,
+                            dashboard.plan(),
+                            dashboard.assessmentAttemptId());
+        }
+        return dashboard;
+    }
+
     private DashboardResponse buildDashboard(StudentAccount student) {
         Optional<AssessmentEvidence> assessment =
                 assessmentEvidenceAccess.findLatestCompleted(student.id());
         List<SimulationEvidence> simulations =
-                simulationEvidenceAccess.findRecentEvaluated(student.id(), 3);
+                simulationEvidenceAccess.findRecentEvaluated(student.id(), 10);
         Optional<GuidanceDao.CurrentPlan> plan = guidanceDao.findCurrentPlan(student.id());
 
         List<DashboardResponse.InterestSignal> signals =
@@ -190,7 +252,8 @@ public class GuidanceServiceImpl implements GuidanceService {
                 signals,
                 skills,
                 recentResults,
-                currentPlan);
+                currentPlan,
+                assessment.map(AssessmentEvidence::attemptId).orElse(null));
     }
 
     private DashboardResponse.RecentResult toRecentResult(SimulationEvidence simulation) {
@@ -206,7 +269,9 @@ public class GuidanceServiceImpl implements GuidanceService {
                 simulation.title(),
                 simulation.score(),
                 "Completed simulation",
-                outcomes);
+                outcomes,
+                simulation.evaluatedAt(),
+                simulation.careerTrack());
     }
 
     private List<DashboardResponse.SkillSummary> summarizeSkills(

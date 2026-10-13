@@ -1,3 +1,4 @@
+import { useI18n } from '../../../shared/i18n/useI18n.js'
 // Confirms the irreversible simulation submission with accessible modal behavior.
 import { useEffect, useRef } from 'react'
 
@@ -10,6 +11,7 @@ const focusableSelector = [
 ].join(',')
 
 function SubmissionConfirmationDialog({ open, onConfirm, onCancel }) {
+  const { t } = useI18n()
   const dialogRef = useRef(null)
   const cancelButtonRef = useRef(null)
   const previousFocusRef = useRef(null)
@@ -67,17 +69,11 @@ function SubmissionConfirmationDialog({ open, onConfirm, onCancel }) {
         aria-modal="true"
         aria-labelledby="submission-dialog-title"
       >
-        <h2 id="submission-dialog-title">Submit simulation?</h2>
-        <p>
-          After submitting, you cannot change your answers. Your result will be shown immediately.
-        </p>
+        <h2 id="submission-dialog-title">{t("Submit simulation?")}</h2>
+        <p> {t("After submitting, you cannot change your answers. Your result will be shown immediately.")} </p>
         <div className="confirmation-dialog__actions">
-          <button className="button button--secondary" type="button" ref={cancelButtonRef} onClick={onCancel}>
-            Cancel
-          </button>
-          <button className="button" type="button" onClick={onConfirm}>
-            Confirm submit
-          </button>
+          <button className="button button--secondary" type="button" ref={cancelButtonRef} onClick={onCancel}> {t("Cancel")} </button>
+          <button className="button" type="button" onClick={onConfirm}> {t("Confirm submit")} </button>
         </div>
       </section>
     </div>

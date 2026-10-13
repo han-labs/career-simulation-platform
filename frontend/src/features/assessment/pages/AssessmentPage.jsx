@@ -1,3 +1,4 @@
+import { useI18n } from '../../../shared/i18n/useI18n.js'
 import { useEffect, useState } from 'react'
 import { ArrowLeft } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -7,6 +8,7 @@ import AssessmentResult from '../components/AssessmentResult.jsx'
 import AssessmentIntro from '../components/AssessmentIntro.jsx'
 
 function AssessmentPage() {
+  const { t } = useI18n()
   const [isTakingTest, setIsTakingTest] = useState(false);
   const { 
     questions, isLoading, error, fetchQuestions, 
@@ -42,12 +44,11 @@ function AssessmentPage() {
   return (
     <section className="feature-page section-shell" style={{ backgroundColor: 'var(--page-bg)', minHeight: '100vh', paddingBottom: '48px' }}>
       <Link className="back-link" to="/" style={{ color: 'var(--ink)' }}>
-        <ArrowLeft size={17} aria-hidden="true" /> Back to overview
-      </Link>
+        <ArrowLeft size={17} aria-hidden="true" /> {t("Back to overview")} </Link>
       
       {error && (
         <div style={{ background: '#fcebe6', color: 'var(--accent-dark)', padding: '16px', borderRadius: '8px', marginBottom: '24px', border: '1px solid var(--accent)' }}>
-          <strong>Error: </strong> {error}
+          <strong>{t("Error:")} </strong> {t(error)}
         </div>
       )}
 
@@ -63,11 +64,8 @@ function AssessmentPage() {
       {status === 'in_progress' && isTakingTest && (
         <div style={{ maxWidth: '800px', margin: '16px auto 0' }}>
           <div style={{ marginBottom: '16px' }}>
-            <h2 style={{ fontSize: '2.5rem', margin: '0 0 8px 0', fontFamily: 'Georgia, serif', color: 'var(--ink)' }}>Assessment Questions</h2>
-            <p style={{ color: 'var(--muted)', fontSize: '1.1rem' }}>
-              Read each statement and select how much you like or dislike the activity.
-              Don't overthink it, just go with your first instinct.
-            </p>
+            <h2 style={{ fontSize: '2.5rem', margin: '0 0 8px 0', fontFamily: 'Georgia, serif', color: 'var(--ink)' }}>{t("Assessment Questions")}</h2>
+            <p style={{ color: 'var(--muted)', fontSize: '1.1rem' }}> {t("Read each statement and select how much you like or dislike the activity. Don't overthink it, just go with your first instinct.")} </p>
           </div>
           <AssessmentForm 
             questions={questions}

@@ -16,15 +16,21 @@ public class SynAgentPolicy {
 
     private static Map<String, List<String>> pathAliases() {
         Map<String, List<String>> aliases = new java.util.LinkedHashMap<>();
-        aliases.put(
-                "BACKEND_DEVELOPMENT",
-                List.of("backend", "back-end", "back end", "server", "api", "sql"));
+        aliases.put("BACKEND_DEVELOPMENT", List.of("backend", "back-end", "back end", "server"));
         aliases.put(
                 "FRONTEND_DEVELOPMENT",
                 List.of("frontend", "front-end", "front end", "ui", "web interface", "giao dien"));
         aliases.put("DATA_ANALYSIS", List.of("data", "analyst", "analytics", "du lieu"));
         aliases.put("SOFTWARE_TESTING", List.of("testing", "tester", "qa", "kiem thu"));
         aliases.put("CYBERSECURITY", List.of("security", "cybersecurity", "cyber", "bao mat"));
+        aliases.put("DEVOPS", List.of("devops", "site reliability", "sre"));
+        aliases.put(
+                "AI_ENGINEERING",
+                List.of(
+                        "artificial intelligence",
+                        "machine learning",
+                        "tri tue nhan tao",
+                        "ky su ai"));
         return java.util.Collections.unmodifiableMap(aliases);
     }
 
@@ -41,46 +47,233 @@ public class SynAgentPolicy {
             String requestedLanguage,
             String rememberedLanguage) {
         String normalized = normalize(message);
-        String intent = unsafe ? "SAFETY_BOUNDARY" : resolveIntent(requestedAction, normalized);
+        SynIntent intent =
+                unsafe ? SynIntent.SAFETY_BOUNDARY : resolveIntent(requestedAction, normalized);
         List<String> paths = extractPaths(normalized);
-        if (paths.isEmpty() && refersToPriorContext(normalized)) {
+        if (paths.isEmpty() && containsAny(normalized, "sql", "api", "spring", "java"))
+            paths = List.of("BACKEND_DEVELOPMENT");
+        if (paths.isEmpty()
+                && (refersToPriorContext(normalized) || continuesCurrentExploration(intent))) {
             paths = rememberedPaths == null ? List.of() : rememberedPaths;
+        }
+        if (extractPaths(normalized).isEmpty() && paths.size() > 1) {
+            if (containsAny(
+                    normalized, "huong dau", "huong thu nhat", "first path", "first option"))
+                paths = List.of(paths.get(0));
+            else if (containsAny(normalized, "huong thu hai", "second path", "second option"))
+                paths = List.of(paths.get(1));
         }
         String language = resolveLanguage(requestedLanguage, message, rememberedLanguage);
         String depth = responseDepth(intent, normalized);
 
-        List<String> tools =
+        List<SynToolIdentifier> tools =
                 switch (intent) {
-                    case "GET_STARTED" -> List.of("COMPARE_PATHS", "SUGGEST_SIMULATIONS");
-                    case "COMPARE_PATHS" ->
-                            List.of("READ_EVIDENCE", "COMPARE_PATHS", "SUGGEST_SIMULATIONS");
-                    case "LEARNING_RESOURCES" ->
-                            List.of("READ_EVIDENCE", "FIND_SKILL_GAPS", "FIND_RESOURCES");
-                    case "IDENTIFY_GAPS" ->
-                            List.of("READ_EVIDENCE", "FIND_SKILL_GAPS", "SUGGEST_SIMULATIONS");
-                    case "DRAFT_PLAN", "EXPLORE_NEXT" ->
+                    case GET_STARTED ->
                             List.of(
-                                    "READ_EVIDENCE",
-                                    "FIND_SKILL_GAPS",
-                                    "SUGGEST_SIMULATIONS",
-                                    "DRAFT_PLAN");
-                    case "CAREER_QUESTION" -> List.of("READ_EVIDENCE", "COMPARE_PATHS");
-                    case "EXPLAIN_RIASEC", "REVIEW_LATEST" -> List.of("READ_EVIDENCE");
+                                    SynToolIdentifier.COMPARE_PATHS,
+                                    SynToolIdentifier.SUGGEST_SIMULATIONS);
+                    case COMPARE_PATHS ->
+                            List.of(
+                                    SynToolIdentifier.READ_EVIDENCE,
+                                    SynToolIdentifier.COMPARE_PATHS,
+                                    SynToolIdentifier.SUGGEST_SIMULATIONS);
+                    case LEARNING_RESOURCES ->
+                            List.of(
+                                    SynToolIdentifier.READ_EVIDENCE,
+                                    SynToolIdentifier.FIND_RESOURCES,
+                                    SynToolIdentifier.SUGGEST_SIMULATIONS);
+                    case IDENTIFY_GAPS ->
+                            List.of(
+                                    SynToolIdentifier.READ_EVIDENCE,
+                                    SynToolIdentifier.FIND_SKILL_GAPS,
+                                    SynToolIdentifier.SUGGEST_SIMULATIONS);
+                    case DRAFT_PLAN ->
+                            List.of(
+                                    SynToolIdentifier.READ_EVIDENCE,
+                                    SynToolIdentifier.FIND_SKILL_GAPS,
+                                    SynToolIdentifier.SUGGEST_SIMULATIONS,
+                                    SynToolIdentifier.DRAFT_PLAN);
+                    case EXPLORE_NEXT ->
+                            List.of(
+                                    SynToolIdentifier.READ_EVIDENCE,
+                                    SynToolIdentifier.SUGGEST_SIMULATIONS);
+                    case CAREER_QUESTION ->
+                            paths.size() >= 2
+                                    ? List.of(
+                                            SynToolIdentifier.READ_EVIDENCE,
+                                            SynToolIdentifier.COMPARE_PATHS)
+                                    : List.of(
+                                            SynToolIdentifier.READ_EVIDENCE,
+                                            SynToolIdentifier.SUGGEST_SIMULATIONS);
+                    case EXPLAIN_RIASEC, REVIEW_LATEST, REVIEW_RESULT ->
+                            List.of(SynToolIdentifier.READ_EVIDENCE);
                     default -> List.of();
                 };
+        if (intent != SynIntent.SAFETY_BOUNDARY
+                && intent != SynIntent.CONFIRM_PLAN
+                && "FREE_TEXT".equals(requestedAction)
+                && containsAny(
+                        normalized,
+                        "what is",
+                        "what are",
+                        "how does",
+                        "explain",
+                        "la gi",
+                        "giai thich",
+                        "tai sao",
+                        "huong dan")
+                && !containsAny(
+                        normalized,
+                        "my score",
+                        "my result",
+                        "my riasec",
+                        "my interests",
+                        "diem cua",
+                        "ket qua cua",
+                        "so thich cua")) {
+            List<SynToolIdentifier> withKnowledge = new ArrayList<>();
+            withKnowledge.add(SynToolIdentifier.SEARCH_KNOWLEDGE);
+            withKnowledge.addAll(tools.stream().limit(3).toList());
+            tools = List.copyOf(withKnowledge);
+        }
+        // Goals compose independently: an early primary-intent match must not erase later requests.
+        if (intent != SynIntent.SAFETY_BOUNDARY
+                && intent != SynIntent.CONFIRM_PLAN
+                && "FREE_TEXT".equals(requestedAction)) {
+            LinkedHashSet<SynToolIdentifier> capabilities = new LinkedHashSet<>(tools);
+            if (wantsResources(normalized)) {
+                capabilities.add(SynToolIdentifier.READ_EVIDENCE);
+                capabilities.add(SynToolIdentifier.FIND_RESOURCES);
+            }
+            if (containsAny(
+                    normalized, "compare", "difference", "versus", " vs ", "so sanh", "khac gi"))
+                capabilities.add(SynToolIdentifier.COMPARE_PATHS);
+            if (containsAny(normalized, "simulation", "mo phong", "trai nghiem"))
+                capabilities.add(SynToolIdentifier.SUGGEST_SIMULATIONS);
+            if (containsAny(normalized, "ke hoach", "lo trinh", "draft", "plan", "roadmap")) {
+                capabilities.add(SynToolIdentifier.FIND_SKILL_GAPS);
+                capabilities.add(SynToolIdentifier.DRAFT_PLAN);
+                capabilities.add(SynToolIdentifier.FIND_RESOURCES);
+                capabilities.add(SynToolIdentifier.SEARCH_KNOWLEDGE);
+                depth = "DETAILED";
+            }
+            if (wantsResources(normalized)
+                    && containsAny(
+                            normalized,
+                            "web",
+                            "internet",
+                            "ben ngoai",
+                            "moi nhat",
+                            "latest",
+                            "external",
+                            "nguon khac",
+                            "more sources")) {
+                capabilities.add(SynToolIdentifier.SEARCH_WEB);
+            }
+            tools = List.copyOf(capabilities);
+        }
+        if ("FREE_TEXT".equals(requestedAction)
+                && intent != SynIntent.SAFETY_BOUNDARY
+                && intent != SynIntent.CONFIRM_PLAN) {
+            var relevant = new LinkedHashSet<>(tools);
+            boolean generalExplanation =
+                    containsAny(
+                                    normalized,
+                                    "what is",
+                                    "what are",
+                                    "how does",
+                                    "explain",
+                                    "la gi",
+                                    "giai thich",
+                                    "tai sao")
+                            && !containsAny(
+                                    normalized,
+                                    "ket qua",
+                                    "bai lam",
+                                    "diem cua",
+                                    "so thich cua",
+                                    "my result",
+                                    "my score",
+                                    "my riasec",
+                                    "my interest",
+                                    "my task")
+                            && !containsAny(
+                                    normalized,
+                                    "goi y",
+                                    "de xuat",
+                                    "recommend",
+                                    "suggest",
+                                    "ke hoach",
+                                    "plan",
+                                    "roadmap",
+                                    "trai nghiem",
+                                    "practice");
+            if (generalExplanation) {
+                relevant.remove(SynToolIdentifier.READ_EVIDENCE);
+                relevant.remove(SynToolIdentifier.SUGGEST_SIMULATIONS);
+                relevant.remove(SynToolIdentifier.FIND_RESOURCES);
+                relevant.add(SynToolIdentifier.SEARCH_KNOWLEDGE);
+            }
+            if (intent == SynIntent.COMPARE_PATHS
+                    && !containsAny(
+                            normalized,
+                            "ket qua",
+                            "bai lam",
+                            "diem",
+                            "bang chung",
+                            "so thich",
+                            "my result",
+                            "my evidence",
+                            "my score",
+                            "my interest",
+                            "my skill")) relevant.remove(SynToolIdentifier.READ_EVIDENCE);
+            if (intent == SynIntent.COMPARE_PATHS
+                    && !containsAny(normalized, "simulation", "mo phong", "trai nghiem", "nen thu"))
+                relevant.remove(SynToolIdentifier.SUGGEST_SIMULATIONS);
+            if (java.util.regex.Pattern.compile(
+                            "(?:dung|khong|don't|do not|no|without)\\s+(?:(?:de xuat|goi y|recommend|suggest|show|any)\\s+)*(?:simulations?|mo phong)")
+                    .matcher(normalized)
+                    .find()) relevant.remove(SynToolIdentifier.SUGGEST_SIMULATIONS);
+            if (paths.stream().anyMatch(p -> p.equals("DEVOPS") || p.equals("AI_ENGINEERING"))) {
+                relevant.add(SynToolIdentifier.SEARCH_KNOWLEDGE);
+                relevant.add(SynToolIdentifier.SEARCH_WEB);
+            }
+            tools = List.copyOf(relevant);
+        }
         return new Decision(intent, tools, paths, language, depth);
     }
 
-    private String resolveIntent(String requestedAction, String normalized) {
+    private SynIntent resolveIntent(String requestedAction, String normalized) {
         if (!"FREE_TEXT".equals(requestedAction)) {
-            return switch (requestedAction) {
-                case "NEEDS_EVIDENCE" -> "IDENTIFY_GAPS";
-                default -> requestedAction;
-            };
+            return SynIntent.fromActionType(requestedAction);
+        }
+        if (containsAny(
+                normalized,
+                "save it",
+                "save this",
+                "confirm save",
+                "luu lai",
+                "luu ke hoach",
+                "xac nhan luu")) {
+            return SynIntent.CONFIRM_PLAN;
+        }
+        if (wantsResources(normalized)) return SynIntent.LEARNING_RESOURCES;
+        if (containsAny(normalized, "ke hoach", "lo trinh", "draft", "roadmap"))
+            return SynIntent.DRAFT_PLAN;
+        if (containsAny(
+                normalized,
+                "which simulation",
+                "what simulation",
+                "simulation should",
+                "simulation nao phu hop",
+                "simulation phu hop",
+                "mo phong nao",
+                "nen thu mo phong")) {
+            return SynIntent.EXPLORE_NEXT;
         }
         if (containsAny(
                 normalized, "compare", "difference", "versus", " vs ", "so sanh", "khac gi")) {
-            return "COMPARE_PATHS";
+            return SynIntent.COMPARE_PATHS;
         }
         if (containsAny(
                 normalized,
@@ -92,7 +285,7 @@ public class SynAgentPolicy {
                 "hoc gi",
                 "tai lieu",
                 "khoa hoc")) {
-            return "LEARNING_RESOURCES";
+            return SynIntent.LEARNING_RESOURCES;
         }
         if (containsAny(
                 normalized,
@@ -106,7 +299,7 @@ public class SynAgentPolicy {
                 "diem yeu",
                 "cai thien",
                 "luyen tap")) {
-            return "IDENTIFY_GAPS";
+            return SynIntent.IDENTIFY_GAPS;
         }
         if (containsAny(
                 normalized,
@@ -116,14 +309,21 @@ public class SynAgentPolicy {
                 "ke hoach",
                 "buoc tiep",
                 "lam gi tiep")) {
-            return "DRAFT_PLAN";
+            return SynIntent.DRAFT_PLAN;
         }
         if (containsAny(
-                normalized, "result", "score", "simulation", "ket qua", "diem so", "mo phong")) {
-            return "REVIEW_LATEST";
+                normalized,
+                "my result",
+                "latest result",
+                "result score",
+                "my score",
+                "ket qua cua",
+                "ket qua gan nhat",
+                "diem so")) {
+            return SynIntent.REVIEW_LATEST;
         }
         if (containsAny(normalized, "riasec", "interest", "so thich", "hung thu")) {
-            return "EXPLAIN_RIASEC";
+            return SynIntent.EXPLAIN_RIASEC;
         }
         if (containsAny(
                 normalized,
@@ -134,7 +334,7 @@ public class SynAgentPolicy {
                 "moi bat dau",
                 "chua biet bat dau",
                 "bat dau ntn")) {
-            return "GET_STARTED";
+            return SynIntent.GET_STARTED;
         }
         if (containsAny(
                 normalized,
@@ -149,22 +349,77 @@ public class SynAgentPolicy {
                 "cong viec",
                 "phu hop",
                 "hop voi")) {
-            return "CAREER_QUESTION";
+            return SynIntent.CAREER_QUESTION;
         }
-        return "CAREER_QUESTION";
+        return SynIntent.CAREER_QUESTION;
+    }
+
+    private boolean wantsResources(String message) {
+        return containsAny(
+                message,
+                "resource",
+                "course",
+                "tutorial",
+                "learn",
+                "study",
+                "source",
+                "hoc gi",
+                "tai lieu",
+                "khoa hoc",
+                "nguon hoc",
+                "nguon nay",
+                "nguon do",
+                "nguon ben ngoai",
+                "nguon khac",
+                "tai nguyen",
+                "hoc them",
+                "link hoc");
     }
 
     private List<String> extractPaths(String normalized) {
         LinkedHashSet<String> matches = new LinkedHashSet<>();
         if (containsToken(normalized, "be")) matches.add("BACKEND_DEVELOPMENT");
         if (containsToken(normalized, "fe")) matches.add("FRONTEND_DEVELOPMENT");
+        if (containsToken(normalized, "ai") || containsToken(normalized, "ml"))
+            matches.add("AI_ENGINEERING");
         PATH_ALIASES.forEach(
                 (path, aliases) -> {
                     if (aliases.stream().anyMatch(normalized::contains)) {
                         matches.add(path);
                     }
                 });
-        return new ArrayList<>(matches);
+        return matches.stream()
+                .sorted(
+                        java.util.Comparator.comparingInt(
+                                path -> {
+                                    int position =
+                                            PATH_ALIASES.get(path).stream()
+                                                    .mapToInt(normalized::indexOf)
+                                                    .filter(i -> i >= 0)
+                                                    .min()
+                                                    .orElse(
+                                                            path.equals("AI_ENGINEERING")
+                                                                            && containsToken(
+                                                                                    normalized,
+                                                                                    "ai")
+                                                                    ? normalized.indexOf("ai")
+                                                                    : Integer.MAX_VALUE);
+                                    String shortName =
+                                            path.equals("BACKEND_DEVELOPMENT")
+                                                    ? "be"
+                                                    : path.equals("FRONTEND_DEVELOPMENT")
+                                                            ? "fe"
+                                                            : "";
+                                    if (!shortName.isEmpty()
+                                            && containsToken(normalized, shortName))
+                                        position =
+                                                Math.min(
+                                                        position,
+                                                        (" " + normalized + " ")
+                                                                .indexOf(" " + shortName + " "));
+                                    return position;
+                                }))
+                .toList();
     }
 
     private boolean containsToken(String value, String token) {
@@ -186,6 +441,13 @@ public class SynAgentPolicy {
                 "huong dau",
                 "huong thu hai",
                 "cai con lai");
+    }
+
+    private boolean continuesCurrentExploration(SynIntent intent) {
+        return switch (intent) {
+            case IDENTIFY_GAPS, LEARNING_RESOURCES, DRAFT_PLAN, EXPLORE_NEXT -> true;
+            default -> false;
+        };
     }
 
     private String resolveLanguage(
@@ -236,7 +498,7 @@ public class SynAgentPolicy {
         return false;
     }
 
-    private String responseDepth(String intent, String normalized) {
+    private String responseDepth(SynIntent intent, String normalized) {
         if (containsAny(
                 normalized,
                 "more detail",
@@ -248,8 +510,8 @@ public class SynAgentPolicy {
             return "DETAILED";
         }
         return switch (intent) {
-            case "GET_STARTED", "COMPARE_PATHS", "DRAFT_PLAN", "CAREER_QUESTION" -> "DETAILED";
-            case "REVIEW_LATEST", "EXPLAIN_RIASEC" -> "SHORT";
+            case GET_STARTED, COMPARE_PATHS, DRAFT_PLAN, CAREER_QUESTION -> "DETAILED";
+            case REVIEW_LATEST, REVIEW_RESULT, EXPLAIN_RIASEC, CONFIRM_PLAN -> "SHORT";
             default -> "STANDARD";
         };
     }
@@ -268,9 +530,15 @@ public class SynAgentPolicy {
     }
 
     public record Decision(
-            String intent,
-            List<String> tools,
+            SynIntent intent,
+            List<SynToolIdentifier> tools,
             List<String> paths,
             String responseLanguage,
-            String responseDepth) {}
+            String responseDepth) {
+
+        public Decision withTools(List<SynToolIdentifier> selectedTools) {
+            return new Decision(
+                    intent, List.copyOf(selectedTools), paths, responseLanguage, responseDepth);
+        }
+    }
 }

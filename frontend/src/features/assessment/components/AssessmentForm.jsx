@@ -1,3 +1,4 @@
+import { useI18n } from '../../../shared/i18n/useI18n.js'
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import AssessmentProgressBar from './AssessmentProgressBar.jsx'
@@ -13,6 +14,7 @@ const scaleOptions = [
 ]
 
 function AssessmentForm({ questions, answers, setAnswer, setAllAnswers, onSubmit, isLoading }) {
+  const { t } = useI18n()
   const [error, setError] = useState(null)
   const answeredCount = Object.keys(answers).length
   const totalCount = questions.length
@@ -79,7 +81,7 @@ function AssessmentForm({ questions, answers, setAnswer, setAllAnswers, onSubmit
 
       {error && (
         <div style={{ color: 'var(--accent-dark)', marginTop: '32px', fontWeight: 'bold', padding: '16px', background: '#fcebe6', borderRadius: '12px', border: '1px solid var(--accent)' }}>
-          {error}
+          {t(error)}
         </div>
       )}
 
@@ -101,7 +103,7 @@ function AssessmentForm({ questions, answers, setAnswer, setAllAnswers, onSubmit
             gap: '8px'
           }}
         >
-          {isLoading ? <><Loader2 className="animate-spin" size={20} /> Submitting...</> : 'Submit Answers'}
+          {isLoading ? <><Loader2 className="animate-spin" size={20} /> {t("Submitting...")}</> : t('Submit Answers')}
         </button>
       </div>
     </form>

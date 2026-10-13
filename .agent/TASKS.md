@@ -36,7 +36,7 @@ Each owner should still verify the full vertical slice with the responsible back
 | Authentication/profile | Not implemented | planned foundation dependency |
 | US-01 workflow | Preliminary backend/frontend integration; local demo data ready | deterministic assessment API, connected frontend, 42 questions, and a synthetic completed baseline; full acceptance audit remains |
 | US-02 workflow | Preliminary backend/frontend integration; local demo data ready | catalog/attempt/evaluation API, connected frontend, and three original tasks for each of five published simulations; full acceptance audit remains |
-| US-03 workflow | Adaptive bounded agent backend/frontend verified | `/dashboard`, global three-mode Syn, structured memory and clear control, fixed intent/tool allowlist, new-student onboarding, English/Vietnamese replies, adaptive response depth, path comparison, evidence gaps, reviewed resources, Gemini phrasing, bilingual Standard fallback, anchored conversation viewport, confirmed plan persistence, provenance, 67 backend tests, 11 frontend tests, V9 migration and gateway/browser smoke; runtime login remains pending |
+| US-03 workflow | Adaptive bounded agent backend/frontend verified | `/dashboard`, global three-mode Syn, structured memory and clear control, typed tool allowlist, server-planned single-generation default plus optional two-pass Gemini tool calling, static-policy fallback, new-student onboarding, English/Vietnamese replies, adaptive response depth, path comparison, evidence gaps, reviewed resources, bilingual Standard fallback, anchored conversation viewport, confirmed plan persistence, provenance, automated backend/frontend gates, V9 migration and prior gateway/browser smoke; runtime login remains pending |
 | Enterprise management | Not implemented | boundary reserved |
 
 ## 3 Definition of Done for every story
@@ -104,3 +104,23 @@ Required tests: AI success, fallback, timeout, malformed response mapped to fall
 ## 8 PR checklist
 
 Copy `.github/pull_request_template.md` and fill every section. A PR with missing trace source, tests, evidence, report impact, or known gaps is not ready for review.
+
+
+## 9 Syn core/vector RAG checkpoint — 2026-09-28
+
+- P1/P2 implementation delivered for review; continue from this checkpoint instead of restarting the earlier foundation plan.
+- Technical evidence: backend 121 discovered / 117 executed / 4 opt-in skips, frontend 24 passing tests and lint/build, Compose/whitespace, real PostgreSQL tests and dump/restore, live synthetic embedding/vector path, API lifecycle/revocation and browser citations.
+- Open acceptance work: human corpus and gold review; held-out lexical/vector/hybrid plus generated-answer evaluation; assigned production identity integration; deployment-specific price snapshots. These are not reported as completed acceptance criteria.
+- Voice P3 and realtime P4 remain planned, outside the approved implementation increment.
+- Full traceability and limitations: `reports/us-03-syn-core-vector-rag-verification.md`.
+
+## 10 Syn coach A/B/C checkpoint — 2026-09-29
+
+User feedback follow-up: `plans/US-03-syn-conversation-quality.md` supersedes chat presentation: natural explanation first, compact/collapsed evidence, no unsolicited simulation on comparison, DevOps/AI topic routing, missing-RAG general explanation and one bounded output repair. See `reports/us-03-syn-conversation-quality-verification.md` for verification; human corpus publication remains open.
+
+Continuation 2026-10-02: private evidence scope and negated simulation fixes, bounded HTTP timeout correction. Final backend verify 144 discovered / 140 executed / 4 opt-in skips; frontend retained 26 passing tests. Local gateway smoke distinguishes actual AI answers, quota-limited web and no published RAG corpus; see the same report for failed as well as successful live turns.
+
+- Continue from `plans/US-03-syn-coach-abc.md`; preserve previous P1/P2 work. Voice deferred by user.
+- Implemented composed EN/VI capabilities, ordered path/resource follow-up, reviewed resource ranking/fallback, evidence-based draft template, bounded Gemini 429/503 retry, heuristic overclaim guard and optional grounded web resource discovery.
+- RAG hybrid code reused and tested; one-shot publish workflow prepared. Corpus and evaluation drafts still require real human review before publication/quality claims. This is an open acceptance item, not an implementation failure hidden behind a completed label.
+- Verification: `reports/us-03-syn-coach-abc-verification.md`; user test instructions: `../docs/testing/syn-coach-manual.vi.md`.

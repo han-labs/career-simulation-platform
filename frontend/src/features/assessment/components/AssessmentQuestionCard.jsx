@@ -1,4 +1,6 @@
+import { useI18n } from '../../../shared/i18n/useI18n.js'
 function AssessmentQuestionCard({ question, index, answer, setAnswer, isMissing, scaleOptions }) {
+  const { t } = useI18n()
   return (
     <div id={`question-container-${question.id}`} className="assessment-question" style={{ 
       padding: '20px', 
@@ -9,8 +11,8 @@ function AssessmentQuestionCard({ question, index, answer, setAnswer, isMissing,
       boxShadow: answer ? '0 2px 8px rgba(31, 102, 121, 0.05)' : 'none'
     }}>
       <h3 style={{ fontSize: '1.15rem', margin: '0 0 24px 0', color: 'var(--ink)' }}>
-        <span style={{ color: 'var(--muted)', marginRight: '12px' }}>{index + 1}.</span> 
-        {question.prompt || question.text}
+        <span style={{ color: 'var(--muted)', marginRight: '12px' }}>{t(index + 1)}.</span> 
+        {t(question.prompt || question.text)}
       </h3>
       
       <div className="assessment-options" style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
@@ -42,7 +44,7 @@ function AssessmentQuestionCard({ question, index, answer, setAnswer, isMissing,
                 onChange={() => setAnswer(question.id, opt.value)}
                 style={{ margin: 0, accentColor: 'var(--tech)' }}
               />
-              <span style={{ fontSize: '0.9rem', fontWeight: isSelected ? '600' : '400' }}>{opt.label}</span>
+              <span style={{ fontSize: '0.9rem', fontWeight: isSelected ? '600' : '400' }}>{t(opt.label)}</span>
             </label>
           )
         })}

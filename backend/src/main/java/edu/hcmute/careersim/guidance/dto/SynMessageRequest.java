@@ -12,13 +12,24 @@ public record SynMessageRequest(
                 String message,
         @Pattern(
                         regexp =
-                                "FREE_TEXT|GET_STARTED|EXPLAIN_RIASEC|REVIEW_LATEST|NEEDS_EVIDENCE|EXPLORE_NEXT|DRAFT_PLAN|COMPARE_PATHS|LEARNING_RESOURCES|CAREER_QUESTION",
+                                "FREE_TEXT|GET_STARTED|EXPLAIN_RIASEC|REVIEW_LATEST|REVIEW_RESULT|NEEDS_EVIDENCE|EXPLORE_NEXT|DRAFT_PLAN|COMPARE_PATHS|LEARNING_RESOURCES|CAREER_QUESTION",
                         message = "Action type is not supported.")
                 String actionType,
         UUID sessionId,
         @Pattern(regexp = "AUTO|EN|VI", message = "Response language is not supported.")
                 String responseLanguage,
-        @Valid Context context) {
+        @Valid Context context,
+        UUID clientMessageId) {
+
+    public SynMessageRequest(
+            String message, String actionType, UUID sessionId, String language, Context context) {
+        this(message, actionType, sessionId, language, context, null);
+    }
+
+    public SynMessageRequest withSession(UUID id) {
+        return new SynMessageRequest(
+                message, actionType, id, responseLanguage, context, clientMessageId);
+    }
 
     public SynMessageRequest(String message, String actionType, Context context) {
         this(message, actionType, null, "AUTO", context);

@@ -49,6 +49,7 @@ class OpenAiSynGuidanceProviderTest {
                                 {
                                   "status": "completed",
                                   "output": [{
+                                    "type": "message",
                                     "content": [{
                                       "type": "output_text",
                                       "text": "{\\\"text\\\":\\\"Compare the evidence, then choose a small experiment.\\\",\\\"suggestions\\\":[\\\"What felt engaging?\\\"]}"
@@ -72,7 +73,7 @@ class OpenAiSynGuidanceProviderTest {
                 .andRespond(
                         withSuccess(
                                 """
-                                {"status":"completed","output":[{"content":[{"type":"output_text","text":"not-json"}]}]}
+                                {"status":"completed","output":[{"type":"message","content":[{"type":"output_text","text":"not-json"}]}]}
                                 """,
                                 MediaType.APPLICATION_JSON));
 

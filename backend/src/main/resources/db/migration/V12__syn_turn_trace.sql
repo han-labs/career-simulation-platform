@@ -1,0 +1,1 @@
+ALTER TABLE syn_turns ADD COLUMN trace JSONB NOT NULL DEFAULT '{}'::jsonb;

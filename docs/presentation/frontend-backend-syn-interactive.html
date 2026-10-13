@@ -1,0 +1,329 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CareerSim — Frontend, Backend và Syn</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;500;700&family=Noto+Serif:wght@400;500;700&display=swap&subset=vietnamese" rel="stylesheet">
+  <style>
+    :root { --paper:#f4f2ec; --surface:#fff; --ink:#142421; --muted:#64726e; --line:#d7ddd9; --accent:#d96843; --accent-dark:#9f4026; --tech:#1f6679; --tech-deep:#174d5c; --tech-soft:#dceef2; --sage:#dfece3; --sage-ink:#28583b; --violet:#e8e1ef; --gold:#f1e5be; --danger:#9f4026; }
+    * { box-sizing:border-box; }
+    html { scroll-behavior:smooth; }
+    body { margin:0; background:var(--paper); color:var(--ink); font:16px/1.6 "Noto Sans", Inter, Aptos, "Segoe UI", sans-serif; }
+    h1,h2,h3 { font-family:"Noto Serif", Cambria, "Times New Roman", serif; line-height:1.2; margin:0 0 12px; }
+    h1 { font-size:clamp(34px,5vw,58px); max-width:850px; letter-spacing:-.025em; }
+    h2 { font-size:clamp(26px,4vw,38px); }
+    h3 { font-size:20px; }
+    p { margin:0 0 14px; }
+    a { color:var(--tech); }
+    code { font:0.88em ui-monospace,SFMono-Regular,Consolas,monospace; background:#edf0ed; padding:2px 5px; border-radius:5px; overflow-wrap:anywhere; }
+    .shell { max-width:1180px; padding:0 20px; margin:auto; }
+    .hero { padding:72px 0 58px; border-bottom:1px solid var(--line); }
+    .eyebrow { color:var(--accent-dark); letter-spacing:.08em; font-size:12px; font-weight:700; text-transform:uppercase; }
+    .lede { font-size:clamp(18px,2.5vw,23px); max-width:760px; color:#33433e; }
+    .chip-row,.controls,.legend { display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+    .chip { display:inline-flex; padding:4px 10px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:#40514b; font-size:13px; }
+    .side-nav { position:fixed; inset:0 auto 0 0; z-index:10; width:264px; overflow-y:auto; padding:28px 16px; background:#fbfaf7; border-right:1px solid var(--line); }
+    .side-nav__brand { display:block; margin:0 8px 28px; color:var(--accent-dark); font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; }
+    .side-nav__title { margin:0 8px 10px; color:var(--muted); font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; }
+    .side-nav a { display:flex; align-items:center; gap:10px; margin:3px 0; padding:9px 10px; color:var(--ink); text-decoration:none; border-radius:9px; font-size:14px; transition:background .15s,color .15s; }
+    .side-nav a span { min-width:24px; color:var(--muted); font-size:12px; font-weight:700; }
+    .side-nav a:hover,.side-nav a:focus-visible,.side-nav a.is-current { background:var(--sage); color:var(--sage-ink); }
+    .side-nav a.is-current span { color:var(--accent-dark); }
+    .side-nav__note { margin:26px 8px 0; padding:13px 0 0; border-top:1px solid var(--line); color:var(--muted); font-size:13px; }
+    body > .hero, body > main, body > footer { margin-left:264px; }
+    section { padding:72px 0; border-bottom:1px solid var(--line); }
+    .section-intro { max-width:830px; margin-bottom:30px; }
+    .grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:16px; }
+    .two { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+    .card { background:var(--surface); border:1px solid var(--line); border-radius:18px; padding:22px; }
+    .card p:last-child { margin-bottom:0; }
+    .card.soft { background:#fbfaf7; }
+    .tag { display:inline-block; padding:3px 8px; border-radius:999px; background:var(--tech-soft); color:#174d5c; font-weight:700; font-size:12px; margin-bottom:10px; }
+    .tag.future { background:var(--gold); color:#735c15; }
+    .tag.safe { background:var(--sage); color:#28583b; }
+    .tag.warn { background:#f7e4dc; color:var(--accent-dark); }
+    ul { padding-left:20px; margin:8px 0 0; }
+    li { margin:6px 0; }
+    .component-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+    button { appearance:none; border:1px solid var(--line); background:var(--surface); color:var(--ink); border-radius:10px; padding:9px 13px; font:inherit; cursor:pointer; }
+    button:hover { border-color:var(--tech); background:var(--tech-soft); }
+    button:focus-visible,a:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+    button[aria-pressed="true"],button.primary { background:var(--ink); border-color:var(--ink); color:white; }
+    .inspect-result { min-height:220px; }
+    .diagram { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; align-items:stretch; margin:24px 0; }
+    .node { min-height:114px; padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--surface); position:relative; transition:transform .2s,background .2s,border-color .2s; }
+    .node::after { content:"→"; position:absolute; right:-15px; top:43%; color:var(--muted); font-size:22px; z-index:1; }
+    .node:last-child::after { content:""; }
+    .node.active { transform:translateY(-4px); border-color:var(--accent); background:#fff4ef; box-shadow:0 8px 20px rgba(159,64,38,.12); }
+    .node .number { color:var(--accent-dark); font-weight:700; font-size:12px; }
+    .node strong { display:block; margin-top:4px; }
+    .node small { display:block; color:var(--muted); line-height:1.35; margin-top:5px; }
+    .flow-detail { background:var(--surface); border-left:4px solid var(--accent); padding:20px 22px; border-radius:0 14px 14px 0; min-height:175px; }
+    .flow-detail .path { color:var(--tech-deep); font-weight:700; }
+    .step-count { margin-left:auto; color:var(--muted); font-size:14px; }
+    .scenario-buttons button { font-size:14px; }
+    .controls { margin:18px 0; }
+    .flow-nav { display:flex; gap:8px; align-items:center; }
+    .flow-nav button:disabled { opacity:.45; cursor:not-allowed; }
+    .code-map { display:grid; grid-template-columns:220px 1fr; border:1px solid var(--line); border-radius:16px; overflow:hidden; background:var(--surface); }
+    .code-map aside { background:#f8f7f2; border-right:1px solid var(--line); padding:12px; }
+    .code-map aside button { display:block; width:100%; text-align:left; border:0; border-radius:8px; margin:3px 0; }
+    .code-map aside button.active { background:var(--sage); font-weight:700; }
+    .code-map article { padding:24px; }
+    .source-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+    .source-list code { display:block; margin-bottom:5px; }
+    .notice { border-left:4px solid var(--accent); padding:16px 18px; background:#fff7f3; border-radius:0 12px 12px 0; }
+    .model-compare { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .model-compare .selected { border:2px solid var(--tech); }
+    .guardrail { display:grid; grid-template-columns:70px 1fr; gap:14px; padding:14px 0; border-bottom:1px solid var(--line); }
+    .guardrail:last-child { border-bottom:0; }
+    .guardrail .num { font:700 25px Georgia,serif; color:var(--accent-dark); }
+    .future-flow { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .future-step { border-top:3px solid var(--tech); background:var(--surface); padding:16px; border-radius:0 0 12px 12px; }
+    footer { padding:38px 0 64px; color:var(--muted); }
+    .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+    @media (max-width:850px) { .side-nav { position:sticky; inset:auto; width:auto; display:flex; align-items:center; gap:4px; overflow-x:auto; overflow-y:visible; padding:10px 14px; border-right:0; border-bottom:1px solid var(--line); } .side-nav__brand,.side-nav__title,.side-nav__note { display:none; } .side-nav a { flex:0 0 auto; margin:0; padding:7px 10px; white-space:nowrap; } .side-nav a span { display:none; } body > .hero, body > main, body > footer { margin-left:0; } .grid { grid-template-columns:1fr 1fr; } .diagram { grid-template-columns:1fr; } .node::after { content:"↓"; right:48%; top:auto; bottom:-21px; } .two,.model-compare { grid-template-columns:1fr; } .code-map { grid-template-columns:1fr; } .code-map aside { border-right:0; border-bottom:1px solid var(--line); display:flex; flex-wrap:wrap; gap:4px; } .code-map aside button { width:auto; } .source-list { grid-template-columns:1fr; } .future-flow { grid-template-columns:1fr; } }
+    @media (max-width:520px) { .hero,section { padding:48px 0; } .grid { grid-template-columns:1fr; } .shell { padding:0 14px; } }
+    @media (prefers-reduced-motion:reduce) { html { scroll-behavior:auto; } .node { transition:none; } }
+  </style>
+</head>
+<body>
+  <header class="hero" id="top">
+    <div class="shell">
+      <p class="eyebrow">CareerSim technical walkthrough</p>
+      <h1>Điều gì thật sự xảy ra từ React, qua backend, đến Syn?</h1>
+      <p class="lede">Một bản đồ tương tác bám theo mã nguồn CareerSim: component, request/response, quy tắc nghiệp vụ, dữ liệu và AI có kiểm soát.</p>
+      <div class="chip-row" aria-label="Công nghệ chính">
+        <span class="chip">React 19 + Vite</span><span class="chip">React Router</span><span class="chip">Spring Boot 3 + Java 17</span><span class="chip">PostgreSQL + Flyway</span><span class="chip">Nginx + Docker Compose</span><span class="chip">Gemini/OpenAI adapter</span>
+      </div>
+    </div>
+  </header>
+
+  <nav class="side-nav" aria-label="Điều hướng bài minh họa">
+    <a class="side-nav__brand" href="#top">CareerSim</a>
+    <p class="side-nav__title">Nội dung</p>
+    <a href="#react" data-nav-section="react"><span>01</span>React và component</a>
+    <a href="#open-page" data-nav-section="open-page"><span>02</span>Mở trang Dashboard</a>
+    <a href="#trace" data-nav-section="trace"><span>03</span>Truy vết request</a>
+    <a href="#syn" data-nav-section="syn"><span>04</span>Syn agent</a>
+    <a href="#guardrails" data-nav-section="guardrails"><span>05</span>Control & fallback</a>
+    <a href="#model" data-nav-section="model"><span>06</span>Model</a>
+    <a href="#future" data-nav-section="future"><span>07</span>Mở rộng search</a>
+    <p class="side-nav__note">Dùng menu để theo dõi từng phần. Phần đang đọc sẽ được đánh dấu.</p>
+  </nav>
+
+  <main>
+    <section id="react"><div class="shell">
+      <div class="section-intro"><p class="eyebrow">01 · Frontend</p><h2>Không phải file <code>.jsx</code> nào cũng chỉ có component</h2><p>Nhấn vào từng loại để xem tiêu chí, vai trò và vị trí thật trong source. Cách phân biệt là nhìn vào trách nhiệm và giá trị trả về, không chỉ nhìn tên file.</p></div>
+      <div class="component-tabs" role="group" aria-label="Chọn loại mã React">
+        <button type="button" data-inspect="component" aria-pressed="true">Component</button>
+        <button type="button" data-inspect="page" aria-pressed="false">Page / route</button>
+        <button type="button" data-inspect="hook" aria-pressed="false">Custom hook</button>
+        <button type="button" data-inspect="api" aria-pressed="false">API adapter</button>
+        <button type="button" data-inspect="helper" aria-pressed="false">Helper / data</button>
+      </div>
+      <article class="card inspect-result" id="inspect-result" aria-live="polite"></article>
+      <div class="grid" style="margin-top:16px">
+        <article class="card"><span class="tag">Reusable UI</span><h3>Props + callback</h3><p><code>SimulationNavigation</code> nhận vị trí và <code>onPrevious/onNext</code>; nó không biết simulation cụ thể. Vì vậy có thể dùng lại cho mọi workflow nhiều bước.</p></article>
+        <article class="card"><span class="tag">State ownership</span><h3>Page / hook giữ state</h3><p><code>SimulationAttemptPage</code> dùng <code>useSimulationAttempt</code> để giữ answer, validation, current task và submit status; component con chỉ hiển thị và phát sự kiện.</p></article>
+        <article class="card"><span class="tag">Mở rộng</span><h3>Tách theo trách nhiệm</h3><p>Thêm prop hoặc component artifact mới thay vì để card tự fetch. Khi logic dùng lại tăng, đưa vào hook; khi nhiều vùng cần cùng state mới cân nhắc Context.</p></article>
+      </div>
+      <div class="notice" style="margin-top:22px"><strong>React giúp gì?</strong> JSX/composition ghép UI nhỏ thành page; props truyền dữ liệu một chiều; <code>useState</code> làm UI phản ứng với state; <code>useEffect</code> chạy side effect như tải API sau render; React Router đổi route không reload cả app; reconciliation cập nhật phần DOM cần đổi.</div>
+    </div></section>
+
+    <section id="open-page"><div class="shell">
+      <div class="section-intro"><p class="eyebrow">02 · Browser đến React</p><h2>Mở <code>/dashboard</code> không có nghĩa dữ liệu đã có ngay</h2><p>Ban đầu React render loading. Sau khi render, effect mới gửi request. Hãy đi từng bước ở phần dưới.</p></div>
+      <div class="diagram" aria-label="Luồng tải giao diện Dashboard">
+        <div class="node"><span class="number">1</span><strong>Browser</strong><small>GET /dashboard</small></div>
+        <div class="node"><span class="number">2</span><strong>Nginx gateway</strong><small>Route / tới frontend</small></div>
+        <div class="node"><span class="number">3</span><strong>React bundle</strong><small>HTML + JS + CSS tải về</small></div>
+        <div class="node"><span class="number">4</span><strong>Router</strong><small>Chọn GuidancePage</small></div>
+        <div class="node"><span class="number">5</span><strong>useEffect</strong><small>Fetch Dashboard sau render</small></div>
+      </div>
+      <div class="two">
+        <article class="card"><span class="tag safe">Đã có</span><h3>Điểm khởi động</h3><p><code>frontend/src/main.jsx</code> gọi <code>createRoot(...).render(...)</code>, bọc <code>App</code> trong <code>StrictMode</code> và <code>BrowserRouter</code>. <code>App.jsx</code> map URL <code>/dashboard</code> thành <code>&lt;GuidancePage /&gt;</code>.</p></article>
+        <article class="card"><span class="tag safe">Đã có</span><h3>Loading trước, dữ liệu sau</h3><p><code>GuidancePage</code> đặt state dashboard là <code>null</code>; effect gọi <code>getExplorationDashboard()</code>. Khi promise hoàn thành, <code>setDashboard(data)</code> khiến React render lại progress, signal, skills, history và plan.</p></article>
+      </div>
+    </div></section>
+
+    <section id="trace"><div class="shell">
+      <div class="section-intro"><p class="eyebrow">03 · End-to-end trace</p><h2>Đi theo một yêu cầu thật từ UI đến dữ liệu và quay về UI</h2><p>Chọn kịch bản, rồi dùng bước trước/sau. Node đang sáng là nơi request đang được xử lý; phần chi tiết cho biết việc gì xảy ra và file nào chịu trách nhiệm.</p></div>
+      <div class="controls scenario-buttons" role="group" aria-label="Chọn kịch bản truy vết">
+        <button type="button" data-scenario="dashboard" aria-pressed="true">A. Tải Dashboard</button>
+        <button type="button" data-scenario="quick" aria-pressed="false">B. Quick action: Compare</button>
+        <button type="button" data-scenario="ai" aria-pressed="false">C. Free text + Gemini</button>
+        <button type="button" data-scenario="fallback" aria-pressed="false">D. Provider lỗi → fallback</button>
+      </div>
+      <div class="diagram" id="flow-nodes" aria-label="Luồng xử lý request"></div>
+      <div class="flow-detail" id="flow-detail" aria-live="polite"></div>
+      <div class="controls"><div class="flow-nav"><button type="button" id="prev-step">← Bước trước</button><button type="button" class="primary" id="next-step">Bước tiếp →</button></div><span class="step-count" id="step-count"></span></div>
+      <div class="notice"><strong>Điểm mấu chốt:</strong> frontend không truy vấn PostgreSQL. Controller không viết business rule. LLM không truy vấn PostgreSQL. Mỗi lớp chỉ làm đúng phần việc của mình.</div>
+    </div></section>
+
+    <section id="syn"><div class="shell">
+      <div class="section-intro"><p class="eyebrow">04 · AI agent</p><h2>Syn là bounded, orchestrated, single-agent workflow</h2><p>Syn không phải chatbot tự do hay agent chạy nền. Nó có một vòng xử lý được backend điều phối: đọc memory → policy chọn tool plan → tool server chạy → tùy điều kiện gọi tối đa một model → kiểm tra output → cập nhật memory → trả response.</p></div>
+      <div class="code-map">
+        <aside aria-label="Chọn thành phần Syn">
+          <button class="active" type="button" data-syn="widget">SynWidget</button>
+          <button type="button" data-syn="service">GuidanceService</button>
+          <button type="button" data-syn="orchestrator">Orchestrator</button>
+          <button type="button" data-syn="policy">Policy</button>
+          <button type="button" data-syn="toolbox">Toolbox + DAO</button>
+          <button type="button" data-syn="provider">Gemini adapter</button>
+          <button type="button" data-syn="memory">Memory + audit</button>
+        </aside>
+        <article id="syn-detail" aria-live="polite"></article>
+      </div>
+      <div class="grid" style="margin-top:20px">
+        <article class="card"><span class="tag safe">Có memory</span><h3>Bounded session memory</h3><p><code>syn_sessions</code> lưu language, stage, goal, covered topics, next action, last intent/path trong summary có version. Owner-scoped, 30 ngày, xóa được; không lưu raw chat.</p></article>
+        <article class="card"><span class="tag warn">Không phải RAG</span><h3>Controlled retrieval</h3><p>Không có embedding, vector DB hay semantic retrieval. Toolbox dùng JDBC đọc evidence sở hữu, path ACTIVE, resource REVIEWED và simulation PUBLISHED — đây là retrieval có allowlist, không phải vector RAG.</p></article>
+        <article class="card"><span class="tag">Không tự quyết</span><h3>Artifacts do server làm chủ</h3><p>Result card, comparison card, resource card và plan draft được toolbox tạo từ dữ liệu đã lọc. Model chỉ diễn đạt <em>text</em> và suggestions hợp schema.</p></article>
+      </div>
+    </div></section>
+
+    <section id="guardrails"><div class="shell">
+      <div class="section-intro"><p class="eyebrow">05 · Control, evidence & fallback</p><h2>Syn không tin ngay vào user input, model output, hoặc dữ liệu bên ngoài</h2><p>Luồng an toàn có nhiều lớp. Đây là lý do agent có thể hữu ích mà vẫn không biến thành hệ thống tự đưa ra quyết định nghề nghiệp.</p></div>
+      <div class="card">
+        <div class="guardrail"><div class="num">01</div><div><h3>Gateway và request contract</h3><p>Nginx giới hạn Syn 10 request/phút theo client với burst nhỏ, body tối đa 16 KiB. DTO giới hạn message 600 ký tự và chỉ chấp nhận action/language trong enum.</p></div></div>
+        <div class="guardrail"><div class="num">02</div><div><h3>Authorization + ownership</h3><p>Spring Security yêu cầu authenticated guidance request; service kiểm tra account tồn tại, role <code>STUDENT</code>, status <code>ACTIVE</code> và attempt/session thuộc đúng sinh viên.</p></div></div>
+        <div class="guardrail"><div class="num">03</div><div><h3>Deterministic policy trước model</h3><p>Prompt injection, yêu cầu system prompt/API key/answer key, guarantee hoặc “chọn nghề thay tôi” bị chặn bằng safety boundary trước provider. Model không chọn SQL, URL hay tool.</p></div></div>
+        <div class="guardrail"><div class="num">04</div><div><h3>Evidence và artifact có provenance</h3><p>Toolbox chỉ đọc nguồn server-owned đã lọc. Response hiển thị activity và evidence references; score/evaluation vẫn là deterministic data, không do Syn thay đổi.</p></div></div>
+        <div class="guardrail"><div class="num">05</div><div><h3>Schema + fallback</h3><p>Gemini phải trả JSON <code>{ text, suggestions }</code>; backend kiểm tra parse, length và finish state. Timeout, provider rejection hay output lỗi trả Standard guidance với artifacts đã tạo, không trả raw provider error.</p></div></div>
+      </div>
+    </div></section>
+
+    <section id="model"><div class="shell">
+      <div class="section-intro"><p class="eyebrow">06 · Model selection</p><h2>Tên model cần chính xác trước khi nâng cấp</h2><p>Cấu hình hiện tại dùng <code>gemini-3.5-flash-lite</code>. Tài liệu Gemini chính thức hiện không liệt kê model ID <code>gemini-3.6-flash-lite</code>; lựa chọn 3.6 đúng tên là <code>gemini-3.6-flash</code>.</p></div>
+      <div class="model-compare">
+        <article class="card"><span class="tag">Hiện tại</span><h3>Gemini 3.5 Flash-Lite</h3><p>Hợp lý khi ưu tiên chi phí thấp, latency thấp và lưu lượng cao cho synthesis đơn giản. Đây là nhánh Lite hiện có thật trong cấu hình dự án.</p></article>
+        <article class="card selected"><span class="tag safe">Đề xuất nâng cấp</span><h3>Gemini 3.6 Flash</h3><p>Hợp lý khi muốn chất lượng diễn giải, tiếng Việt, structured output và khả năng xử lý agent context tốt hơn mà vẫn cần tốc độ/chi phí cân bằng. Syn đã tự làm routing/retrieval/control bằng code, nên không cần model Pro cho autonomous planning dài.</p><p><strong>Đổi model không bỏ qua kiểm thử:</strong> chạy lại schema, timeout, Vietnamese, injection, fallback và gateway smoke test.</p></article>
+      </div>
+      <p style="margin-top:18px">Nguồn: <a href="https://ai.google.dev/gemini-api/docs/models/gemini-3.6-flash" target="_blank" rel="noreferrer">Gemini 3.6 Flash</a>, <a href="https://ai.google.dev/gemini-api/docs/models" target="_blank" rel="noreferrer">model overview</a>, <a href="https://ai.google.dev/gemini-api/docs/changelog" target="_blank" rel="noreferrer">release notes</a>.</p>
+    </div></section>
+
+    <section id="future"><div class="shell">
+      <div class="section-intro"><p class="eyebrow">07 · Future scope, not current MVP</p><h2>Nếu thêm search engine, search phải là tool bị kiểm soát</h2><p>Hiện tại Syn không browse web; US-03 loại trừ unrestricted web browsing. Nếu được duyệt scope, search engine không được trao trực tiếp cho model. Nó phải là server-side tool có policy, source verification và fallback.</p></div>
+      <div class="future-flow">
+        <article class="future-step"><span class="tag future">1 · Gate</span><h3>Policy chấp thuận</h3><p>Chỉ intent được duyệt như learning resources mới có thể yêu cầu search. Query do server xây từ skill/path đã resolve, không tin raw user instruction.</p></article>
+        <article class="future-step"><span class="tag future">2 · SearchAdapter</span><h3>Tra cứu có giới hạn</h3><p>Server gọi search API với quota, allowlisted domain, safe-search và giới hạn thời gian. Model không có key, không tự gọi URL.</p></article>
+        <article class="future-step"><span class="tag future">3 · Verify</span><h3>Lọc và đối chiếu</h3><p>Kiểm tra HTTPS, publisher, license/provenance, duplicate, độ liên quan skill trước path; bỏ trang chứa nội dung không phù hợp hoặc instruction độc hại.</p></article>
+        <article class="future-step"><span class="tag future">4 · Grounded reasoning</span><h3>Chỉ tóm tắt evidence đã lọc</h3><p>Model nhận top sources đã được kiểm tra cùng evidence của sinh viên. Nó nêu giới hạn, so sánh và đề xuất thử nghiệm; không suy ra career fit.</p></article>
+        <article class="future-step"><span class="tag future">5 · Human review</span><h3>Resource bền vững phải reviewed</h3><p>Nguồn muốn xuất hiện lâu dài đi vào trạng thái pending review; chỉ record REVIEWED mới thành catalog/resource chuẩn của Syn.</p></article>
+        <article class="future-step"><span class="tag future">6 · Fallback</span><h3>Không có nguồn vẫn trung thực</h3><p>Search fail hoặc không đủ evidence thì quay về resource REVIEWED trong Postgres hoặc nói rõ chưa tìm thấy nguồn đã kiểm tra — không bịa link.</p></article>
+      </div>
+      <div class="notice" style="margin-top:22px"><strong>Ý nghĩa:</strong> agent không chỉ “tra cứu tài liệu”. Backend buộc nó xác minh nguồn, liên kết source với skill/path/evidence, tạo artifact có cấu trúc, lưu provenance và chỉ sau đó mới cho model diễn đạt.</div>
+    </div></section>
+
+    <section><div class="shell">
+      <div class="section-intro"><p class="eyebrow">08 · Mã nguồn để mở cùng lúc</p><h2>Đọc theo đúng đường đi, không đọc rời rạc</h2></div>
+      <div class="source-list">
+        <article class="card"><code>frontend/src/main.jsx</code><p>Root, StrictMode, BrowserRouter.</p></article>
+        <article class="card"><code>frontend/src/app/App.jsx</code><p>Route, ApplicationLayout, global SynWidget.</p></article>
+        <article class="card"><code>frontend/src/features/guidance/pages/GuidancePage.jsx</code><p>Dashboard render + <code>useEffect</code> tải data.</p></article>
+        <article class="card"><code>frontend/src/features/guidance/components/SynWidget.jsx</code><p>Conversation UI, quick action, session ID, plan confirmation.</p></article>
+        <article class="card"><code>frontend/src/features/guidance/api/guidanceApi.js</code><p>Normalize response, send Syn message, UI fallback.</p></article>
+        <article class="card"><code>frontend/src/shared/api/httpClient.js</code><p><code>fetch</code>, API envelope, ApiError.</p></article>
+        <article class="card"><code>backend/.../guidance/controller/GuidanceController.java</code><p>REST endpoints, chỉ HTTP adaptation.</p></article>
+        <article class="card"><code>backend/.../guidance/service/impl/GuidanceServiceImpl.java</code><p>Facade, authorization, dashboard aggregation, audit/plan persistence.</p></article>
+        <article class="card"><code>backend/.../guidance/service/SynAgentOrchestrator.java</code><p>Memory → policy → tools → optional provider → fallback.</p></article>
+        <article class="card"><code>backend/.../guidance/domain/SynAgentPolicy.java</code><p>Intent, language, tool allowlist, safety boundary.</p></article>
+        <article class="card"><code>backend/.../guidance/service/SynAgentToolbox.java</code><p>Evidence, comparison, resource, simulation, plan artifacts.</p></article>
+        <article class="card"><code>backend/.../guidance/infrastructure/GeminiSynGuidanceProvider.java</code><p>Minimized context, strict JSON schema, timeout/parse handling.</p></article>
+      </div>
+    </div></section>
+  </main>
+
+  <footer><div class="shell">CareerSim là hệ thống khám phá nghề nghiệp có bằng chứng. Syn hỗ trợ diễn giải và đề xuất bước thử; quyết định cuối cùng, điểm khách quan và dữ liệu nguồn vẫn nằm trong các boundary do hệ thống kiểm soát.</div></footer>
+
+  <script>
+    const inspector = {
+      component: { title:'Component: đơn vị giao diện có thể ghép và tái sử dụng', body:'<p><strong>Dấu hiệu:</strong> hàm tên viết hoa, trả JSX và được dùng như <code>&lt;TenComponent /&gt;</code>. Component nhận dữ liệu/hành động bằng props và render UI từ props + state.</p><ul><li><code>frontend/src/features/simulations/components/SimulationCard.jsx</code> — nhận <code>simulation</code> và render một card.</li><li><code>frontend/src/features/simulations/components/SimulationNavigation.jsx</code> — nhận index, total và callback nên tái dùng cho các simulation nhiều bước.</li><li><code>frontend/src/features/guidance/components/SynWidget.jsx</code> — component giao diện hội thoại toàn cục.</li><li><code>GuidancePage.jsx</code> còn có <code>EmptyState</code>: component nhỏ nhận <code>children</code>.</li></ul>' },
+      page: { title:'Page / route component: điều phối một màn hình', body:'<p>Page cũng là component, nhưng trách nhiệm lớn hơn: phối hợp layout, data loading và component con. <code>App.jsx</code> map URL sang page qua React Router.</p><ul><li><code>GuidancePage.jsx</code> quản lý loading/error/dashboard và render các card.</li><li><code>SimulationAttemptPage.jsx</code> phối hợp task, dialog và custom hook.</li><li><code>AssessmentPage.jsx</code> phối hợp intro, form và result.</li></ul>' },
+      hook: { title:'Custom hook: tái sử dụng stateful behavior, không render JSX', body:'<p>Hook bắt đầu bằng <code>use</code> và gọi React hooks. Nó trả state/hàm thao tác để page hay component dùng lại; nó không trả HTML/JSX.</p><ul><li><code>useAssessment.js</code> giữ answer, local storage, fetch questions, start và submit assessment.</li><li><code>useSimulationAttempt.js</code> giữ answers, current task, validation và submit lifecycle.</li></ul>' },
+      api: { title:'API adapter: biên giới giữa UI và HTTP', body:'<p>API adapter không render và không được chứa quyết định nghiệp vụ. Nó gọi HTTP, kiểm tra/normalize data và trả object dễ dùng cho React.</p><ul><li><code>shared/api/httpClient.js</code> dùng <code>fetch</code>, thêm header, parse envelope và ném <code>ApiError</code>.</li><li><code>guidanceApi.js</code> gọi dashboard/Syn endpoint, normalize response và tạo Standard preview/fallback ở phía UI khi endpoint không reachable.</li></ul>' },
+      helper: { title:'Helper, data và style: hỗ trợ chứ không phải component', body:'<p>Helper trả string/object; data chứa mock/static data; CSS định dạng. Chúng có thể ở file <code>.jsx</code> nhưng không tự trở thành React component.</p><ul><li><code>statusLabel</code>, <code>completedLabel</code> trong <code>GuidancePage.jsx</code> chỉ chuyển đổi giá trị sang text.</li><li><code>backendDeveloperSimulation.js</code> là demo data/fallback.</li><li><code>synTranscript.js</code> quản lý transcript giới hạn trong <code>sessionStorage</code>.</li><li><code>styles/index.css</code> chỉ chứa presentation.</li></ul>' }
+    };
+    const scenarios = {
+      dashboard: { title:'A. Tải Dashboard', steps:[
+        ['Browser','Gửi GET /dashboard','Người dùng mở route. Nginx nhận request cho giao diện.','Browser → Nginx'],
+        ['Frontend','Tải React bundle','Nginx proxy <code>/</code> đến container frontend. Browser tải HTML, JS bundle và CSS build bởi Vite.','gateway / → frontend'],
+        ['React Router','Render loading UI','<code>main.jsx</code> tạo root; <code>BrowserRouter</code> và <code>App.jsx</code> chọn <code>GuidancePage</code>. State dashboard ban đầu là <code>null</code>.','App.jsx → GuidancePage'],
+        ['API adapter','Gọi REST API sau render','<code>useEffect</code> gọi <code>getExplorationDashboard()</code> → <code>apiRequest()</code> → <code>fetch(/api/v1/guidance/dashboard)</code>.','guidanceApi.js → httpClient.js'],
+        ['Nginx + Security','Proxy và kiểm tra access','Nginx route <code>/api/</code> đến Spring Boot. Security yêu cầu authentication với guidance endpoint; demo principal chỉ tồn tại khi bật localhost demo mode.','default.conf → SecurityConfig'],
+        ['Controller','Chuyển HTTP thành use case','<code>GuidanceController.getDashboard</code> lấy Principal và gọi interface <code>GuidanceService</code>; controller không tự query database.','GuidanceController.java'],
+        ['Service','Kiểm tra + tổng hợp','<code>GuidanceServiceImpl</code> kiểm tra account/role/status, đọc assessment evidence, evaluated simulations và current plan, sau đó tạo <code>DashboardResponse</code>.','GuidanceServiceImpl.java'],
+        ['PostgreSQL','Trả dữ liệu bền vững','Assessment/simulation access và GuidanceDao đọc dữ liệu từ PostgreSQL. Không có bảng dashboard sao chép; response được tổng hợp từ evidence gốc.','PostgreSQL + Flyway'],
+        ['React render','Hiện Dashboard','JSON đi ngược lại. <code>apiRequest</code> lấy <code>data</code>, <code>setDashboard</code> đổi state, React reconciliation cập nhật giao diện.','GuidancePage.jsx'] ] },
+      quick: { title:'B. Quick action: Compare backend and frontend', steps:[
+        ['SynWidget','Người dùng bấm quick action','Widget gọi <code>askSyn(label, COMPARE_PATHS)</code>, đọc sessionId và language đang lưu ở browser.','SynWidget.jsx'],
+        ['API adapter','POST message','<code>sendSynMessage</code> gửi message, actionType, sessionId, responseLanguage và context đến <code>/api/v1/guidance/syn/messages</code>.','guidanceApi.js'],
+        ['Nginx','Bảo vệ riêng cho Syn','Route Syn có giới hạn 10 request/phút theo client, burst 4 và body 16 KiB trước khi proxy vào backend.','deployment/nginx/default.conf'],
+        ['GuidanceService','Ownership + evidence','Service kiểm tra STUDENT ACTIVE, xây dashboard evidence và chỉ chấp nhận attempt evaluated thuộc sinh viên nếu request chỉ rõ attemptId.','GuidanceServiceImpl.java'],
+        ['Orchestrator','Tải session + điều phối','<code>SynAgentOrchestrator</code> load/create session owner-scoped, đọc memory có cấu trúc rồi gọi policy.','SynAgentOrchestrator.java'],
+        ['Policy','Chọn tool plan cố định','COMPARE_PATHS được map đến <code>READ_EVIDENCE</code>, <code>COMPARE_PATHS</code>, <code>SUGGEST_SIMULATIONS</code>. Model không được chọn SQL/tool.','SynAgentPolicy.java'],
+        ['Toolbox + DAO','Đọc nguồn đã lọc','Toolbox chọn evidence liên quan, path ACTIVE và simulation PUBLISHED; tạo comparison/result/evidence/activity cards do server làm chủ.','SynAgentToolbox.java → JdbcSynAgentDao.java'],
+        ['Standard policy','Không gọi Gemini','Quick action luôn dùng deterministic Standard guidance. Nó nhanh, lặp lại được và không cần consent/API key.','StandardGuidancePolicy.java'],
+        ['Widget','Render provenance','Response trả <code>STANDARD</code>, activity, evidence references và cards. Widget thêm message vào state và hiển thị trên UI.','SynWidget.jsx'] ] },
+      ai: { title:'C. Free text + Gemini', steps:[
+        ['SynWidget','Gửi câu hỏi tự do','Ví dụ sinh viên hỏi bằng tiếng Việt: “so sánh FE và BE rồi gợi ý bước tiếp”. UI gửi FREE_TEXT, sessionId và AUTO language.','SynWidget.jsx'],
+        ['Validation','Chặn input không hợp lệ','DTO chỉ nhận message không rỗng, tối đa 600 ký tự, action/language nằm trong enum. Gateway vẫn áp rate/body limit.','SynMessageRequest.java + Nginx'],
+        ['Policy','Hiểu intent bằng rule','Policy normalize tiếng Việt/không dấu, alias BE/FE, chọn COMPARE_PATHS, response language/depth và tool allowlist. Không dùng model để quyết định tool.','SynAgentPolicy.java'],
+        ['Toolbox','Chuẩn bị evidence','Toolbox chạy deterministic tools trước: chọn result liên quan, path/resource/simulation đã reviewed và tool observations. Đây là evidence model được phép thấy.','SynAgentToolbox.java'],
+        ['Consent gate','Có được gọi provider không?','Orchestrator chỉ gọi provider nếu: FREE_TEXT + student consented + provider available + không phải safety boundary/confirm plan. Nếu thiếu một điều kiện thì Standard.','SynAgentOrchestrator.java'],
+        ['Gemini adapter','Gửi context tối giản','Adapter gửi system instruction, student message, intent/language/depth, session summary ngắn, covered topics, tool observations và selected evidence. Gemini không có DB connection.','GeminiSynGuidanceProvider.java'],
+        ['Schema validation','Chỉ nhận JSON hợp lệ','Gemini được yêu cầu trả JSON schema <code>{text, suggestions}</code>. Backend kiểm tra finish state, parse JSON, text ≤ 2400 ký tự và suggestion ≤ 120.','GeminiSynGuidanceProvider.java'],
+        ['Memory + audit','Ghi tối thiểu','Backend update structured summary/last paths, hạn 30 ngày. Guidance audit ghi source AI, model, status, time; không lưu raw prompt/chat/secret.','SynAgentOrchestrator.java + GuidanceDao'],
+        ['Widget','Render AI-assisted','UI chỉ progressively reveal response đã qua validation; cards vẫn là artifacts server-owned. Provenance hiển thị AI-assisted.','SynWidget.jsx'] ] },
+      fallback: { title:'D. Provider lỗi → Standard fallback', steps:[
+        ['Input / policy','Luồng ban đầu giống Free text','Backend vẫn xác thực user, ownership, intent và deterministic tool plan trước. Objective evidence không phụ thuộc provider.','GuidanceServiceImpl → Policy'],
+        ['Toolbox','Cards đã sẵn sàng','Evidence references, comparison/resource/simulation cards và plan draft (nếu có) được tạo từ server trước provider call.','SynAgentToolbox.java'],
+        ['Provider','Timeout / reject / malformed output','Adapter phân loại timeout/transport, provider rejection hoặc malformed output. Raw provider error không đi về frontend.','SynGuidanceProvider.FailureKind'],
+        ['Orchestrator','Thay text bằng Standard','Catch ProviderException, giữ text/suggestions deterministic đã tạo, đặt audit status <code>REPLACED_BY_FALLBACK</code>.','SynAgentOrchestrator.java'],
+        ['Memory','Vẫn cập nhật an toàn','Session tiếp tục chỉ lưu codes/summary bounded; không ghi raw model response.','syn_sessions'],
+        ['Response','Provenance rõ ràng','API trả <code>STANDARD</code>, không giả là AI. Student vẫn xem objective result và artifacts đầy đủ.','SynMessageResponse'],
+        ['UI','Không biến thành màn hình chết','SynWidget hiển thị Standard guidance; frontend API adapter cũng có fallback cho lỗi HTTP có thể recover.','guidanceApi.js + SynWidget.jsx'] ] }
+    };
+    const synDetails = {
+      widget:['SynWidget — giao diện và state hội thoại','<p><code>frontend/src/features/guidance/components/SynWidget.jsx</code> là global widget được đặt trong <code>ApplicationLayout</code>. Nó quản lý compact/expanded/collapsed mode, draft text, local session ID, response language, transcript UI và thao tác xác nhận plan.</p><p>Nó không truy vấn database và không tự quyết định nghề nghiệp. Nó gửi request qua API adapter, hiển thị provenance, evidence/activity/card, và chỉ reveal text sau khi frontend đã nhận được response hợp lệ từ backend.</p>'],
+      service:['GuidanceService — facade của use case','<p><code>GuidanceController</code> chỉ nhận HTTP. <code>GuidanceServiceImpl</code> kiểm tra account là STUDENT/ACTIVE, kiểm tra attempt thuộc sinh viên, tổng hợp Dashboard evidence qua các access interface hẹp, ghi guidance provenance và chỉ lưu plan khi endpoint confirm được gọi.</p><p>Đây là chỗ bảo vệ quy tắc “AI không sửa score” vì score/evaluation được lấy/lưu tách khỏi guidance.</p>'],
+      orchestrator:['SynAgentOrchestrator — nhạc trưởng của agent','<p>Đây là nơi ghép các bước theo thứ tự: load/create owned session → parse memory → policy decision → toolbox execution → optional one provider call → fallback nếu lỗi → update bounded memory → create response.</p><p>Nó giới hạn agent: chỉ một provider call, tool plan do policy chọn, và provider chỉ đủ điều kiện với consented FREE_TEXT an toàn.</p>'],
+      policy:['SynAgentPolicy — “não” deterministic, không phải LLM','<p>Policy normalize tiếng Việt/không dấu, nhận alias như BE/FE, nhận intent, path, language AUTO/EN/VI và response depth. Sau đó nó map intent sang danh sách tool đóng, ví dụ compare có READ_EVIDENCE + COMPARE_PATHS + SUGGEST_SIMULATIONS.</p><p>Safety boundary chặn prompt injection và yêu cầu secret/answer key trước provider. Vì policy chạy bằng code và có test, hành vi có thể giải thích và lặp lại.</p>'],
+      toolbox:['SynAgentToolbox + DAO — tool server-owned','<p>Toolbox không “browsing tự do”. Nó chạy các read tool cụ thể: read evidence, compare active paths, find reviewed resources, suggest published simulations, identify evidence gaps, draft plan. DAO query session luôn kèm student_id; resource có status REVIEWED và simulation có status PUBLISHED.</p><p>Toolbox tạo result/resource/comparison/simulation card. Provider chỉ nhận observation; không thể tự dựng SQL hay link/card để bypass kiểm soát.</p>'],
+      provider:['GeminiSynGuidanceProvider — adapter diễn đạt','<p>Adapter ẩn khác biệt API của Gemini sau interface <code>SynGuidanceProvider</code>; OpenAI adapter cũng theo interface này. Nó dùng RestClient, timeout 8 giây mặc định, minimized input, temperature thấp và JSON schema bắt buộc.</p><p>Nó parse/validate output trước khi trả. Từ góc nhìn service, đổi provider/model không đổi controller, evidence boundary hoặc frontend API contract.</p>'],
+      memory:['Memory + provenance — liên tục nhưng không tích trữ chat thô','<p><code>syn_sessions</code> giữ summary versioned (language, stage, goal, covered topics, open follow-up, next action), last intent/path; hết hạn 30 ngày và người sở hữu xóa được. Browser transcript trong <code>sessionStorage</code> chỉ là tiện ích UI của tab, không được gửi wholesale vào model.</p><p><code>guidance_reports</code> lưu audit source AI/FALLBACK, status, model và measured generation time; không lưu key, prompt private hay raw response.</p>']
+    };
+    const inspectResult = document.getElementById('inspect-result');
+    const inspectButtons = document.querySelectorAll('[data-inspect]');
+    function showInspect(key) { const item=inspector[key]; inspectResult.innerHTML='<span class="tag">'+key+'</span><h3>'+item.title+'</h3>'+item.body; inspectButtons.forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.inspect===key))); }
+    inspectButtons.forEach(button=>button.addEventListener('click',()=>showInspect(button.dataset.inspect)));
+    showInspect('component');
+
+    const flowNodes=document.getElementById('flow-nodes'); const flowDetail=document.getElementById('flow-detail'); const stepCount=document.getElementById('step-count');
+    let activeScenario='dashboard'; let activeStep=0;
+    function renderFlow() { const scenario=scenarios[activeScenario]; const step=scenario.steps[activeStep]; flowNodes.innerHTML=scenario.steps.map((entry,index)=>'<div class="node '+(index===activeStep?'active':'')+'" '+(index===activeStep?'aria-current="step"':'')+'><span class="number">'+(index+1)+'</span><strong>'+entry[0]+'</strong><small>'+entry[1]+'</small></div>').join(''); flowDetail.innerHTML='<p class="eyebrow">'+scenario.title+' · bước '+(activeStep+1)+'</p><h3>'+step[0]+': '+step[1]+'</h3><p>'+step[2]+'</p><p class="path">Vị trí: '+step[3]+'</p>'; stepCount.textContent='Bước '+(activeStep+1)+' / '+scenario.steps.length; document.getElementById('prev-step').disabled=activeStep===0; document.getElementById('next-step').disabled=activeStep===scenario.steps.length-1; }
+    document.querySelectorAll('[data-scenario]').forEach(button=>button.addEventListener('click',()=>{activeScenario=button.dataset.scenario;activeStep=0;document.querySelectorAll('[data-scenario]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));renderFlow();}));
+    document.getElementById('prev-step').addEventListener('click',()=>{if(activeStep>0){activeStep--;renderFlow();}});
+    document.getElementById('next-step').addEventListener('click',()=>{if(activeStep<scenarios[activeScenario].steps.length-1){activeStep++;renderFlow();}});
+    renderFlow();
+
+    const synDetail=document.getElementById('syn-detail');
+    document.querySelectorAll('[data-syn]').forEach(button=>button.addEventListener('click',()=>{const value=synDetails[button.dataset.syn];synDetail.innerHTML='<span class="tag">'+button.textContent+'</span><h3>'+value[0]+'</h3>'+value[1];document.querySelectorAll('[data-syn]').forEach(b=>b.classList.toggle('active',b===button));}));
+    synDetail.innerHTML='<span class="tag">SynWidget</span><h3>'+synDetails.widget[0]+'</h3>'+synDetails.widget[1];
+
+    const navLinks = [...document.querySelectorAll('[data-nav-section]')];
+    const observedSections = navLinks
+      .map(link => document.getElementById(link.dataset.navSection))
+      .filter(Boolean);
+    const sectionObserver = new IntersectionObserver((entries) => {
+      const visible = entries.filter(entry => entry.isIntersecting).sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+      if (!visible) return;
+      navLinks.forEach(link => link.classList.toggle('is-current', link.dataset.navSection === visible.target.id));
+    }, { rootMargin: '-20% 0px -65% 0px', threshold: [0.05, 0.25, 0.5] });
+    observedSections.forEach(section => sectionObserver.observe(section));
+    navLinks[0]?.classList.add('is-current');
+  </script>
+</body>
+</html>

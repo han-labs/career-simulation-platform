@@ -1,30 +1,29 @@
+import { useI18n } from '../../../shared/i18n/useI18n.js'
 import { Check, Compass, ShieldCheck, Sparkles, Terminal, BarChart3, Bot } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const keyFeatures = [
   {
     icon: Compass,
-    tag: 'Scientifically Validated',
-    title: 'Holland RIASEC Interest Assessment',
+    tag: 'Understand your interests',
+    title: 'Career Assessment',
     description:
-      'Standardized questionnaire helping you evaluate 6 vocational personality dimensions (R-I-A-S-E-C). The scoring algorithm is deterministic, transparent, and completely unbiased.',
+      'Explore six interest areas with the Holland RIASEC questionnaire.',
     highlights: [
-      'Identifies primary vocational interest traits',
-      'Suggests matching technology pathways',
-      'Saves progress so you can resume anytime',
+      'Clear scores and directions to explore',
+      'Save progress and continue later',
     ],
-    action: { label: 'Start Assessment', to: '/assessment' },
+    action: { label: 'Career Assessment', to: '/assessment' },
   },
   {
     icon: Terminal,
     tag: 'Learning by Doing',
     title: 'Authentic IT Job Simulations',
     description:
-      'Go beyond reading generic job descriptions: practice hands-on workplace scenarios faced by software engineers, data specialists, and QA testers.',
+      'Experience how tech roles approach everyday workplace tasks.',
     highlights: [
-      'Realistic tasks achievable within 30-45 minutes',
-      'Automated, objective server-side evaluation',
-      'Secure evaluation criteria hidden until submission',
+      'Short, focused workplace scenarios',
+      'Objective task results and feedback',
     ],
     action: { label: 'Explore IT Simulations', to: '/simulations' },
   },
@@ -33,28 +32,25 @@ const keyFeatures = [
     tag: 'Intelligent Companion',
     title: 'Syn Assistant & Exploration Dashboard',
     description:
-      'Aggregate all assessment and simulation performance data into one single view. Assistant Syn analyzes evidence, clarifies skill gaps, and recommends next learning steps.',
+      'Bring your results together and explore next steps with Syn.',
     highlights: [
-      'Visual overview of demonstrated strengths and practised skills',
-      'Evidence-based reflections without automated judgment',
-      'Deterministic fallback guidance when offline or disconnected',
+      'Reflect on interests and practised skills',
+      'Standard guidance when AI is unavailable',
     ],
     action: { label: 'Open Dashboard & Syn', to: '/dashboard' },
   },
 ]
 
 function FeaturesSection() {
+  const { t } = useI18n()
   return (
     <section className="section section--features" aria-labelledby="features-heading">
       <div className="section-shell">
         <div className="section-heading">
           <span className="eyebrow">
-            <Sparkles size={14} aria-hidden="true" /> Core Capabilities
-          </span>
-          <h2 id="features-heading">A Comprehensive Ecosystem for Career Exploration</h2>
-          <p className="section-heading__sub">
-            Combining vocational psychology, authentic hands-on workplace scenarios, and transparent AI-assisted guidance by HCM-UTE.
-          </p>
+            <Sparkles size={14} aria-hidden="true" /> {t("Core Capabilities")} </span>
+          <h2 id="features-heading">{t("Discover. Practise. Reflect.")}</h2>
+          <p className="section-heading__sub"> {t("Three ways to explore your career options.")} </p>
         </div>
 
         <div className="features-grid">
@@ -64,21 +60,21 @@ function FeaturesSection() {
               <article className="feature-card" key={feature.title}>
                 <div className="feature-card__badge">
                   <Icon size={20} aria-hidden="true" />
-                  <span>{feature.tag}</span>
+                  <span>{t(feature.tag)}</span>
                 </div>
-                <h3>{feature.title}</h3>
-                <p className="feature-card__desc">{feature.description}</p>
+                <h3>{t(feature.title)}</h3>
+                <p className="feature-card__desc">{t(feature.description)}</p>
                 <ul className="feature-card__list">
                   {feature.highlights.map((item) => (
                     <li key={item}>
                       <Check size={16} aria-hidden="true" />
-                      <span>{item}</span>
+                      <span>{t(item)}</span>
                     </li>
                   ))}
                 </ul>
                 <div className="feature-card__action">
                   <Link className="button button--secondary button--small" to={feature.action.to}>
-                    {feature.action.label}
+                    {t(feature.action.label)}
                   </Link>
                 </div>
               </article>
@@ -90,15 +86,15 @@ function FeaturesSection() {
           <div className="features-trust-banner__item">
             <ShieldCheck size={22} aria-hidden="true" />
             <div>
-              <strong>100% Objective &amp; Transparent</strong>
-              <small>Scores are calculated via deterministic rules; AI never alters or biases evaluation</small>
+              <strong>{t("Objective & Transparent")}</strong>
+              <small>{t("Scores follow fixed rules. AI does not change them.")}</small>
             </div>
           </div>
           <div className="features-trust-banner__item">
             <BarChart3 size={22} aria-hidden="true" />
             <div>
-              <strong>Student Privacy &amp; Data Protection</strong>
-              <small>Your exploration data belongs to you and complies with academic data minimization rules</small>
+              <strong>{t("Your choices stay yours")}</strong>
+              <small>{t("Guidance helps you explore; it does not decide for you.")}</small>
             </div>
           </div>
         </div>

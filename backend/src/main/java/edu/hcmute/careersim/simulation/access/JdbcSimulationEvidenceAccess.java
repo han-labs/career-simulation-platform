@@ -26,7 +26,8 @@ class JdbcSimulationEvidenceAccess implements SimulationEvidenceAccess {
         int safeLimit = Math.max(1, Math.min(limit, 10));
         return jdbcTemplate.query(
                 """
-                SELECT sa.id AS attempt_id, cs.title, er.score, er.max_score,
+                SELECT sa.id AS attempt_id, cs.title, cs.career_track,
+                       er.score, er.max_score, er.evaluated_at,
                        CAST(er.task_outcomes AS VARCHAR) AS task_outcomes
                 FROM simulation_attempts sa
                 JOIN career_simulations cs ON cs.id = sa.simulation_id
@@ -42,9 +43,39 @@ class JdbcSimulationEvidenceAccess implements SimulationEvidenceAccess {
                                 toPercentage(
                                         resultSet.getBigDecimal("score"),
                                         resultSet.getBigDecimal("max_score")),
-                                parseOutcomes(resultSet.getString("task_outcomes"))),
+                                parseOutcomes(resultSet.getString("task_outcomes")),
+                                resultSet.getTimestamp("evaluated_at").toInstant(),
+                                resultSet.getString("career_track")),
                 studentId,
                 safeLimit);
+    }
+
+    @Override
+    public java.util.Optional<SimulationEvidence> findOwnedEvaluated(
+            long studentId, long attemptId) {
+        return jdbcTemplate
+                .query(
+                        """
+            SELECT sa.id AS attempt_id, cs.title, cs.career_track, er.score, er.max_score,
+                   er.evaluated_at, CAST(er.task_outcomes AS VARCHAR) AS task_outcomes
+            FROM simulation_attempts sa JOIN career_simulations cs ON cs.id=sa.simulation_id
+            JOIN evaluation_results er ON er.attempt_id=sa.id
+            WHERE sa.student_id=? AND sa.id=? AND sa.status='EVALUATED'
+            """,
+                        (rs, i) ->
+                                new SimulationEvidence(
+                                        rs.getLong("attempt_id"),
+                                        rs.getString("title"),
+                                        toPercentage(
+                                                rs.getBigDecimal("score"),
+                                                rs.getBigDecimal("max_score")),
+                                        parseOutcomes(rs.getString("task_outcomes")),
+                                        rs.getTimestamp("evaluated_at").toInstant(),
+                                        rs.getString("career_track")),
+                        studentId,
+                        attemptId)
+                .stream()
+                .findFirst();
     }
 
     private int toPercentage(BigDecimal score, BigDecimal maxScore) {

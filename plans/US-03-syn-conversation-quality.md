@@ -1,0 +1,11 @@
+# US-03 conversational quality correction
+
+Approved by user's concrete test feedback, 2026-09-29. Actor: student. Frontend owner Huỳnh Gia Hân; backend ownership unassigned. Extends US-03 and A/B/C without voice or scoring changes.
+
+Acceptance: free text calls available consented LLM including missing knowledge; one bounded output repair before fallback; answer requested question in natural language, evidence collapsed and compact; comparison does not automatically recommend simulations; explicit DevOps/AI topics never replaced by remembered/catalog paths; missing local career information triggers controlled web lookup; web quota/status visibly explained; citations cannot be invented. RAG source-required requests acknowledge unavailable corpus instead of fabricated citations. Existing structured schema, consent, ownership, deadline and confirmed saves preserved.
+
+Flow: browser text -> existing facade/lifecycle -> topic/capability policy -> scoped SQL/RAG/web -> generation -> validation -> optional one repair -> accepted answer or honest fallback -> compact sources/details. Quick actions stay deterministic. External search failure is distinct from generation failure. No new schema migration, corpus publication, billing change or unrestricted web query.
+
+Changes: domain policy/query vocabulary, toolbox context/fallback, orchestrator repair/missing knowledge behavior, Gemini/OpenAI instructions/budgets, web status classification, SynWidget disclosure/CSS, tests and docs. Mock regression for user prompts/repair/empty knowledge/web statuses, full backend verify/frontend check/compose, final gateway smoke. Human content review and live search quota remain external acceptance items. User's current instruction overrides the old guidance-report evidence-first presentation for chat specifically.
+
+Continuation 2026-10-02: separate unrequested private evidence from genuinely missing evidence, omit personal results for concept explanations, honor explicit simulation exclusions. Live transport failures also exposed a hard-coded 2-second connection limit and 10-second request cap despite a configured 20-second chat budget; allow 5 seconds to connect and up to configured 20 seconds per request, always capped by remaining turn deadline. No unlimited retries.

@@ -1,4 +1,6 @@
+import { useI18n } from '../../../shared/i18n/useI18n.js'
 function AssessmentProgressBar({ answeredCount, totalCount, progressPercent }) {
+  const { t } = useI18n()
   return (
     <div style={{ 
       position: 'sticky', 
@@ -12,8 +14,8 @@ function AssessmentProgressBar({ answeredCount, totalCount, progressPercent }) {
       border: '1px solid var(--line)'
     }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.9rem', fontWeight: 'bold', color: 'var(--ink)' }}>
-        <span>Progress</span>
-        <span>{answeredCount} / {totalCount} completed</span>
+        <span>{t("Progress")}</span>
+        <span>{t(answeredCount)} / {t(totalCount)} {t("completed")}</span>
       </div>
       <div style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden' }}>
         <div style={{ 

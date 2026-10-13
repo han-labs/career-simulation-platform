@@ -1,3 +1,4 @@
+import { useI18n } from '../../../shared/i18n/useI18n.js'
 import { ArrowUpRight, Clock3 } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -16,28 +17,26 @@ const difficultyLabels = {
 }
 
 function SimulationCard({ simulation }) {
+  const { t } = useI18n()
   const difficultyText = difficultyLabels[simulation.difficulty] ?? simulation.difficulty?.toLowerCase()
 
   return (
     <article className="simulation-card">
       <div className="simulation-card__topline">
         <span className="pill pill--blue">
-          {trackLabels[simulation.careerTrack] ?? simulation.careerTrack}
+          {t(trackLabels[simulation.careerTrack] ?? simulation.careerTrack)}
         </span>
         <span className="simulation-card__duration">
           <Clock3 size={15} aria-hidden="true" />
-          {simulation.estimatedMinutes} min
-        </span>
+          {t(simulation.estimatedMinutes)} {t("min")} </span>
       </div>
       <div>
-        <p className="simulation-card__level">
-          Level: {difficultyText}
+        <p className="simulation-card__level"> {t("Level:")} {t(difficultyText)}
         </p>
-        <h3>{simulation.title}</h3>
-        <p>{simulation.summary}</p>
+        <h3>{t(simulation.title)}</h3>
+        <p>{t(simulation.summary)}</p>
       </div>
-      <Link className="text-link" to={`/simulations/${simulation.slug}`}>
-        View Simulation <ArrowUpRight size={17} aria-hidden="true" />
+      <Link className="text-link" to={`/simulations/${simulation.slug}`}> {t("View Simulation")} <ArrowUpRight size={17} aria-hidden="true" />
       </Link>
     </article>
   )

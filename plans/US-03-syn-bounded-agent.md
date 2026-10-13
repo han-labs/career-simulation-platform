@@ -1,6 +1,6 @@
 # US-03 Syn Bounded Agent Plan
 
-Status: Completed and verified
+Status: Evidence-alignment and response-artifact follow-up complete
 Owner: Huỳnh Gia Hân
 Date: 2026-09-18
 
@@ -149,3 +149,67 @@ Source: project-lead review on 2026-09-18.
 - Gateway API: Vietnamese shorthand selected `COMPARE_PATHS`, resolved `VI`, returned `PLANNING`, reused the same session for a contextual follow-up, and produced an AI-assisted Vietnamese reply. Explicit `GET_STARTED` and memory deletion also passed.
 - Browser: the submitted question remained anchored while the long answer increased the scroll height; `Jump to latest` appeared and reached the bottom only after explicit activation. Language selection, evidence cards, provenance, follow-ups, and three-mode controls remained accessible.
 - Detailed evidence: `.agent/reports/us-03-syn-adaptive-agent-enhancement.md`.
+
+## 11 Follow-up: simulation history and active-evidence alignment
+
+Source: project-lead transcript review on 2026-09-19.
+
+### Approved behavior
+
+1. The Dashboard shows a compact, expandable history of evaluated simulations instead of only the latest result. Each row can open Syn with that exact owned attempt.
+2. Syn selects active evidence deterministically: explicit attempt, named path/result, remembered comparison paths, or latest only for `REVIEW_LATEST`. A free-text question must not silently attach the latest attempt.
+3. Path comparisons may return multiple server-owned result cards. Evidence references, gaps, provider context, and cards must all describe the same selected results.
+4. Compact and expanded Syn modes progressively reveal validated text without forcing the reader to the bottom. Reduced-motion behavior remains immediate.
+5. Each completed Syn response offers client-side Copy and Markdown Download actions. Downloaded guidance includes visible provenance and is not represented as a certificate.
+6. Comparison cards use a short evidence heading and appear only when a comparison is relevant. Follow-up suggestions are limited and avoid covered-topic repetition.
+7. Learning resources are ranked by the requested skill/topic before career path. If no reviewed match exists, Syn says so rather than returning a weakly related resource.
+8. Provider text cannot claim that a plan was saved, overstate career fit, or contradict server-owned result/resource/plan artifacts. Plan persistence still requires the existing explicit confirmation request.
+
+### Change surface and compatibility
+
+- Reuse the existing Dashboard, Syn widget, guidance DTOs, policy, orchestrator, toolbox, provider adapters, and evidence-access query; avoid a new page or agent framework.
+- Add `completedAt` to dashboard results and a compatible `resultCards` collection while temporarily retaining singular `resultCard`.
+- Read up to ten evaluated attempts from the existing tables; no database migration is expected because `evaluation_results.evaluated_at` already exists.
+- Keep provider input bounded to relevant selected results rather than sending the entire history.
+
+### Verification plan
+
+- Backend tests: ordered history, explicit attempt ownership, named FE/BE selection, unrelated Data result exclusion, relevant gap/resource selection, fallback parity, and no false plan-persistence claim.
+- Frontend tests: result-card collection normalization, exact attempt context, history expansion, per-response Copy/Download representation, and Standard fallback compatibility.
+- Manual replay: use the supplied Vietnamese transcript, verify compact/expanded reveal and reader-controlled scrolling, and inspect downloaded Markdown.
+- Run backend verify, frontend check, Compose validation, rebuilt-stack gateway smoke, and browser inspection before completion.
+
+### Completion evidence for the history/alignment follow-up
+
+- Backend: `mvnw.cmd verify` passed with 72 tests, 0 failures/errors, and only the 2 opt-in live-provider tests skipped; PostgreSQL Testcontainers integration, Spotless, packaging, and JaCoCo reporting all passed.
+- Frontend: `npm run check` passed ESLint, 12 Vitest tests, and the Vite production build.
+- Deployment/API: Compose configuration and rebuilt four-service stack passed; the gateway health route, dashboard history, exact FE/BE comparison, and explicit-confirmation plan behavior were smoke-tested.
+- Browser: Dashboard expanded from three to four history entries; compact Syn progressively revealed the validated reply, kept reader-controlled scrolling, showed only the matching Backend/Frontend evidence cards, exposed Copy/Download actions, and reported no browser-console errors.
+
+## 12 Follow-up: local transcript continuity and presentation trace
+
+Source: project-lead request on 2026-09-19.
+
+### Approved behavior
+
+1. Collapsing Syn to the circular launcher, navigating between React routes, or a widget remount must not clear the visible transcript. Only the explicit trash action resets the visible transcript and requests deletion of server-owned structured memory.
+2. The browser transcript is a bounded UI convenience, not agent memory: it is kept in `sessionStorage` for the current tab only, capped at 24 display messages, and excludes transient reveal state. It must not be sent wholesale to the provider or persisted as a student profile.
+3. The existing interactive technical HTML keeps prior material while correcting outdated Syn facts and adding a coherent, source-grounded story covering modular-monolith responsibilities, general AI-agent theory, Syn's bounded implementation, AI-assisted development control, and Docker deployment.
+
+### Change surface and boundaries
+
+- Frontend: `SynWidget` and a small transcript utility/test only; no backend, database, provider prompt, or API contract change.
+- Presentation: `docs/presentation/careersim-technical-story.html` only. It is a technical demonstration artifact, not runtime product code.
+- Privacy: use session-scoped browser storage, clear it on trash, and retain the existing server-side 30-day structured session summary policy.
+
+### Verification plan
+
+- Frontend unit test proves bounded transcript restore, explicit clear, and malformed-storage fallback.
+- Browser replay verifies a conversation remains after compacting/reopening Syn and is removed only by the trash action.
+- Production build verifies the presentation's static HTML remains syntactically intact and the product build remains clean.
+
+### Completion evidence for transcript/presentation follow-up
+
+- Frontend: `npm run check` passed ESLint, 15 Vitest tests, and the Vite production build. The added transcript utility tests cover bounded restore, explicit clear, and malformed browser-storage recovery.
+- Product browser: a Standard Syn reply was created, Syn was collapsed to the circular launcher, then reopened; the submitted message, reply, evidence reference, provenance and response actions remained visible. The trash control was intentionally not invoked in browser because it deletes session data; its explicit-clear behavior is unit-tested.
+- Presentation: the static script passed `new Function(...)` syntax validation. Browser inspection confirmed the new navigation, modular-monolith explanation, Chatbot/Agent toggle, role slider, Syn scenario simulator, and revised code-map content all render and respond.

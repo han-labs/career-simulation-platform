@@ -1,3 +1,4 @@
+import { useI18n } from '../../../shared/i18n/useI18n.js'
 // Loads simulation tasks from the API with mock fallback and submits through the API.
 import { useEffect, useRef, useState } from 'react'
 import { ArrowLeft, CircleCheck, LoaderCircle, TriangleAlert } from 'lucide-react'
@@ -11,6 +12,7 @@ import { fetchSimulationDetail } from '../api/simulationApi.js'
 import { useSimulationAttempt } from '../hooks/useSimulationAttempt.js'
 
 function SimulationAttemptPage() {
+  const { t } = useI18n()
   const { slug } = useParams()
   const [state, setState] = useState({ status: 'loading', simulation: null })
   const [isDialogOpen, setIsDialogOpen] = useState(false)
@@ -51,17 +53,16 @@ function SimulationAttemptPage() {
   }, [hasTaskError])
 
   if (state.status === 'loading') {
-    return <main className="catalog-page section-shell"><section className="catalog-state"><LoaderCircle className="spin" aria-hidden="true" /><p>Loading simulation...</p></section></main>
+    return <main className="catalog-page section-shell"><section className="catalog-state"><LoaderCircle className="spin" aria-hidden="true" /><p>{t("Loading simulation...")}</p></section></main>
   }
 
   if (!simulation) {
     return (
       <main className="catalog-page section-shell">
         <section className="catalog-state">
-          <h1>Simulation not found</h1>
+          <h1>{t("Simulation not found")}</h1>
           <Link className="button" to="/simulations">
-            <ArrowLeft size={17} aria-hidden="true" /> Back to catalog
-          </Link>
+            <ArrowLeft size={17} aria-hidden="true" /> {t("Back to catalog")} </Link>
         </section>
       </main>
     )
@@ -85,14 +86,13 @@ function SimulationAttemptPage() {
   return (
     <main className="attempt-page section-shell">
       <Link className="back-link" to="/simulations">
-        <ArrowLeft size={17} aria-hidden="true" /> Back to simulations
-      </Link>
+        <ArrowLeft size={17} aria-hidden="true" /> {t("Back to simulations")} </Link>
       <header className="attempt-intro">
-        <p className="eyebrow">Career simulation</p>
-        <h1>{simulation.title}</h1>
-        <p>Experience three representative backend tasks. Your result appears after you submit.</p>
+        <p className="eyebrow">{t("Career simulation")}</p>
+        <h1>{t(simulation.title)}</h1>
+        <p>{t("Experience three representative backend tasks. Your result appears after you submit.")}</p>
       </header>
-      {attempt.submitError && <p className="form-summary" role="status"><TriangleAlert size={18} aria-hidden="true" /> API submit failed; showing the local deterministic result. {attempt.submitError}</p>}
+      {attempt.submitError && <p className="form-summary" role="status"><TriangleAlert size={18} aria-hidden="true" /> {t("API submit failed; showing the local deterministic result.")} {t(attempt.submitError)}</p>}
       {attempt.result ? (
         <SimulationResult result={attempt.result} onRestart={attempt.restart} />
       ) : (
@@ -108,15 +108,13 @@ function SimulationAttemptPage() {
           />
           <SimulationNavigation currentTaskIndex={attempt.currentTaskIndex} totalTasks={simulation.tasks.length} onPrevious={attempt.goPrevious} onNext={attempt.goNext} />
           {attempt.currentTaskIndex === simulation.tasks.length - 1 && <footer className="attempt-actions">
-            <p><CircleCheck size={18} aria-hidden="true" /> Submit evaluates this mock attempt.</p>
+            <p><CircleCheck size={18} aria-hidden="true" /> {t("Submit evaluates this mock attempt.")}</p>
             <button
               className="button"
               type="button"
               ref={submitButtonRef}
               onClick={() => setIsDialogOpen(true)}
-            >
-              Submit answers
-            </button>
+            > {t("Submit answers")} </button>
           </footer>}
         </form>
       )}

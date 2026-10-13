@@ -8,7 +8,7 @@ describe('BrandMark institutional branding component', () => {
     const html = renderToStaticMarkup(React.createElement(BrandMark))
 
     expect(html).toContain('src="/images/hcmute-logo.png"')
-    expect(html).toContain('alt="Ho Chi Minh City University of Technology and Education - HCM-UTE Logo"')
+    expect(html).toContain('alt="Ho Chi Minh City University of Technology and Engineering - HCM-UTE Logo"')
     expect(html).toContain('brand-mark__logo')
   })
 
@@ -17,7 +17,8 @@ describe('BrandMark institutional branding component', () => {
 
     expect(html).toContain('HCM-UTE')
     expect(html).toContain('Career Simulation Platform')
-    expect(html).toContain('CareerSim')
+    expect(html).not.toContain('CareerSim')
+    expect(html).not.toContain('brand-mark__sub')
   })
 
   it('applies compact styling class when compact prop is provided', () => {

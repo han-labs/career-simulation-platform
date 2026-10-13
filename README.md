@@ -59,8 +59,9 @@ For a Gemini key created in Google AI Studio, set these values in `.env`:
 ```dotenv
 AI_PROVIDER=gemini
 GEMINI_API_KEY=replace-with-your-own-ai-studio-key
-GEMINI_MODEL=gemini-3.5-flash-lite
+GEMINI_MODEL=gemini-3.1-flash-lite
 GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta
+AI_GEMINI_TOOL_PLANNING_ENABLED=false
 AI_TIMEOUT_SECONDS=8
 AI_MAX_OUTPUT_TOKENS=300
 ```
@@ -126,10 +127,14 @@ evidence only:
 ```powershell
 $env:RUN_LIVE_GEMINI_TEST="true"
 $env:GEMINI_API_KEY="replace-with-your-own-ai-studio-key"
-$env:GEMINI_MODEL="gemini-3.5-flash-lite"
+$env:GEMINI_MODEL="gemini-3.1-flash-lite"
 .\mvnw.cmd "-Dtest=GeminiSynGuidanceLiveTest" test
 Remove-Item Env:RUN_LIVE_GEMINI_TEST,Env:GEMINI_API_KEY,Env:GEMINI_MODEL
 ```
+
+That command checks the default one-generation-call path. To evaluate the optional
+native planning path as well, set `RUN_LIVE_GEMINI_TOOL_TEST=true`; treat it as a
+model-compatibility test, not a prerequisite for the reliable default.
 
 Runtime browser calls normally require the planned identity/login foundation and
 recorded `consented_to_ai_at`. During local development only, the explicit demo mode
@@ -137,6 +142,12 @@ above supplies the V8 synthetic principal while preserving the service's account
 status, role, and consent checks. Quick actions always use Standard guidance; enter a
 safe free-text question such as `What should I explore next based on my results?` to
 exercise the configured Gemini adapter.
+
+The reliable default is server-planned generation: `SynAgentPolicy` selects the
+approved read tools, the backend executes them, and Gemini receives one bounded
+generation request with those results. Native Gemini tool planning is retained as an
+experimental two-request path; enable it only after the selected model passes the
+live tool-calling test by setting `AI_GEMINI_TOOL_PLANNING_ENABLED=true`.
 
 Open:
 
@@ -225,3 +236,8 @@ Proposal/SRS -> User story -> Acceptance criteria -> Sequence/domain design -> C
 ```
 
 Do not commit `.env`, API keys, model credentials, private student data, or copied third-party simulation content. Public external catalog metadata may be collected for the non-commercial course project only under `docs/data/simulation-content-policy.md`; CareerSim simulation tasks remain original or separately licensed.
+
+
+### Syn core and vector RAG implementation
+
+Current component map, flows, fallback and Vietnamese viva guide: [Syn implementation](docs/architecture/syn-core-rag-implementation.vi.md). See [verification and open acceptance gates](.agent/reports/us-03-syn-core-vector-rag-verification.md) and [reviewed corpus ingestion/evaluation](docs/data/knowledge/README.md). The draft corpus is not automatically published. Voice/realtime remain future phases.

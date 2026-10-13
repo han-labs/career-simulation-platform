@@ -12,6 +12,8 @@ spring:
     open-in-view: false
 
 app:
+  syn:
+    cleanup-enabled: false
   cors:
     allowed-origins: http://localhost:5173
   ai:

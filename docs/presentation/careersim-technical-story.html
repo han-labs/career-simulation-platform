@@ -893,6 +893,50 @@
       color: #d1fae5;
     }
 
+    /* AI-agent learning modules */
+    .agent-simulator, .syn-flow-simulator { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 22px; }
+    .agent-toggle { display: inline-flex; gap: 6px; padding: 4px; border: 1px solid var(--border); border-radius: var(--radius-full); background: var(--bg-code); margin-bottom: 16px; }
+    .agent-toggle button, .syn-scenario-buttons button { background: transparent; color: var(--text-muted); padding: 8px 12px; border-radius: var(--radius-full); font-size: .78rem; font-weight: 700; }
+    .agent-toggle button.active, .syn-scenario-buttons button.active { background: var(--primary); color: #fff; }
+    .agent-diagram { border: 1px dashed var(--border-light); border-radius: var(--radius-md); padding: 16px; color: var(--text-main); font-family: var(--font-mono); font-size: .82rem; white-space: pre-wrap; line-height: 1.75; min-height: 180px; }
+    .agent-anatomy { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px; }
+    .agent-anatomy article { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; background: rgba(2, 6, 23, .32); }
+    .agent-anatomy strong { color: var(--accent-cyan); font-size: .85rem; display: block; margin-bottom: 5px; }
+    .agent-anatomy p { color: var(--text-muted); font-size: .78rem; }
+    .autonomy-ladder { display: grid; gap: 8px; margin-top: 18px; }
+    .autonomy-step { display: grid; grid-template-columns: 92px 1fr auto; gap: 12px; align-items: center; border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; background: rgba(2, 6, 23, .28); }
+    .autonomy-step > span { color: var(--text-dim); font-family: var(--font-mono); font-size: .72rem; }
+    .autonomy-step p { color: var(--text-muted); font-size: .78rem; }
+    .autonomy-step em { font-style: normal; color: var(--accent-emerald); font-size: .72rem; font-weight: 800; }
+    .autonomy-step.is-current { border-color: var(--accent-emerald); background: rgba(16, 185, 129, .08); }
+    .monolith-layers { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 20px 0; }
+    .monolith-layers article { border: 1px solid var(--border); border-radius: 12px; padding: 13px; background: rgba(2, 6, 23, .25); }
+    .monolith-layers strong { display: block; color: var(--accent-amber); font-size: .82rem; margin-bottom: 4px; }
+    .monolith-layers p { color: var(--text-muted); font-size: .76rem; }
+    .syn-scenario-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+    .syn-pipeline { display: grid; grid-template-columns: repeat(7, minmax(80px, 1fr)); align-items: stretch; gap: 6px; margin: 18px 0; }
+    .syn-node { position: relative; border: 1px solid var(--border); border-radius: 10px; padding: 10px 8px; background: rgba(2, 6, 23, .45); color: var(--text-muted); text-align: center; font-size: .72rem; min-height: 68px; display: grid; place-items: center; transition: .2s ease; }
+    .syn-node.active { border-color: var(--accent-emerald); color: #fff; background: rgba(16, 185, 129, .15); box-shadow: 0 0 0 2px rgba(16,185,129,.12); }
+    .syn-node.ai { border-color: var(--accent-purple); }
+    .syn-node.ai.active { background: rgba(168, 85, 247, .18); border-color: var(--accent-purple); }
+    .syn-flow-result { background: var(--bg-code); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 15px; min-height: 130px; }
+    .syn-flow-result h4 { color: var(--accent-cyan); font-size: .9rem; margin-bottom: 7px; }
+    .syn-flow-result p { color: var(--text-muted); font-size: .8rem; }
+    .syn-feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 18px; }
+    .syn-feature-grid article { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; background: rgba(2, 6, 23, .28); }
+    .syn-feature-grid strong { display: block; color: var(--accent-emerald); font-size: .83rem; margin-bottom: 5px; }
+    .syn-feature-grid p { color: var(--text-muted); font-size: .78rem; }
+    .syn-build-result { border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; min-height: 190px; background: var(--bg-code); }
+    .syn-build-result h4 { color: var(--accent-cyan); font-size: .92rem; margin-bottom: 8px; }
+    .syn-build-result p { color: var(--text-muted); font-size: .8rem; margin-bottom: 10px; }
+    .syn-build-result code { color: #d1fae5; }
+    .syn-boundaries { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 18px; }
+    .syn-boundaries article { border-left: 3px solid var(--accent-emerald); background: rgba(16,185,129,.06); padding: 13px; border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+    .syn-boundaries article.is-no { border-left-color: var(--accent-rose); background: rgba(244,63,94,.06); }
+    .syn-boundaries strong { display: block; color: #fff; font-size: .82rem; margin-bottom: 4px; }
+    .syn-boundaries p { color: var(--text-muted); font-size: .77rem; }
+    .agent-code { font-size: .78rem; line-height: 1.6; color: #cbd5e1; overflow-x: auto; white-space: pre-wrap; }
+
     /* PRESENTATION MODE FIX */
     body.presentation-mode .sidebar {
       display: none !important;
@@ -919,7 +963,7 @@
       }
       .sidebar-resizer { display: none; }
       .main-content { padding: 0 20px; }
-      .grid-2, .grid-3, .grid-4, .tech-shell, .flow-explorer, .ai-matrix, .code-map-grid {
+      .grid-2, .grid-3, .grid-4, .tech-shell, .flow-explorer, .ai-matrix, .code-map-grid, .agent-anatomy, .monolith-layers, .syn-boundaries, .syn-feature-grid {
         grid-template-columns: 1fr;
       }
       .arch-diagram-flow {
@@ -928,6 +972,9 @@
       .flow-conn-arrow {
         transform: rotate(90deg);
       }
+      .syn-pipeline { grid-template-columns: repeat(2, 1fr); }
+      .autonomy-step { grid-template-columns: 78px 1fr; }
+      .autonomy-step em { grid-column: 2; }
     }
   </style>
 </head>
@@ -958,17 +1005,19 @@
 
       <div class="nav-section-title">Thiết Kế Chuyên Sâu</div>
       <nav class="nav-links">
-        <a href="#ai-strategy" class="nav-link"><span>04</span> AI & Fallback Strategy</a>
-        <a href="#security" class="nav-link"><span>05</span> Security & Privacy</a>
-        <a href="#ai-control" class="nav-link"><span>06</span> Quy trình kiểm soát AI</a>
-        <a href="#us03-story" class="nav-link"><span>07</span> Flow Chi tiết US-03</a>
-        <a href="#code-map" class="nav-link"><span>08</span> Bản đồ TRACE Code</a>
-        <a href="#setup-guide" class="nav-link"><span>09</span> Cấu hình & Test Run</a>
+        <a href="#ai-foundations" class="nav-link"><span>04</span> AI Agent: Nền tảng</a>
+        <a href="#syn-agent" class="nav-link"><span>05</span> Syn: Bounded Agent</a>
+        <a href="#ai-strategy" class="nav-link"><span>06</span> AI & Fallback Strategy</a>
+        <a href="#security" class="nav-link"><span>07</span> Security & Privacy</a>
+        <a href="#ai-control" class="nav-link"><span>08</span> Quy trình kiểm soát AI</a>
+        <a href="#us03-story" class="nav-link"><span>09</span> Flow Chi tiết US-03</a>
+        <a href="#code-map" class="nav-link"><span>10</span> Bản đồ TRACE Code</a>
+        <a href="#setup-guide" class="nav-link"><span>11</span> Cấu hình & Test Run</a>
       </nav>
 
       <div class="sidebar-footer">
         <strong>Nguồn dữ liệu xác thực:</strong>
-        <p>Cập nhật ngày 15/09/2026 từ Git commit history & Source code thực tế.</p>
+        <p>Cập nhật ngày 18/09/2026 từ source code, test và browser verification thực tế.</p>
       </div>
     </aside>
 
@@ -1013,8 +1062,8 @@
             <span>Quick Action Deterministic Hybrid</span>
           </div>
           <div class="fact-card">
-            <strong>56+</strong>
-            <span>Automated Tests (BE & FE)</span>
+            <strong>72 + 15</strong>
+            <span>Backend / Frontend automated tests</span>
           </div>
         </div>
 
@@ -1038,7 +1087,7 @@
             <div class="card-icon">3</div>
             <h3>US-03 · Dashboard & Syn AI</h3>
             <p style="color: var(--text-muted); font-size: 0.88rem;">
-              Tổng hợp bằng chứng cá nhân hóa. Trợ lý Syn giải thích dữ liệu, phát hiện khoảng trống bằng chứng và đề xuất Exploration Plan. Đảm bảo Fallback 100% nếu thiếu kết nối AI.
+              Tổng hợp bằng chứng cá nhân hóa. Syn dùng bounded policy/tools để giải thích dữ liệu, phát hiện khoảng trống và đề xuất Exploration Plan; provider lỗi vẫn có Standard guidance cùng objective evidence.
             </p>
           </div>
         </div>
@@ -1087,8 +1136,15 @@
         <div class="eyebrow">Interactive System Architecture · Data Flow Simulation</div>
         <h2>Kiến trúc hệ thống</h2>
         <p class="section-desc">
-          Mô hình phân tầng bảo vệ dữ liệu: Frontend tuyệt đối không kết nối Database hay AI Provider trực tiếp. Mọi truy vấn, kiểm tra Authentication, Consent và xử lý Fallback đều tập trung tại Backend Spring Boot.
+          CareerSim dùng <strong>modular monolith</strong>: một Spring Boot deployment duy nhất, nhưng code được chia theo domain như <code>assessment</code>, <code>simulation</code>, <code>guidance</code> và <code>identity</code>. Nó không phải microservices; các module giao tiếp trong một codebase và một transaction boundary, nên phù hợp MVP nhỏ nhưng vẫn giữ trách nhiệm rõ ràng.
         </p>
+
+        <div class="monolith-layers" aria-label="Trách nhiệm các lớp trong modular monolith">
+          <article><strong>Nginx gateway</strong><p>Điểm vào duy nhất: route UI/API, rate limit Syn và security headers.</p></article>
+          <article><strong>React + Vite</strong><p>Render UI, giữ state hiển thị và gọi REST API; không có quyền DB hay API key.</p></article>
+          <article><strong>Controller → Service</strong><p>Controller nhận DTO/context; service facade điều phối use case, ownership và transaction.</p></article>
+          <article><strong>Domain / DAO / Provider</strong><p>Policy giữ rule; DAO đọc/ghi PostgreSQL; provider adapter gọi Gemini sau các gate.</p></article>
+        </div>
 
         <div class="system-arch-wrapper">
           <!-- External Top Banner: User Client & External AI -->
@@ -1202,18 +1258,164 @@
             </div>
             <div class="card" style="padding: 16px;">
               <h4 style="font-size: 0.88rem; color: var(--accent-purple); margin-bottom: 6px;">4. Khôi phục Mềm dẻo (Graceful Fallback)</h4>
-              <p style="font-size: 0.8rem; color: var(--text-muted);">Mất mạng hoặc hỏng AI API vẫn giữ 100% chức năng định hướng với Standard Policy.</p>
+              <p style="font-size: 0.8rem; color: var(--text-muted);">Mất mạng hoặc hỏng AI API vẫn giữ core guidance, objective evidence và reviewed next actions qua Standard policy.</p>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Section 4: AI & Fallback Strategy -->
+      <!-- Section 4: AI-agent foundations -->
+      <section id="ai-foundations">
+        <div class="eyebrow">AI Agent Fundamentals · Definition, Structure & Operation</div>
+        <h2>AI agent = model + bộ điều phối + công cụ + ràng buộc</h2>
+        <p class="section-desc">AI agent là một hệ thống phần mềm nhận mục tiêu, dùng model để hiểu và tạo phương án, rồi điều phối các công cụ được cấp quyền để tạo ra kết quả có thể kiểm tra. “Agent” không đồng nghĩa với “tự do hành động”: độ tự chủ được quyết định bởi harness, phạm vi tool, dữ liệu được phép và điểm cần con người xác nhận.</p>
+
+        <div class="grid-2" style="margin-top:20px;">
+          <div class="agent-simulator">
+            <h3 style="color:#fff; margin-bottom:10px;">Chatbot và agent khác nhau ở đâu?</h3>
+            <div class="agent-toggle" role="tablist" aria-label="So sánh chatbot và agent">
+              <button type="button" class="active" id="btn-chatbot" role="tab" aria-selected="true">Chatbot</button>
+              <button type="button" id="btn-agent" role="tab" aria-selected="false">Agent</button>
+            </div>
+            <div class="agent-diagram" id="chatbot-agent-diagram">Question → LLM → Answer<br><br>Trọng tâm: câu trả lời có liên quan, đúng ngữ cảnh và an toàn hay không.</div>
+            <p id="chatbot-agent-note" style="color:var(--text-muted); font-size:.8rem; margin-top:12px;">Chatbot có thể rất hữu ích cho hỏi đáp, tóm tắt hoặc soạn nội dung. Nó không bắt buộc phải có tool, state bền vững hay một chuỗi hành động kiểm soát.</p>
+          </div>
+          <div class="card">
+            <h3 style="color:var(--accent-cyan);">LLM là “bộ não”, chưa phải toàn bộ agent</h3>
+            <p style="color:var(--text-muted); font-size:.82rem; margin-top:10px;">LLM học mẫu ngôn ngữ từ dữ liệu huấn luyện để hiểu yêu cầu và sinh nội dung. Bản thân LLM không tự có quyền đọc PostgreSQL, mở browser, gửi email hay ghi file. Muốn tác động ra bên ngoài, hệ thống phải cung cấp tool và code gọi tool.</p>
+            <p style="color:var(--text-muted); font-size:.82rem; margin-top:10px;">Internet cũng không tự làm model “thông minh hơn”. Web search hoặc API chỉ là một tool để lấy dữ liệu mới; harness phải giới hạn nguồn, kiểm tra kết quả và quyết định dữ liệu nào được đưa trở lại model.</p>
+          </div>
+        </div>
+
+        <h3 style="color:#fff; margin:26px 0 12px;">Cấu tạo chung: mỗi thành phần trả lời một câu hỏi kỹ thuật</h3>
+        <div class="agent-anatomy" aria-label="Cấu tạo AI agent">
+          <article><strong>1 · LLM / model</strong><p>Hiểu ý định, tổng hợp lập luận và diễn đạt. Ví dụ: Gemini, GPT, Claude hoặc một model nội bộ.</p></article>
+          <article><strong>2 · Harness</strong><p>“Hệ thần kinh” bằng code: ghép prompt, context, retry, quan sát tool result, điều kiện dừng, log và đánh giá.</p></article>
+          <article><strong>3 · Tools</strong><p>“Tay chân”: hàm/API có schema rõ ràng như đọc evidence, tìm resource đã duyệt, tạo plan draft; không phải quyền vô hạn.</p></article>
+          <article><strong>4 · Context & memory</strong><p>Thông tin được phép dùng ngay lúc này và summary của phiên trước. Memory phải có owner, thời hạn, kích thước và nút xóa.</p></article>
+          <article><strong>5 · Orchestrator</strong><p>Chạy workflow: nạp state → policy/planning → tool → model (nếu cần) → validate → response/persist.</p></article>
+          <article><strong>6 · Guardrails</strong><p>Authentication/ownership, allowlist, consent, input boundary, JSON schema, timeout, rate limit và human confirmation.</p></article>
+        </div>
+
+        <div class="card" style="margin-top:22px;">
+          <h3 style="color:#fff;">Một vòng hoạt động của agent</h3>
+          <div class="syn-scenario-buttons" role="group" aria-label="Các bước vận hành agent">
+            <button type="button" class="active" data-agent-stage="observe">1. Observe</button>
+            <button type="button" data-agent-stage="decide">2. Decide</button>
+            <button type="button" data-agent-stage="act">3. Act</button>
+            <button type="button" data-agent-stage="validate">4. Validate</button>
+            <button type="button" data-agent-stage="finish">5. Finish</button>
+          </div>
+          <div class="syn-flow-result" id="agent-stage-result" aria-live="polite"></div>
+          <p style="color:var(--text-muted); font-size:.79rem; margin-top:11px;">Một agent có thể lặp lại vòng này nhiều lần, nhưng chỉ khi harness cho phép. Với các hành động có tác động dữ liệu hoặc chi phí cao, agent nên dừng để xin xác nhận thay vì tự tiếp tục.</p>
+        </div>
+
+        <div class="card" style="margin-top:22px;">
+          <h3 style="color:#fff;">Phân loại theo phạm vi hành động, không theo tên marketing</h3>
+          <div class="autonomy-ladder">
+            <div class="autonomy-step"><span>Type A</span><p><strong>Conversational assistant</strong> — một lượt prompt → text; ví dụ ChatGPT, Gemini hoặc Claude ở chế độ chat thông thường.</p><em>Text response</em></div>
+            <div class="autonomy-step"><span>Type B</span><p><strong>Grounded / retrieval assistant</strong> — trả lời từ knowledge base, document hoặc search có kiểm soát; ví dụ agent được cấu hình knowledge trong Microsoft Copilot Studio.</p><em>Context retrieval</em></div>
+            <div class="autonomy-step"><span>Type C</span><p><strong>Workflow / bounded agent</strong> — server xác định tool, thứ tự và dữ liệu; ví dụ form/service agent, GitHub Copilot coding agent trong phạm vi repository được cấp.</p><em>Controlled actions</em></div>
+            <div class="autonomy-step is-current"><span>Type D</span><p><strong>Stateful bounded agent</strong> — thêm goal, session memory, observations và human confirmation cho write action. Đây là phân loại phù hợp với Syn.</p><em>Syn hiện tại</em></div>
+            <div class="autonomy-step"><span>Type E</span><p><strong>Autonomous / multi-agent</strong> — planning nhiều vòng, có thể phân công agent con; ví dụ coding/research environment như Claude Code hoặc Codex khi được cấp tool environment rộng.</p><em>Higher risk & cost</em></div>
+          </div>
+          <p style="color:var(--text-muted); font-size:.78rem; margin-top:13px;">Các sản phẩm trên là ví dụ định hướng; năng lực và quyền của từng sản phẩm phụ thuộc phiên bản, cấu hình tool, account và policy triển khai. CareerSim không phụ thuộc vào chúng. Tham khảo chính thức: <a href="https://learn.microsoft.com/microsoft-copilot-studio" target="_blank" rel="noreferrer">Microsoft Copilot Studio</a>, <a href="https://docs.github.com/en/copilot" target="_blank" rel="noreferrer">GitHub Copilot</a> và <a href="https://docs.anthropic.com/en/docs/claude-code" target="_blank" rel="noreferrer">Claude Code</a>.</p>
+        </div>
+      </section>
+
+      <!-- Section 5: Syn bounded agent -->
+      <section id="syn-agent">
+        <div class="eyebrow">Syn Agent · Evidence-grounded, bounded and human-in-the-loop</div>
+        <h2>Syn không chỉ trả lời: Syn điều phối exploration workflow có giới hạn</h2>
+        <p class="section-desc">Syn hỗ trợ sinh viên kết nối RIASEC với trải nghiệm simulation, nhận ra evidence còn thiếu, so sánh hướng đi, tìm reviewed resource/simulation và tạo plan draft. Syn không chọn nghề thay người dùng, không chấm điểm bằng AI và không tự lưu thay đổi.</p>
+
+        <div class="callout" style="margin-top:18px;"><strong>Điểm khác so với prototype:</strong> Syn không còn lấy toàn bộ evidence rồi gọi model để trả text. Phiên bản hiện tại chọn intent, active evidence và tool plan bằng backend policy trước; Gemini chỉ tổng hợp ngôn ngữ từ context đã được thu hẹp và kiểm tra.</div>
+
+        <h3 style="color:#fff; margin:26px 0 12px;">Syn đang làm được gì cho sinh viên?</h3>
+        <div class="syn-feature-grid" aria-label="Các tính năng của Syn agent">
+          <article><strong>Khởi động cho người mới</strong><p>Nhận diện tình huống chưa có evidence và chuyển sang <code>GET_STARTED</code>: giới thiệu các IT path và simulation công khai để bắt đầu trải nghiệm, không suy đoán “phù hợp nghề nào”.</p></article>
+          <article><strong>Đọc đúng evidence được hỏi</strong><p>Ưu tiên attempt mà sinh viên chọn, path được nhắc trong câu hỏi hoặc path trong session; chỉ dùng latest result khi intent thực sự là xem kết quả gần nhất.</p></article>
+          <article><strong>So sánh exploration paths</strong><p>Tạo comparison card và evidence/result cards cho các path được nêu rõ, ví dụ Frontend và Backend, rồi gợi ý một thử nghiệm tiếp theo thay vì kết luận nghề nghiệp.</p></article>
+          <article><strong>Tìm resource đã rà soát</strong><p>Toolbox trả resource card có provider, URL, skill, độ khó và thời lượng. Model chỉ giải thích từ card này, không tự bịa link hay duyệt web không giới hạn.</p></article>
+          <article><strong>Plan có con người kiểm soát</strong><p>Syn tạo <em>draft</em>, UI yêu cầu người dùng review và <code>Confirm &amp; save</code>. Chỉ API lưu plan thành công mới ghi PostgreSQL.</p></article>
+          <article><strong>Hội thoại có continuity</strong><p>Nhớ ngôn ngữ, stage, topic/path đã xét và next action dưới dạng summary giới hạn 30 ngày; transcript hiển thị chỉ là sessionStorage của tab và có nút xóa.</p></article>
+        </div>
+
+        <div class="syn-flow-simulator" style="margin-top:20px;">
+          <h3 style="color:#fff;">Syn agent hiện tại: một lượt xử lý có kiểm soát</h3>
+          <p style="color:var(--text-muted); font-size:.82rem;">Chọn câu hỏi để xem policy, tool và output có cấu trúc thay đổi như thế nào.</p>
+          <div class="syn-scenario-buttons" role="group" aria-label="Kịch bản Syn">
+            <button type="button" class="active" data-syn-scenario="compare">So sánh FE và BE</button>
+            <button type="button" data-syn-scenario="resource">Tìm resource SQL</button>
+            <button type="button" data-syn-scenario="onboard">Người mới bắt đầu</button>
+            <button type="button" data-syn-scenario="plan">Tạo và lưu plan</button>
+          </div>
+          <div class="syn-pipeline" aria-label="Syn agent pipeline">
+            <div class="syn-node" data-syn-node="input">Message + session</div>
+            <div class="syn-node" data-syn-node="policy">SynAgentPolicy</div>
+            <div class="syn-node" data-syn-node="toolbox">SynAgentToolbox</div>
+            <div class="syn-node ai" data-syn-node="provider">Gemini / Standard</div>
+            <div class="syn-node" data-syn-node="validate">Validate</div>
+            <div class="syn-node" data-syn-node="memory">Memory</div>
+            <div class="syn-node" data-syn-node="ui">Cards + UI</div>
+          </div>
+          <div class="syn-flow-result" id="syn-flow-result" aria-live="polite"></div>
+        </div>
+
+        <div class="grid-2" style="margin-top:20px;">
+          <div class="card">
+            <h3 style="color:#fff;">Tạo Syn từ một chatbot: 6 quyết định kỹ thuật</h3>
+            <p style="color:var(--text-muted); font-size:.81rem; margin-top:8px;">Bấm từng bước. Đây là thứ tự triển khai đúng với mã nguồn CareerSim, không phải pseudo-agent chung chung.</p>
+            <div class="syn-scenario-buttons" role="group" aria-label="Các bước tạo Syn agent">
+              <button type="button" class="active" data-syn-build="boundary">1. Boundary</button>
+              <button type="button" data-syn-build="policy">2. Policy</button>
+              <button type="button" data-syn-build="tools">3. Tools</button>
+              <button type="button" data-syn-build="memory">4. Memory</button>
+              <button type="button" data-syn-build="model">5. Model</button>
+              <button type="button" data-syn-build="ui">6. UI & audit</button>
+            </div>
+          </div>
+          <div class="syn-build-result" id="syn-build-result" aria-live="polite"></div>
+        </div>
+
+        <div class="card" style="margin-top:20px;">
+          <h3 style="color:#fff;">Luồng thật khi sinh viên gửi một câu hỏi tự do</h3>
+          <pre class="agent-code" style="margin-top:12px;">React SynWidget
+  → POST /v1/guidance/syn/messages
+  → GuidanceServiceImpl: active student + selected attempt ownership
+  → SynAgentOrchestrator: session → policy → toolbox → optional provider
+  → SynMessageResponse: text + provenance + cards + suggestions + plan draft
+  → React renders response progressively; user confirms any write action</pre>
+          <p style="color:var(--text-muted); font-size:.8rem; margin-top:12px;">Đây là ranh giới trách nhiệm quan trọng: frontend không gọi Gemini trực tiếp; provider không truy cập database; LLM không tự chọn SQL/tool; các score khách quan vẫn do assessment/simulation evaluator quyết định.</p>
+        </div>
+
+        <div class="grid-2" style="margin-top:20px;">
+          <div class="card">
+            <h3 style="color:var(--accent-cyan);">Evidence selection: chống “lấy nhầm latest result”</h3>
+            <ol style="color:var(--text-muted); font-size:.82rem; padding-left:20px; margin-top:10px; display:grid; gap:7px;"><li>Attempt mà sinh viên bấm <code>View with Syn</code>.</li><li>Path/result được nhắc rõ trong câu hỏi.</li><li>Path đang so sánh hoặc được nhớ trong structured session.</li><li>Latest result chỉ khi intent thực sự là review latest.</li></ol>
+            <p style="color:var(--text-muted); font-size:.8rem; margin-top:12px;">So sánh FE/BE chỉ trả evidence/result cards của Frontend và Backend; attempt cùng path được deduplicate theo kết quả mới nhất.</p>
+          </div>
+          <div class="card">
+            <h3 style="color:var(--accent-cyan);">Memory và transcript là hai thứ khác nhau</h3>
+            <p style="color:var(--text-muted); font-size:.82rem; margin-top:10px;">Server memory là summary có cấu trúc, owner-scoped và hết hạn 30 ngày: ngôn ngữ, stage, current goal, covered topics, considered paths và next action. Nó không lưu raw transcript.</p>
+            <pre class="agent-code" style="margin-top:12px;">v=2 | lang=VI | stage=PLANNING | covered=COMPARE_PATHS | next=TRY_COMPARISON_SIMULATION</pre>
+            <p style="color:var(--text-muted); font-size:.8rem; margin-top:9px;">Visible chat được giữ tạm trong <code>sessionStorage</code> của tab, tối đa 24 message. Thu nhỏ popup hoặc đổi route không xóa; chỉ thùng rác mới xóa transcript UI và yêu cầu backend xóa session memory.</p>
+          </div>
+        </div>
+
+        <div class="syn-boundaries">
+          <article><strong>Syn được phép</strong><p>Đọc evidence thuộc student, giải thích RIASEC, review result cụ thể, so sánh path, tìm evidence gap, đề xuất published simulation/reviewed resource, draft plan và trả lời EN/VI.</p></article>
+          <article class="is-no"><strong>Syn không được phép</strong><p>Query SQL tùy ý, đọc dữ liệu người khác, duyệt web không giới hạn, đổi score, chấm bài bằng AI, tự lưu plan, cấp chứng nhận hay chọn nghề thay sinh viên.</p></article>
+        </div>
+        <div class="callout success"><strong>Vì sao đây là agent nhưng chưa autonomous?</strong><br>Syn có state, memory, intent routing, tool plan, observation, next-action proposal và fallback. Tuy nhiên backend policy—not the LLM—chọn tool; provider không truy cập PostgreSQL; một lượt free-text tối đa một provider call; và ghi dữ liệu cần confirmation. Đây là trade-off chủ động để giảm token, hallucination và rủi ro dữ liệu sinh viên.</div>
+      </section>
+
+      <!-- Section 6: AI & Fallback Strategy -->
       <section id="ai-strategy">
         <div class="eyebrow">AI Integration · Multi-tier Fallback Strategy</div>
         <h2>Chiến lược AI Hybrid & Cơ chế Fallback Tự động</h2>
         <p class="section-desc">
-          AI trong CareerSim đóng vai trò hỗ trợ diễn giải (Interpretation & Guidance), KHÔNG tham gia chấm điểm hay tạo phán quyết. Hệ thống thiết kế Fallback đa tầng bảo đảm 100% không làm gián đoạn trải nghiệm người dùng.
+          AI trong CareerSim chỉ hỗ trợ diễn giải (interpretation & guidance), không chấm điểm hoặc tạo phán quyết nghề nghiệp. Khi provider không thể dùng, backend trả Standard guidance từ cùng approved tool result để luồng exploration vẫn tiếp tục.
         </p>
 
         <!-- AI Matrix Simulator -->
@@ -1278,7 +1480,7 @@
           <div class="card">
             <h3 style="color: var(--accent-cyan);">Context Được phép Gửi sang AI Provider</h3>
             <ul style="list-style: disc; padding-left: 18px; font-size: 0.86rem; color: var(--text-muted); margin-top: 8px;">
-              <li>Câu hỏi / Message hiện tại của sinh viên.</li><li>Tối đa 3 Interest Signals top đầu từ kết quả RIASEC.</li><li>Tối đa 3 Skill Summaries ghi nhận từ simulations.</li><li>Tối đa 3 Recent Attempt Results (chỉ lấy Score & Max Score, tối đa 3 Task Outcomes).</li><li>Current Exploration Plan Title & Status (nếu có).</li>
+              <li>Câu hỏi / Message hiện tại của sinh viên.</li><li>Interest signals và structured session summary cần thiết cho intent hiện tại.</li><li>Chỉ active result được policy/toolbox chọn: attempt cụ thể, named path hoặc path comparison; không gửi toàn bộ history.</li><li>Reviewed resource/simulation hoặc current plan metadata khi tool cần dùng.</li>
             </ul>
           </div>
           <div class="card">
@@ -1348,7 +1550,7 @@
 
         <div class="callout success">
           <strong>Chuỗi Truy Vết Bắt Buộc (Traceability Chain):</strong><br>
-          <code>Proposal / SRS</code> → <code>User Story</code> → <code>Acceptance Criteria</code> → <code>Feature Plan (.agent/plans/)</code> → <code>Code</code> → <code>Tests</code> → <code>Evidence (.agent/reports/)</code>
+          <code>Proposal / SRS</code> → <code>User Story</code> → <code>Acceptance Criteria</code> → <code>Feature Plan (plans/)</code> → <code>Code</code> → <code>Tests</code> → <code>Evidence (reports/ + command output)</code>
         </div>
 
         <div class="grid-3" style="margin-top: 18px;">
@@ -1371,6 +1573,21 @@
             </p>
           </div>
         </div>
+
+        <div class="grid-2" style="margin-top:18px;">
+          <div class="card">
+            <h3 style="color:var(--accent-cyan);">.agent là context có kiểm soát, không phải “prompt dài”</h3>
+            <p style="color:var(--text-muted); font-size:.82rem; margin-top:9px;">Trước khi thay đổi, coding agent đọc <code>AGENTS.md</code>, <code>PROJECT_CONTEXT.md</code>, <code>TASKS.md</code>, <code>DESIGN.md</code> và rules. Các file này đóng gói scope, business rules, owner boundary, security/privacy, testing gates và reporting discipline thành context thường trực.</p>
+            <p style="color:var(--text-muted); font-size:.8rem; margin-top:10px;">Với US-03, các constraint được giữ xuyên suốt là: exploration—not career prediction; score deterministic; LLM không truy cập DB; fallback bắt buộc; plan cần confirmation; và evidence chỉ thuộc student hiện tại.</p>
+          </div>
+          <div class="card">
+            <h3 style="color:var(--accent-cyan);">Cách dùng AI để truy vết, sau đó kiểm chứng độc lập</h3>
+            <p style="color:var(--text-muted); font-size:.82rem; margin-top:9px;">Có thể hỏi coding agent: “Request này đi qua file nào?”, “Rule này được test ở đâu?”, “Migration nào tạo field này?”, hoặc “Tài liệu có lệch code không?”. Nhưng câu trả lời chưa phải evidence.</p>
+            <p style="color:var(--text-muted); font-size:.8rem; margin-top:10px;">Nhóm đối chiếu bằng <code>rg</code>/Git diff, unit test, Testcontainers integration, API response thật, Docker gateway và browser flow. AI tạo/tìm nhanh; human review quyết định có merge hay không.</p>
+          </div>
+        </div>
+
+        <div class="callout" style="margin-top:18px;"><strong>Quality-control loop:</strong> AI đề xuất → Human review scope → compile/lint → unit test → integration test → security/secret review → Docker smoke → manual UI verification → docs/evidence update → commit có trace. Không dùng AI để thay thế kiểm soát chất lượng; dùng AI để tăng tốc cả implementation lẫn truy vết sai lệch.</div>
       </section>
 
       <!-- Section 7: Detailed Storytelling Walkthrough (US-03) -->
@@ -1516,7 +1733,7 @@ npm run check</pre>
           "React 19 (UI Library): Thư viện JavaScript hàng đầu để xây dựng UI dạng Component. Phù hợp cho ứng dụng nhiều trạng thái động (Dynamic States) như hội thoại Syn Chat, Cards bằng chứng RIASEC, và Live Progress. Ưu điểm: Hiệu năng cao nhờ Virtual DOM, giao diện mượt mà, đẹp mắt, cộng đồng hỗ trợ cực kỳ lớn và dễ mở rộng.",
           "Vite 8 (Build Tool & Dev Server): Công cụ đóng gói và máy chủ phát triển thế hệ mới. Ưu điểm: Khởi động Dev Server tức thì trong vài miligiây, Hot Module Replacement (HMR) cực nhanh, đóng gói ESM sản phẩm siêu nhẹ và hỗ trợ Proxy chuyển tiếp `/api` sang Backend mượt mà trong quá trình phát triển.",
           "React Router v7: Quản lý điều hướng mượt mượt giữa Assessment, Simulations và Guidance Page.",
-          "SynWidget được mount trực tiếp tại Root ApplicationLayout (sibling của Outlet) giúp duy trì conversation state xuyên suốt các lần chuyển trang."
+          "SynWidget được mount trực tiếp tại Root ApplicationLayout. Visible transcript còn được giữ có giới hạn trong sessionStorage của tab: đổi route/thu nhỏ không mất chat; chỉ nút thùng rác mới xóa transcript UI và server session memory."
         ],
         tags: ["React 19 (Library)", "Vite 8 (Build Tool)", "frontend/src/app/App.jsx", "SynWidget.jsx", "guidanceApi.js"]
       },
@@ -1526,9 +1743,9 @@ npm run check</pre>
         bullets: [
           "Spring Boot 3.5: Framework Java chuẩn doanh nghiệp hàng đầu. Cung cấp hệ sinh thái toàn diện quản lý Dependency Injection, RESTful APIs, Spring Security và Transactions.",
           "Mô hình Modular Monolith: Phân định ranh giới trách nhiệm rõ ràng giữa các Domain. Dễ phát triển, bảo trì và kiểm thử độc lập mà không gặp độ phức tạp vận hành của Microservices.",
-          "Controller xử lý REST DTOs & Auth Principal; ServiceImpl quản lý orchestration & fallback rules.",
-          "JPA Hibernate quản lý Entity Invariants; JdbcTemplate cho High-performance Evidence Aggregation JSON Queries.",
-          "Spring Security cấu hình Stateless Session với Filter cô lập local demo mode an toàn."
+          "Controller nhận/validate REST DTO và current-user context; Service facade điều phối use case, ownership, audit và transaction boundary.",
+          "Policy giữ quyết định deterministic; orchestrator/toolbox điều phối Syn; DAO/JPA/JdbcTemplate thực hiện persistence queries, không đặt business rule.",
+          "Runtime local demo có filter localhost-only để test nội bộ; production vẫn cần login/authorization thật và không dùng demo principal."
         ],
         tags: ["Java 17", "Spring Boot 3.5", "GuidanceController.java", "GuidanceServiceImpl.java", "StandardGuidancePolicy.java"]
       },
@@ -1537,10 +1754,10 @@ npm run check</pre>
         desc: "Lưu trữ tập trung có cấu trúc cho Accounts, Assessment Scores, Simulation Attempts và Exploration Plans.",
         bullets: [
           "PostgreSQL 17: Hệ quản trị cơ sở dữ liệu quan hệ (RDBMS) mã nguồn mở mạnh mẽ, tuân thủ chuẩn ACID. Hỗ trợ tuyệt vời cho kiểu dữ liệu `JSONB` linh hoạt (rất phù hợp lưu danh sách các bước Exploration Plan và Audit Reports).",
-          "Flyway Migrations: Quản lý phiên bản Database Schema (V1 đến V8) theo dạng append-only; V8 bổ sung hành trình demo tổng hợp bằng dữ liệu hoàn toàn giả lập.",
+          "Flyway Migrations: Quản lý schema append-only từ V1 đến V9; V8 tạo demo slice synthetic, V9 thêm Syn sessions, reviewed resources, path profiles và skill mappings.",
           "Ràng buộc Khóa ngoại (Foreign Keys) và Unique Constraints bảo lưu invariants quan trọng của hệ thống."
         ],
-        tags: ["PostgreSQL 17", "Flyway V1-V8", "JSONB Data Type", "JdbcGuidanceDao.java"]
+        tags: ["PostgreSQL 17", "Flyway V1-V9", "JSONB Data Type", "JdbcGuidanceDao.java"]
       },
       devops: {
         title: "Deployment Model · Docker Compose + Nginx (Ubuntu VM)",
@@ -1557,7 +1774,7 @@ npm run check</pre>
         bullets: [
           "Backend Verification: JUnit 5, Spring Security Test, Testcontainers PostgreSQL Integration Tests.",
           "Frontend Verification: Vitest unit testing, ESLint max-warnings=0, Vite Production Bundle build verification.",
-          "Bằng chứng thực tế: 47/47 Backend tests pass & 9/9 Frontend tests pass qua các Quality Gates."
+          "Bằng chứng ở checkpoint hiện tại: 72 backend tests và 15 frontend tests chạy pass; cần chạy lại gates trước mỗi commit vì số lượng có thể tăng."
         ],
         tags: ["JUnit 5", "Testcontainers", "Vitest", "GuidanceServiceTest.java"]
       }
@@ -1583,7 +1800,7 @@ npm run check</pre>
       },
       {
         title: "3. Spring Boot Core Engine Xác thực & Đọc Data từ PostgreSQL",
-        desc: "Spring Boot trích xuất Authenticated Principal User, kiểm tra phân quyền (Role STUDENT, Status ACTIVE). GuidanceService gọi DAOs để đọc các chỉ số RIASEC, Simulation Results từ PostgreSQL Database.",
+        desc: "GuidanceController/GuidanceService lấy current-student context, kiểm tra ownership và nạp dashboard evidence qua access/DAO boundaries. Trong local demo, principal localhost-only thay login để kiểm thử; nó không phải cơ chế production.",
         highlightNodes: ["node-be", "node-db"],
         arrows: ["arrow-2-3"],
         protocol: "JPA / JDBC (TCP Port 5432)",
@@ -1591,7 +1808,7 @@ npm run check</pre>
       },
       {
         title: "4. Backend Chuẩn hóa Context & Gọi External AI Provider",
-        desc: "Service đóng gói Context tối thiểu (Top 3 Signals, Skills, Results). Kiểm tra Consent & Safety Boundary. Nếu thỏa mãn, gọi Gemini / OpenAI API qua RestClient với JSON Schema định sẵn.",
+        desc: "SynAgentPolicy resolve intent/language/depth; SynAgentToolbox chỉ chọn evidence liên quan. Chỉ free-text có consent, provider available và không bị safety boundary mới gọi Gemini. Provider không truy cập PostgreSQL.",
         highlightNodes: ["node-be", "node-ai"],
         arrows: ["arrow-2-4"],
         protocol: "External HTTPS REST API (JSON Schema)",
@@ -1599,7 +1816,7 @@ npm run check</pre>
       },
       {
         title: "5. Tổng hợp Phản hồi & Ghi Audit Provenance",
-        desc: "Backend nhận phản hồi AI, validate JSON Schema (Text + Suggestions). Ghi log thông tin provenance='AI' hoặc 'FALLBACK' vào bảng `guidance_reports` trong PostgreSQL, đóng gói ApiResponse DTO.",
+        desc: "Backend validate structured provider text/suggestions, ghi provenance/audit vào `guidance_reports`, cập nhật structured `syn_sessions` summary và đóng gói DTO gồm cards/references/suggestions. Provider lỗi vẫn giữ Standard response từ cùng tool result.",
         highlightNodes: ["node-be", "node-db"],
         arrows: ["arrow-2-3"],
         protocol: "JDBC Transactional Audit Write",
@@ -1686,26 +1903,26 @@ npm run check</pre>
         { layer: "01 · React SPA / Page Load", title: "Sinh viên truy cập trang /dashboard", desc: "useEffect kích hoạt getExplorationDashboard() để gửi HTTP Request lấy bằng chứng cá nhân.", path: "frontend/src/features/guidance/pages/GuidancePage.jsx:38-80", code: `useEffect(() => {\n  let isCurrent = true\n  getExplorationDashboard()\n    .then((data) => { if (isCurrent) setDashboard(data) })\n    .catch(() => { /* set fallback preview */ })\n  return () => { isCurrent = false }\n}, [])` },
         { layer: "02 · Frontend API Adapter", title: "API Client gửi Request sang Backend", desc: "guidanceApi.js gọi `/v1/guidance/dashboard` và unwrap JSON Envelope trả về.", path: "frontend/src/features/guidance/api/guidanceApi.js:56-66", code: `export async function getExplorationDashboard() {\n  try {\n    return normalizeDashboard(await apiRequest('/v1/guidance/dashboard'))\n  } catch (error) {\n    if (!shouldUseStandardMode(error)) throw error\n    return normalizeDashboard(previewDashboard)\n  }\n}` },
         { layer: "03 · Spring Controller", title: "GuidanceController nhận Request & Auth Principal", desc: "Trích xuất User Email từ Security Principal và chuyển tiếp tới GuidanceService.", path: "backend/.../guidance/controller/GuidanceController.java:26-35", code: `@GetMapping("/dashboard")\npublic ApiResponse<DashboardResponse> getDashboard(Principal principal) {\n  return ApiResponse.success(\n    guidanceService.getDashboard(principal.getName())\n  );\n}` },
-        { layer: "04 · Evidence Access & DB", title: "Service tổng hợp Evidence từ PostgreSQL", desc: "Gọi 3 read-access boundaries cô lập: Assessment Evidence, Simulation Evidence, và Exploration Plan.", path: "backend/.../guidance/service/impl/GuidanceServiceImpl.java:160-170", code: `var signals = assessmentEvidenceAccess.getTopSignals(student.id(), 3);\nvar skills = simulationEvidenceAccess.getSkillSummaries(student.id(), 3);\nvar results = simulationEvidenceAccess.getRecentEvaluatedResults(student.id(), 3);` },
-        { layer: "05 · React UI State Update", title: "Render Cards & Progress trên Dashboard", desc: "State `dashboard` được cập nhật, React tự động render các thẻ RIASEC, Skill summaries và Current Plan.", path: "frontend/src/features/guidance/pages/GuidancePage.jsx:82-200", code: `<section aria-label="Interest signals">\n  {dashboard.interestSignals.map(sig => (\n    <SignalCard key={sig.code} signal={sig} />\n  ))}\n</section>` }
+        { layer: "04 · Evidence Access & DB", title: "Service tổng hợp owned evidence từ PostgreSQL", desc: "GuidanceServiceImpl dùng assessment/simulation access và plan DAO. Dashboard giữ tối đa 10 evaluated attempts để UI render compact history có thể mở rộng.", path: "backend/.../guidance/service/impl/GuidanceServiceImpl.java:149-215", code: `var simulations = simulationEvidenceAccess.findRecentEvaluated(student.id(), 10);\nvar recentResults = simulations.stream().map(this::toRecentResult).toList();\nreturn new DashboardResponse(..., recentResults, currentPlan);` },
+        { layer: "05 · React UI State Update", title: "Render Evidence Cards, History & Plan", desc: "React render RIASEC signals, skill summary, simulation history và current plan. Mỗi history row có thể dispatch exact attempt context sang Syn.", path: "frontend/src/features/guidance/pages/GuidancePage.jsx:180-215", code: `<button onClick={() => openSyn(\n  'Review this simulation result',\n  'REVIEW_RESULT',\n  { attemptId: result.id },\n)}>View with Syn</button>` }
       ],
       sc2: [
-        { layer: "01 · SynWidget UI", title: "Sinh viên bấm nút Quick Action (vd: Understand my interests)", desc: "SynWidget nhận sự kiện click với `actionType = EXPLAIN_RIASEC`. Khóa UI và tạo User Message bubble.", path: "frontend/src/features/guidance/components/SynWidget.jsx:144-172", code: `const handleQuickAction = (label, actionType) => {\n  askSyn(label, actionType);\n}` },
-        { layer: "02 · Frontend Transport", title: "Gửi POST /v1/guidance/syn/messages", desc: "Đóng gói JSON request chứa `message`, `actionType` và `context` gửi tới Backend.", path: "frontend/src/features/guidance/api/guidanceApi.js:134-156", code: `await apiRequest('/v1/guidance/syn/messages', {\n  method: 'POST',\n  body: JSON.stringify({ message, actionType, context })\n})` },
-        { layer: "03 · Standard Guidance Policy", title: "Domain Policy tạo Phản hồi Deterministic", desc: "Nhận thấy `actionType != FREE_TEXT`, StandardGuidancePolicy ngay lập tức phân loại và tạo phản hồi dựa trên dữ liệu Dashboard.", path: "backend/.../guidance/domain/StandardGuidancePolicy.java:13-37", code: `return switch (action) {\n  case "EXPLAIN_RIASEC" -> explainRiasec(topSignal);\n  case "REVIEW_LATEST" -> reviewResult(result.orElse(null));\n  case "NEEDS_EVIDENCE" -> explainEvidenceGap(skills, results);\n  case "DRAFT_PLAN" -> draftPlan(topSignal, evidenceGap);\n  default -> generalHelp();\n};` },
-        { layer: "04 · Guidance Service Gate", title: "Service Bỏ Qua Gọi AI (0 Token Used)", desc: "Kiểm tra điều kiện `eligibleForAi`: Do `actionType` không phải `FREE_TEXT`, Service không gọi AI Provider mà trả ngay Standard Reply.", path: "backend/.../guidance/service/impl/GuidanceServiceImpl.java:74-99", code: `boolean eligibleForAi = "FREE_TEXT".equals(request.resolvedActionType())\n  && student.consentedToAiAt() != null\n  && availableProvider.isPresent();\n// eligibleForAi evaluates to FALSE -> Return Standard Reply` },
-        { layer: "05 · React Render", title: "Hiển thị Phản hồi với Badge 'Standard guidance'", desc: "Phản hồi hiển thị nhanh chóng trên giao diện chat với nhãn trung thực 'Standard guidance'.", path: "frontend/src/features/guidance/components/SynWidget.jsx:47-113", code: `<SourceBadge source={message.provenance} />\n// Renders: "Standard guidance"` }
+        { layer: "01 · SynWidget UI", title: "Sinh viên bấm Quick Action", desc: "SynWidget tạo user bubble, giữ sessionId/language đã chọn và gửi actionType rõ ràng. Quick Action vẫn đi qua policy/toolbox nhưng không cần provider call.", path: "frontend/src/features/guidance/components/SynWidget.jsx:307-352", code: `askSyn(label, actionType)\n// message + actionType + sessionId + responseLanguage` },
+        { layer: "02 · Frontend Transport", title: "Gửi POST /v1/guidance/syn/messages", desc: "guidanceApi gửi message, actionType, sessionId, responseLanguage và context (nếu View with Syn) đến backend; response được normalize thành cards an toàn.", path: "frontend/src/features/guidance/api/guidanceApi.js:260-302", code: `body: JSON.stringify({\n  message, actionType, sessionId,\n  responseLanguage, context\n})` },
+        { layer: "03 · SynAgentPolicy", title: "Resolve intent và allowlisted tool plan", desc: "Policy deterministic xác định intent, path, language và response depth. Nó không để model chọn arbitrary SQL/tool.", path: "backend/.../guidance/domain/SynAgentPolicy.java:38-85", code: `case "COMPARE_PATHS" ->\n  List.of("READ_EVIDENCE", "COMPARE_PATHS", "SUGGEST_SIMULATIONS");` },
+        { layer: "04 · Toolbox + Standard Reply", title: "Tạo server-owned evidence artifacts, không gọi AI", desc: "Toolbox chọn đúng evidence/result/resource/simulation theo policy. Với Quick Action, orchestrator trả Standard text từ tool result nên chi phí provider bằng 0.", path: "backend/.../guidance/service/SynAgentToolbox.java:30-166", code: `ToolResult tools = toolbox.execute(decision, message, dashboard, attemptId);\nString text = tools.standardText();\n// FREE_TEXT only may call provider later` },
+        { layer: "05 · React Render", title: "Badge, objective cards và response actions", desc: "Frontend hiển thị provenance trung thực, cards do server sở hữu, suggestions và Copy/Download sau khi validated reply hiển thị xong.", path: "frontend/src/features/guidance/components/SynWidget.jsx:158-216", code: `<SourceBadge source={message.provenance} />\n<ResultCards message={message} />` }
       ],
       sc3: [
-        { layer: "01 · SynWidget Composer", title: "Sinh viên nhập câu hỏi tự do và ấn Gửi", desc: "Textarea nhận input (tối đa 600 ký tự). Gửi `actionType = FREE_TEXT` sang Backend.", path: "frontend/src/features/guidance/components/SynWidget.jsx:305-320", code: `<textarea maxLength="600" value={draft} onChange={e => setDraft(e.target.value)} />\n<button onClick={() => askSyn(draft, 'FREE_TEXT')}>Send</button>` },
-        { layer: "02 · Service Authorization & Safety", title: "Service Kiểm Tra Consent & Safety Boundary", desc: "Xác nhận Student đã đồng ý Consent, Provider hoạt động và Prompt không chứa từ khóa độc hại.", path: "backend/.../guidance/service/impl/GuidanceServiceImpl.java:74-118", code: `if (eligibleForAi) {\n  var aiReply = synGuidanceProvider.generateGuidance(request.message(), dashboard);\n  response = new SynMessageResponse(id, aiReply.text(), "AI", null, aiReply.suggestions(), null);\n}` },
+        { layer: "01 · SynWidget Composer", title: "Sinh viên nhập câu hỏi tự do và ấn Gửi", desc: "Textarea gửi FREE_TEXT; UI anchor câu hỏi và chỉ progressive-reveal text sau khi response được backend validate. Thu nhỏ widget không reset transcript.", path: "frontend/src/features/guidance/components/SynWidget.jsx:274-352", code: `<textarea maxLength="600" value={draft} onChange={e => setDraft(e.target.value)} />\n<button onClick={() => askSyn(draft, 'FREE_TEXT')}>Send</button>` },
+        { layer: "02 · Orchestrator: session, safety, policy và tools", title: "Backend tạo bounded agent run", desc: "SynAgentOrchestrator load/create owner-scoped session, resolve intent, thực thi allowlisted toolbox và chỉ sau đó mới xét điều kiện provider.", path: "backend/.../guidance/service/SynAgentOrchestrator.java:38-93", code: `Decision decision = agentPolicy.decide(...);\nToolResult tools = toolbox.execute(decision, message, dashboard, attemptId);\nboolean mayCallProvider = FREE_TEXT && consented && providerAvailable && safe;` },
         { layer: "03 · Gemini Provider Adapter", title: "Đóng gói Context Tối Thiểu & Gọi RestClient", desc: "GeminiSynGuidanceProvider xây dựng JSON Request, bổ sung System Instructions & Schema Constraints, gọi API qua Key trong .env.", path: "backend/.../guidance/infrastructure/GeminiSynGuidanceProvider.java:97-198", code: `restClient.post()\n  .uri("/models/{model}:generateContent", model)\n  .header("x-goog-api-key", apiKey)\n  .body(requestBody(message, dashboard))\n  .retrieve().body(JsonNode.class);` },
-        { layer: "04 · Response Validation", title: "Kiểm tra Output Tuân Thủ JSON Schema", desc: "Validate response từ Gemini: Bắt buộc chứa `text` (≤1200 chars) và tối đa 3 `suggestions` (mỗi item ≤120 chars).", path: "backend/.../guidance/infrastructure/GeminiSynGuidanceProvider.java:200-263", code: `if (text.isBlank() || text.length() > 1200) {\n  throw new ProviderException(ProviderException.Kind.MALFORMED_OUTPUT, "Text length invalid");\n}` },
-        { layer: "05 · Audit & UI Display", title: "Ghi Log Audit Provenance & Render Badge 'AI-assisted'", desc: "Ghi nhận log với provenance='AI', trả DTO về FE render bubble chat kèm badge 'AI-assisted'.", path: "frontend/src/features/guidance/components/SynWidget.jsx:47-52", code: `<SourceBadge source="AI" />\n// Renders: "AI-assisted"` }
+        { layer: "04 · Response Validation", title: "Provider output phải qua schema/length bounds", desc: "Provider adapter parse/validate output. Gemini chỉ nhận scoped dashboard gồm selected results, bounded observations và summary; server-owned cards không nhận từ model.", path: "backend/.../guidance/infrastructure/GeminiSynGuidanceProvider.java", code: `if (text.isBlank() || text.length() > MAX_TEXT) {\n  throw new ProviderException(MALFORMED_OUTPUT, "Text invalid");\n}` },
+        { layer: "05 · Audit, memory & UI display", title: "Lưu provenance/summary và render AI-assisted", desc: "Orchestrator update structured memory; GuidanceService record guidance audit. UI render provenance và giữ objective results bất biến.", path: "backend/.../guidance/service/SynAgentOrchestrator.java:119-143", code: `synAgentDao.updateSession(...);\nreturn new SynMessageResponse(..., provenance, resultCards, suggestions, planDraft);` }
       ],
       sc4: [
         { layer: "01 · Provider Execution", title: "Gọi Gemini API gặp Sự Cố (Timeout / 5xx / Bad Schema)", desc: "RestClient gặp lỗi kết nối hoặc Gemini trả về phản hồi sai cấu trúc JSON Schema.", path: "backend/.../guidance/infrastructure/GeminiSynGuidanceProvider.java:102-119", code: `catch (ResourceAccessException ex) {\n  throw new ProviderException(ProviderException.Kind.TIMEOUT_OR_TRANSPORT, ex);\n}` },
-        { layer: "02 · Service Fallback Catch", title: "Service Catch ProviderException & Chuyển sang Standard Reply", desc: "Service bắt lỗi ProviderException, đổi `auditStatus = REPLACED_BY_FALLBACK` và sử dụng ngay bản Standard Reply đã dựng sẵn.", path: "backend/.../guidance/service/impl/GuidanceServiceImpl.java:99-118", code: `try {\n  response = generateAiGuidance();\n} catch (ProviderException exception) {\n  auditStatus = "REPLACED_BY_FALLBACK";\n  log.warn("Syn provider fallback: {}", exception.kind());\n  // Response remains standardDraft prepared earlier!\n}` },
+        { layer: "02 · Orchestrator fallback", title: "ProviderException chuyển sang Standard text từ cùng tool result", desc: "SynAgentOrchestrator đã dựng Standard text trước provider call. Nếu provider timeout/quota/parse lỗi, nó giữ text deterministic, đổi audit status và không làm mất objective cards.", path: "backend/.../guidance/service/SynAgentOrchestrator.java:74-113", code: `String text = tools.standardText();\ntry { text = provider.generate(...).text(); }\ncatch (ProviderException exception) {\n  auditStatus = "REPLACED_BY_FALLBACK";\n}` },
         { layer: "03 · Audit Logging", title: "Ghi nhận Lịch sử Fallback vào PostgreSQL", desc: "Bảng `guidance_reports` ghi nhận trạng thái `REPLACED_BY_FALLBACK` để nhóm phát triển theo dõi chất lượng API.", path: "backend/.../guidance/dao/JdbcGuidanceDao.java:60-85", code: `INSERT INTO guidance_reports (student_id, action_type, provenance, audit_status, model_name) \nVALUES (?, ?, 'STANDARD', 'REPLACED_BY_FALLBACK', ?);` },
         { layer: "04 · Frontend Safety Net", title: "Frontend HTTP Catch (Phòng ngừa đứt mạng hoàn toàn)", desc: "Nếu kết nối mạng hỏng hoàn toàn, `guidanceApi.js` tự động tạo Standard Preview mà không làm crash UI.", path: "frontend/src/features/guidance/api/guidanceApi.js:134-156", code: `catch (error) {\n  if (!shouldUseStandardMode(error)) throw error\n  return createStandardReply(actionType, message, dashboard)\n}` },
         { layer: "05 · Giao diện Ổn định", title: "UI Hiển thị Phản hồi Chuẩn hóa An toàn", desc: "Sinh viên vẫn nhận được hướng dẫn hữu ích, các chỉ số RIASEC và điểm Simulation hoàn toàn giữ nguyên.", path: "frontend/src/features/guidance/components/SynWidget.jsx:80-113", code: `<small>Syn never changes objective scores.</small>` }
@@ -1722,15 +1939,102 @@ npm run check</pre>
     const mapData = [
       { key: "app", title: "01 · App Layout & Global Mounting", path: "frontend/src/app/App.jsx", desc: "Định nghĩa AppShell và mount SynWidget ở cấp toàn cục." },
       { key: "page", title: "02 · Guidance Dashboard Page", path: "frontend/src/features/guidance/pages/GuidancePage.jsx", desc: "Trang tổng hợp Evidence Cards (RIASEC, Skills, Simulations, Plan)." },
-      { key: "widget", title: "03 · Syn AI Assistant Widget", path: "frontend/src/features/guidance/components/SynWidget.jsx", desc: "Cửa sổ chat tương tác với 3 mode UI, Quick Actions và Plan confirmations." },
-      { key: "api", title: "04 · Frontend API Adapter", path: "frontend/src/features/guidance/api/guidanceApi.js", desc: "Chuẩn hóa Transport HTTP, envelope unwrapping và Fallback preview generation." },
+      { key: "widget", title: "03 · Syn AI Assistant Widget", path: "frontend/src/features/guidance/components/SynWidget.jsx", desc: "Ba mode UI, bounded visible transcript, progressive reveal, cards, Copy/Download và plan confirmation." },
+      { key: "api", title: "04 · Frontend API Adapter", path: "frontend/src/features/guidance/api/guidanceApi.js", desc: "Chuẩn hóa HTTP, envelope, response cards và frontend Standard preview." },
       { key: "controller", title: "05 · Guidance REST Controller", path: "backend/src/main/java/edu/hcmute/careersim/guidance/controller/GuidanceController.java", desc: "HTTP Entry point mỏng, validate DTOs & Auth context." },
-      { key: "service", title: "06 · Guidance Service Implementation", path: "backend/src/main/java/edu/hcmute/careersim/guidance/service/impl/GuidanceServiceImpl.java", desc: "Trái tim orchestration, quản lý Evidence aggregation, AI gates và Fallback." },
-      { key: "policy", title: "07 · Standard Guidance Policy", path: "backend/src/main/java/edu/hcmute/careersim/guidance/domain/StandardGuidancePolicy.java", desc: "Tạo phản hồi Deterministic thuần túy có thể Unit test độc lập." },
-      { key: "provider", title: "08 · Gemini AI Guidance Provider", path: "backend/src/main/java/edu/hcmute/careersim/guidance/infrastructure/GeminiSynGuidanceProvider.java", desc: "Adapter kết nối Google Gemini API với JSON Schema constraints." },
-      { key: "dao", title: "09 · JDBC Guidance Persistence DAO", path: "backend/src/main/java/edu/hcmute/careersim/guidance/dao/JdbcGuidanceDao.java", desc: "Thực thi SQL queries, lưu Exploration Plans (JSONB) và Audit Provenance." },
-      { key: "security", title: "10 · Spring Security & Edge Config", path: "backend/src/main/java/edu/hcmute/careersim/common/config/SecurityConfig.java", desc: "Cấu hình Security rules, Stateless Session, và Local Demo Filter." }
+      { key: "service", title: "06 · Guidance Service Implementation", path: "backend/src/main/java/edu/hcmute/careersim/guidance/service/impl/GuidanceServiceImpl.java", desc: "Facade tổng hợp dashboard, gọi bounded agent, record audit và lưu confirmed plan." },
+      { key: "policy", title: "07 · Syn Agent Policy", path: "backend/src/main/java/edu/hcmute/careersim/guidance/domain/SynAgentPolicy.java", desc: "Intent/language/depth + deterministic tool allowlist, độc lập provider." },
+      { key: "orchestrator", title: "08 · Syn Agent Orchestrator", path: "backend/src/main/java/edu/hcmute/careersim/guidance/service/SynAgentOrchestrator.java", desc: "Nạp memory, điều phối toolbox/provider/fallback, validate và update session." },
+      { key: "toolbox", title: "09 · Syn Agent Toolbox", path: "backend/src/main/java/edu/hcmute/careersim/guidance/service/SynAgentToolbox.java", desc: "Chọn active evidence, compare paths, resources, simulations và plan artifacts." },
+      { key: "provider", title: "10 · Gemini Guidance Provider", path: "backend/src/main/java/edu/hcmute/careersim/guidance/infrastructure/GeminiSynGuidanceProvider.java", desc: "Adapter Gemini: minimized context, prompt/schema boundary và provider errors." },
+      { key: "dao", title: "11 · Guidance & Syn DAO", path: "backend/src/main/java/edu/hcmute/careersim/guidance/dao/JdbcSynAgentDao.java", desc: "Owned session/resource/path queries; JdbcGuidanceDao lưu plans và audit provenance." },
+      { key: "security", title: "12 · Spring Security & Edge Config", path: "backend/src/main/java/edu/hcmute/careersim/common/config/SecurityConfig.java", desc: "Server-side security rules; local demo filter chỉ dùng để test nội bộ." }
     ];
+
+    const synScenarioData = {
+      compare: {
+        title: "“So sánh FE và BE giúp mình”",
+        nodes: ["input", "policy", "toolbox", "provider", "validate", "memory", "ui"],
+        text: "<h4>Intent: COMPARE_PATHS</h4><p><strong>Policy</strong> nhận diện hai path. <strong>Toolbox</strong> chọn đúng attempt Frontend và Backend mới nhất, loại Data/unrelated result, tạo server-owned comparison + result cards. Gemini (nếu consent/provider hợp lệ) chỉ diễn đạt từ scoped context; nếu không có, Standard guidance dùng cùng tool result.</p>"
+      },
+      resource: {
+        title: "“Cho mình resource SQL”",
+        nodes: ["input", "policy", "toolbox", "provider", "validate", "memory", "ui"],
+        text: "<h4>Intent: LEARNING_RESOURCES</h4><p><strong>Toolbox</strong> ưu tiên exact skill match <code>sql</code> trước career path. Nó trả reviewed resource card hoặc nói rõ không có match phù hợp; model không được bịa link. Context chỉ gồm evidence/resource liên quan.</p>"
+      },
+      onboard: {
+        title: "Người mới: “Mình bắt đầu thế nào?”",
+        nodes: ["input", "policy", "toolbox", "validate", "memory", "ui"],
+        text: "<h4>Intent: GET_STARTED</h4><p>Không có evidence không đồng nghĩa có “điểm yếu”. Policy chuyển sang onboarding, Toolbox đọc curated CareerSim paths/published simulations và trả bước trải nghiệm đầu tiên. Không tạo personalized fit hoặc fabricated strength.</p>"
+      },
+      plan: {
+        title: "“Draft plan” rồi “save it”",
+        nodes: ["input", "policy", "toolbox", "validate", "memory", "ui"],
+        text: "<h4>Intent: DRAFT_PLAN → CONFIRM_PLAN</h4><p>Syn chỉ tạo <strong>Draft—not saved</strong>. Câu “save it” không gọi provider và không được phép nói đã lưu. UI yêu cầu <strong>Confirm & save</strong>; chỉ POST plan thành công mới thay đổi PostgreSQL.</p>"
+      }
+    };
+
+    const agentStageData = {
+      observe: {
+        title: "1 · Observe — nhận mục tiêu, identity và context",
+        text: "Agent nhận message, action type, session ID và context được UI gửi. Trước khi xét AI, backend xác định người dùng đang là ai, có evidence nào được quyền dùng và evidence nào được gọi đích danh. Không đưa toàn bộ database hay raw history vào model."
+      },
+      decide: {
+        title: "2 · Decide — policy chọn intent và giới hạn hành động",
+        text: "Harness có thể dùng rule, planner hoặc cả hai. Với hệ thống nhạy cảm, policy xác định intent/tool allowlist trước sẽ an toàn hơn việc để model tự quyết định. Ví dụ Syn map câu hỏi “so sánh FE và BE” thành COMPARE_PATHS và một bộ tool cố định."
+      },
+      act: {
+        title: "3 · Act — gọi tool có schema, quyền và kết quả rõ ràng",
+        text: "Tool không phải là câu lệnh tự do. Mỗi tool là một capability backend-defined: đọc evidence đã authorized, tìm resource curated, tạo plan draft. Harness quan sát ToolResult rồi mới cân nhắc bước kế tiếp hoặc gọi model để diễn đạt."
+      },
+      validate: {
+        title: "4 · Validate — kiểm tra trước khi tin hoặc hiển thị",
+        text: "Kiểm tra ownership, consent, timeout, provider error, output JSON schema, độ dài, các claim bị cấm và provenance. Nếu bất kỳ điều kiện nào không đạt, agent phải chuyển sang deterministic fallback hoặc yêu cầu người dùng làm rõ."
+      },
+      finish: {
+        title: "5 · Finish — trả kết quả, lưu state tối thiểu hoặc xin xác nhận",
+        text: "Response nên có text, evidence references và artefact có cấu trúc để UI render. Session chỉ cập nhật summary cần cho lượt sau. Những write action như lưu plan phải chờ một thao tác xác nhận riêng của người dùng, không được suy luận từ câu chat."
+      }
+    };
+
+    const synBuildData = {
+      boundary: {
+        title: "1 · Chốt product boundary trước khi chọn model",
+        file: ".agent/PROJECT_CONTEXT.md · BR-03, BR-04, BR-09 → BR-19",
+        text: "Bài toán của CareerSim là hỗ trợ khám phá, không phải career prediction. Vì vậy Syn được phép diễn giải evidence và đề xuất trải nghiệm; không được đổi RIASEC/simulation score, không đọc dữ liệu ngoài quyền và không quyết định nghề nghiệp. Boundary này trở thành acceptance criteria, prompt rule, policy và test case.",
+        code: "AI may interpret evidence; it cannot create or change objective scores.\nRecommendations are exploration directions, not decisions or guarantees."
+      },
+      policy: {
+        title: "2 · Tách policy khỏi LLM để agent có thể kiểm soát",
+        file: "backend/.../guidance/domain/SynAgentPolicy.java",
+        text: "SynAgentPolicy chuẩn hóa English/Vietnamese, nhận diện intent, trích path alias và chọn exact allowlist. Đây là điểm khác biệt cốt lõi với chatbot gọi API trực tiếp: LLM không thể yêu cầu “một SQL bất kỳ” hoặc đổi bộ tool theo prompt injection.",
+        code: "Decision decision = agentPolicy.decide(\n  actionType, message, rememberedPaths, unsafe, language, memory.language());\n// COMPARE_PATHS → READ_EVIDENCE, COMPARE_PATHS, SUGGEST_SIMULATIONS"
+      },
+      tools: {
+        title: "3 · Thiết kế tool nhỏ, có chủ sở hữu và output có cấu trúc",
+        file: "backend/.../guidance/service/SynAgentToolbox.java",
+        text: "Toolbox thực thi bộ tool server-owned: chọn evidence phù hợp, compare path, find reviewed resource, suggest published simulation và tạo draft plan. Kết quả chứa evidence references, cards, suggestions và observations; model chỉ được thấy observations đã được giảm thiểu.",
+        code: "ToolResult tools = toolbox.execute(\n  decision, request.message(), dashboard, requestedAttemptId);\n// ToolResult: selectedResults, resourceCards, planDraft, observations"
+      },
+      memory: {
+        title: "4 · Memory là summary có giới hạn, không phải lưu toàn bộ chat",
+        file: "backend/.../guidance/dao/SynAgentDao.java · SynAgentOrchestrator.java",
+        text: "Backend nạp session theo student + session ID, đọc summary versioned rồi cập nhật language, stage, covered topics, considered paths và next action. Memory owner-scoped, TTL 30 ngày và xóa qua DELETE session. Transcript nhìn thấy trên UI dùng sessionStorage của tab, mục tiêu là continuity giao diện chứ không phải long-term memory.",
+        code: "loadOrCreateSession(studentId, request.sessionId())\n→ readMemory(session, dashboard)\n→ updateSession(studentId, session.id(), summary, intent, rememberedPaths)"
+      },
+      model: {
+        title: "5 · Gọi Gemini như một provider bị giới hạn, không phải source of truth",
+        file: "backend/.../guidance/infrastructure/GeminiSynGuidanceProvider.java",
+        text: "Chỉ FREE_TEXT + AI consent + provider available + safe intent mới được gọi provider. Adapter gửi message, intent, response language/depth, tối đa một summary, tool observations và tối đa ba objective records liên quan. Gemini bị yêu cầu trả JSON { text, suggestions }; output sai schema, timeout hoặc bị từ chối sẽ không làm hỏng luồng.",
+        code: "generationConfig = { temperature: 0.3,\n  maxOutputTokens: outputBudget(depth),\n  responseMimeType: 'application/json',\n  responseJsonSchema: outputSchema() }"
+      },
+      ui: {
+        title: "6 · Trả response có provenance để UI và audit cùng hiểu",
+        file: "frontend/.../guidanceApi.js · SynWidget.jsx · GuidanceServiceImpl.java",
+        text: "API trả SynMessageResponse gồm text, provenance AI/STANDARD, activity, evidence references, comparison/resource/simulation cards, suggestions và plan draft. React hiển thị text theo progressive reveal, giữ vị trí đọc, cho copy/download và yêu cầu review trước save. Service lưu audit source/status/model/time; provider failure trả Standard guidance từ chính ToolResult.",
+        code: "POST /v1/guidance/syn/messages\n→ SynMessageResponse(text, provenance, cards, suggestions, planDraft)\n→ UI renders; POST /v1/guidance/plans only after Confirm & save"
+      }
+    };
 
     // App Initialization
     document.addEventListener("DOMContentLoaded", () => {
@@ -1741,7 +2045,65 @@ npm run check</pre>
       initScenario("sc1");
       initMap();
       initMatrix();
+      initAgentLearningModules();
     });
+
+    function initAgentLearningModules() {
+      const chatbot = document.getElementById("btn-chatbot");
+      const agent = document.getElementById("btn-agent");
+      const diagram = document.getElementById("chatbot-agent-diagram");
+      const note = document.getElementById("chatbot-agent-note");
+      const show = (mode) => {
+        const isAgent = mode === "agent";
+        chatbot.classList.toggle("active", !isAgent);
+        agent.classList.toggle("active", isAgent);
+        chatbot.setAttribute("aria-selected", String(!isAgent));
+        agent.setAttribute("aria-selected", String(isAgent));
+        diagram.innerHTML = isAgent
+          ? "Goal → Policy / Planner → Tool → Observation → Memory → Answer or action<br><br>Đánh giá chính: agent có hoàn thành nhiệm vụ trong quyền hạn, đúng evidence và dừng đúng lúc không?"
+          : "Question → LLM → Answer<br><br>Đánh giá chính: câu trả lời có hữu ích và đúng không?";
+        note.textContent = isAgent
+          ? "Agent có harness, permissions, state và stop condition. Không phải agent nào cũng cần autonomous loop."
+          : "Chatbot chủ yếu là một request → một response. Context thường là prompt và đoạn chat gần đây.";
+      };
+      chatbot?.addEventListener("click", () => show("chatbot"));
+      agent?.addEventListener("click", () => show("agent"));
+
+      const agentStageButtons = document.querySelectorAll("[data-agent-stage]");
+      const agentStageResult = document.getElementById("agent-stage-result");
+      const renderAgentStage = (key) => {
+        const stage = agentStageData[key];
+        if (!stage || !agentStageResult) return;
+        agentStageButtons.forEach((button) => button.classList.toggle("active", button.dataset.agentStage === key));
+        agentStageResult.innerHTML = `<h4>${stage.title}</h4><p>${stage.text}</p>`;
+      };
+      agentStageButtons.forEach((button) => button.addEventListener("click", () => renderAgentStage(button.dataset.agentStage)));
+      renderAgentStage("observe");
+
+      const synBuildButtons = document.querySelectorAll("[data-syn-build]");
+      const synBuildResult = document.getElementById("syn-build-result");
+      const renderSynBuild = (key) => {
+        const step = synBuildData[key];
+        if (!step || !synBuildResult) return;
+        synBuildButtons.forEach((button) => button.classList.toggle("active", button.dataset.synBuild === key));
+        synBuildResult.innerHTML = `<h4>${step.title}</h4><p><strong>Trace:</strong> <code>${step.file}</code></p><p>${step.text}</p><pre class="agent-code">${step.code}</pre>`;
+      };
+      synBuildButtons.forEach((button) => button.addEventListener("click", () => renderSynBuild(button.dataset.synBuild)));
+      renderSynBuild("boundary");
+
+      const scenarioButtons = document.querySelectorAll("[data-syn-scenario]");
+      const result = document.getElementById("syn-flow-result");
+      const renderSynScenario = (key) => {
+        const scenario = synScenarioData[key];
+        scenarioButtons.forEach((button) => button.classList.toggle("active", button.dataset.synScenario === key));
+        document.querySelectorAll("[data-syn-node]").forEach((node) => {
+          node.classList.toggle("active", scenario.nodes.includes(node.dataset.synNode));
+        });
+        result.innerHTML = scenario.text;
+      };
+      scenarioButtons.forEach((button) => button.addEventListener("click", () => renderSynScenario(button.dataset.synScenario)));
+      if (result) renderSynScenario("compare");
+    }
 
     // Sidebar Toggle & Resizing
     function initSidebarToggleAndResize() {

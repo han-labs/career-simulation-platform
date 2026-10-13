@@ -15,5 +15,14 @@ public interface GuidanceService {
 
     boolean clearSynSession(String authenticatedEmail, UUID sessionId);
 
+    edu.hcmute.careersim.guidance.dto.SynTurnResponse getTurn(String email, UUID id);
+
+    edu.hcmute.careersim.guidance.dto.SynMessageResponse.EvidenceReference getKnowledgeSource(
+            String email, long id);
+
+    edu.hcmute.careersim.guidance.dto.SynTurnResponse getRequestTurn(String email, UUID requestId);
+
+    void cancelTurn(String email, UUID id);
+
     PlanResponse savePlan(String authenticatedEmail, SavePlanRequest request);
 }

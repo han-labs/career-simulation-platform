@@ -1,4 +1,5 @@
 import { ApiError, apiRequest } from '../../../shared/api/httpClient.js'
+import { createTranslator } from '../../../shared/i18n/translate.js'
 
 export const previewDashboard = {
   source: 'PREVIEW',
@@ -24,6 +25,7 @@ export const previewDashboard = {
       title: 'Backend API Triage',
       score: 80,
       completedLabel: 'Latest simulation',
+      completedAt: null,
       outcomes: [
         { label: 'API response analysis', status: 'OBSERVED_STRENGTH' },
         { label: 'SQL querying', status: 'NEEDS_MORE_EVIDENCE' },
@@ -39,7 +41,7 @@ export const previewDashboard = {
 }
 
 // The preview remains usable before US-03 endpoints or authentication are wired.
-const fallbackStatuses = new Set([0, 401, 403, 404, 429, 500, 502, 503, 504])
+const fallbackStatuses = new Set([0, 500, 502, 503, 504])
 
 export function normalizeDashboard(data = {}) {
   return {
@@ -51,6 +53,60 @@ export function normalizeDashboard(data = {}) {
     recentResults: Array.isArray(data.recentResults) ? data.recentResults : [],
     plan: data.plan ?? null,
   }
+}
+
+function outcomeLabel(status = '') {
+  return ({
+    OBSERVED_STRENGTH: 'Observed strength',
+    PRACTISED: 'Practised',
+    NEEDS_MORE_EVIDENCE: 'Needs more evidence',
+  })[status] ?? status
+}
+
+export function buildSynResponseMarkdown(message, locale = 'en') {
+  const t = createTranslator(locale)
+  const results = message.resultCards?.length
+    ? message.resultCards
+    : message.resultCard
+      ? [message.resultCard]
+      : []
+  const sections = [`# ${t('Syn response')}`, '', message.localCopy ? t(message.text) : message.text]
+  if (results.length) {
+    sections.push('', `## ${t('Objective evidence')}`)
+    results.forEach((result) => {
+      sections.push('', `### ${t(result.title)} — ${result.score}/100`)
+      result.outcomes?.forEach((outcome) => {
+        sections.push(`- ${t(outcome.label)}: ${t(outcomeLabel(outcome.status))}`)
+      })
+    })
+  }
+  if (message.evidenceReferences?.length) {
+    sections.push('', `## ${t('Evidence used')}`)
+    message.evidenceReferences.forEach((reference) => sections.push(`- ${reference.label}`))
+  }
+  if (message.resourceCards?.length) {
+    sections.push('', `## ${t('Reviewed resources')}`)
+    message.resourceCards.forEach((resource) => {
+      sections.push(`- [${resource.title}](${resource.url}) — ${resource.provider}`)
+    })
+  }
+  if (message.simulationCards?.length) {
+    sections.push('', `## ${t('Simulations to try')}`)
+    message.simulationCards.forEach((simulation) => {
+      sections.push(`- ${t(simulation.title)} — ${simulation.careerTrack}`)
+    })
+  }
+  if (message.planDraft) {
+    sections.push('', `## ${t('Draft plan')}`, '', `**${message.planDraft.title}**`)
+    message.planDraft.steps.forEach((step, index) => sections.push(`${index + 1}. ${step}`))
+  }
+  sections.push(
+    '',
+    `${t('Source')}: ${t(message.provenance === 'AI' ? 'AI-assisted' : 'Standard guidance')}`,
+    '',
+    t('CareerSim guidance supports exploration and is not a final career decision.'),
+  )
+  return sections.join('\n')
 }
 
 function shouldUseStandardMode(error) {
@@ -71,7 +127,7 @@ export async function getExplorationDashboard() {
   try {
     return normalizeDashboard(await apiRequest('/v1/guidance/dashboard'))
   } catch (error) {
-    if (!shouldUseStandardMode(error)) throw error
+    if (import.meta.env.VITE_ENABLE_GUIDANCE_PREVIEW !== 'true' || !shouldUseStandardMode(error)) throw error
     return normalizeDashboard(previewDashboard)
   }
 }
@@ -111,6 +167,7 @@ function standardReply(actionType, message, dashboard, responseLanguage = 'EN') 
           ? 'Bạn chưa có mô phỏng hoàn thành để xem lại. Hãy thử một mô phỏng ngắn rồi quay lại nhìn lại kết quả.'
           : 'There is no completed simulation to review yet. Try a short simulation, then return here to reflect on the result.',
       resultCard: latestResult ?? null,
+      resultCards: latestResult ? [latestResult] : [],
     },
     NEEDS_EVIDENCE: {
       text: skillNeedingEvidence
@@ -120,7 +177,6 @@ function standardReply(actionType, message, dashboard, responseLanguage = 'EN') 
         : vi
           ? 'Dữ liệu hiện tại chưa chỉ ra khoảng trống kỹ năng cụ thể. Một mô phỏng khác vẫn có thể giúp bạn so sánh trải nghiệm.'
           : 'Your current evidence does not flag a specific skill gap. Another focused simulation can still help you compare experiences.',
-      resultCard: latestResult ?? null,
       suggestions: vi
         ? ['Thử thêm nhiệm vụ có trọng tâm', 'Xem lại bằng chứng', 'Ghi lại điều còn chưa chắc']
         : ['Try another SQL-focused task', 'Review the task evidence', 'Record what felt uncertain'],
@@ -154,6 +210,7 @@ function standardReply(actionType, message, dashboard, responseLanguage = 'EN') 
     },
   }
 
+  if (actionType === 'REVIEW_RESULT') return replies.REVIEW_LATEST
   if (replies[actionType]) return replies[actionType]
 
   const lowerMessage = message.toLowerCase()
@@ -177,12 +234,19 @@ export function createStandardReply(
   dashboard = previewDashboard,
   responseLanguage = 'EN',
 ) {
+  const reply = standardReply(actionType, message, normalizeDashboard(dashboard), responseLanguage)
   return {
     id: `standard-${Date.now()}`,
     role: 'assistant',
     provenance: 'STANDARD',
     responseLanguage,
-    ...standardReply(actionType, message, normalizeDashboard(dashboard), responseLanguage),
+    ...reply,
+    suggestions: Array.isArray(reply.suggestions) ? reply.suggestions.slice(0, 2) : [],
+    resultCards: Array.isArray(reply.resultCards)
+      ? reply.resultCards
+      : reply.resultCard
+        ? [reply.resultCard]
+        : [],
   }
 }
 
@@ -190,23 +254,32 @@ export async function sendSynMessage({
   message,
   actionType = 'FREE_TEXT',
   sessionId,
+  clientMessageId = crypto.randomUUID(),
   responseLanguage = 'AUTO',
   context,
   dashboard,
 }) {
-  try {
-    const data = await apiRequest('/v1/guidance/syn/messages', {
+  if (dashboard?.source === 'PREVIEW') return createStandardReply(actionType, message, dashboard, fallbackLanguage(responseLanguage, message))
+    let data
+    try {
+      data = await apiRequest('/v1/guidance/syn/messages', {
       method: 'POST',
+      signal: AbortSignal.timeout(25000),
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, actionType, sessionId, responseLanguage, context }),
+      body: JSON.stringify({ message, actionType, sessionId, clientMessageId, responseLanguage, context }),
     })
+    } catch (error) {
+      if (![0, 409, 500, 502, 503, 504].includes(error.status)) throw error
+      let turn
+      try { turn = await apiRequest(`/v1/guidance/syn/requests/${clientMessageId}`, { signal: AbortSignal.timeout(5000) }) }
+      catch { throw error }
+      if (turn?.state === 'COMPLETED' && turn.response) data = turn.response
+      else throw new ApiError('The previous message is pending or interrupted. Please retry shortly.', {
+        status: 409, code: turn?.state === 'PENDING' ? 'TURN_PENDING' : 'TURN_FINISHED_WITHOUT_RESPONSE',
+      })
+    }
     if (typeof data?.text !== 'string' || !data.text.trim()) {
-      return createStandardReply(
-        actionType,
-        message,
-        dashboard,
-        fallbackLanguage(responseLanguage, message),
-      )
+      throw new ApiError('Syn returned an invalid response. Please retry.', { status: 502, code: 'INVALID_RESPONSE' })
     }
     return {
       id: data.id ?? `live-${Date.now()}`,
@@ -214,6 +287,8 @@ export async function sendSynMessage({
       role: 'assistant',
       text: data.text,
       provenance: data.provenance === 'AI' ? 'AI' : 'STANDARD',
+      reasonCode: data.reasonCode ?? null,
+      webSearch: data.webSearch ?? null,
       intent: data.intent ?? actionType,
       responseLanguage: data.responseLanguage ?? fallbackLanguage(responseLanguage, message),
       explorationStage: data.explorationStage ?? null,
@@ -221,40 +296,32 @@ export async function sendSynMessage({
       evidenceReferences: Array.isArray(data.evidenceReferences) ? data.evidenceReferences : [],
       comparisonCard: data.comparisonCard ?? null,
       resourceCards: Array.isArray(data.resourceCards) ? data.resourceCards : [],
+      simulationCards: Array.isArray(data.simulationCards) ? data.simulationCards : [],
       resultCard: data.resultCard ?? null,
-      suggestions: Array.isArray(data.suggestions) ? data.suggestions : [],
+      resultCards: Array.isArray(data.resultCards)
+        ? data.resultCards
+        : data.resultCard
+          ? [data.resultCard]
+          : [],
+      suggestions: Array.isArray(data.suggestions) ? data.suggestions.slice(0, 2) : [],
       planDraft: data.planDraft ?? null,
     }
-  } catch (error) {
-    if (!shouldUseStandardMode(error)) throw error
-    return createStandardReply(
-      actionType,
-      message,
-      dashboard,
-      fallbackLanguage(responseLanguage, message),
-    )
-  }
+
 }
 
 export async function clearSynSession(sessionId) {
   if (!sessionId) return false
-  try {
-    return await apiRequest(`/v1/guidance/syn/sessions/${sessionId}`, { method: 'DELETE' })
-  } catch (error) {
-    if (!shouldUseStandardMode(error)) throw error
-    return false
-  }
+  const cleared = await apiRequest(`/v1/guidance/syn/sessions/${sessionId}`, { method: 'DELETE' })
+  if (cleared !== true) throw new Error('Memory was not cleared. Please retry.')
+  return true
 }
 
 export async function saveExplorationPlan(planDraft) {
-  try {
-    return await apiRequest('/v1/guidance/plans', {
+  const result = await apiRequest('/v1/guidance/plans', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(planDraft),
-    })
-  } catch (error) {
-    if (!shouldUseStandardMode(error)) throw error
-    return { ...planDraft, saved: false, preview: true }
-  }
+  })
+  if (result?.saved !== true) throw new Error('The server did not confirm that the plan was saved.')
+  return result
 }

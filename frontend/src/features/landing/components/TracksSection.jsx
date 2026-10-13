@@ -1,3 +1,4 @@
+import { useI18n } from '../../../shared/i18n/useI18n.js'
 import { Code2, Server, Database, CheckSquare, Shield, ArrowRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -50,15 +51,14 @@ const tracks = [
 ]
 
 function TracksSection() {
+  const { t } = useI18n()
   return (
     <section className="section section--tracks" aria-labelledby="tracks-heading">
       <div className="section-shell">
         <div className="section-heading">
-          <span className="eyebrow">Diverse Specializations</span>
-          <h2 id="tracks-heading">5 Core Information Technology Pathways</h2>
-          <p className="section-heading__sub">
-            Explore prominent specialization fields in IT at HCM-UTE. Each pathway exercises distinct cognitive strengths and practical skills.
-          </p>
+          <span className="eyebrow">{t("Diverse Specializations")}</span>
+          <h2 id="tracks-heading">{t("Explore five tech pathways")}</h2>
+          <p className="section-heading__sub"> {t("Find a role you are curious about and try it.")} </p>
         </div>
 
         <div className="tracks-grid">
@@ -69,20 +69,19 @@ function TracksSection() {
                 <div className="track-card__icon" aria-hidden="true">
                   <Icon size={24} />
                 </div>
-                <h3>{track.name}</h3>
-                <p>{track.desc}</p>
+                <h3>{t(track.name)}</h3>
+                <p>{t(track.desc)}</p>
                 <div className="track-card__skills">
                   {track.skills.map((skill) => (
                     <span className="skill-pill" key={skill}>
-                      {skill}
+                      {t(skill)}
                     </span>
                   ))}
                 </div>
                 <Link
                   className="track-card__link"
                   to={`/simulations/${track.simSlug}`}
-                >
-                  Try Simulation <ArrowRight size={14} aria-hidden="true" />
+                > {t("Try Simulation")} <ArrowRight size={14} aria-hidden="true" />
                 </Link>
               </article>
             )
@@ -90,9 +89,8 @@ function TracksSection() {
         </div>
 
         <div className="tracks-footer-cta">
-          <p>Not sure which specialization fits you best?</p>
-          <Link className="button button--primary button--small" to="/assessment">
-            Take RIASEC Assessment Now <ArrowRight size={15} aria-hidden="true" />
+          <p>{t("Not sure which specialization fits you best?")}</p>
+          <Link className="button button--primary button--small" to="/assessment"> {t("Career Assessment")} <ArrowRight size={15} aria-hidden="true" />
           </Link>
         </div>
       </div>

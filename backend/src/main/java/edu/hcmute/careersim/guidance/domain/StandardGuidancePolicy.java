@@ -24,7 +24,18 @@ public class StandardGuidancePolicy {
             DashboardResponse dashboard,
             Long requestedAttemptId,
             String responseLanguage) {
-        String action = classify(requestedAction, message);
+        return createReply(
+                classify(requestedAction, message),
+                dashboard,
+                requestedAttemptId,
+                responseLanguage);
+    }
+
+    public DraftReply createReply(
+            SynIntent intent,
+            DashboardResponse dashboard,
+            Long requestedAttemptId,
+            String responseLanguage) {
         boolean vi = "VI".equals(responseLanguage);
         Optional<DashboardResponse.RecentResult> result =
                 selectResult(dashboard, requestedAttemptId);
@@ -36,40 +47,41 @@ public class StandardGuidancePolicy {
                         .findFirst()
                         .orElse(null);
 
-        return switch (action) {
-            case "GET_STARTED" -> getStarted(vi);
-            case "EXPLAIN_RIASEC" -> explainRiasec(topSignal, vi);
-            case "REVIEW_LATEST" -> reviewResult(result.orElse(null), vi);
-            case "NEEDS_EVIDENCE" -> explainEvidenceGap(evidenceGap, result.orElse(null), vi);
-            case "EXPLORE_NEXT" -> exploreNext(vi);
-            case "DRAFT_PLAN" -> draftPlan(topSignal, evidenceGap, vi);
-            case "SAFETY_BOUNDARY" -> safetyBoundary(vi);
+        return switch (intent) {
+            case GET_STARTED -> getStarted(vi);
+            case EXPLAIN_RIASEC -> explainRiasec(topSignal, vi);
+            case REVIEW_LATEST, REVIEW_RESULT -> reviewResult(result.orElse(null), vi);
+            case IDENTIFY_GAPS -> explainEvidenceGap(evidenceGap, result.orElse(null), vi);
+            case EXPLORE_NEXT, CAREER_QUESTION, COMPARE_PATHS, LEARNING_RESOURCES ->
+                    exploreNext(vi);
+            case DRAFT_PLAN -> draftPlan(topSignal, evidenceGap, vi);
+            case SAFETY_BOUNDARY -> safetyBoundary(vi);
             default -> generalHelp(vi);
         };
     }
 
-    private String classify(String requestedAction, String message) {
+    private SynIntent classify(String requestedAction, String message) {
         if (!"FREE_TEXT".equals(requestedAction)) {
-            return requestedAction;
+            return SynIntent.fromActionType(requestedAction);
         }
 
         String normalized = message.toLowerCase(Locale.ROOT);
         if (requiresSafetyBoundary(message)) {
-            return "SAFETY_BOUNDARY";
+            return SynIntent.SAFETY_BOUNDARY;
         }
         if (containsAny(normalized, "plan", "next step")) {
-            return "DRAFT_PLAN";
+            return SynIntent.DRAFT_PLAN;
         }
         if (containsAny(normalized, "result", "score", "simulation")) {
-            return "REVIEW_LATEST";
+            return SynIntent.REVIEW_LATEST;
         }
         if (containsAny(normalized, "riasec", "interest")) {
-            return "EXPLAIN_RIASEC";
+            return SynIntent.EXPLAIN_RIASEC;
         }
         if (containsAny(normalized, "evidence", "practise", "practice", "improve")) {
-            return "NEEDS_EVIDENCE";
+            return SynIntent.IDENTIFY_GAPS;
         }
-        return "GENERAL";
+        return SynIntent.GENERAL;
     }
 
     public boolean requiresSafetyBoundary(String message) {

@@ -75,26 +75,32 @@ The response includes `intent`, visible `activity`, bounded `evidenceReferences`
 and optional server-owned `comparisonCard`, `resourceCards`, `resultCard`, and
 `planDraft`. It also reports the resolved `responseLanguage` and current
 `explorationStage`. Activity is a concise operation summary, not hidden model
-reasoning.
+reasoning. Each suggested simulation card keeps its existing `title` and
+`careerTrack` fields and may also include the reviewed catalog `summary`,
+`difficulty`, and `estimatedMinutes` metadata.
 
 Plan requests contain a title of at most 120 characters and one to five non-blank
 steps of at most 240 characters each. Posting the request is the explicit save
 confirmation; receiving a Syn plan draft does not write a plan.
 
-The deterministic router can read owned evidence, compare reviewed path profiles,
-identify possible evidence gaps, retrieve published simulations, retrieve reviewed
-learning resources, and draft a plan. It cannot browse the web, execute arbitrary
+The approved tools can read owned evidence, compare reviewed path profiles, identify
+possible evidence gaps, retrieve published simulations, retrieve reviewed learning
+resources, and draft an unsaved plan. They cannot browse the web, execute arbitrary
 code, write scores, or directly query through the model. Quick actions return
-reviewed `STANDARD` guidance without a provider call. An eligible
-`FREE_TEXT` request may return `AI` when the backend provider is enabled and the active
-student has recorded AI consent. The backend sends only a bounded evidence summary,
-structured session summary, and deterministic tool observations,
-uses a strict structured-output schema, disables provider-side response storage,
-adapts the bounded output budget to the request depth, and applies an HTTP timeout.
+reviewed `STANDARD` guidance without a provider call. For an eligible consented
+Gemini `FREE_TEXT` request, the reliable default lets `SynAgentPolicy` select up to
+four typed read tools, executes them on the backend, and makes one structured
+generation request. Experimental native Gemini planning can be enabled by
+`AI_GEMINI_TOOL_PLANNING_ENABLED=true`; that path uses at most one planning and one
+synthesis call. Unknown, repeated, parameterized, or synthesis-pass tool calls fail
+closed to the static policy and `STANDARD` response. The backend sends only bounded
+session/evidence context and tool observations, applies a strict output schema and
+HTTP timeout, and never gives the provider database or arbitrary URL access.
 The stored memory is a versioned code-only summary of language, stage, goal, covered
 topics, open follow-up, proposed next action, and completed exploration steps; raw
 chat is not persisted. Missing configuration, missing
-consent, unsafe input, timeout, provider rejection, or malformed output returns
+consent, unsafe input, timeout, provider rejection, unavailable tool, iteration-limit,
+or malformed output returns
 `STANDARD` guidance and records fallback provenance. Objective scores are never
 changed, and raw answers, answer keys, evaluation rules, prompts, keys, and provider
 errors are never returned.
@@ -102,3 +108,25 @@ errors are never returned.
 The gateway limits Syn message requests to 10 requests per minute per client address
 with a small burst and limits its request body to 16 KiB. Other API traffic has a
 separate, higher limit. A gateway rejection may return HTTP `429` before Spring.
+
+
+## Syn P1/P2 contract additions (2026-09-28)
+
+The message endpoint accepts optional UUID `clientMessageId`. Clients should always provide it and reuse it for a retry of the exact same payload. Responses use the persisted turn UUID as `id` and include `reasonCode`. Changing content for a reused request ID, a pending session or a revoked source can return 409; per-student limits return 429. Ownership/status checks remain server-side.
+
+- `GET /api/v1/guidance/syn/turns/{turnId}`: owner-only `{id,state,response}`; expired/cleared payloads are null.
+- `GET /api/v1/guidance/syn/requests/{clientMessageId}`: recover a turn after a lost HTTP response; PENDING/FAILED/CANCELLED are distinct from COMPLETED.
+- `POST /api/v1/guidance/syn/turns/{turnId}/cancel`: cancel an owned turn. Not a tool exposed to the LLM.
+- `DELETE /api/v1/guidance/syn/sessions/{sessionId}`: idempotent owner-scoped clear; clears turn payloads and prevents late finalization.
+- `GET /api/v1/guidance/knowledge/chunks/{id}`: authenticated active student may inspect a currently published source; revoked/inactive versions return 404.
+
+A KNOWLEDGE evidence reference contains `label`, `sourceType`, `referenceId` (K + chunk ID), `version`, `section`, `url`, `excerpt`. Personal references use A + assessment attempt ID or S + simulation attempt ID from the authorized snapshot; `version` is null for completed personal attempts. Dashboard adds nullable `assessmentAttemptId`; existing labels and result cards remain compatible. Citation URLs come from reviewed metadata or the bounded source endpoint, never model text. Accepted responses are retained 24 hours, turn metadata and bounded sessions 30 days. Raw user dialogue is not stored as session memory; accepted response storage is a separate retry mechanism.
+
+See [implementation and fallback map](../architecture/syn-core-rag-implementation.vi.md) and [verification evidence](../../.agent/reports/us-03-syn-core-vector-rag-verification.md). Voice endpoints are not implemented.
+# Syn A/B/C additive response fields
+
+Conversation-quality update: `webSearch.status` additionally distinguishes RATE_LIMITED and ACCESS_DENIED. Free text can return AI_READY with no K references when explaining clearly labeled general knowledge; this is not evidence of successful RAG. The frontend collapses comparison/score details and uses compact citation labels. Default generation allows one bounded validation repair; API request shape is unchanged.
+
+Syn message responses optionally include `webSearch: {status, retrievedAt, sources, searchSuggestionsHtml}`. Each source contains `referenceId` (W1–W3, turn-local), `title`, `url`, `excerpt`. These are provider-grounded live sources, not reviewed catalog entries or published K citations. Status may be LIVE_WEB, DISABLED, NO_CONSENT, NEEDS_TOPIC, UNAVAILABLE, NO_SOURCES, INCOMPLETE or INVALID_METADATA. `retrievedAt` is the search time, not a freshness guarantee. Provider search HTML is rendered only in an isolated sandboxed iframe; never inject it into the app DOM.
+
+Primary `intent` remains for compatibility, but `toolTrace` can reflect several composed capabilities. Quick actions remain deterministic. Provider failure can preserve catalog resources, simulations, plan drafts and already returned web sources with Standard provenance. Plan save authorization is unchanged.

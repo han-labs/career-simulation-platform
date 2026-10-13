@@ -1,0 +1,23 @@
+[
+  {
+    "id": "dev-01",
+    "query": "Why does retrying an API write need a stable request ID?",
+    "expectedSources": [
+      "backend-idempotency-en"
+    ]
+  },
+  {
+    "id": "dev-02",
+    "query": "Vì sao NULL không giống số không?",
+    "expectedSources": [
+      "data-missing-vi"
+    ]
+  },
+  {
+    "id": "dev-03",
+    "query": "Can hiding the edit button protect a student record?",
+    "expectedSources": [
+      "security-ownership-en"
+    ]
+  }
+]

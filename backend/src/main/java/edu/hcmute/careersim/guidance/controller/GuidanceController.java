@@ -44,6 +44,30 @@ public class GuidanceController {
                 guidanceService.clearSynSession(principal.getName(), sessionId));
     }
 
+    @GetMapping("/syn/turns/{id}")
+    public ApiResponse<edu.hcmute.careersim.guidance.dto.SynTurnResponse> getTurn(
+            Principal principal, @PathVariable UUID id) {
+        return ApiResponse.success(guidanceService.getTurn(principal.getName(), id));
+    }
+
+    @GetMapping("/syn/requests/{id}")
+    public ApiResponse<edu.hcmute.careersim.guidance.dto.SynTurnResponse> getRequest(
+            Principal principal, @PathVariable UUID id) {
+        return ApiResponse.success(guidanceService.getRequestTurn(principal.getName(), id));
+    }
+
+    @PostMapping("/syn/turns/{id}/cancel")
+    public ApiResponse<Boolean> cancelTurn(Principal principal, @PathVariable UUID id) {
+        guidanceService.cancelTurn(principal.getName(), id);
+        return ApiResponse.success(true);
+    }
+
+    @GetMapping("/knowledge/chunks/{id}")
+    public ApiResponse<SynMessageResponse.EvidenceReference> source(
+            Principal principal, @PathVariable long id) {
+        return ApiResponse.success(guidanceService.getKnowledgeSource(principal.getName(), id));
+    }
+
     @PostMapping("/plans")
     public ApiResponse<PlanResponse> savePlan(
             Principal principal, @Valid @RequestBody SavePlanRequest request) {

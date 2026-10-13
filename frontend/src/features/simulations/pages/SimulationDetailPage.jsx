@@ -1,3 +1,4 @@
+import { useI18n } from '../../../shared/i18n/useI18n.js'
 // Loads public simulation details from the API with a local mock fallback.
 import { ArrowLeft, LoaderCircle, TriangleAlert } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -7,6 +8,7 @@ import { backendDeveloperSimulation } from '../data/backendDeveloperSimulation.j
 import { fetchSimulationDetail } from '../api/simulationApi.js'
 
 function SimulationDetailPage() {
+  const { t } = useI18n()
   const { slug } = useParams()
   const [state, setState] = useState({ status: 'loading', simulation: null })
   console.log('Detail page state:', state)
@@ -32,12 +34,12 @@ function SimulationDetailPage() {
   }, [slug])
 
   if (state.status === 'loading') {
-    return <main className="catalog-page section-shell"><section className="catalog-state"><LoaderCircle className="spin" aria-hidden="true" /><p>Loading simulation...</p></section></main>
+    return <main className="catalog-page section-shell"><section className="catalog-state"><LoaderCircle className="spin" aria-hidden="true" /><p>{t("Loading simulation...")}</p></section></main>
   }
 
   if (!state.simulation) {
     return <main className="catalog-page section-shell">
-      <section className="catalog-state" role="alert"><TriangleAlert size={28} aria-hidden="true" /><h1>Simulation not found</h1><Link className="button" to="/simulations"><ArrowLeft size={17} aria-hidden="true" /> Back to catalog</Link></section>
+      <section className="catalog-state" role="alert"><TriangleAlert size={28} aria-hidden="true" /><h1>{t("Simulation not found")}</h1><Link className="button" to="/simulations"><ArrowLeft size={17} aria-hidden="true" /> {t("Back to catalog")}</Link></section>
     </main>
   }
 
