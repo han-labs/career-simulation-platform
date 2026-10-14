@@ -27,6 +27,26 @@ public final class SynExecutionScope implements AutoCloseable {
     }
 
     private final BooleanSupplier externalAllowed;
+    private java.util.function.Predicate<String> providerAllowed = provider -> true;
+    private edu.hcmute.careersim.identity.access.PrivacyAdmission admission;
+    private long owner;
+    private java.util.List<edu.hcmute.careersim.simulation.dto.ScenarioContracts.Participation>
+            participation = java.util.List.of();
+
+    public SynExecutionScope withParticipation(
+            java.util.List<edu.hcmute.careersim.simulation.dto.ScenarioContracts.Participation>
+                    rows) {
+        participation = java.util.List.copyOf(rows);
+        return this;
+    }
+
+    public static java.util.List<
+                    edu.hcmute.careersim.simulation.dto.ScenarioContracts.Participation>
+            participation() {
+        var scope = CURRENT.get();
+        return scope == null ? java.util.List.of() : scope.participation;
+    }
+
     private final SynExecutionScope previous;
     private java.util.Map<String, String> outcome = java.util.Map.of();
     private String phase = "UNSCOPED";
@@ -48,6 +68,58 @@ public final class SynExecutionScope implements AutoCloseable {
 
     public static SynExecutionScope open(Duration budget, BooleanSupplier externalAllowed) {
         return new SynExecutionScope(budget, externalAllowed);
+    }
+
+    public static SynExecutionScope open(
+            Duration budget,
+            BooleanSupplier externalAllowed,
+            java.util.function.Predicate<String> providerAllowed) {
+        var scope = new SynExecutionScope(budget, externalAllowed);
+        scope.providerAllowed = providerAllowed;
+        return scope;
+    }
+
+    public static SynExecutionScope open(
+            Duration budget,
+            BooleanSupplier externalAllowed,
+            java.util.function.Predicate<String> providerAllowed,
+            edu.hcmute.careersim.identity.access.PrivacyAdmission admission,
+            long owner) {
+        var scope = open(budget, externalAllowed, providerAllowed);
+        scope.admission = admission;
+        scope.owner = owner;
+        return scope;
+    }
+
+    /**
+     * Authorize and start dispatch together; never hold admission while waiting for the response.
+     */
+    public static <T> T admit(String provider, java.util.function.Supplier<T> dispatch) {
+        var scope = CURRENT.get();
+        java.util.function.Supplier<T> checked =
+                () -> {
+                    checkExternal();
+                    if (provider != null) checkProvider(provider);
+                    return dispatch.get();
+                };
+        return scope != null && scope.admission != null
+                ? scope.admission.serialized(scope.owner, checked)
+                : checked.get();
+    }
+
+    public static boolean mayUseProvider(String provider) {
+        var scope = CURRENT.get();
+        return scope != null
+                && scope.externalAllowed.getAsBoolean()
+                && scope.providerAllowed.test(provider);
+    }
+
+    public static void checkProvider(String provider) {
+        checkExternal();
+        var scope = CURRENT.get();
+        if (scope != null && !scope.providerAllowed.test(provider))
+            throw new SynGuidanceProvider.ProviderException(
+                    SynGuidanceProvider.FailureKind.CONSENT_REVOKED);
     }
 
     public static <T> T observe(String phase, java.util.function.Supplier<T> action) {

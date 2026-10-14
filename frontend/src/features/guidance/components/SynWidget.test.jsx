@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import SynWidget from './SynWidget.jsx'
 import I18nProvider from '../../../shared/i18n/I18nProvider.jsx'
 import LanguageSwitcher from '../../../shared/i18n/LanguageSwitcher.jsx'
@@ -19,6 +19,18 @@ beforeEach(() => {
   getExplorationDashboard.mockResolvedValue(dashboard)
 })
 afterEach(cleanup)
+it('discards a private late reply after the authenticated account changes', async () => {
+  let complete
+  sendSynMessage.mockImplementation(() => new Promise(resolve => { complete = resolve }))
+  await open()
+  fireEvent.change(screen.getByRole('textbox', { name: 'Ask Syn' }), { target: { value: 'Private pending question' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Send message' }))
+  await waitFor(() => expect(sendSynMessage).toHaveBeenCalledTimes(1))
+  fireEvent(window, new Event('careersim:account-changed'))
+  await act(async () => { complete({ id: 'late', text: 'Private old-account reply', provenance: 'AI' }) })
+  expect(screen.queryByText('Private old-account reply')).toBeNull()
+  expect(screen.queryByText('Private pending question')).toBeNull()
+})
 
 it('labels live sources and isolates provider suggestions from the application', async () => {
   sendSynMessage.mockResolvedValue({ id: 'reply', text: 'Reviewed fixture [K1]', provenance: 'AI',

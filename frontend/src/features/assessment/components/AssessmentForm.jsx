@@ -14,7 +14,13 @@ const scaleOptions = [
   { value: 5, label: 'Strongly Like' },
 ]
 
-function AssessmentForm({ questions, answers, setAnswer, setAllAnswers, onSubmit, isLoading, scaleOptions: customScaleOptions, showDemoControls = true, demoProfiles }) {
+function AssessmentForm({
+  questions, answers, setAnswer, setAllAnswers, onSubmit, isLoading,
+  showDemo = true,
+  scaleOptions: customScaleOptions,
+  showDemoControls = true,
+  demoProfiles,
+}) {
   const { t } = useI18n()
   const [error, setError] = useState(null)
   const answeredCount = questions.filter((question) => answers[question.id] !== undefined).length
@@ -36,7 +42,7 @@ function AssessmentForm({ questions, answers, setAnswer, setAllAnswers, onSubmit
         setTimeout(() => {
           const element = document.getElementById(`question-container-${missing[0]}`)
           if (element) {
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+            element.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'center' })
           }
         }, 100)
       }
@@ -54,9 +60,12 @@ function AssessmentForm({ questions, answers, setAnswer, setAllAnswers, onSubmit
 
   return (
     <form onSubmit={handleSubmit} className="assessment-form">
+      <fieldset disabled={isLoading} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
       <AssessmentProgressBar answeredCount={answeredCount} totalCount={totalCount} progressPercent={progressPercent} />
       
-      {showDemoControls && <AssessmentDemoControls onDemo={handleDemo} profiles={demoProfiles} />}
+{showDemo && showDemoControls && (
+  <AssessmentDemoControls onDemo={handleDemo} profiles={demoProfiles} />
+)}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {questions.map((q, index) => (
@@ -99,6 +108,7 @@ function AssessmentForm({ questions, answers, setAnswer, setAllAnswers, onSubmit
           {isLoading ? <><Loader2 className="animate-spin" size={20} /> {t("Submitting...")}</> : t('Submit Answers')}
         </button>
       </div>
+      </fieldset>
     </form>
   )
 }

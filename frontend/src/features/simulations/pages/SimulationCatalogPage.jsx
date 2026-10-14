@@ -4,7 +4,6 @@ import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import SimulationCatalog from '../components/SimulationCatalog.jsx'
-import { backendDeveloperSimulation } from '../data/backendDeveloperSimulation.js'
 import { fetchSimulations } from '../api/simulationApi.js'
 
 async function loadCatalog(setState) {
@@ -12,8 +11,8 @@ async function loadCatalog(setState) {
     const simulations = await fetchSimulations()
     setState({ status: 'ready', simulations })
   } catch (error) {
-    console.warn('Simulation catalog API unavailable; using mock data.', error)
-    setState({ status: 'ready', simulations: [backendDeveloperSimulation] })
+    console.warn('Simulation catalog API unavailable.', error)
+    setState({ status: 'error', simulations: [] })
   }
 }
 

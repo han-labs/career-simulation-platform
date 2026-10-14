@@ -30,7 +30,7 @@ public class GeminiWebSearchProvider implements WebSearchProvider {
         this(
                 builder.clone()
                         .baseUrl(base)
-                        .requestFactory(SynHttpRequests.deadlineAware(8))
+                        .requestFactory(SynHttpRequests.deadlineAware(8, "gemini"))
                         .build(),
                 key,
                 model,
@@ -46,7 +46,7 @@ public class GeminiWebSearchProvider implements WebSearchProvider {
 
     public Result search(String query) {
         if (!enabled || key.isBlank()) return Result.unavailable("DISABLED");
-        if (!SynExecutionScope.mayUseExternal()) return Result.unavailable("NO_CONSENT");
+        if (!SynExecutionScope.mayUseProvider("gemini")) return Result.unavailable("NO_CONSENT");
         if (query.isBlank()) return Result.unavailable("NEEDS_TOPIC");
         return SynExecutionScope.observe(
                 "WEB_SEARCH",

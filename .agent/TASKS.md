@@ -124,3 +124,26 @@ Continuation 2026-10-02: private evidence scope and negated simulation fixes, bo
 - Implemented composed EN/VI capabilities, ordered path/resource follow-up, reviewed resource ranking/fallback, evidence-based draft template, bounded Gemini 429/503 retry, heuristic overclaim guard and optional grounded web resource discovery.
 - RAG hybrid code reused and tested; one-shot publish workflow prepared. Corpus and evaluation drafts still require real human review before publication/quality claims. This is an open acceptance item, not an implementation failure hidden behind a completed label.
 - Verification: `reports/us-03-syn-coach-abc-verification.md`; user test instructions: `../docs/testing/syn-coach-manual.vi.md`.
+
+## 11 Package A implementation checkpoint — 2026-10-14
+
+- Human approved Stages 0–7 and V13–V16; implemented on codex/package-a-core.
+- Final backend verify: 186 discovered, 182 passed, 4 opt-in live skips. Frontend
+  core-enabled check: 65 passed, lint/build passed. Compose config passed.
+- Isolated PG17 fresh/upgrade/history/guards/concurrency/import rollback, gateway
+  no-AI core workflow and dump/restore passed. Valuable runtime was not accessed.
+- Five Astra specifications, staged user design artifacts and V1–V12 unchanged.
+- Evidence, API/module/file inventory, limitations and Package B prerequisites:
+  reports/package-a-core-verification.vi.md. No commit/push/deployment.
+- Revised SRS is unavailable; human UAT/content review and real rollout remain gated.
+## 12 Package A migration numbering after main merge — 2026-10-14
+
+- Human accepted the reported second collision at Syn V14 and the replacement
+  numbering: Package A V15–V18, planned Package B V19–V21.
+- Preserve main/Syn V1–V14 and all four Package A SQL contents; no shared DB access,
+  history repair, reset, commit or push. Verification is recorded separately in
+  reports/package-a-migration-numbering-verification.vi.md. Section 11 is historical.
+- Merged-source final clean verify: 196 discovered / 192 passed / 4 live skips;
+  frontend core-enabled check: 76 passed plus lint/build. Source/JAR versions 1–18
+  unique, 18 SQL hashes unchanged; isolated V14 upgrade/history/preservation and
+  gateway/restore passed. Compose/diff checks passed.

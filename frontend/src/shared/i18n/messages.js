@@ -12,6 +12,7 @@ HCM-UTE Career Simulation Platform Home ⇢ Trang chủ nền tảng mô phỏng
 How It Works ⇢ Cách hoạt động
 IT Career Tracks ⇢ Hướng nghề công nghệ
 Career Assessment ⇢ Đánh giá hướng nghiệp
+Career Assessments ⇢ Đánh giá hướng nghiệp
 Dashboard & Syn ⇢ Tiến độ & Syn
 Open menu ⇢ Mở menu
 Close menu ⇢ Đóng menu
@@ -26,6 +27,8 @@ Syn Guidance Assistant ⇢ Trợ lý hướng nghiệp Syn
 3-Step Process ⇢ Quy trình 3 bước
 Explore your options. Your career decisions remain yours. ⇢ Khám phá các lựa chọn. Quyết định nghề nghiệp luôn thuộc về bạn.
 Practical Career Exploration ⇢ Khám phá nghề qua trải nghiệm
+Designed for high school students: Explore your interests, complete authentic tech tasks, and use transparent guidance to reflect on possible next steps. ⇢ Dành cho học sinh trung học: Khám phá sở thích, thực hiện nhiệm vụ công nghệ thực tế và tham khảo hướng dẫn minh bạch để cân nhắc các bước tiếp theo.
+Explore career assessments ⇢ Khám phá các bài đánh giá hướng nghiệp
 Experience IT careers before choosing your ⇢ Trải nghiệm nghề công nghệ trước khi chọn
 direction. ⇢ hướng đi.
 Discover your interests, try practical tech tasks and explore your next steps with Syn. ⇢ Hiểu sở thích, thử nhiệm vụ công nghệ thực tế và khám phá bước tiếp theo cùng Syn.
@@ -62,6 +65,9 @@ Scores follow fixed rules. AI does not change them. ⇢ Điểm số được t�
 Your choices stay yours ⇢ Bạn luôn chủ động lựa chọn
 Guidance helps you explore; it does not decide for you. ⇢ Hướng dẫn giúp bạn khám phá, không quyết định thay bạn.
 Learning by Doing ⇢ Học qua thực hành
+A student-led exploration process ⇢ Quy trình khám phá do bạn chủ động
+From Interests to First-hand Experience ⇢ Từ sở thích đến trải nghiệm thực tế
+Combine self-reflection with hands-on activities and decide for yourself what to explore further. ⇢ Kết hợp tự suy ngẫm với hoạt động thực hành và tự quyết định điều bạn muốn khám phá thêm.
 Explore in three steps ⇢ Khám phá qua ba bước
 Start with your interests. Learn through experience. ⇢ Bắt đầu từ sở thích. Học qua trải nghiệm.
 Identify Interests & Personality ⇢ Nhận diện sở thích & Đặc điểm cá nhân
@@ -107,11 +113,26 @@ View All Simulations ⇢ Xem tất cả mô phỏng
 View Simulation ⇢ Xem mô phỏng
 Ready to explore? ⇢ Sẵn sàng khám phá?
 Start exploring your future ⇢ Bắt đầu khám phá tương lai
+Ready to Start Your Career Exploration? ⇢ Bạn đã sẵn sàng khám phá nghề nghiệp?
+Begin Discovering Your IT Potential Today ⇢ Bắt đầu khám phá tiềm năng công nghệ của bạn hôm nay
+Start with a 42-question RIASEC self-reflection, then explore possible IT directions at your own pace. ⇢ Bắt đầu với 42 câu hỏi RIASEC để tự suy ngẫm, rồi khám phá các hướng nghề công nghệ theo nhịp độ của bạn.
 Start with your interests, then try a career simulation. ⇢ Bắt đầu từ sở thích, sau đó thử một mô phỏng nghề nghiệp.
 Browse Roles ⇢ Xem các vai trò
 Intelligent Companion ⇢ Trợ lý đồng hành
 Your learning journey ⇢ Hành trình học tập của bạn
 RIASEC Assessment ⇢ Đánh giá hướng nghiệp RIASEC
+CareerSim · Self-exploration ⇢ CareerSim · Tự khám phá bản thân
+Career exploration assessments ⇢ Các bài đánh giá để khám phá nghề nghiệp
+Explore your interests, strengths, and career directions through assessments that fit your goals. ⇢ Khám phá sở thích, điểm mạnh và hướng nghề nghiệp qua các bài đánh giá phù hợp với mục tiêu của bạn.
+Results offer ideas for further exploration. They are not a diagnosis or a decision about your future. ⇢ Kết quả gợi ý những điều bạn có thể khám phá thêm. Đây không phải chẩn đoán hay quyết định về tương lai của bạn.
+Career assessments ⇢ Đánh giá hướng nghiệp
+Explores ⇢ Nội dung khám phá
+Time ⇢ Thời gian
+Questions ⇢ Câu hỏi
+Format ⇢ Hình thức
+Quick demo ⇢ Xem thử nhanh
+Your progress is saved in this browser. ⇢ Tiến độ của bạn được lưu trong trình duyệt này.
+Coming soon ⇢ Sắp ra mắt
 Discover Your Path ⇢ Khám phá hướng đi của bạn
 This 42-question assessment helps you explore your interests across six dimensions: Realistic, Investigative, Artistic, Social, Enterprising, and Conventional. Taking roughly 5-10 minutes, your score will provide objective directions to explore further in tech careers. ⇢ Bài đánh giá gồm 42 câu hỏi giúp bạn tìm hiểu sáu nhóm sở thích: Thực tế, Nghiên cứu, Nghệ thuật, Xã hội, Quản lý và Nghiệp vụ. Bạn cần khoảng 5–10 phút; kết quả là gợi ý để tiếp tục khám phá nghề công nghệ.
 Implementation guardrail ⇢ Nguyên tắc đảm bảo
@@ -120,6 +141,18 @@ The score is calculated by approved deterministic rules, not by AI. ⇢ Điểm 
 Start Assessment ⇢ Bắt đầu đánh giá
 Resume Assessment ⇢ Tiếp tục đánh giá
 Retake Assessment ⇢ Làm lại bài đánh giá
+Retake assessment ⇢ Làm lại bài đánh giá
+Your results are unavailable ⇢ Kết quả của bạn chưa khả dụng
+The result is incomplete. You can return and take the assessment again. ⇢ Kết quả chưa đầy đủ. Bạn có thể quay lại và làm lại bài đánh giá.
+RIASEC results ⇢ Kết quả RIASEC
+Highest-scoring interest dimensions ⇢ Các nhóm sở thích có điểm cao nhất
+Directions to explore ⇢ Các hướng để khám phá
+Try an IT simulation to experience a sample task, then reflect on how it felt to you. ⇢ Thử một mô phỏng công nghệ để trải nghiệm nhiệm vụ mẫu, rồi suy ngẫm về cảm nhận của bạn.
+Your six interest dimensions ⇢ Sáu nhóm sở thích của bạn
+Each score is the sum of your answers in that dimension, from 7 to 35. ⇢ Điểm của mỗi nhóm là tổng điểm các câu trả lời trong nhóm đó, từ 7 đến 35.
+Explore IT simulations ⇢ Khám phá mô phỏng công nghệ
+Keep your results in perspective ⇢ Hiểu đúng ý nghĩa của kết quả
+This is a self-reflection tool, not a psychological diagnosis or a measure of ability. The scores do not determine whether a career is right for you or predict your future. Your interests may change as you gain experience. ⇢ Đây là công cụ tự suy ngẫm, không phải chẩn đoán tâm lý hay thước đo năng lực. Điểm số không xác định một nghề có phù hợp với bạn hay dự đoán tương lai của bạn. Sở thích có thể thay đổi khi bạn có thêm trải nghiệm.
 Loading... ⇢ Đang tải...
 Submitting... ⇢ Đang gửi...
 Assessment Questions ⇢ Câu hỏi đánh giá
@@ -135,6 +168,7 @@ Submit Answers ⇢ Gửi câu trả lời
 Demo Backend Profile ⇢ Hồ sơ mẫu Backend
 Demo Frontend Profile ⇢ Hồ sơ mẫu Frontend
 Demo Data Profile ⇢ Hồ sơ mẫu dữ liệu
+Quick demo profiles ⇢ Hồ sơ mẫu để xem thử nhanh
 Progress ⇢ Tiến độ
 completed ⇢ đã hoàn thành
 Your Strongest Interest Area ⇢ Nhóm sở thích nổi bật nhất

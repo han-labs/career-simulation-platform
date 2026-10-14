@@ -1,4 +1,5 @@
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, afterEach, describe, expect, it, vi } from 'vitest'
+import { refreshCsrf } from '../../../shared/api/httpClient.js'
 import {
   buildSynResponseMarkdown,
   clearSynSession,
@@ -11,6 +12,10 @@ import {
 } from './guidanceApi.js'
 
 describe('US-03 guidance adapter', () => {
+  beforeEach(async () => {
+    vi.stubGlobal('fetch',vi.fn().mockResolvedValue({ok:true,status:200,json:async()=>({data:{token:'synthetic-csrf'}})}))
+    await refreshCsrf()
+  })
   afterEach(() => vi.unstubAllGlobals())
 
   it('does not turn a failed plan save into a preview success', async () => {

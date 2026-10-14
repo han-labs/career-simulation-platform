@@ -1,0 +1,92 @@
+{
+  "date": "2026-10-14",
+  "head": "f00bd55ddacca3b4f0efa6f17d07de45a2acd0e7",
+  "originalBranch": "codex/syn-core-vector-rag",
+  "runtimeDatabase": "NOT ACCESSED",
+  "files": [
+    {
+      "path": ".\\backend\\src\\main\\resources\\db\\migration\\V1__init_schema.sql",
+      "sha256": "D3526A5F6A813D7C2BE4871437A39265CDEB1313B68C3DE68959CAE54E49E0BC"
+    },
+    {
+      "path": ".\\backend\\src\\main\\resources\\db\\migration\\V10__syn_turn_lifecycle.sql",
+      "sha256": "38586084022FB976824393F38E96CFA897DB99C234BCE8E8B18CAB69D0FAA6C6"
+    },
+    {
+      "path": ".\\backend\\src\\main\\resources\\db\\migration\\V11__syn_vector_knowledge.sql",
+      "sha256": "5B9A26A91A3811EF7E569A9288E32DFD7055D33F470A240B9DBF9F1FC6E0927F"
+    },
+    {
+      "path": ".\\backend\\src\\main\\resources\\db\\migration\\V12__syn_turn_trace.sql",
+      "sha256": "72A290E4E0BBA3F45DD1782CF17A5182D8BD90BE8A18AE36BA1A55B84A535A0C"
+    },
+    {
+      "path": ".\\backend\\src\\main\\resources\\db\\migration\\V2__seed_demo_catalog.sql",
+      "sha256": "4680E635641BEFD4409ABAC801578D30F5218103417507FD318C61A4A0CD683B"
+    },
+    {
+      "path": ".\\backend\\src\\main\\resources\\db\\migration\\V3__seed_demo_assessment.sql",
+      "sha256": "C5ED8E3EBBE63E51A098DAA0177EC75D3A1C1FCD00B59B3AE95088D4ACEDC06C"
+    },
+    {
+      "path": ".\\backend\\src\\main\\resources\\db\\migration\\V4__update_riasec_questions_to_42.sql",
+      "sha256": "89ED04211F5C6A60D549BEEADA57F73E73B82872FCCAE79C45C32F3E221F7C2B"
+    },
+    {
+      "path": ".\\backend\\src\\main\\resources\\db\\migration\\V5__align_backend_simulation_seed.sql",
+      "sha256": "2785D82A98DEBB109B5629260DFC8C29DF9A178D1D14C40373D1DCFCD0775CB1"
+    },
+    {
+      "path": ".\\backend\\src\\main\\resources\\db\\migration\\V6__add_exploration_plans.sql",
+      "sha256": "2A9F670971272F1ED6B94BCA22CB3CE69F0AA206C42E786DC83B56B5B6506407"
+    },
+    {
+      "path": ".\\backend\\src\\main\\resources\\db\\migration\\V7__sync_seed_sequences.sql",
+      "sha256": "36E37F072A0DC8A102E0FD5581434E49674761A14CBF160C01801C5CD3B7CE78"
+    },
+    {
+      "path": ".\\backend\\src\\main\\resources\\db\\migration\\V8__seed_complete_local_demo.sql",
+      "sha256": "F77CB506101199F677441EBDF540D9B50DB7AB38050187757C2767E76A8460B1"
+    },
+    {
+      "path": ".\\backend\\src\\main\\resources\\db\\migration\\V9__add_syn_agent_context.sql",
+      "sha256": "5F3E47214256C5E6408951871E0AB349466E739EB94B1FE7791771185BCB4A0A"
+    },
+    {
+      "path": ".\\docs\\architecture\\data-model\\CareerSim_Lean_Logical_ERD_v2.mmd",
+      "sha256": "F863B4CF96B31B4055B18DFF5A264A4D76EB6A56AEF14F484A838988E21A3FF9"
+    },
+    {
+      "path": ".\\docs\\architecture\\data-model\\CareerSim_v3_Agent_Class_Diagram.mmd",
+      "sha256": "CA8B900A798DB41F05E63AF8571A91005073C5AEA3EA97642E791C2DCAC85EEF"
+    },
+    {
+      "path": ".\\docs\\architecture\\data-model\\CareerSim_v3_Class_Design_Notes.md",
+      "sha256": "7BF012E86E2C150D0060BB51916E91E4324A240ADC06038EFFE546C9C6B58BF0"
+    },
+    {
+      "path": ".\\docs\\architecture\\data-model\\CareerSim_v3_Core_Class_Diagram.mmd",
+      "sha256": "0543151D7B389A0D8029C8A1E47DD7BCBD59BE7FF3705CEA27AD027D6B9B38EC"
+    },
+    {
+      "path": ".\\docs\\architecture\\data-model\\physical-design-draft\\01_PHYSICAL_DATABASE_DESIGN.md",
+      "sha256": "772CB7F67C2DFDAC296D12AAFFBA6DB9026F90792A1CB25FB5867960D1EC289A"
+    },
+    {
+      "path": ".\\docs\\architecture\\data-model\\physical-design-draft\\02_LEGACY_MAPPING_AND_MIGRATION.md",
+      "sha256": "008C2484B19BB15DD1D3A259919873313768582E068D3779CFF1F46604B61297"
+    },
+    {
+      "path": ".\\docs\\architecture\\data-model\\physical-design-draft\\03_BACKEND_AND_AGENT_ARCHITECTURE.md",
+      "sha256": "5C10A2071C61827416DC9FDC2AB86EE9F367E7F5F9CCF6B69ABF63E507C2D232"
+    },
+    {
+      "path": ".\\docs\\architecture\\data-model\\physical-design-draft\\04_SOL_MASTER_IMPLEMENTATION_PLAN.md",
+      "sha256": "91BB645270109895588673876B1D532B03472CF946D1B4CEE108A96D25AD5C2E"
+    },
+    {
+      "path": ".\\docs\\architecture\\data-model\\physical-design-draft\\SOL_HANDOFF.md",
+      "sha256": "CC8E33A8915F013E90B93B6F202C8FAD698ECF855630A8BFC8E688489DF7C203"
+    }
+  ]
+}

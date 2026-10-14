@@ -1,6 +1,5 @@
-// Manages simulation answers, API submission, and deterministic fallback evaluation.
+// Keeps legacy answers locally until the API confirms a persisted result.
 import { useState } from 'react'
-import { evaluateAttempt } from '../utils/simulationEvaluator.js'
 import { submitAttempt } from '../api/simulationApi.js'
 
 export function useSimulationAttempt(tasks, simulationSlug) {
@@ -32,17 +31,15 @@ export function useSimulationAttempt(tasks, simulationSlug) {
     setSubmitStatus('submitting')
     setSubmitError(null)
     try {
-      const apiResult = simulationSlug
-        ? await submitAttempt(simulationSlug, answers)
-        : evaluateAttempt(tasks, answers)
+      const apiResult = await submitAttempt(simulationSlug, answers)
       setResult(apiResult)
       setSubmitStatus('idle')
+      return true
     } catch (error) {
-      setResult(evaluateAttempt(tasks, answers))
       setSubmitStatus('error')
       setSubmitError(error.message)
+      return false
     }
-    return true
   }
 
   const restart = () => {

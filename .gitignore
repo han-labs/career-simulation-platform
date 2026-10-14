@@ -23,6 +23,8 @@ frontend/coverage/
 # Runtime data
 /uploads/
 /data/
+/private-assets/
+/backend/private-assets/
 
 # Temporary agent/tool outputs
 .codex-tmp/

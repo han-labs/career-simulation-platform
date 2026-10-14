@@ -7,6 +7,7 @@ RUN mvn -B -DskipTests package
 FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 RUN addgroup -S careersim && adduser -S careersim -G careersim
+RUN mkdir -p /app/private-assets && chown careersim:careersim /app/private-assets
 COPY --from=build /workspace/target/career-simulation-platform-0.1.0-SNAPSHOT.jar app.jar
 USER careersim
 EXPOSE 8080

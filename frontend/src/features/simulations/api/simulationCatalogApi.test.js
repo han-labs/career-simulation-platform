@@ -1,7 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { apiRequest } from '../../../shared/api/httpClient.js'
+vi.mock('../../../shared/api/httpClient.js', () => ({ apiRequest: vi.fn() }))
+afterEach(() => vi.unstubAllEnvs())
 import { normalizeSimulation } from './simulationCatalogApi.js'
 
 describe('normalizeSimulation', () => {
+  it('uses the versioned metadata catalog consistently in core mode',async()=>{
+    vi.resetModules();vi.stubEnv('VITE_CORE_V2_ENABLED','true');apiRequest.mockResolvedValue([{id:'8',slug:'fixture',scenarioVersionId:'9',metadata:{title:'Reviewed',estimatedMinutes:10}}]);const {getPublishedSimulations}=await import('./simulationCatalogApi.js');expect(await getPublishedSimulations()).toMatchObject([{id:'8',title:'Reviewed'}]);expect(apiRequest).toHaveBeenLastCalledWith('/v2/scenarios')
+  })
+  it('retains legacy read contract when core mode is off',async()=>{
+    vi.resetModules();vi.stubEnv('VITE_CORE_V2_ENABLED','false');apiRequest.mockResolvedValue([{id:8,slug:'legacy',title:'Legacy',estimatedMinutes:10}]);const {getPublishedSimulations}=await import('./simulationCatalogApi.js');expect(await getPublishedSimulations()).toMatchObject([{id:8,title:'Legacy'}]);expect(apiRequest).toHaveBeenLastCalledWith('/v1/simulations')
+  })
   it('normalizes the API duration as a number', () => {
     const simulation = normalizeSimulation({
       id: 1,

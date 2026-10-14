@@ -17,4 +17,9 @@ public record SavePlanRequest(
                                         max = 240,
                                         message = "Each plan step must not exceed 240 characters.")
                                 String>
-                        steps) {}
+                        steps,
+        java.util.UUID sessionId) {
+    public SavePlanRequest(String title, List<String> steps) {
+        this(title, steps, null);
+    }
+}

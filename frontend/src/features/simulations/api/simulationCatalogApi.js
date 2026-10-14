@@ -1,4 +1,5 @@
 import { apiRequest } from '../../../shared/api/httpClient.js'
+import { coreEnabled } from '../../../shared/api/coreApi.js'
 
 export function normalizeSimulation(item) {
   return {
@@ -9,10 +10,12 @@ export function normalizeSimulation(item) {
     summary: item.summary,
     difficulty: item.difficulty,
     estimatedMinutes: Number(item.estimatedMinutes),
+    translations: item.translations,
   }
 }
 
 export async function getPublishedSimulations() {
-  const simulations = await apiRequest('/v1/simulations')
+  const data = await apiRequest(coreEnabled ? '/v2/scenarios' : '/v1/simulations')
+  const simulations = coreEnabled ? data.map(item => ({ ...item.metadata, id: item.id, slug: item.slug })) : data
   return simulations.map(normalizeSimulation)
 }

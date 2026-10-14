@@ -12,16 +12,21 @@ flowchart TB
     Agent["Syn bounded agent orchestrator"]
     Tools["Approved evidence and resource tools"]
     Database[("PostgreSQL")]
+    Core["Versioned assessment / enrollment / final work / completion"]
+    Assets[("Private asset volume")]
     AIAdapter["Backend AI adapter"]
     LLM["External LLM provider"]
     Fallback["Deterministic feedback templates"]
 
-    Student -->|HTTPS| Gateway
-    Enterprise -->|HTTPS| Gateway
+    Student -->|HTTP local; HTTPS at production edge| Gateway
+    Enterprise -->|HTTP local; HTTPS at production edge| Gateway
     Gateway --> Frontend
     Gateway -->|REST API| Backend
     Frontend -->|REST API through gateway| Backend
     Backend -->|JPA and JDBC| Database
+    Backend --> Core
+    Core -->|same datasource transaction| Database
+    Backend -->|authorized upload/download| Assets
     Backend --> Agent
     Agent --> Tools
     Tools --> Database
@@ -80,6 +85,23 @@ The root `docker-compose.yml` implements the architecture as four local services
 3. `backend` executes business rules and integrations.
 4. `postgres` stores durable application data in a named volume.
 
+Private bytes use a second named volume at `/app/private-assets`. Core routes and
+the React core client default to disabled until a coordinated rollout. The runtime
+database user and Flyway migrator can use separate credentials; deployment must
+provision least-privilege roles before valuable-runtime startup. No production
+cutover or default Compose startup was performed for Package A.
+
+Package A adds V15–V18 only, after unchanged main/Syn V1–V14: 25 tables, 49
+during coexistence (including the 24 retained tables after the main merge,
+excluding Flyway history). It uses JDBC records/explicit SQL for new persistence
+and retains existing legacy JPA mappings with validate. The configurable Agent
+Platform and V19–V21 remain planned Package B.
+
+[Package A consolidated implementation/evidence report](../../.agent/reports/package-a-core-verification.vi.md)
+records exact scope, tests, limits and the implemented request sequence. The
+isolated gateway test uses an ephemeral Nginx/PG17 container and a host Spring Boot
+server; it is distinct from deployment of the four-service Compose stack.
+
 The source architecture image is retained in `.agent/references/system-architecture.png`. This Mermaid diagram must be updated when the deployed topology changes.
 
 
@@ -87,7 +109,7 @@ The source architecture image is retained in `.agent/references/system-architect
 
 PostgreSQL now requires pgvector. V12 adds versioned turn/session lifecycle, V13 adds published knowledge document/version/chunk tables and `vector(768)`, V14 adds sanitized trace metadata. These versions follow the already-applied assessment V10 and V11 migrations. Business evidence remains relational and authoritative. No frontend-to-provider, model-to-SQL or model-to-plan-write path was added.
 
-The production message flow uses short snapshot/begin/finalization transactions around an external-call phase, not one long transaction. The seventh read tool, SEARCH_KNOWLEDGE, combines exact vector retrieval and local full-text search. Publication is an internal reviewed workflow, independent of chat. Deadline/cancellation and shared schema validation protect the generation boundary. Runtime authentication remains a separate dependency; localhost demo is not a production identity mechanism.
+The message flow uses short snapshot/begin/finalization transactions around an external-call phase. The seventh read tool, SEARCH_KNOWLEDGE, combines exact vector retrieval and local full-text search. Publication is an internal reviewed workflow, independent of chat. Deadline/cancellation and shared schema validation protect the generation boundary. Package A supplies session authentication and explicit provider grants; the old consent timestamp is historical only. A single-instance per-user admission lock coordinates outbound dispatch with revoke, and finish/replay revalidate authorization. Horizontal scaling requires new admission coordination. Localhost demo is explicitly profile-gated and remains separate from production authentication.
 
 [Complete Vietnamese component map, sequence, fallbacks and Q&A](syn-core-rag-implementation.vi.md).
 # Syn A/B/C continuation

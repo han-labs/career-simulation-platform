@@ -1,0 +1,132 @@
+classDiagram
+direction LR
+%% CareerSim v3  |  AI Agent, RAG & Consent
+%% Target domain/application view; multiplicities on ends, no association labels.
+%% Only meaningful responsibilities are shown.
+namespace Governance {
+    class UserAccount {
+        -id: UUID
+        -role: AccountRole
+    }
+    class ConsentGrant {
+        -id: UUID
+        -purpose: ConsentPurpose
+        -status: ConsentStatus
+        -enterpriseId: UUID
+        -policyVersion: String
+        +isEffective(): boolean
+        +revoke(): void
+    }
+}
+namespace AgentPlatform {
+    class Agent {
+        -id: UUID
+        -name: String
+        -status: AgentStatus
+        -allowedRoles: Set~AccountRole~
+        +canUse(role: AccountRole): boolean
+    }
+    class AgentConfiguration {
+        -id: UUID
+        -versionNumber: int
+        -modelKey: String
+        -instructions: String
+        -enabledToolCodes: Set~String~
+        -memoryPolicy: MemoryPolicy
+        +allowsTool(code: String): boolean
+    }
+    class AgentConversation {
+        -id: UUID
+        -title: String
+        -status: ConversationStatus
+        -createdAt: Instant
+        +archive(): void
+    }
+    class AgentMessage {
+        -id: UUID
+        -role: MessageRole
+        -content: String
+        -sequenceNumber: int
+    }
+    class AgentRun {
+        -id: UUID
+        -status: RunStatus
+        -stepsTrace: JsonNode
+        -sourceReferences: JsonNode
+        +complete(): void
+        +fail(): void
+    }
+    class AgentMemory {
+        -id: UUID
+        -summary: String
+        -status: MemoryStatus
+        -expiresAt: Instant
+        +disable(): void
+    }
+    class AgentActionProposal {
+        -id: UUID
+        -targetType: ProposalTarget
+        -proposedPayload: JsonNode
+        -status: ProposalStatus
+        +approve(byUserId: UUID): void
+        +reject(): void
+    }
+    class ExplorationPlan {
+        -id: UUID
+        -planData: JsonNode
+        -confirmedAt: Instant
+        +activate(): void
+    }
+}
+namespace Knowledge {
+    class KnowledgeBase {
+        -id: UUID
+        -name: String
+        -status: KnowledgeBaseStatus
+        -visibility: KnowledgeVisibility
+        +isRetrievable(): boolean
+    }
+    class KnowledgeDocument {
+        -id: UUID
+        -title: String
+        -sourceUri: URI
+    }
+    class KnowledgeDocumentVersion {
+        -id: UUID
+        -versionNumber: int
+        -contentHash: String
+        -ingestionStatus: IngestionStatus
+        +isReady(): boolean
+    }
+    class KnowledgeChunk {
+        -id: UUID
+        -chunkIndex: int
+        -contentText: String
+        -sourceLocation: String
+    }
+}
+namespace AgentControls {
+    class AgentApplicationService {
+        <<control>>
+        +runAgent(conversationId: UUID): AgentRun
+        +executeApprovedProposal(proposalId: UUID): void
+    }
+}
+UserAccount "1" -- "0..*" ConsentGrant
+UserAccount "1" -- "0..*" AgentConversation
+UserAccount "1" -- "0..*" AgentMemory
+UserAccount "1" -- "0..*" ExplorationPlan
+Agent "1" *-- "0..*" AgentConfiguration
+Agent "1" -- "0..*" AgentConversation
+AgentConfiguration "1" -- "0..*" AgentConversation
+AgentConfiguration "0..*" -- "0..*" KnowledgeBase
+AgentConversation "1" *-- "0..*" AgentMessage
+AgentConversation "1" -- "0..*" AgentRun
+AgentRun "1" *-- "0..*" AgentActionProposal
+Agent "1" -- "0..*" AgentMemory
+AgentRun "1" -- "0..*" ExplorationPlan
+KnowledgeBase "1" *-- "0..*" KnowledgeDocument
+KnowledgeDocument "1" *-- "0..*" KnowledgeDocumentVersion
+KnowledgeDocumentVersion "1" *-- "0..*" KnowledgeChunk
+AgentApplicationService ..> AgentRun
+AgentApplicationService ..> AgentActionProposal

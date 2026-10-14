@@ -13,6 +13,58 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ExceptionHandler(DomainValidationException.class)
+    public ResponseEntity<ErrorResponse> domainFields(
+            DomainValidationException e, HttpServletRequest request) {
+        return ResponseEntity.unprocessableEntity()
+                .body(
+                        ErrorResponse.validation(
+                                e.getErrorCode().getCode(),
+                                e.getMessage(),
+                                request.getRequestURI(),
+                                e.fields().entrySet().stream()
+                                        .sorted(java.util.Map.Entry.comparingByKey())
+                                        .map(
+                                                f ->
+                                                        new ErrorResponse.FieldViolation(
+                                                                f.getKey(), f.getValue()))
+                                        .toList()));
+    }
+
+    @ExceptionHandler({
+        org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class,
+        org.springframework.web.bind.MissingServletRequestParameterException.class,
+        org.springframework.web.multipart.support.MissingServletRequestPartException.class,
+        org.springframework.web.multipart.MaxUploadSizeExceededException.class
+    })
+    public ResponseEntity<ErrorResponse> invalidParameter(HttpServletRequest request) {
+        return ResponseEntity.status(request.getRequestURI().contains("/v2/") ? 422 : 400)
+                .body(
+                        ErrorResponse.of(
+                                "VALIDATION_ERROR",
+                                "The request is invalid.",
+                                request.getRequestURI()));
+    }
+
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> malformed(HttpServletRequest request) {
+        return ResponseEntity.status(request.getRequestURI().contains("/v2/") ? 422 : 400)
+                .body(
+                        ErrorResponse.of(
+                                "INVALID_BODY",
+                                "Invalid or unknown request fields.",
+                                request.getRequestURI()));
+    }
+
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> integrity(HttpServletRequest request) {
+        return ResponseEntity.status(409)
+                .body(
+                        ErrorResponse.of(
+                                "CONFLICT",
+                                "The operation conflicts with stored relationships or immutable state.",
+                                request.getRequestURI()));
+    }
 
     @ExceptionHandler(ApiException.class)
     public ResponseEntity<ErrorResponse> handleApiException(
@@ -68,7 +120,10 @@ public class GlobalExceptionHandler {
     private ResponseEntity<ErrorResponse> validationResponse(
             HttpServletRequest request, List<ErrorResponse.FieldViolation> violations) {
         ErrorCode errorCode = ErrorCode.VALIDATION_ERROR;
-        return ResponseEntity.status(errorCode.getStatus())
+        return ResponseEntity.status(
+                        request.getRequestURI().contains("/v2/")
+                                ? 422
+                                : errorCode.getStatus().value())
                 .body(
                         ErrorResponse.validation(
                                 errorCode.getCode(),

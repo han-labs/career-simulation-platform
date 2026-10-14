@@ -179,7 +179,7 @@ public class GeminiSynGuidanceProvider implements SynGuidanceProvider {
         return restClientBuilder
                 .clone()
                 .baseUrl(baseUrl)
-                .requestFactory(SynHttpRequests.deadlineAware(timeoutSeconds))
+                .requestFactory(SynHttpRequests.deadlineAware(timeoutSeconds, "gemini"))
                 .build();
     }
 

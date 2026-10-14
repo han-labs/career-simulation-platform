@@ -44,6 +44,8 @@ class GuidanceServiceTest {
     private SynGuidanceProvider synGuidanceProvider;
     private GuidanceService service;
     private edu.hcmute.careersim.guidance.dao.SynTurnDao turns;
+    private PlanCommands planCommands;
+    private ExplorationPlanService confirmedPlans;
 
     @BeforeEach
     void setUp() {
@@ -94,7 +96,12 @@ class GuidanceServiceTest {
                         accountAccess,
                         mock(edu.hcmute.careersim.guidance.dao.KnowledgeDao.class),
                         new edu.hcmute.careersim.guidance.service.SynUsagePricing(
-                                new com.fasterxml.jackson.databind.ObjectMapper(), "[]"));
+                                new com.fasterxml.jackson.databind.ObjectMapper(), "[]"),
+                        (owner, purpose, recipient) ->
+                                accountAccess
+                                        .findByEmail("student@example.test")
+                                        .map(a -> a.consentedToAiAt() != null)
+                                        .orElse(false));
         service =
                 new GuidanceServiceImpl(
                         accountAccess,
@@ -103,6 +110,16 @@ class GuidanceServiceTest {
                         guidanceDao,
                         orchestrator,
                         lifecycle);
+        planCommands = mock(PlanCommands.class);
+        confirmedPlans = mock(ExplorationPlanService.class);
+        org.springframework.test.util.ReflectionTestUtils.setField(
+                service, "planCommands", planCommands);
+        org.springframework.test.util.ReflectionTestUtils.setField(
+                service, "confirmedPlans", confirmedPlans);
+        org.springframework.test.util.ReflectionTestUtils.setField(
+                service,
+                "participation",
+                mock(edu.hcmute.careersim.simulation.access.ParticipationEvidenceAccess.class));
     }
 
     @Test
@@ -592,15 +609,15 @@ class GuidanceServiceTest {
     @Test
     void planIsPersistedOnlyWhenSaveUseCaseIsCalled() {
         arrangeActiveStudent();
-        when(guidanceDao.saveCurrentPlan(
-                        7L,
-                        "Explore backend work",
-                        List.of("Complete one simulation", "Write a reflection")))
+        when(planCommands.confirm(eq(7L), any()))
                 .thenReturn(
-                        new GuidanceDao.CurrentPlan(
+                        new edu.hcmute.careersim.guidance.dto.PlanContracts.Plan(
+                                "1",
                                 "Explore backend work",
                                 List.of("Complete one simulation", "Write a reflection"),
-                                "ACTIVE"));
+                                "ACTIVE",
+                                java.time.Instant.EPOCH,
+                                0));
 
         var response =
                 service.savePlan(
@@ -611,11 +628,18 @@ class GuidanceServiceTest {
 
         assertThat(response.saved()).isTrue();
         assertThat(response.status()).isEqualTo("ACTIVE");
-        verify(guidanceDao)
-                .saveCurrentPlan(
-                        7L,
-                        "Explore backend work",
-                        List.of("Complete one simulation", "Write a reflection"));
+        verify(planCommands)
+                .confirm(
+                        eq(7L),
+                        argThat(
+                                r ->
+                                        r.title().equals(" Explore backend work ")
+                                                && r.steps()
+                                                        .equals(
+                                                                List.of(
+                                                                        "Complete one simulation",
+                                                                        "Write a reflection"))));
+        verify(guidanceDao, never()).saveCurrentPlan(anyLong(), any(), any());
     }
 
     @Test

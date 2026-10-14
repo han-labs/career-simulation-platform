@@ -1,0 +1,212 @@
+[
+  {
+    "suite": "edu.hcmute.careersim.architecture.LayerDependencyTest",
+    "tests": 10,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.CareerSimulationApplicationTests",
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.catalog.controller.SimulationCatalogControllerTest",
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.catalog.service.SimulationCatalogServiceTest",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.common.config.LocalDemoAuthenticationFilterTest",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.controller.GuidanceControllerTest",
+    "tests": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.dao.GuidancePersistenceIntegrationTest",
+    "tests": 14,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.domain.StandardGuidancePolicyTest",
+    "tests": 13,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.domain.SynAgentPolicyTest",
+    "tests": 17,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.domain.SynCoachPolicyTest",
+    "tests": 10,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.domain.SynRagPolicyTest",
+    "tests": 7,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.infrastructure.GeminiEmbeddingProviderTest",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.infrastructure.GeminiRequestRetryTest",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.infrastructure.GeminiSynGuidanceLiveTest",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 2
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.infrastructure.GeminiSynGuidanceProviderTest",
+    "tests": 10,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.infrastructure.GeminiWebSearchProviderTest",
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.infrastructure.OpenAiSynGuidanceLiveTest",
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.infrastructure.OpenAiSynGuidanceProviderTest",
+    "tests": 3,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.infrastructure.SynHttpRequestsTest",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.service.GuidanceServiceTest",
+    "tests": 23,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.service.KnowledgeRetrievalTest",
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.service.SynCoachToolboxTest",
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.service.SynKnowledgeOrchestrationTest",
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.guidance.service.SynUsagePricingTest",
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.simulation.access.JdbcSimulationEvidenceAccessTest",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.simulation.controller.SimulationAttemptLocaleControllerTest",
+    "tests": 1,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.simulation.mapper.SimulationResultLocaleMapperTest",
+    "tests": 4,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.system.migration.CorePackageAIntegrationTest",
+    "tests": 22,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.system.migration.CorePoliciesTest",
+    "tests": 6,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  {
+    "suite": "edu.hcmute.careersim.system.migration.SchemaUpgradeIntegrationTest",
+    "tests": 2,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  }
+]

@@ -24,6 +24,10 @@ public class SynTurnLifecycleService {
     private final StudentAccountAccess accounts;
     private final edu.hcmute.careersim.guidance.dao.KnowledgeDao knowledge;
     private final SynUsagePricing usagePricing;
+    private final edu.hcmute.careersim.identity.access.ConsentAccess consents;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private edu.hcmute.careersim.simulation.access.ParticipationEvidenceAccess participation;
 
     @Transactional(
             readOnly = true,
@@ -73,7 +77,8 @@ public class SynTurnLifecycleService {
                     || turn.response() == null)
                 conflict(
                         "The previous turn is pending, interrupted, cleared or expired. Check its status before retrying.");
-            validateSources(turn.response());
+            validateSources(turn.response(), owner);
+            validateReplay(turn);
             return turn;
         }
         if (turns.recentCount(owner) >= 10)
@@ -101,11 +106,22 @@ public class SynTurnLifecycleService {
     @Transactional(timeout = 3)
     public SynMessageResponse finish(
             String email, SynTurnDao.Turn turn, SynAgentOrchestrator.AgentRun run, int ms) {
+        return finish(email, turn, run, ms, null);
+    }
+
+    @Transactional(timeout = 3)
+    public SynMessageResponse finish(
+            String email,
+            SynTurnDao.Turn turn,
+            SynAgentOrchestrator.AgentRun run,
+            int ms,
+            Long expectedPrivacy) {
         turns.lockStudent(turn.studentId());
         var account =
                 accounts.findByEmail(email)
                         .orElseThrow(() -> new NotFoundException("Student was not found."));
-        if (account.id() != turn.studentId()
+        if ((expectedPrivacy != null && account.privacyVersion() != expectedPrivacy)
+                || account.id() != turn.studentId()
                 || !"STUDENT".equals(account.role())
                 || !"ACTIVE".equals(account.status())
                 || (("AI".equals(run.auditSource())
@@ -120,7 +136,7 @@ public class SynTurnLifecycleService {
                 || turns.sessionVersion(turn.studentId(), turn.sessionId())
                         != turn.sessionVersion())
             conflict("The conversation changed while this reply was being prepared.");
-        validateSources(run.response());
+        validateSources(run.response(), turn.studentId());
         sessions.updateSession(
                 turn.studentId(),
                 turn.sessionId(),
@@ -163,10 +179,37 @@ public class SynTurnLifecycleService {
                                         a.id() == owner
                                                 && "STUDENT".equals(a.role())
                                                 && "ACTIVE".equals(a.status())
-                                                && a.consentedToAiAt() != null)
+                                                && (consents.effective(
+                                                                owner,
+                                                                "EXTERNAL_AI",
+                                                                "provider:gemini")
+                                                        || consents.effective(
+                                                                owner,
+                                                                "EXTERNAL_AI",
+                                                                "provider:openai")))
                         .isPresent()
                 && turns.sessionAlive(owner, session)
                 && turns.find(owner, turnId).filter(t -> "PENDING".equals(t.state())).isPresent();
+    }
+
+    @Transactional(readOnly = true, timeout = 3)
+    public boolean providerAllowed(
+            String email, long owner, long expectedPrivacy, String provider) {
+        return accounts.findByEmail(email)
+                        .filter(
+                                a ->
+                                        a.id() == owner
+                                                && "ACTIVE".equals(a.status())
+                                                && "STUDENT".equals(a.role())
+                                                && a.privacyVersion() == expectedPrivacy)
+                        .isPresent()
+                && consents.effective(owner, "EXTERNAL_AI", "provider:" + provider);
+    }
+
+    @Transactional(readOnly = true)
+    public SynMessageResponse.PlanDraft pendingPlan(long owner, UUID session) {
+        if (session == null) return null;
+        return sessions.pendingPlan(owner, session);
     }
 
     @Transactional(timeout = 3)
@@ -174,7 +217,9 @@ public class SynTurnLifecycleService {
         var turn =
                 turns.find(owner, id)
                         .orElseThrow(() -> new NotFoundException("Turn was not found."));
-        if (turn.response() != null && !turn.responseExpired()) validateSources(turn.response());
+        if (turn.response() != null && !turn.responseExpired())
+            validateSources(turn.response(), owner);
+        if (turn.response() != null && !turn.responseExpired()) validateReplay(turn);
         return turn;
     }
 
@@ -192,7 +237,9 @@ public class SynTurnLifecycleService {
         var turn =
                 turns.findRequest(owner, requestId)
                         .orElseThrow(() -> new NotFoundException("Request was not found."));
-        if (turn.response() != null && !turn.responseExpired()) validateSources(turn.response());
+        if (turn.response() != null && !turn.responseExpired())
+            validateSources(turn.response(), owner);
+        if (turn.response() != null && !turn.responseExpired()) validateReplay(turn);
         return turn;
     }
 
@@ -213,8 +260,19 @@ public class SynTurnLifecycleService {
                 c.content());
     }
 
-    private void validateSources(SynMessageResponse response) {
+    private void validateSources(SynMessageResponse response, long owner) {
         for (var reference : response.evidenceReferences()) {
+            if ("TASK_PARTICIPATION".equals(reference.sourceType())) {
+                var ids =
+                        reference.referenceId() == null
+                                ? new String[0]
+                                : reference.referenceId().split(":");
+                if (ids.length != 3
+                        || !"SUBMISSION".equals(ids[0])
+                        || !ids[2].equals(reference.version())
+                        || !participation.ownsFinal(owner, ids[1], ids[2], reference.section()))
+                    conflict("Participation evidence is no longer accessible.");
+            }
             if ("KNOWLEDGE".equals(reference.sourceType()) && reference.referenceId() != null) {
                 long chunkId = Long.parseLong(reference.referenceId().substring(1));
                 if (knowledge
@@ -223,6 +281,25 @@ public class SynTurnLifecycleService {
                         .isEmpty()) conflict("A knowledge source changed. Please ask again.");
             }
         }
+    }
+
+    private void validateReplay(SynTurnDao.Turn turn) {
+        var response = turn.response();
+        if (response == null) return;
+        boolean external =
+                "AI".equals(response.provenance())
+                        || (response.webSearch() != null
+                                && !response.webSearch().sources().isEmpty());
+        if (!external) return;
+        var providers = turns.externalProviders(turn.studentId(), turn.id());
+        if (providers.isEmpty()
+                || providers.stream()
+                        .anyMatch(
+                                p ->
+                                        !consents.effective(
+                                                turn.studentId(), "EXTERNAL_AI", "provider:" + p)))
+            throw new ApiException(
+                    ErrorCode.FORBIDDEN, "Stored external reply is no longer authorized.");
     }
 
     private static void conflict(String message) {

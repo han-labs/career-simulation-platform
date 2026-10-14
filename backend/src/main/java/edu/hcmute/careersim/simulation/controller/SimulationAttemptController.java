@@ -22,16 +22,26 @@ public class SimulationAttemptController {
 
     private final SimulationAttemptService simulationAttemptService;
     private final SimulationResultLocaleMapper localeMapper;
+    private final edu.hcmute.careersim.identity.access.ActorAccess actors;
+
+    @org.springframework.beans.factory.annotation.Value("${app.legacy-write-enabled:false}")
+    private boolean legacyWrites;
 
     @PostMapping("/{slug}/attempts")
     public ApiResponse<SubmitAttemptResponse> submitAttempt(
             @PathVariable String slug,
-            @RequestHeader(value = "X-Student-Id", defaultValue = "1") Long studentId,
+            java.security.Principal principal,
+            @RequestHeader(value = "X-Student-Id", required = false) Long studentId,
             @Valid @RequestBody SubmitAttemptRequest request) {
-        // TODO(auth): replace header-based studentId with JWT claim when identity module is ready
-        // Tracking: .agent/reports/ai/2026-09-11-us-02-frontend.md
+        long owner = actors.student(principal).id();
+        if (studentId != null && studentId != owner)
+            throw new edu.hcmute.careersim.common.exception.ApiException(
+                    edu.hcmute.careersim.common.exception.ErrorCode.FORBIDDEN);
+        if (!legacyWrites)
+            throw new edu.hcmute.careersim.common.exception.ApiException(
+                    edu.hcmute.careersim.common.exception.ErrorCode.WORKFLOW_UPGRADE_REQUIRED);
         return ApiResponse.success(
                 localeMapper.localize(
-                        simulationAttemptService.submitAttempt(slug, studentId, request)));
+                        simulationAttemptService.submitAttempt(slug, owner, request)));
     }
 }

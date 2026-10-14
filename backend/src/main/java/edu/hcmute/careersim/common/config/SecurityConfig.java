@@ -1,97 +1,135 @@
 package edu.hcmute.careersim.common.config;
 
-import java.util.Arrays;
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.hcmute.careersim.common.response.ErrorResponse;
+import java.util.*;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.*;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.*;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
-import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.web.csrf.*;
+import org.springframework.web.cors.*;
 
 @Configuration
 public class SecurityConfig {
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        var encoders = new HashMap<String, PasswordEncoder>();
+        encoders.put(
+                "pbkdf2@SpringSecurity_v5_8",
+                Pbkdf2PasswordEncoder.defaultsForSpringSecurity_v5_8());
+        encoders.put("bcrypt", new BCryptPasswordEncoder());
+        return new DelegatingPasswordEncoder("pbkdf2@SpringSecurity_v5_8", encoders);
+    }
+
+    @Bean
+    CsrfTokenRepository csrfTokenRepository() {
+        return new HttpSessionCsrfTokenRepository();
+    }
 
     @Bean
     SecurityFilterChain securityFilterChain(
             HttpSecurity http,
-            @Value("${app.security.local-demo-mode:false}") boolean localDemoMode,
-            @Value("${app.security.local-demo-email:student@demo.com}") String localDemoEmail)
+            ObjectMapper mapper,
+            CsrfTokenRepository csrf,
+            Environment env,
+            org.springframework.beans.factory.ObjectProvider<
+                            edu.hcmute.careersim.identity.access.StudentAccountAccess>
+                    accounts,
+            @Value("${app.security.local-demo-mode:false}") boolean localDemo,
+            @Value("${app.security.local-demo-email:student@demo.com}") String email)
             throws Exception {
-        http.csrf(csrf -> csrf.disable())
+        http.csrf(
+                        c ->
+                                c.csrfTokenRepository(csrf)
+                                        .csrfTokenRequestHandler(
+                                                new CsrfTokenRequestAttributeHandler()))
                 .cors(Customizer.withDefaults())
                 .sessionManagement(
-                        session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        s ->
+                                s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                                        .sessionFixation(f -> f.changeSessionId()))
+                .logout(l -> l.disable())
+                .formLogin(f -> f.disable())
+                .httpBasic(b -> b.disable())
                 .headers(
-                        headers ->
-                                headers.contentSecurityPolicy(
-                                                policy ->
-                                                        policy.policyDirectives(
+                        h ->
+                                h.contentSecurityPolicy(
+                                                p ->
+                                                        p.policyDirectives(
                                                                 "default-src 'none'; frame-ancestors 'none'"))
-                                        .frameOptions(frame -> frame.deny())
-                                        .referrerPolicy(
-                                                referrer ->
-                                                        referrer.policy(
-                                                                ReferrerPolicyHeaderWriter
-                                                                        .ReferrerPolicy
-                                                                        .NO_REFERRER))
-                                        .permissionsPolicyHeader(
-                                                permissions ->
-                                                        permissions.policy(
-                                                                "camera=(), microphone=(), geolocation=(), payment=()")))
+                                        .frameOptions(f -> f.deny()))
                 .authorizeHttpRequests(
-                        requests ->
-                                requests.requestMatchers("/health")
-                                        .permitAll()
-                                        .requestMatchers(HttpMethod.GET, "/v1/simulations/**")
+                        r ->
+                                r.requestMatchers("/health", "/v2/auth/csrf")
                                         .permitAll()
                                         .requestMatchers(
-                                                HttpMethod.POST, "/v1/simulations/*/attempts")
-                                        .permitAll() // TODO(auth): change to .hasRole("STUDENT")
-                                        // when identity module is ready
-                                        .requestMatchers("/v1/assessments/**")
+                                                HttpMethod.POST,
+                                                "/v2/auth/register",
+                                                "/v2/auth/login")
                                         .permitAll()
-                                        .requestMatchers("/v1/guidance/**")
+                                        .requestMatchers(
+                                                HttpMethod.GET,
+                                                "/v1/simulations",
+                                                "/v1/simulations/*",
+                                                "/v1/simulations/*/tasks",
+                                                "/v2/scenarios",
+                                                "/v2/scenarios/*",
+                                                "/v2/assessment-types")
+                                        .permitAll()
+                                        .requestMatchers("/v1/**", "/v2/**")
                                         .authenticated()
                                         .anyRequest()
                                         .denyAll())
                 .exceptionHandling(
-                        exceptions ->
-                                exceptions.authenticationEntryPoint(
-                                        new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)));
-
-        if (localDemoMode) {
+                        e ->
+                                e.authenticationEntryPoint(
+                                                (req, res, x) -> {
+                                                    res.setStatus(401);
+                                                    res.setContentType("application/json");
+                                                    mapper.writeValue(
+                                                            res.getOutputStream(),
+                                                            ErrorResponse.of(
+                                                                    "UNAUTHORIZED",
+                                                                    "Sign in is required.",
+                                                                    req.getRequestURI()));
+                                                })
+                                        .accessDeniedHandler(
+                                                (req, res, x) -> {
+                                                    res.setStatus(403);
+                                                    res.setContentType("application/json");
+                                                    mapper.writeValue(
+                                                            res.getOutputStream(),
+                                                            ErrorResponse.of(
+                                                                    "FORBIDDEN",
+                                                                    "Access or CSRF validation denied.",
+                                                                    req.getRequestURI()));
+                                                }));
+        if (localDemo && env.acceptsProfiles(Profiles.of("local-demo")))
             http.addFilterBefore(
-                    new LocalDemoAuthenticationFilter(localDemoEmail),
+                    new LocalDemoAuthenticationFilter(email, accounts.getObject()),
                     AnonymousAuthenticationFilter.class);
-        }
-
         return http.build();
     }
 
     @Bean
     CorsConfigurationSource corsConfigurationSource(
-            @Value("${app.cors.allowed-origins}") String allowedOrigins) {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(
-                Arrays.stream(allowedOrigins.split(",")).map(String::trim).toList());
-        configuration.setAllowedMethods(
-                List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(
-                List.of("Authorization", "Content-Type", "Accept", "X-Student-Id"));
-        configuration.setAllowCredentials(false);
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+            @Value("${app.cors.allowed-origins}") String origins) {
+        var c = new CorsConfiguration();
+        c.setAllowedOrigins(Arrays.stream(origins.split(",")).map(String::trim).toList());
+        c.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        c.setAllowedHeaders(List.of("Content-Type", "Accept", "X-CSRF-TOKEN", "If-Match"));
+        c.setAllowCredentials(true);
+        var source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", c);
         return source;
     }
 }

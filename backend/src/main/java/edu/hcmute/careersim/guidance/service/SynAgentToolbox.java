@@ -66,6 +66,17 @@ public class SynAgentToolbox {
 
         if (decision.tools().contains(SynToolIdentifier.READ_EVIDENCE)) {
             try {
+                for (var p : SynExecutionScope.participation().stream().limit(6).toList())
+                    references.add(
+                            new SynMessageResponse.EvidenceReference(
+                                    p.skillNameSnapshot()
+                                            + " — finalized task participation; no grade or competence claim",
+                                    "TASK_PARTICIPATION",
+                                    "SUBMISSION:" + p.submissionId() + ":" + p.scenarioVersionId(),
+                                    p.scenarioVersionId(),
+                                    p.skillCode(),
+                                    null,
+                                    null));
                 activity.add("Reviewed available assessment and simulation evidence");
                 dashboard.interestSignals().stream()
                         .findFirst()
@@ -255,7 +266,8 @@ public class SynAgentToolbox {
                         knowledge == null
                                 ? new KnowledgeRetrievalService.Retrieval(
                                         "NO_RELEVANT_KNOWLEDGE", List.of())
-                                : knowledge.retrieve(message, SynExecutionScope.mayUseExternal());
+                                : knowledge.retrieve(
+                                        message, SynExecutionScope.mayUseProvider("gemini"));
                 activity.add(
                         "Retrieved " + retrieval.chunks().size() + " reviewed knowledge passages");
                 for (var c : retrieval.chunks())
@@ -337,6 +349,27 @@ public class SynAgentToolbox {
                         standard.text(),
                         comparison,
                         resources);
+        var practices =
+                references.stream()
+                        .filter(r -> "TASK_PARTICIPATION".equals(r.sourceType()))
+                        .toList();
+        if (!practices.isEmpty()
+                && (decision.intent() == SynIntent.REVIEW_LATEST
+                        || decision.intent() == SynIntent.IDENTIFY_GAPS))
+            text =
+                    ("VI".equals(decision.responseLanguage())
+                                    ? "Các nhiệm vụ đã nộp cho thấy bạn đã thực hành: "
+                                    : "Your finalized tasks record practice in: ")
+                            + String.join(
+                                    ", ",
+                                    SynExecutionScope.participation().stream()
+                                            .map(p -> p.skillNameSnapshot())
+                                            .distinct()
+                                            .limit(6)
+                                            .toList())
+                            + ("VI".equals(decision.responseLanguage())
+                                    ? ". Đây là bằng chứng tham gia, không phải điểm hoặc chứng nhận năng lực."
+                                    : ". This is participation evidence, without a grade or competence certification.");
         if (decision.intent() == SynIntent.COMPARE_PATHS
                 && (comparison == null || comparison.paths().isEmpty())) {
             String topics = String.join(" / ", paths).replace('_', ' ');
@@ -873,6 +906,8 @@ public class SynAgentToolbox {
                                     .anyMatch(
                                             r ->
                                                     "ASSESSMENT".equals(r.sourceType())
+                                                            || "TASK_PARTICIPATION"
+                                                                    .equals(r.sourceType())
                                                             || "SIMULATION".equals(r.sourceType()))
                             ? "SELECTED_RELEVANT_EVIDENCE_ONLY"
                             : "NOT_SELECTED_FOR_THIS_REQUEST");
@@ -886,6 +921,11 @@ public class SynAgentToolbox {
                                                     r.referenceId() == null ? "" : r.referenceId(),
                                                     "label",
                                                     r.label()))
+                            .toList());
+            data.put(
+                    "TASK_PARTICIPATION",
+                    evidenceReferences.stream()
+                            .filter(r -> "TASK_PARTICIPATION".equals(r.sourceType()))
                             .toList());
             data.put(
                     "READ_EVIDENCE",

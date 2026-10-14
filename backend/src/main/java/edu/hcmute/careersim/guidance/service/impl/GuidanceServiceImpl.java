@@ -49,6 +49,18 @@ public class GuidanceServiceImpl implements GuidanceService {
     private final edu.hcmute.careersim.guidance.service.SynTurnLifecycleService lifecycle;
 
     @org.springframework.beans.factory.annotation.Autowired
+    private edu.hcmute.careersim.guidance.service.PlanCommands planCommands;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private edu.hcmute.careersim.guidance.service.ExplorationPlanService confirmedPlans;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private edu.hcmute.careersim.identity.access.PrivacyAdmission admission;
+
+    @org.springframework.beans.factory.annotation.Autowired
+    private edu.hcmute.careersim.simulation.access.ParticipationEvidenceAccess participation;
+
+    @org.springframework.beans.factory.annotation.Autowired
     public GuidanceServiceImpl(
             StudentAccountAccess a,
             AssessmentEvidenceAccess e,
@@ -82,19 +94,29 @@ public class GuidanceServiceImpl implements GuidanceService {
                         : request.context().attemptId();
         DashboardResponse dashboard =
                 lifecycle.snapshot(() -> snapshotForRequest(student, requestedAttemptId));
+        var work = lifecycle.snapshot(() -> participation.readOwned(student.id(), 20));
 
         {
             var turn = lifecycle.begin(student.id(), request);
             if (turn.response() != null) return turn.response();
             try (var scope =
                     edu.hcmute.careersim.guidance.service.SynExecutionScope.open(
-                            java.time.Duration.ofSeconds(20),
-                            () ->
-                                    lifecycle.externalAllowed(
-                                            authenticatedEmail,
-                                            student.id(),
-                                            turn.sessionId(),
-                                            turn.id()))) {
+                                    java.time.Duration.ofSeconds(20),
+                                    () ->
+                                            lifecycle.externalAllowed(
+                                                    authenticatedEmail,
+                                                    student.id(),
+                                                    turn.sessionId(),
+                                                    turn.id()),
+                                    provider ->
+                                            lifecycle.providerAllowed(
+                                                    authenticatedEmail,
+                                                    student.id(),
+                                                    student.privacyVersion(),
+                                                    provider),
+                                    admission,
+                                    student.id())
+                            .withParticipation(work)) {
                 var result =
                         synAgentOrchestrator.respond(
                                 student.id(),
@@ -106,7 +128,8 @@ public class GuidanceServiceImpl implements GuidanceService {
                         authenticatedEmail,
                         turn,
                         result,
-                        (int) ((System.nanoTime() - startedAt) / 1_000_000));
+                        (int) ((System.nanoTime() - startedAt) / 1_000_000),
+                        student.privacyVersion());
             } catch (RuntimeException exception) {
                 lifecycle.failed(student.id(), turn.id());
                 throw exception;
@@ -125,9 +148,22 @@ public class GuidanceServiceImpl implements GuidanceService {
     @Transactional
     public PlanResponse savePlan(String authenticatedEmail, SavePlanRequest request) {
         StudentAccount student = requireActiveStudent(authenticatedEmail);
-        GuidanceDao.CurrentPlan saved =
-                guidanceDao.saveCurrentPlan(
-                        student.id(), request.title().trim(), sanitizedSteps(request.steps()));
+        if (request.sessionId() != null) {
+            var draft = lifecycle.pendingPlan(student.id(), request.sessionId());
+            if (draft == null
+                    || !draft.title().equals(request.title())
+                    || !draft.steps().equals(request.steps()))
+                throw new ApiException(ErrorCode.CONFLICT, "The server-known plan draft changed.");
+        }
+        var old = confirmedPlans.current(student.id());
+        var saved =
+                planCommands.confirm(
+                        student.id(),
+                        new edu.hcmute.careersim.guidance.dto.PlanContracts.Confirm(
+                                old.map(p -> p.id()).orElse(null),
+                                old.map(p -> p.revision()).orElse(null),
+                                request.title(),
+                                sanitizedSteps(request.steps())));
         return new PlanResponse(saved.title(), saved.steps(), saved.status(), true);
     }
 
@@ -206,6 +242,7 @@ public class GuidanceServiceImpl implements GuidanceService {
         List<SimulationEvidence> simulations =
                 simulationEvidenceAccess.findRecentEvaluated(student.id(), 10);
         Optional<GuidanceDao.CurrentPlan> plan = guidanceDao.findCurrentPlan(student.id());
+        var confirmed = confirmedPlans.current(student.id());
 
         List<DashboardResponse.InterestSignal> signals =
                 assessment.stream()
@@ -236,10 +273,15 @@ public class GuidanceServiceImpl implements GuidanceService {
                                                 value.status()))
                         .orElse(null);
 
+        if (confirmed.isPresent()) {
+            var p = confirmed.get();
+            currentPlan =
+                    new DashboardResponse.CurrentPlan(p.title(), p.steps().get(0), p.status());
+        }
         int completed =
                 (assessment.isPresent() ? 1 : 0)
                         + (!simulations.isEmpty() ? 1 : 0)
-                        + (plan.isPresent() ? 1 : 0);
+                        + (confirmed.isPresent() || plan.isPresent() ? 1 : 0);
         String progressLabel =
                 completed == 0
                         ? "Start your exploration"
