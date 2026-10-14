@@ -34,8 +34,8 @@ public class MigrationPreflightService {
                 || !"public".equals(manifest.expectedSchema())
                 || !"public".equals(dao.schema()))
             throw new IllegalArgumentException("Intended database/schema must match exactly");
-        if (!"16".equals(dao.head()))
-            throw new IllegalStateException("Migration head is not Package A V16");
+        if (!"18".equals(dao.head()))
+            throw new IllegalStateException("Migration head is not Package A V18");
         if (manifest.entries() == null || manifest.entries().size() > 100)
             throw new IllegalArgumentException("Batch limit is 100 reviewed records");
         var outcomes = new ArrayList<Outcome>();

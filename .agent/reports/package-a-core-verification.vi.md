@@ -1,5 +1,7 @@
 # CareerSim — Báo cáo triển khai Package A
 
+Ghi chú sau merge main (14/10/2026): báo cáo này giữ nguyên kết quả kiểm chứng lịch sử trước merge. Tên file SQL trong bảng SHA-256 và inventory đã cập nhật theo phép đổi tên, giữ nguyên hash. Hiện tại Package A là V15–V18, Syn giữ V12–V14; Package B dự kiến V19–V21. Các số V13–V16/21 bảng nguồn/46 bảng coexistence bên dưới mô tả snapshot cũ; baseline mới có 24 bảng nguồn và 49 bảng coexistence. Kết quả kiểm chứng merge xem [báo cáo sửa numbering](package-a-migration-numbering-verification.vi.md).
+
 Ngày: 14/10/2026. Implementer: Codex, theo phê duyệt trực tiếp của project lead.
 Branch: `codex/package-a-core`. HEAD: `f00bd55ddacca3b4f0efa6f17d07de45a2acd0e7`.
 Đây là thay đổi chưa commit trên HEAD trên; SHA không đại diện cho toàn bộ diff.
@@ -149,10 +151,10 @@ import nội dung thật hoặc sao chép historical attempts/consent/completion
 
 | File | SHA-256 |
 |---|---|
-| V13__identity_enterprise_consent_foundation.sql | A40519A50BA84B8522F3BAA09B07C4FD8BCDB25F2B92A0FCA31CFEDE2E0B8A5D |
-| V14__versioned_assessment_and_assets.sql | 46881035DD5314793A38BF06756BE7721B1FBFD201DE855F1906D3C9CF5FECF9 |
-| V15__versioned_simulation_and_completion.sql | 2701896370EA20C0242DC0E989E72B37467EE87673943EA4AB7F803312C34341 |
-| V16__confirmed_exploration_plan.sql | 1AAF5C915686E0EFE2B91FFFC782E04F2C2BBA9EE0B8F548EC31C670D72BF68A |
+| V15__identity_enterprise_consent_foundation.sql | A40519A50BA84B8522F3BAA09B07C4FD8BCDB25F2B92A0FCA31CFEDE2E0B8A5D |
+| V16__versioned_assessment_and_assets.sql | 46881035DD5314793A38BF06756BE7721B1FBFD201DE855F1906D3C9CF5FECF9 |
+| V17__versioned_simulation_and_completion.sql | 2701896370EA20C0242DC0E989E72B37467EE87673943EA4AB7F803312C34341 |
+| V18__confirmed_exploration_plan.sql | 1AAF5C915686E0EFE2B91FFFC782E04F2C2BBA9EE0B8F548EC31C670D72BF68A |
 
 ## 6. Security, consent và giữ Syn
 
@@ -292,7 +294,7 @@ Package B có thể dùng ActorAccess, EnterpriseAccess/registration/recipient S
 ConsentAccess/ConsentRevocationListener/PrivacyAdmission, FileAssetService,
 AuditWriter, assessment/participation evidence ports, ScenarioAuthoringService và
 PlanCommands. Phải bổ sung registry/config versions/KB grants/runtime/memory/
-approval contracts cùng V17–V19 theo specification; không reuse legacy numeric K/A/S
+approval contracts cùng V19–V21 theo numbering sau merge; không reuse legacy numeric K/A/S
 IDs thành new IDs và không nâng completion thành grade. Chọn runtime/corpus/grants
 thật chỉ sau các approval riêng; giữ regression suite này khi thêm adapters mới.
 
@@ -434,10 +436,10 @@ backend/src/main/java/edu/hcmute/careersim/system/migration/MigrationPreflightSe
 backend/src/main/java/edu/hcmute/careersim/system/migration/MigrationRecordDao.java
 backend/src/main/java/edu/hcmute/careersim/system/migration/ReviewedImportTarget.java
 backend/src/main/resources/application.yml
-backend/src/main/resources/db/migration/V13__identity_enterprise_consent_foundation.sql
-backend/src/main/resources/db/migration/V14__versioned_assessment_and_assets.sql
-backend/src/main/resources/db/migration/V15__versioned_simulation_and_completion.sql
-backend/src/main/resources/db/migration/V16__confirmed_exploration_plan.sql
+backend/src/main/resources/db/migration/V15__identity_enterprise_consent_foundation.sql
+backend/src/main/resources/db/migration/V16__versioned_assessment_and_assets.sql
+backend/src/main/resources/db/migration/V17__versioned_simulation_and_completion.sql
+backend/src/main/resources/db/migration/V18__confirmed_exploration_plan.sql
 backend/src/test/java/edu/hcmute/careersim/architecture/LayerDependencyTest.java
 backend/src/test/java/edu/hcmute/careersim/common/config/LocalDemoAuthenticationFilterTest.java
 backend/src/test/java/edu/hcmute/careersim/guidance/controller/GuidanceControllerTest.java

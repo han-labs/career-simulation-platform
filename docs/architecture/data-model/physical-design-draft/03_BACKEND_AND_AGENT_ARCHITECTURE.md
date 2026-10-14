@@ -217,7 +217,9 @@ For asynchronous acceptance use a small bounded Spring task executor with explic
 
 ## 7. Decisions for consolidated approval and boundaries
 
-Approve together: same-schema additive architecture and BIGINT strategy; 40 new/44 active/61 coexistence tables; session+CSRF auth (no JWT subsystem); ADMIN storage alias; publication requires verified+enabled organization and representative grant; content requires ≥1 required task and deliverable; proposed transcript/memory retention and provider-specific consent; completion/certificate/snippet embedded immutable record; typed draft-only proposal execution; explicit v1 write deprecation and coordinated minimum frontend migration; two execution packages if needed.
+Approve together: same-schema additive architecture and BIGINT strategy; 40 new/44 active/64 coexistence tables after preserving main's three additional career-quiz tables (the original baseline counted 61); session+CSRF auth (no JWT subsystem); ADMIN storage alias; publication requires verified+enabled organization and representative grant; content requires ≥1 required task and deliverable; proposed transcript/memory retention and provider-specific consent; completion/certificate/snippet embedded immutable record; typed draft-only proposal execution; explicit v1 write deprecation and coordinated minimum frontend migration; two execution packages if needed.
+
+Migration-numbering amendment approved separately in chat on 2026-10-14: main/Syn V1–V14 unchanged, Package A V15–V18, planned Package B V19–V21. No module, API, business invariant or Agent capability changes accompany this numbering fix.
 
 High-risk facts requiring evidence rather than a guessed default: actual Flyway/checksum/runtime data; case-colliding identities; legitimate enterprise ownership of legacy content; missing historical version/confirmation provenance; exact deployed embedding profiles; corpus license/reviewer validity; production retention/deletion policy and deployment credential provisioning. Sol can implement/tests with synthetic fixtures without those facts, but cannot promote uncertain real records or enable affected production paths.
 

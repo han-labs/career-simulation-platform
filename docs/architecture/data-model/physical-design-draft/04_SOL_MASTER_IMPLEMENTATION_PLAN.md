@@ -2,12 +2,14 @@
 
 **Status: PROPOSED — NOT YET AUTHORIZED FOR IMPLEMENTATION.** Approval of this set is the entry gate. This planning session must stop after writing/reviewing these documents. Do not start Sol, code, migrations, commits or deployment from this document alone.
 
+Migration numbering amendment approved in chat on 2026-10-14: preserve merged main/Syn V1–V14; Package A uses V15–V18; Package B remains planned V19–V21. The original planning snapshot had 21 tables; merged main has 24, including three preserved career-quiz tables. No business invariant or Package B implementation is authorized by this numbering amendment.
+
 ## 1. Read set, authority and execution contract
 
 After human approval, read repository AGENTS entry chain, then this document and:
 
 1. [01_PHYSICAL_DATABASE_DESIGN.md](01_PHYSICAL_DATABASE_DESIGN.md): normative inventory, every column/type/default/nullability, constraints, identifiers, immutability and locking.
-2. [02_LEGACY_MAPPING_AND_MIGRATION.md](02_LEGACY_MAPPING_AND_MIGRATION.md): all 21 source tables, exact migration sequence, mappings, safe rollout and evidence boundaries.
+2. [02_LEGACY_MAPPING_AND_MIGRATION.md](02_LEGACY_MAPPING_AND_MIGRATION.md): all 24 source tables, exact migration sequence, mappings, safe rollout and evidence boundaries.
 3. [03_BACKEND_AND_AGENT_ARCHITECTURE.md](03_BACKEND_AND_AGENT_ARCHITECTURE.md): module ports, auth/consent, runtime loop, API contracts and compatibility.
 
 Architecture priority: supplied mandatory business rules > approved specification > target diagrams > legacy implementation. No new grading prerequisite, role, tenant-sharing policy, consent inference, resubmission allowance, provider capability or historical version may be invented. If the four documents conflict materially, stop only affected work and report it rather than selecting a different architecture silently.
@@ -18,8 +20,8 @@ Initial baseline is branch `codex/syn-core-vector-rag`, commit `f00bd55ddacca3b4
 
 Prefer **two major self-contained packages**, fully designed now:
 
-- **Package A — Core database and backend:** stages 0–7, Flyway V13–V16, authenticated identity/enterprise, versioned assessments, scenario authoring, enrollments/multiple deliverables/finalization, completion/evidence/dashboard, safe legacy Syn/consent bridge and minimal coordinated frontend contract changes. Complete non-AI student workflow and continued authorized legacy Syn behavior are the release boundary.
-- **Package B — Configurable Agent platform:** stages 8–12, V17–V19, registry/configs, KB integration, conversations/consent/memory, bounded native runtime, approved writes, final integration.
+- **Package A — Core database and backend:** stages 0–7, Flyway V15–V18, authenticated identity/enterprise, versioned assessments, scenario authoring, enrollments/multiple deliverables/finalization, completion/evidence/dashboard, safe legacy Syn/consent bridge and minimal coordinated frontend contract changes. Complete non-AI student workflow and continued authorized legacy Syn behavior are the release boundary.
+- **Package B — Configurable Agent platform:** stages 8–12, V19–V21, registry/configs, KB integration, conversations/consent/memory, bounded native runtime, approved writes, final integration.
 
 Reason for separation: replacing core evidence semantics and simultaneously introducing durable multi-agent state/tenant KB permissions creates two distinct migration and security risk surfaces. Package A must be demonstrable with AI disabled; B builds on its stable authority ports. Both packages share one approved architecture and can be executed sequentially in **one Sol conversation** if context/runtime permits; use at most two implementation sessions, not stage-by-stage handoffs. Checkpoints are internal tests, not requests for human review. A single consolidated report is required for a single combined run; if executed as two packages, each gets one report and B produces the final combined acceptance matrix. No approval pauses for routine compile/test repairs.
 
@@ -56,27 +58,27 @@ Each stage below inherits the fixed schema/API definitions; source files named a
 
 **Objective:** establish reproducible authority, actual migration baseline and existing callers before changes. **Dependencies:** approved scope; no runtime database changes.
 
-Read `M/V1..V12`, all nine entity mappings, `J/common/config`, existing assessment/simulation/guidance services and `F/features/*/api`, direct fetches/hooks. Record exact SHA, changed files, migration SHA256/checksums and planned path scope. Inspect `T/guidance/dao/GuidancePersistenceIntegrationTest`, `T/architecture/LayerDependencyTest`, Maven/CI settings. Create `T/system/migration/SchemaUpgradeIntegrationTest` fixtures and acceptance checklist based on §7; make no claim before running them.
+Read `M/V1..V14`, all nine entity mappings, `J/common/config`, existing assessment/simulation/guidance services and `F/features/*/api`, direct fetches/hooks. Record exact SHA, changed files, migration SHA256/checksums and planned path scope. Inspect `T/guidance/dao/GuidancePersistenceIntegrationTest`, `T/architecture/LayerDependencyTest`, Maven/CI settings. Create `T/system/migration/SchemaUpgradeIntegrationTest` fixtures and acceptance checklist based on §7; make no claim before running them.
 
 Runtime access is optional for implementation but **required before real upgrade**. With a known intended connection, run only read-only preflight inventory in 02. If access is unavailable, mark runtime upgrade BLOCKED/PENDING EVIDENCE and proceed against isolated synthetic containers. Never infer target DB from default credentials or clean an owner's database. Valuable-data Flyway conflict stops affected migration work.
 
-**Checkpoint:** current branch/diff captured, all 21 tables accounted for, no V1–V12 edits, runtime evidence labeled. **DoD:** fixture/reproduction plan names clean-install and V12-upgrade targets, not a production URL. **Out of scope:** commit, deploy, cleanup, migration execution on valuable data.
+**Checkpoint:** current branch/diff captured, all 24 tables accounted for, no V1–V14 edits, runtime evidence labeled. **DoD:** fixture/reproduction plan names clean-install and V14-upgrade targets, not a production URL. **Out of scope:** commit, deploy, cleanup, migration execution on valuable data.
 
 ### Stage 1 — Additive schema and preservation scaffolding
 
 **Objective:** install core schema without disrupting legacy mappings. **Dependencies:** stage 0.
 
-Create M/V13 through V16 exactly as 02; include all 01 columns, composite FKs, indexes, guards and delete policies. Create `J/system/migration/LegacyBackfillCommand`, `MigrationRecordDao`, `MigrationPreflightService` and immutable review-manifest DTOs. Command defaults to dry run; actual copy requires reviewed manifest including source hash, enterprise mapping and content review identities. Do not include automatic attempt/consent/completion imports. No provider calls from migration/import.
+Create M/V15 through V18 exactly as 02; include all 01 columns, composite FKs, indexes, guards and delete policies. Create `J/system/migration/LegacyBackfillCommand`, `MigrationRecordDao`, `MigrationPreflightService` and immutable review-manifest DTOs. Command defaults to dry run; actual copy requires reviewed manifest including source hash, enterprise mapping and content review identities. Do not include automatic attempt/consent/completion imports. No provider calls from migration/import.
 
 Implement DDL guards with parent row locks; no parent lifecycle can race an unguarded child update. Create table cycles in two steps and add FKs after both tables exist. Keep legacy JPA validate untouched. DB normalized-email uniqueness must fail visibly on a collision; no merge/delete. Runtime application role cannot migrate schema.
 
 **Interfaces/data:** manifest row `(sourceTable,sourceKey,sourceHash,targetKind,reviewedMapping)`; dry-run report `(counts,conflicts,unmapped,reasons)`; committed ledger written with target transaction. Batches capped (proposed 100 source records/transaction), retry by exact source hash. **Failure:** rollback batch, mark/report conflict without changing source; a schema install must not depend on imported enterprise data.
 
-**Tests:** fresh V1–V16; populated V12→V16; source row hash/count preservation; migration rerun unchanged; interrupted importer; email collision rejection; source task mismatch detection; no default new consent/completion. **Acceptance/DoD:** AC34–AC37 core subset passes in PG17, or explicitly blocked by Docker unavailable; all core tables match dictionary. **Out of scope:** any physical contract/drop, schema namespace change, rewriting seeds.
+**Tests:** fresh V1–V18; populated V14→V18; source row hash/count preservation; migration rerun unchanged; interrupted importer; email collision rejection; source task mismatch detection; no default new consent/completion. **Acceptance/DoD:** AC34–AC37 core subset passes in PG17, or explicitly blocked by Docker unavailable; all core tables match dictionary. **Out of scope:** any physical contract/drop, schema namespace change, rewriting seeds.
 
 ### Stage 2 — Identity, enterprise and purpose-specific consent
 
-**Objective:** eliminate client-selected authentication and establish ownership authority. **Dependencies:** V13.
+**Objective:** eliminate client-selected authentication and establish ownership authority. **Dependencies:** V15.
 
 Modify `J/common/config/SecurityConfig.java`, guard LocalDemoAuthenticationFilter, extend identity access to stable principal ID. Create `J/identity/service/{IdentityService,ConsentService}`, `service/impl`, controller/dto/dao/domain policies; `J/enterprise/service/{EnterpriseService,EnterpriseAccess}`, policies/DAOs/controllers. Account/profile/membership creation atomic; default enterprise publication disabled. Use proposed session/CSRF/password policies in 03; framework session store initially in-memory, no persistence table.
 
@@ -90,7 +92,7 @@ Implement all `/v2/auth`, `/me`, consent and admin enterprise endpoints in 03. R
 
 ### Stage 3 — Versioned assessment end to end
 
-**Objective:** correct version pinning, response membership and deterministic retakes. **Dependencies:** stages 1–2/V14.
+**Objective:** correct version pinning, response membership and deterministic retakes. **Dependencies:** stages 1–2/V16.
 
 Create `J/assessment/service/{VersionedAssessmentService,AssessmentAuthoringService}` and implementations; `domain/{AssessmentAttemptState,AssessmentPublicationPolicy,RiasecV1Evaluator,AssessmentEvaluatorRegistry}`; explicit new entities `AssessmentType`, `AssessmentVersion`, `AssessmentQuestion`, `VersionedAssessmentAttempt`, `AssessmentResponse`, `AssessmentResult`; own repositories. Retain old entity/repositories for legacy reads. Modify AssessmentEvidenceAccess to return typed legacy/new result descriptors; no source DAO import in guidance.
 
@@ -102,7 +104,7 @@ Implement start/save/get/submit/result/admin publication endpoints exactly in 03
 
 ### Stage 4 — Scenario authoring, immutable version publication and assets
 
-**Objective:** enterprises author reviewed version-specific tasks, definitions/resources/answers/skills. **Dependencies:** stage 2 and V15.
+**Objective:** enterprises author reviewed version-specific tasks, definitions/resources/answers/skills. **Dependencies:** stage 2 and V17.
 
 Create `J/simulation/service/ScenarioAuthoringService`, `ScenarioCatalogAccess`, domain publication/definition policies, new content entities and DAOs with names avoiding existing SimulationTask collision. Create `J/common/storage/{FileAssetService,PrivateFileStorage}` with local private-directory adapter for single-host deployment; random server storage key, normalized path under configured root, no public static serving. Implement no remote content fetching. Create `J/simulation/adapter/ScenarioDraftCommandAdapter` in B later, not a second authoring engine.
 
@@ -134,7 +136,7 @@ Model answer read requires same student/enrollment/task FINAL, then access-check
 
 ### Stage 7 — Evidence, dashboard, plans and Package A compatibility
 
-**Objective:** new participation evidence, preserved legacy history, confirmed plan and usable frontend contracts. **Dependencies:** stages 2–6/V16.
+**Objective:** new participation evidence, preserved legacy history, confirmed plan and usable frontend contracts. **Dependencies:** stages 2–6/V18.
 
 Extend `J/assessment/access` and `J/simulation/access` with separate typed legacy/new views; move new cross-module joins out of guidance/JdbcSynAgentDao. Implement `J/guidance/service/{GuidanceEvidenceQuery,ExplorationPlanService}` and `PlanCommands`; retain StandardGuidancePolicy, reviewed career_path_profiles/learning_resources. New dashboard returns typed evidence; practices are derived from FINAL task_submission + immutable task_skill, including incomplete enrollments. Completion count is not graded score; no student strength certification from legacy correctness flags.
 
@@ -150,7 +152,7 @@ Old v1 assessment and graded simulation writes now return 409 WORKFLOW_UPGRADE_R
 
 ### Stage 8 — Agent registry/configs and KB management schema
 
-**Objective:** durable explicit Agent configurations with independently usable KB administration. **Dependencies:** Package A authority ports; V17.
+**Objective:** durable explicit Agent configurations with independently usable KB administration. **Dependencies:** Package A authority ports; V19.
 
 Create `J/agent/service/AgentAdminService`, config domain policy/DAOs/controller; `J/knowledge/service/{KnowledgeBaseService,KnowledgeIngestionService,KnowledgeSearchService,KnowledgeSourceAccess}` plus ownership policies/DAOs. Move reusable chunker/hybrid abstractions through bounded edits, preserving legacy wrappers/tests. Configuration publication stores hash, role array/tool codes/full execution limits/memory policy and explicit KB junctions. Seed Syn/Enterprise Assistant **as disabled drafts** until reviewed config and provider capabilities are known; no credentials in rows.
 
@@ -172,7 +174,7 @@ Copy existing vectors only through approved profile/corpus mapping from 02. Use 
 
 ### Stage 10 — Durable conversations, bounded runtime, consent and manageable memory
 
-**Objective:** actual configurable native tool loop and scoped durable conversation lifecycle. **Dependencies:** stages 8–9; V18.
+**Objective:** actual configurable native tool loop and scoped durable conversation lifecycle. **Dependencies:** stages 8–9; V20.
 
 Create `J/agent/service/{AgentConversationService,AgentRuntimeService,AgentRunLifecycleService,AgentMemoryService}`, state/DTO/DAO/controller components; `infrastructure/AgentModelClient` adapters over retained transport. Extract shared execution budget/deadline/cancellation primitives from Syn without replacing career policy. Implement accept/run/recover/cancel/watchdog flow in 03, bounded task executor, same key/hash semantics, one active run per chat, epoch + privacy_version guards. User message and run acceptance atomic; assistant/result terminal commit atomic. Do not persist chain of thought or provider opaque protocol in public traces.
 
@@ -194,7 +196,7 @@ Execute exact transaction in 03: locks, approved/unexpired/hash/revision/status/
 
 ### Stage 12 — Syn bridge, integrated migration, security and consolidated evidence
 
-**Objective:** complete compatibility transition and prove entire approved system. **Dependencies:** stages 0–11/V19.
+**Objective:** complete compatibility transition and prove entire approved system. **Dependencies:** stages 0–11/V21.
 
 Implement guidance→AgentChat adapter preserving current v1 request UUID/session/recovery/cancel/clear/plan response semantics. New sessions pin initial Syn config; legacy session/turn lookup remains separate and expires naturally only under approved policy. Request ID lookup checks old store before new execution to prevent duplicate actions. v1 source inspection uses old K namespace, new v2 source inspect uses typed references. Update `F/features/guidance/utils/synSources.js` and its tests to allow exactly the new authenticated source route with validated decimal configurationId query; retain hostile URL rejection. Enterprise Assistant uses same runtime with different config/tools, no second orchestrator branch.
 
@@ -253,8 +255,8 @@ Do not stop for ordinary compile errors, race-test failures, DTO mismatches, for
 | AC31 | Target edit/publish, changed hash, wrong actor/tenant, permission revoke or expiry after approval | STALE/expired/denied, zero mutation; new proposal/review needed |
 | AC32 | Timeout/provider 400/429/503/malformed/unsafe reply, cap, cancel, restart | Bounded calls, classified safe failure, Standard/abstention, no objective change, cancelled late reply discarded |
 | AC33 | Replay recorded v1 React contract fixtures; old graded submit after cutover | Compatible legacy reads/Syn IDs/language/recovery, explicit upgrade code for invalid old write behavior; no fake grade |
-| AC34 | Clean V1–V19 on fresh PG17+pgvector | Flyway checksums/constraints/counts match dictionary; Hibernate validate; no arbitrary credentials/consent [DB] |
-| AC35 | Populated V12 isolated upgrade/import; run twice and crash/retry | Legacy hashes/counts unchanged; reviewed copies only; idempotent ledger; no invented versions/completions [DB] |
+| AC34 | Clean V1–V21 on fresh PG17+pgvector | Flyway checksums/constraints/counts match dictionary; Hibernate validate; no arbitrary credentials/consent [DB] |
+| AC35 | Populated V14 isolated upgrade/import; run twice and crash/retry | Legacy hashes/counts unchanged; reviewed copies only; idempotent ledger; no invented versions/completions [DB] |
 | AC36 | Valuable DB history mismatch, normalized email collision, unknown content owner/profile | Dry-run conflict report, affected cutover blocked; no repair/merge/drop shortcut [LIVE evidence pending] |
 | AC37 | Backup restore into different isolated DB | Restored head/counts/relationships, core read/write smoke; no original DB overwrite [LIVE evidence pending] |
 | AC38 | Real gateway no-AI assessment→enroll→draft→final→answer→completion→dashboard, EN/VI | Persistence proven by reload/readback; failed save keeps draft; keyboard/errors/locale correct [LIVE smoke pending] |
@@ -278,7 +280,7 @@ Before integration tests confirm the datasource points to the isolated test cont
 
 Consolidated report must contain: approved scope/package; final SHA and uncommitted diff status; requirement→service→schema→test→evidence mapping; all created/changed files; schema inventory and migration checksums/head; backfill dry-run/conflicts/copied counts; actual test commands/counts/failures/skips; real DB/API/UI/native-provider/human evidence separately; preserved legacy history and API behavior/deprecations; unresolved production runtime/ownership/retention/corpus gaps; exact next human actions. Disclose AI assistance and human review, no fabricated measurements. No secrets/private payloads in artifacts. Do not claim deployment without executing an authorized deployment.
 
-Overall DoD: core non-AI flow correct; identity/tenant/purpose enforcement current; content/config/version provenance intact; one final task and completion invariants proven; Agent cannot mutate protected evidence; authorized KB retrieval and native runtime bounded; approved writes atomic/stale-safe; original V1–V12 unchanged; legacy records preserved; frontend compatibility handled with honest state; required gates passed or clearly blocked; human acceptance remaining items enumerated. A partial package is not the whole target architecture.
+Overall DoD: core non-AI flow correct; identity/tenant/purpose enforcement current; content/config/version provenance intact; one final task and completion invariants proven; Agent cannot mutate protected evidence; authorized KB retrieval and native runtime bounded; approved writes atomic/stale-safe; original V1–V14 unchanged; legacy records preserved; frontend compatibility handled with honest state; required gates passed or clearly blocked; human acceptance remaining items enumerated. A partial package is not the whole target architecture.
 
 ## 9. Approval review checklist and planning self-review
 

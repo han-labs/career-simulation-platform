@@ -91,10 +91,11 @@ database user and Flyway migrator can use separate credentials; deployment must
 provision least-privilege roles before valuable-runtime startup. No production
 cutover or default Compose startup was performed for Package A.
 
-Package A adds V13–V16 only: 25 tables, 46 during coexistence (including the 21
-retained legacy tables, excluding Flyway history). It uses JDBC records/explicit
-SQL for new persistence and retains the nine legacy JPA mappings with validate.
-The configurable Agent Platform and V17–V19 remain Package B.
+Package A adds V15–V18 only, after unchanged main/Syn V1–V14: 25 tables, 49
+during coexistence (including the 24 retained tables after the main merge,
+excluding Flyway history). It uses JDBC records/explicit SQL for new persistence
+and retains existing legacy JPA mappings with validate. The configurable Agent
+Platform and V19–V21 remain planned Package B.
 
 [Package A consolidated implementation/evidence report](../../.agent/reports/package-a-core-verification.vi.md)
 records exact scope, tests, limits and the implemented request sequence. The

@@ -136,3 +136,14 @@ Continuation 2026-10-02: private evidence scope and negated simulation fixes, bo
 - Evidence, API/module/file inventory, limitations and Package B prerequisites:
   reports/package-a-core-verification.vi.md. No commit/push/deployment.
 - Revised SRS is unavailable; human UAT/content review and real rollout remain gated.
+## 12 Package A migration numbering after main merge — 2026-10-14
+
+- Human accepted the reported second collision at Syn V14 and the replacement
+  numbering: Package A V15–V18, planned Package B V19–V21.
+- Preserve main/Syn V1–V14 and all four Package A SQL contents; no shared DB access,
+  history repair, reset, commit or push. Verification is recorded separately in
+  reports/package-a-migration-numbering-verification.vi.md. Section 11 is historical.
+- Merged-source final clean verify: 196 discovered / 192 passed / 4 live skips;
+  frontend core-enabled check: 76 passed plus lint/build. Source/JAR versions 1–18
+  unique, 18 SQL hashes unchanged; isolated V14 upgrade/history/preservation and
+  gateway/restore passed. Compose/diff checks passed.

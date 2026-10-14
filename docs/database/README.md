@@ -76,3 +76,20 @@ at V10 and V11. To keep those applied migration names and checksums intact, the
 Syn lifecycle, vector knowledge, and trace migrations use V12, V13, and V14,
 respectively. V13 requires the pgvector extension. The SQL contents of the Syn
 migrations are unchanged by this version reassignment.
+
+## Package A numbering after the main merge
+
+Main/Syn V1–V14 keep their exact filenames and SQL bytes. Package A's four scripts
+were renamed, in order, to V15 identity/enterprise/consent, V16 assessment/assets,
+V17 simulation/completion, and V18 confirmed plans. Their SQL hashes are unchanged.
+The merged source baseline has 24 tables; Package A adds 25 for 49 in coexistence.
+Preflight/import tooling requires Package A head V18. Package B remains planned
+only: V19 registry/knowledge, V20 runtime/approvals, V21 integrity guards.
+
+V18's preserved SQL comment still refers to the original planned "Package B/V18";
+that future proposal-plan FK belongs to V20 under the approved new numbering.
+The comment is intentionally not rewritten, to preserve SQL contents/checksum.
+Do not use Flyway repair/clean or rename scripts already applied to a shared or
+valuable database. Runtime history is NOT VERIFIED by this repository fix; any
+valuable-data upgrade remains separately gated. Run a clean Maven build after
+renaming so old SQL resources do not remain in `backend/target/classes`.

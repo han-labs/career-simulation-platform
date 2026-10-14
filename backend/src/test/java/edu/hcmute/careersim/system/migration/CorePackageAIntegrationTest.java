@@ -674,7 +674,7 @@ class CorePackageAIntegrationTest {
                             restored.queryForObject(
                                     "SELECT max(version::integer) FROM public.flyway_schema_history WHERE success",
                                     Integer.class))
-                    .isEqualTo(16);
+                    .isEqualTo(18);
             assertThat(
                             restored.queryForObject(
                                     "SELECT resume_snippet_text FROM public.simulation_completion WHERE id=?",
