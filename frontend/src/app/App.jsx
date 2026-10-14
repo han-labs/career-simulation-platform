@@ -45,6 +45,8 @@ function App() {
         <Route index element={<LandingPage />} />
         <Route path="account" element={<AccountPage />} />
         <Route path="assessment" element={coreEnabled ? <VersionedAssessmentPage /> : <AssessmentPage />} />
+        <Route path="assessment" element={<AssessmentPage />} />
+        <Route path="assessment/:assessmentType" element={<AssessmentPage />} />
         <Route path="simulations" element={<SimulationCatalogPage />} />
         <Route path="simulations/:slug" element={coreEnabled ? <CoreSimulationPage /> : <SimulationDetailPage />} />
         <Route

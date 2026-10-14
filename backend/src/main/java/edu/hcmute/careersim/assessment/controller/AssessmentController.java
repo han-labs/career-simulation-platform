@@ -2,6 +2,8 @@ package edu.hcmute.careersim.assessment.controller;
 
 import edu.hcmute.careersim.assessment.dto.AssessmentAttemptDto;
 import edu.hcmute.careersim.assessment.dto.AssessmentResultDto;
+import edu.hcmute.careersim.assessment.dto.CareerQuizQuestionDto;
+import edu.hcmute.careersim.assessment.dto.CareerQuizResultDto;
 import edu.hcmute.careersim.assessment.dto.RiasecQuestionDto;
 import edu.hcmute.careersim.assessment.dto.SubmitAnswersRequest;
 import edu.hcmute.careersim.assessment.service.AssessmentService;
@@ -73,5 +75,32 @@ public class AssessmentController {
             throw new edu.hcmute.careersim.common.exception.ApiException(
                     edu.hcmute.careersim.common.exception.ErrorCode.FORBIDDEN);
         return id;
+    }
+
+    @GetMapping("/quizzes/{type}/questions")
+    public ApiResponse<List<CareerQuizQuestionDto>> getQuizQuestions(@PathVariable String type) {
+        return ApiResponse.success(assessmentService.getQuizQuestions(type));
+    }
+
+    @PostMapping("/quizzes/{type}/attempts")
+    public ApiResponse<AssessmentAttemptDto> startQuizAttempt(
+            @PathVariable String type,
+            @RequestHeader(value = "X-Student-Id", defaultValue = "1") Long studentId) {
+        return ApiResponse.success(assessmentService.startQuizAttempt(type, studentId));
+    }
+
+    @PostMapping("/quizzes/attempts/{id}/submit")
+    public ApiResponse<CareerQuizResultDto> submitQuizAnswers(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-Student-Id", defaultValue = "1") Long studentId,
+            @Valid @RequestBody SubmitAnswersRequest request) {
+        return ApiResponse.success(assessmentService.submitQuizAnswers(id, studentId, request));
+    }
+
+    @GetMapping("/quizzes/attempts/{id}/result")
+    public ApiResponse<CareerQuizResultDto> getQuizResult(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-Student-Id", defaultValue = "1") Long studentId) {
+        return ApiResponse.success(assessmentService.getQuizAttemptResult(id, studentId));
     }
 }

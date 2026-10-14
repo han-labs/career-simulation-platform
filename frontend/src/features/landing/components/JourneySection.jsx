@@ -6,9 +6,9 @@ const journey = [
   {
     icon: Target,
     number: '01',
-    title: 'Identify Interests & Personality',
-    copy: 'Answer 42 questions to explore your interests across six RIASEC areas.',
-    actionLabel: 'Career Assessment',
+    title: 'Explore Interests & Preferences',
+    copy: 'Use a 42-question RIASEC self-reflection to review six interest dimensions and choose what you want to explore next.',
+    actionLabel: 'Take Assessment',
     to: '/assessment',
   },
   {
@@ -35,9 +35,11 @@ function JourneySection() {
     <section className="section section--paper" id="how-it-works" aria-labelledby="journey-heading">
       <div className="section-shell">
         <div className="section-heading">
-          <span className="eyebrow">{t("Your learning journey")}</span>
-          <h2 id="journey-heading">{t("Explore in three steps")}</h2>
-          <p className="section-heading__sub"> {t("Start with your interests. Learn through experience.")} </p>
+          <span className="eyebrow">{t('A student-led exploration process')}</span>
+          <h2 id="journey-heading">{t('From Interests to First-hand Experience')}</h2>
+          <p className="section-heading__sub">
+            {t('Combine self-reflection with hands-on activities and decide for yourself what to explore further.')}
+          </p>
         </div>
 
         <div className="journey-grid">

@@ -41,14 +41,14 @@ flowchart TB
 
 | Module | Responsibility | Current state |
 |---|---|---|
-| `identity` | Accounts, session/CSRF, profile, purpose/recipient consent, stable actor ports | Package A code and isolated tests; valuable-runtime rollout gated |
-| `assessment` | Versioned attempts/results and frozen RIASEC evaluator | New v2 workflow; v1 immutable history retained |
-| `catalog` | Published metadata discovery | v2 consumes ScenarioCatalogAccess; v1 remains separate |
-| `simulation` | Enterprise-owned versioned content, enrollment, deliverables, final work, answers/completion | New ungraded v2 workflow; legacy grading isolated behind write switch |
-| `guidance` | Typed dashboard, confirmed plan history and existing Syn | New participation stays separate from old score cards; existing bounded AI/fallback retained |
-| `enterprise` | Organizations, representatives, verification/publication permission | Admin-managed permission independent of registration |
-| `common` | API, audit, canonical values and protected asset storage | Association-specific download policies injected through SPI |
-| `system` | Health, reviewed import/preflight and ledger | Dry-run default; no automatic historical version/consent/completion imports |
+| `identity` | Authentication, roles, profiles, consent | Account/consent read boundary exists; runtime login remains pending |
+| `assessment` | RIASEC, Interests, Abilities, and Work Activities assessments with deterministic scoring | US-01 APIs and persisted assessment results implemented; login remains pending |
+| `catalog` | Published simulation discovery | Working foundation slice |
+| `simulation` | Tasks, attempts, submissions, deterministic evaluation | Preliminary US-02 backend implemented |
+| `guidance` | Dashboard summaries, bounded session memory, typed read tools, bounded LLM tool calling, schema validation, and deterministic Standard fallback | US-03 bounded agent and global Syn widget implemented; runtime login remains pending |
+| `enterprise` | Simulation authoring, publishing, and monitoring | Boundary reserved |
+| `common` | Narrow cross-cutting API/configuration/error primitives | Working foundation |
+| `system` | Health and operational endpoints | Working foundation |
 
 Each module exposes a service interface as its application facade. Controllers depend on that interface, while implementation classes hide DAOs, entities, mappers, integrations, and transaction boundaries.
 
@@ -106,7 +106,7 @@ The source architecture image is retained in `.agent/references/system-architect
 
 ## P1/P2 Syn core and vector RAG increment
 
-PostgreSQL now requires pgvector. V10 adds versioned turn/session lifecycle, V11 adds published knowledge document/version/chunk tables and `vector(768)`, V12 adds sanitized trace metadata. Business evidence remains relational and authoritative. No frontend-to-provider, model-to-SQL or model-to-plan-write path was added.
+PostgreSQL now requires pgvector. V12 adds versioned turn/session lifecycle, V13 adds published knowledge document/version/chunk tables and `vector(768)`, V14 adds sanitized trace metadata. These versions follow the already-applied assessment V10 and V11 migrations. Business evidence remains relational and authoritative. No frontend-to-provider, model-to-SQL or model-to-plan-write path was added.
 
 The message flow uses short snapshot/begin/finalization transactions around an external-call phase. The seventh read tool, SEARCH_KNOWLEDGE, combines exact vector retrieval and local full-text search. Publication is an internal reviewed workflow, independent of chat. Deadline/cancellation and shared schema validation protect the generation boundary. Package A supplies session authentication and explicit provider grants; the old consent timestamp is historical only. A single-instance per-user admission lock coordinates outbound dispatch with revoke, and finish/replay revalidate authorization. Horizontal scaling requires new admission coordination. Localhost demo is explicitly profile-gated and remains separate from production authentication.
 

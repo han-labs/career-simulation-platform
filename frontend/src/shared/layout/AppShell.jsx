@@ -8,7 +8,7 @@ import LanguageSwitcher from '../i18n/LanguageSwitcher.jsx'
 const navigation = [
   { label: 'How It Works', href: '/#how-it-works' },
   { label: 'IT Career Tracks', to: '/simulations' },
-  { label: 'Career Assessment', to: '/assessment' },
+  { label: 'Career Assessments', to: '/assessment' },
   { label: 'Dashboard & Syn', to: '/dashboard' },
 ]
 
@@ -100,7 +100,7 @@ function AppShell() {
           <nav className="site-footer__nav" aria-label={t("Footer navigation links")}>
             <div>
               <strong>{t("Career Exploration")}</strong>
-              <Link to="/assessment">{t("Career Assessment")}</Link>
+              <Link to="/assessment">{t("Career Assessments")}</Link>
               <Link to="/simulations">{t("IT Career Simulations")}</Link>
               <a href="/#starter-catalog">{t("Starter Projects")}</a>
             </div>

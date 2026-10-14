@@ -80,7 +80,7 @@ Never commit the VM `.env`, TLS private keys, provider credentials, database bac
 
 ## Syn vector RAG deployment
 
-The database image is pinned to `pgvector/pgvector:0.8.2-pg17`; V11 needs the `vector` extension. The PostgreSQL major version remains 17. Before changing an existing deployment, take a verified logical backup and restore it into a fresh pgvector instance; do not delete the existing volume. Validate encoding/collation and extensions when moving from the earlier Alpine image. The implementation smoke uses an isolated Compose project and new volume, not the developer's original DB.
+The database image is pinned to `pgvector/pgvector:0.8.2-pg17`; V13 needs the `vector` extension. The PostgreSQL major version remains 17. Before changing an existing deployment, take a verified logical backup and restore it into a fresh pgvector instance; do not delete the existing volume. Validate encoding/collation and extensions when moving from the earlier Alpine image. The implementation smoke uses an isolated Compose project and new volume, not the developer's original DB.
 
 `KNOWLEDGE_EMBEDDING_ENABLED=false` is the default. Enable only with a backend Gemini key and an approved corpus. Profile is pinned to `gemini-embedding-001:768:retrieval-v1`; new models/dimensions need reindexing and evaluation. See [corpus publication and evaluation commands](../data/knowledge/README.md). No approved corpus is automatically seeded.
 

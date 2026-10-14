@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { apiRequest } from '../../../shared/api/httpClient.js'
 
 const STORAGE_KEY = 'careersim_assessment_state_v2'
 
-export function useAssessment() {
+export function useAssessment({ storageKey = STORAGE_KEY } = {}) {
   const getInitialState = () => {
-    const saved = localStorage.getItem(STORAGE_KEY)
+    const saved = localStorage.getItem(storageKey)
     if (saved) {
       try {
         const parsed = JSON.parse(saved)
@@ -25,11 +25,12 @@ export function useAssessment() {
   const [questions, setQuestions] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState(null)
+  const submissionInFlight = useRef(false)
 
   // Save to local storage whenever state changes
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
-  }, [state])
+    localStorage.setItem(storageKey, JSON.stringify(state))
+  }, [state, storageKey])
 
   const setAnswer = useCallback((questionId, value) => {
     setState(prev => ({
@@ -58,26 +59,35 @@ export function useAssessment() {
   }, [])
 
   const start = useCallback(async () => {
+    if (state.status === 'in_progress' && state.attemptId) return true
     setIsLoading(true)
     setError(null)
     try {
       const data = await apiRequest('/v1/assessments/attempts', {
         method: 'POST',
       })
-      setState(prev => ({ ...prev, status: 'in_progress', attemptId: data.id }))
+setState(prev => ({
+  ...prev,
+  status: 'in_progress',
+  attemptId: data.id
+}))
+return true
     } catch (err) {
       setError(err.message)
+      return false
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [state.status, state.attemptId])
 
   const submit = useCallback(async () => {
+    if (submissionInFlight.current) return
     if (!state.attemptId) {
       setError('No active attempt found.')
       return
     }
-    
+
+    submissionInFlight.current = true
     setIsLoading(true)
     setError(null)
     try {
@@ -98,6 +108,7 @@ export function useAssessment() {
     } catch (err) {
       setError(err.message)
     } finally {
+      submissionInFlight.current = false
       setIsLoading(false)
     }
   }, [state.answers, state.attemptId])

@@ -4,6 +4,7 @@ import { Loader2 } from 'lucide-react'
 import AssessmentProgressBar from './AssessmentProgressBar.jsx'
 import AssessmentDemoControls from './AssessmentDemoControls.jsx'
 import AssessmentQuestionCard from './AssessmentQuestionCard.jsx'
+import { createDemoAnswers } from '../data/demoAnswers.js'
 
 const scaleOptions = [
   { value: 1, label: 'Strongly Dislike' },
@@ -13,14 +14,21 @@ const scaleOptions = [
   { value: 5, label: 'Strongly Like' },
 ]
 
-function AssessmentForm({ questions, answers, setAnswer, setAllAnswers, onSubmit, isLoading, showDemo = true }) {
+function AssessmentForm({
+  questions, answers, setAnswer, setAllAnswers, onSubmit, isLoading,
+  showDemo = true,
+  scaleOptions: customScaleOptions,
+  showDemoControls = true,
+  demoProfiles,
+}) {
   const { t } = useI18n()
   const [error, setError] = useState(null)
-  const answeredCount = Object.keys(answers).length
+  const answeredCount = questions.filter((question) => answers[question.id] !== undefined).length
   const totalCount = questions.length
   const progressPercent = totalCount > 0 ? (answeredCount / totalCount) * 100 : 0
 
   const [errorIds, setErrorIds] = useState([])
+  const options = customScaleOptions || scaleOptions
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -46,16 +54,7 @@ function AssessmentForm({ questions, answers, setAnswer, setAllAnswers, onSubmit
   }
 
   const handleDemo = (type) => {
-    const newAnswers = {}
-    questions.forEach((q, index) => {
-      if (type === 'backend') {
-        newAnswers[q.id] = (index % 6 === 1 || index % 6 === 5) ? 5 : ((index % 6 === 0) ? 4 : 2)
-      } else if (type === 'frontend') {
-        newAnswers[q.id] = (index % 6 === 2 || index % 6 === 3) ? 5 : ((index % 6 === 4) ? 4 : 2)
-      } else {
-        newAnswers[q.id] = (index % 6 === 4 || index % 6 === 5) ? 5 : ((index % 6 === 2) ? 4 : 2)
-      }
-    })
+    const newAnswers = createDemoAnswers(questions, type, demoProfiles)
     if (setAllAnswers) setAllAnswers(newAnswers)
   }
 
@@ -64,7 +63,9 @@ function AssessmentForm({ questions, answers, setAnswer, setAllAnswers, onSubmit
       <fieldset disabled={isLoading} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
       <AssessmentProgressBar answeredCount={answeredCount} totalCount={totalCount} progressPercent={progressPercent} />
       
-      {showDemo && <AssessmentDemoControls onDemo={handleDemo} />}
+{showDemo && showDemoControls && (
+  <AssessmentDemoControls onDemo={handleDemo} profiles={demoProfiles} />
+)}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         {questions.map((q, index) => (
@@ -75,13 +76,13 @@ function AssessmentForm({ questions, answers, setAnswer, setAllAnswers, onSubmit
             answer={answers[q.id]}
             setAnswer={setAnswer}
             isMissing={errorIds.includes(q.id)}
-            scaleOptions={scaleOptions}
+            scaleOptions={options}
           />
         ))}
       </div>
 
       {error && (
-        <div style={{ color: 'var(--accent-dark)', marginTop: '32px', fontWeight: 'bold', padding: '16px', background: '#fcebe6', borderRadius: '12px', border: '1px solid var(--accent)' }}>
+        <div role="alert" style={{ color: 'var(--accent-dark)', marginTop: '32px', fontWeight: 'bold', padding: '16px', background: '#fcebe6', borderRadius: '12px', border: '1px solid var(--accent)' }}>
           {t(error)}
         </div>
       )}

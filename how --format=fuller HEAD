@@ -1,0 +1,25 @@
+[33mcommit 2eb01c5dba81fb2ad15faeee0974b58423b0b768[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Jadey364 <jadeyvo364@gmail.com>
+Date:   Tue Oct 13 03:31:24 2026 +0700
+
+    fix: enhance UI of project
+
+ System_Architecture_Analysis.md                    |  149 [32m+++[m
+ careersim-technical-story-US01.html                |  381 [32m+++++++[m
+ frontend/index.html                                |   13 [32m+[m[31m-[m
+ frontend/public/favicon.png                        |  Bin [31m0[m -> [32m98292[m bytes
+ frontend/public/images/hcmute-logo.png             |  Bin [31m0[m -> [32m98292[m bytes
+ .../features/landing/components/CatalogSection.jsx |   24 [32m+[m[31m-[m
+ .../src/features/landing/components/CtaSection.jsx |   38 [32m+[m
+ .../landing/components/FeaturesSection.jsx         |  110 [32m++[m
+ .../features/landing/components/HeroSection.jsx    |  110 [32m+[m[31m-[m
+ .../features/landing/components/JourneySection.jsx |   46 [32m+[m[31m-[m
+ .../features/landing/components/TracksSection.jsx  |  103 [32m++[m
+ frontend/src/features/landing/landingPage.test.js  |  139 [32m+++[m
+ .../src/features/landing/pages/LandingPage.jsx     |   22 [32m+[m[31m-[m
+ .../simulations/components/SimulationCard.jsx      |   20 [32m+[m[31m-[m
+ frontend/src/shared/layout/AppShell.jsx            |   99 [32m+[m[31m-[m
+ frontend/src/shared/ui/BrandMark.jsx               |   21 [32m+[m[31m-[m
+ frontend/src/shared/ui/BrandMark.test.js           |   30 [32m+[m
+ frontend/src/styles/index.css                      | 1103 [32m+++++++++++++++[m[31m-----[m
+ 18 files changed, 2024 insertions(+), 384 deletions(-)

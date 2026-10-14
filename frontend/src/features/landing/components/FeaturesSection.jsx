@@ -5,13 +5,14 @@ import { Link } from 'react-router-dom'
 const keyFeatures = [
   {
     icon: Compass,
-    tag: 'Understand your interests',
-    title: 'Career Assessment',
+    tag: 'Interest Reflection',
+    title: 'Holland RIASEC Interest Assessment',
     description:
-      'Explore six interest areas with the Holland RIASEC questionnaire.',
+      'A 42-question self-reflection questionnaire that helps you explore interests across six RIASEC dimensions. Scores are calculated deterministically and shown as exploratory signals.',
     highlights: [
-      'Clear scores and directions to explore',
-      'Save progress and continue later',
+      'Shows all six interest scores',
+      'Offers IT directions to explore further',
+      'Keeps unfinished answers in this browser',
     ],
     action: { label: 'Career Assessment', to: '/assessment' },
   },
