@@ -39,11 +39,18 @@ class SimulationAttemptLocaleControllerTest {
         when(service.submitAttempt(
                         eq("data-quality-investigation"), eq(1L), any(SubmitAttemptRequest.class)))
                 .thenReturn(result);
-        var mvc =
-                MockMvcBuilders.standaloneSetup(
-                                new SimulationAttemptController(
-                                        service, new SimulationResultLocaleMapper()))
-                        .build();
+        var actors = mock(edu.hcmute.careersim.identity.access.ActorAccess.class);
+        when(actors.student(any()))
+                .thenReturn(
+                        new edu.hcmute.careersim.identity.access.ActorAccess.Actor(
+                                1L, "student@example.test", "Student", "STUDENT", 0, 0));
+        var controller =
+                new SimulationAttemptController(
+                        service, new SimulationResultLocaleMapper(), actors);
+        // Compatibility-only fixture explicitly exercises the pre-cutover legacy projection.
+        org.springframework.test.util.ReflectionTestUtils.setField(
+                controller, "legacyWrites", true);
+        var mvc = MockMvcBuilders.standaloneSetup(controller).build();
         mvc.perform(
                         post("/v1/simulations/data-quality-investigation/attempts")
                                 .header("X-Student-Id", "1")

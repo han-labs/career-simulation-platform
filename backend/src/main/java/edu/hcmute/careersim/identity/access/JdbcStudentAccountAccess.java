@@ -2,24 +2,34 @@ package edu.hcmute.careersim.identity.access;
 
 import java.util.List;
 import java.util.Optional;
-import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 @Repository
-@RequiredArgsConstructor
 class JdbcStudentAccountAccess implements StudentAccountAccess {
 
     private final JdbcTemplate jdbcTemplate;
+    private final ConsentAccess consents;
+    private final String provider;
+
+    JdbcStudentAccountAccess(
+            JdbcTemplate jdbcTemplate,
+            ConsentAccess consents,
+            @org.springframework.beans.factory.annotation.Value("${app.ai.provider:disabled}")
+                    String provider) {
+        this.jdbcTemplate = jdbcTemplate;
+        this.consents = consents;
+        this.provider = provider;
+    }
 
     @Override
     public Optional<StudentAccount> findByEmail(String email) {
         List<StudentAccount> accounts =
                 jdbcTemplate.query(
                         """
-                        SELECT u.id, u.display_name, u.role, u.status, p.consented_to_ai_at
-                        FROM app_users u
-                        LEFT JOIN student_profiles p ON p.user_id = u.id
+                        SELECT u.id, u.display_name, u.role, u.status, u.privacy_version
+                        FROM public.app_users u
+                        JOIN public.student_profiles p ON p.user_id = u.id
                         WHERE LOWER(u.email) = LOWER(?)
                         """,
                         (resultSet, rowNumber) ->
@@ -28,11 +38,13 @@ class JdbcStudentAccountAccess implements StudentAccountAccess {
                                         resultSet.getString("display_name"),
                                         resultSet.getString("role"),
                                         resultSet.getString("status"),
-                                        resultSet.getTimestamp("consented_to_ai_at") == null
-                                                ? null
-                                                : resultSet
-                                                        .getTimestamp("consented_to_ai_at")
-                                                        .toInstant()),
+                                        consents.effective(
+                                                        resultSet.getLong("id"),
+                                                        "EXTERNAL_AI",
+                                                        "provider:" + provider)
+                                                ? java.time.Instant.now()
+                                                : null,
+                                        resultSet.getLong("privacy_version")),
                         email);
         return accounts.stream().findFirst();
     }

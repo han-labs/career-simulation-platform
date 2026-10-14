@@ -8,6 +8,11 @@ import LandingPage from '../features/landing/pages/LandingPage.jsx'
 import SimulationAttemptPage from '../features/simulations/pages/SimulationAttemptPage.jsx'
 import SimulationCatalogPage from '../features/simulations/pages/SimulationCatalogPage.jsx'
 import SimulationDetailPage from '../features/simulations/pages/SimulationDetailPage.jsx'
+import { coreEnabled } from '../shared/api/coreApi.js'
+import AccountPage from '../features/identity/AccountPage.jsx'
+import VersionedAssessmentPage from '../features/assessment/pages/VersionedAssessmentPage.jsx'
+import CoreSimulationPage from '../features/simulations/pages/CoreSimulationPage.jsx'
+import CoreDashboardPage from '../features/guidance/pages/CoreDashboardPage.jsx'
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -38,14 +43,15 @@ function App() {
     <Routes>
       <Route element={<ApplicationLayout />}>
         <Route index element={<LandingPage />} />
-        <Route path="assessment" element={<AssessmentPage />} />
+        <Route path="account" element={<AccountPage />} />
+        <Route path="assessment" element={coreEnabled ? <VersionedAssessmentPage /> : <AssessmentPage />} />
         <Route path="simulations" element={<SimulationCatalogPage />} />
-        <Route path="simulations/:slug" element={<SimulationDetailPage />} />
+        <Route path="simulations/:slug" element={coreEnabled ? <CoreSimulationPage /> : <SimulationDetailPage />} />
         <Route
           path="simulations/:slug/attempt"
-          element={<SimulationAttemptPage />}
+          element={coreEnabled ? <CoreSimulationPage /> : <SimulationAttemptPage />}
         />
-        <Route path="dashboard" element={<GuidancePage />} />
+        <Route path="dashboard" element={coreEnabled ? <CoreDashboardPage /> : <GuidancePage />} />
         <Route path="guidance" element={<GuidancePage />} />
       </Route>
     </Routes>

@@ -118,7 +118,7 @@ public class OpenAiSynGuidanceProvider implements SynGuidanceProvider {
         return restClientBuilder
                 .clone()
                 .baseUrl(baseUrl)
-                .requestFactory(SynHttpRequests.deadlineAware(timeoutSeconds))
+                .requestFactory(SynHttpRequests.deadlineAware(timeoutSeconds, "openai"))
                 .build();
     }
 

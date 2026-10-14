@@ -6,18 +6,18 @@ function AssessmentResult({ result, onRestart }) {
   const { scores, topDimensions } = result
   
   // Create a sorted list based on the scores returned from backend
-  const sortedDimensions = scores
+  const sortedDimensions = [...scores]
     .sort((a, b) => b.score - a.score)
     .map(dimScore => ({
       dim: dimScore.dimension,
       score: dimScore.score,
+      max: dimScore.max ?? 35,
       info: riasecDescriptions[dimScore.dimension]
     }))
 
   const topDimension = topDimensions[0]
   const topInfo = riasecDescriptions[topDimension]
 
-  const maxPossibleScore = 35 // 7 questions per dimension * 5 max points
 
   return (
     <div className="assessment-result">
@@ -53,11 +53,11 @@ function AssessmentResult({ result, onRestart }) {
 
       <h3 style={{ fontSize: '1.5rem', marginBottom: '20px', fontFamily: 'Georgia, serif', color: 'var(--ink)' }}>{t("Full Dimension Breakdown")}</h3>
       <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))' }}>
-        {sortedDimensions.map(({ dim, score, info }) => (
+        {sortedDimensions.map(({ dim, score, max, info }) => (
           <div key={dim} style={{ padding: '16px', background: 'var(--card)', borderRadius: '16px', border: '1px solid var(--line)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', alignItems: 'center' }}>
               <span style={{ color: info.color, fontWeight: 'bold', fontSize: '1.1rem' }}>{t(info.name)}</span>
-              <span style={{ color: 'var(--muted)', fontSize: '0.95rem' }}>{t(score)} / {t(maxPossibleScore)}</span>
+              <span style={{ color: 'var(--muted)', fontSize: '0.95rem' }}>{t(score)} / {t(max)}</span>
             </div>
             {/* Progress bar */}
             <div style={{ height: '10px', background: 'var(--page-bg)', borderRadius: '5px', overflow: 'hidden' }}>
@@ -65,7 +65,7 @@ function AssessmentResult({ result, onRestart }) {
                 style={{ 
                   height: '100%', 
                   background: info.color, 
-                  width: `${(score / maxPossibleScore) * 100}%`,
+                  width: `${(score / max) * 100}%`,
                   transition: 'width 1s cubic-bezier(0.22, 1, 0.36, 1)'
                 }} 
               />

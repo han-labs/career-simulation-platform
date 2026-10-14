@@ -9,6 +9,7 @@ import SimulationWorkspace from '../components/SimulationWorkspace.jsx'
 import SimulationNavigation from '../components/SimulationNavigation.jsx'
 import { backendDeveloperSimulation } from '../data/backendDeveloperSimulation.js'
 import { fetchSimulationDetail } from '../api/simulationApi.js'
+import { explicitDemoFixtures } from '../../../shared/api/coreApi.js'
 import { useSimulationAttempt } from '../hooks/useSimulationAttempt.js'
 
 function SimulationAttemptPage() {
@@ -27,9 +28,9 @@ function SimulationAttemptPage() {
         if (active) setState({ status: 'ready', simulation })
       })
       .catch((error) => {
-        console.warn('Simulation attempt API unavailable; using mock data.', error)
+        console.warn('Simulation attempt API unavailable.', error)
         if (!active) return
-        const fallback = slug === backendDeveloperSimulation.id
+        const fallback = explicitDemoFixtures && slug === backendDeveloperSimulation.id
           ? backendDeveloperSimulation
           : null
         setState({ status: 'ready', simulation: fallback })

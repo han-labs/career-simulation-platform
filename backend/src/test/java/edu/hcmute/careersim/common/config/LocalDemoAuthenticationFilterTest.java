@@ -14,7 +14,13 @@ import org.springframework.security.core.context.SecurityContextHolder;
 class LocalDemoAuthenticationFilterTest {
 
     private final LocalDemoAuthenticationFilter filter =
-            new LocalDemoAuthenticationFilter("student@demo.com");
+            new LocalDemoAuthenticationFilter(
+                    "student@demo.com",
+                    email ->
+                            java.util.Optional.of(
+                                    new edu.hcmute.careersim.identity.access.StudentAccountAccess
+                                            .StudentAccount(
+                                            1, "Fixture", "STUDENT", "ACTIVE", null)));
 
     @AfterEach
     void clearSecurityContext() {

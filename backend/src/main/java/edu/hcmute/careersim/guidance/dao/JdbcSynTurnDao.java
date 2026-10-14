@@ -168,4 +168,13 @@ class JdbcSynTurnDao implements SynTurnDao {
         jdbc.update("DELETE FROM syn_turns WHERE created_at<CURRENT_TIMESTAMP-INTERVAL '30 days'");
         jdbc.update("DELETE FROM syn_sessions WHERE expires_at<CURRENT_TIMESTAMP");
     }
+
+    public java.util.Set<String> externalProviders(long owner, UUID id) {
+        return new java.util.HashSet<>(
+                jdbc.query(
+                        "SELECT DISTINCT u->>'provider' FROM public.syn_turns t CROSS JOIN LATERAL jsonb_array_elements(CASE WHEN jsonb_typeof(t.trace->'tokenUsage')='array' THEN t.trace->'tokenUsage' ELSE '[]'::jsonb END) u WHERE t.student_id=? AND t.id=? AND u->>'provider' IS NOT NULL",
+                        (r, n) -> r.getString(1),
+                        owner,
+                        id));
+    }
 }

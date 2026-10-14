@@ -49,6 +49,7 @@ class GuidancePersistenceIntegrationTest {
     @Autowired private KnowledgeDao knowledge;
     @Autowired private edu.hcmute.careersim.guidance.service.SynTurnLifecycleService lifecycle;
     @Autowired private edu.hcmute.careersim.guidance.service.GuidanceService guidance;
+    @Autowired private edu.hcmute.careersim.identity.service.ConsentService consent;
     private long studentId;
     private long assessmentAttemptId;
 
@@ -64,6 +65,7 @@ class GuidancePersistenceIntegrationTest {
                         RETURNING id
                         """,
                         Long.class);
+        jdbcTemplate.update("INSERT INTO public.student_profiles(user_id) VALUES (?)", studentId);
         assessmentAttemptId =
                 jdbcTemplate.queryForObject(
                         """
@@ -91,6 +93,8 @@ class GuidancePersistenceIntegrationTest {
         jdbcTemplate.update("DELETE FROM exploration_plans WHERE student_id = ?", studentId);
         jdbcTemplate.update("DELETE FROM assessment_attempts WHERE student_id = ?", studentId);
         jdbcTemplate.update("DELETE FROM student_profiles WHERE user_id = ?", studentId);
+        jdbcTemplate.update("DELETE FROM consent_grant WHERE user_id = ?", studentId);
+        jdbcTemplate.update("DELETE FROM audit_event WHERE actor_user_id = ?", studentId);
         jdbcTemplate.update("DELETE FROM app_users WHERE id = ?", studentId);
     }
 
@@ -430,6 +434,17 @@ class GuidancePersistenceIntegrationTest {
         jdbcTemplate.update(
                 "INSERT INTO student_profiles(user_id,consented_to_ai_at) VALUES (?,CURRENT_TIMESTAMP) ON CONFLICT(user_id) DO UPDATE SET consented_to_ai_at=CURRENT_TIMESTAMP",
                 studentId);
+        assertThat(
+                        lifecycle.externalAllowed(
+                                "guidance-test@example.test",
+                                studentId,
+                                turn.sessionId(),
+                                turn.id()))
+                .isFalse();
+        consent.grant(
+                studentId,
+                new edu.hcmute.careersim.identity.dto.IdentityContracts.Grant(
+                        "EXTERNAL_AI", null, "provider:gemini", "careersim-purpose-v1", true));
         assertThat(
                         lifecycle.externalAllowed(
                                 "guidance-test@example.test",

@@ -11,6 +11,95 @@ import com.tngtech.archunit.lang.ArchRule;
         packages = "edu.hcmute.careersim",
         importOptions = ImportOption.DoNotIncludeTests.class)
 class LayerDependencyTest {
+    @ArchTest
+    static final ArchRule identity_is_foundational =
+            noClasses()
+                    .that()
+                    .resideInAPackage("..identity..")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage(
+                            "..enterprise..",
+                            "..assessment..",
+                            "..simulation..",
+                            "..guidance..",
+                            "..catalog..",
+                            "..system..");
+
+    @ArchTest
+    static final ArchRule enterprise_does_not_depend_on_evidence_owners =
+            noClasses()
+                    .that()
+                    .resideInAPackage("..enterprise..")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage(
+                            "..assessment..",
+                            "..simulation..",
+                            "..guidance..",
+                            "..catalog..",
+                            "..system..");
+
+    @ArchTest
+    static final ArchRule assessment_does_not_depend_on_simulation_or_guidance =
+            noClasses()
+                    .that()
+                    .resideInAPackage("..assessment..")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage(
+                            "..simulation..",
+                            "..guidance..",
+                            "..enterprise..",
+                            "..catalog..",
+                            "..system..");
+
+    @ArchTest
+    static final ArchRule simulation_does_not_depend_on_consumers =
+            noClasses()
+                    .that()
+                    .resideInAPackage("..simulation..")
+                    // Approved legacy v1 adapters retain their original catalog dependency.
+                    .and()
+                    .doNotHaveSimpleName("SimulationAttemptServiceImpl")
+                    .and()
+                    .doNotHaveSimpleName("SimulationQueryServiceImpl")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage("..guidance..", "..catalog..", "..system..");
+
+    @ArchTest
+    static final ArchRule assessment_persistence_is_private =
+            noClasses()
+                    .that()
+                    .resideOutsideOfPackage("..assessment..")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage(
+                            "..assessment.dao..",
+                            "..assessment.entity..",
+                            "..assessment.service.impl..");
+
+    @ArchTest
+    static final ArchRule simulation_persistence_is_private =
+            noClasses()
+                    .that()
+                    .resideOutsideOfPackage("..simulation..")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage(
+                            "..simulation.dao..",
+                            "..simulation.entity..",
+                            "..simulation.service.impl..");
+
+    @ArchTest
+    static final ArchRule enterprise_persistence_is_private =
+            noClasses()
+                    .that()
+                    .resideOutsideOfPackage("..enterprise..")
+                    .should()
+                    .dependOnClassesThat()
+                    .resideInAnyPackage("..enterprise.dao..", "..enterprise.service.impl..");
 
     @ArchTest
     static final ArchRule controllers_must_not_access_internal_persistence_or_implementation =

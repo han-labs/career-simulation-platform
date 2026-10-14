@@ -52,6 +52,7 @@ function AppShell() {
           </button>
 
           <nav className={`site-nav ${menuOpen ? 'site-nav--open' : ''}`}>
+            <NavLink to="/account" onClick={() => setMenuOpen(false)}>{t('Account and privacy')}</NavLink>
             {navigation.map((item) =>
               item.to ? (
                 <NavLink

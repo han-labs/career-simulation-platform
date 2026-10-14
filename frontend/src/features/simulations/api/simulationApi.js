@@ -1,18 +1,9 @@
 // Provides normalized API access for catalog, simulation tasks, and submissions.
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8081/api'
+import { apiRequest } from '../../../shared/api/httpClient.js'
+import { coreEnabled } from '../../../shared/api/coreApi.js'
 
 async function requestJson(path, options = {}) {
-  const response = await fetch(`${API_BASE_URL}${path}`, options)
-  const json = await response.json().catch(() => null)
-  if (!response.ok) {
-    throw new Error(json?.message || `Request failed with status ${response.status}`)
-  }
-  return unwrap(json)
-}
-
-function unwrap(json) {
-  if (json?.success === true) return json.data
-  throw new Error(json?.message || 'The API returned an unsuccessful response.')
+  return apiRequest(path, options)
 }
 
 function normalizeSummary(simulation) {
@@ -27,6 +18,10 @@ function normalizeSummary(simulation) {
 }
 
 export async function fetchSimulations() {
+  if (coreEnabled) {
+    const scenarios = await requestJson('/v2/scenarios')
+    return scenarios.map(s => ({ id: s.slug, title: s.metadata.title, description: s.metadata.summary, duration: `${s.metadata.estimatedMinutes} minutes`, difficulty: s.metadata.difficulty, translations: s.metadata.translations }))
+  }
   const simulations = await requestJson('/v1/simulations')
   return simulations.map(normalizeSummary)
 }
@@ -54,7 +49,6 @@ export function submitAttempt(slug, answers) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Student-Id': '1',
     },
     body: JSON.stringify({ answers }),
   })

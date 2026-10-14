@@ -36,6 +36,15 @@ class GuidanceControllerTest {
     @Autowired private MockMvc mockMvc;
 
     @MockitoBean private GuidanceService guidanceService;
+    @MockitoBean private edu.hcmute.careersim.identity.access.ActorAccess actors;
+
+    @org.junit.jupiter.api.BeforeEach
+    void actor() {
+        when(actors.student(any()))
+                .thenReturn(
+                        new edu.hcmute.careersim.identity.access.ActorAccess.Actor(
+                                7, "student@example.test", "Student", "STUDENT", 0, 0));
+    }
 
     @Test
     void dashboardRequiresAuthentication() throws Exception {
@@ -64,7 +73,10 @@ class GuidanceControllerTest {
 
         mockMvc.perform(
                         get("/v1/guidance/dashboard")
-                                .with(user("student@example.test").roles("STUDENT")))
+                                .with(user("student@example.test").roles("STUDENT"))
+                                .with(
+                                        org.springframework.security.test.web.servlet.request
+                                                .SecurityMockMvcRequestPostProcessors.csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.source").value("LIVE"))
@@ -76,6 +88,9 @@ class GuidanceControllerTest {
         mockMvc.perform(
                         post("/v1/guidance/syn/messages")
                                 .with(user("student@example.test").roles("STUDENT"))
+                                .with(
+                                        org.springframework.security.test.web.servlet.request
+                                                .SecurityMockMvcRequestPostProcessors.csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{\"message\":\"   \",\"actionType\":\"FREE_TEXT\"}"))
                 .andExpect(status().isBadRequest())
@@ -101,6 +116,9 @@ class GuidanceControllerTest {
         mockMvc.perform(
                         post("/v1/guidance/syn/messages")
                                 .with(user("student@example.test").roles("STUDENT"))
+                                .with(
+                                        org.springframework.security.test.web.servlet.request
+                                                .SecurityMockMvcRequestPostProcessors.csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         """
@@ -116,6 +134,9 @@ class GuidanceControllerTest {
         mockMvc.perform(
                         post("/v1/guidance/plans")
                                 .with(user("student@example.test").roles("STUDENT"))
+                                .with(
+                                        org.springframework.security.test.web.servlet.request
+                                                .SecurityMockMvcRequestPostProcessors.csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content("{\"title\":\"My plan\",\"steps\":[]}"))
                 .andExpect(status().isBadRequest())
@@ -135,6 +156,9 @@ class GuidanceControllerTest {
         mockMvc.perform(
                         post("/v1/guidance/plans")
                                 .with(user("student@example.test").roles("STUDENT"))
+                                .with(
+                                        org.springframework.security.test.web.servlet.request
+                                                .SecurityMockMvcRequestPostProcessors.csrf())
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(
                                         """
@@ -152,7 +176,10 @@ class GuidanceControllerTest {
 
         mockMvc.perform(
                         delete("/v1/guidance/syn/sessions/{sessionId}", sessionId)
-                                .with(user("student@example.test").roles("STUDENT")))
+                                .with(user("student@example.test").roles("STUDENT"))
+                                .with(
+                                        org.springframework.security.test.web.servlet.request
+                                                .SecurityMockMvcRequestPostProcessors.csrf()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data").value(true));

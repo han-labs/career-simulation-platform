@@ -40,6 +40,10 @@ public interface SynTurnDao {
 
     void recoverInterrupted(long owner);
 
+    default java.util.Set<String> externalProviders(long owner, UUID turn) {
+        return java.util.Set.of();
+    }
+
     record Turn(
             UUID id,
             long studentId,

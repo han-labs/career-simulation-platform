@@ -2,9 +2,10 @@ import { useI18n } from '../../../shared/i18n/useI18n.js'
 // Displays catalog lifecycle states using local mock data only in Phase 2.
 import { ArrowRight, Clock3, Code2, ListChecks, TriangleAlert } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { localized } from '../../../shared/api/coreApi.js'
 
 function SimulationCatalog({ status, simulations, onRetry }) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   if (status === 'loading') {
     return <div className="catalog-grid" aria-label={t("Loading simulations")}>
       {[1, 2, 3].map((item) => <div className="catalog-skeleton" key={item} aria-hidden="true" />)}
@@ -33,11 +34,11 @@ function SimulationCatalog({ status, simulations, onRetry }) {
       <article className="catalog-card" key={simulation.id}>
         <span className="catalog-card__icon"><Code2 size={25} aria-hidden="true" /></span>
         <p className="eyebrow">{t(simulation.difficulty)}</p>
-        <h2>{t(simulation.title)}</h2>
-        <p>{t(simulation.description)}</p>
+        <h2>{t(localized(simulation, locale, 'title'))}</h2>
+        <p>{t(localized({ ...simulation, summary: simulation.description }, locale, 'summary'))}</p>
         <dl className="catalog-meta">
           <div><dt><Clock3 size={16} aria-hidden="true" /> {t("Duration")}</dt><dd>{t(simulation.duration)}</dd></div>
-          <div><dt><ListChecks size={16} aria-hidden="true" /> {t("Tasks")}</dt><dd>{t(simulation.taskCount)}</dd></div>
+          {simulation.taskCount !== undefined && <div><dt><ListChecks size={16} aria-hidden="true" /> {t("Tasks")}</dt><dd>{t(simulation.taskCount)}</dd></div>}
         </dl>
         <Link className="button" to={`/simulations/${simulation.id}`}> {t("Start")} <ArrowRight size={17} aria-hidden="true" />
         </Link>

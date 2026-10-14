@@ -295,14 +295,18 @@ function SynWidget() {
   const pendingAnchorRef = useRef(null)
   const activeRevealRef = useRef(null)
   const lastPlanDraftRef = useRef(null)
+  const accountEpoch = useRef(0)
 
   const loadDashboard = useCallback(async () => {
+    const epoch = accountEpoch.current
     setLoadError('')
     try {
       const data = await getExplorationDashboard()
+      if (epoch !== accountEpoch.current) return null
       setDashboard(data)
       return data
     } catch {
+      if (epoch !== accountEpoch.current) return null
       setLoadError('Syn could not load your exploration data.')
       return null
     }
@@ -374,6 +378,8 @@ function SynWidget() {
     if (!message || busyRef.current || isReplying || isClearing || !contextDashboard) return
     busyRef.current = true
 
+    const epoch = accountEpoch.current
+
     const clientMessageId = retryId ?? crypto.randomUUID()
     const requestLanguage = retryLanguage ?? effectiveResponseLanguage
     const userMessageId = `user-${Date.now()}`
@@ -394,6 +400,7 @@ function SynWidget() {
         dashboard: contextDashboard,
         context: requestContext,
       })
+      if (epoch !== accountEpoch.current) return
       setFailedRequest(null)
       if (reply.sessionId) {
         setSessionId(reply.sessionId)
@@ -404,6 +411,7 @@ function SynWidget() {
         setPendingPlan(lastPlanDraftRef.current)
       }
     } catch (error) {
+      if (epoch !== accountEpoch.current) return
       setFailedRequest({ message, actionType, contextDashboard, requestContext, responseLanguage: requestLanguage, clientMessageId: error.code === 'TURN_FINISHED_WITHOUT_RESPONSE' ? crypto.randomUUID() : clientMessageId })
       setMessages((current) => [...current, {
         id: `error-${Date.now()}`,
@@ -413,8 +421,7 @@ function SynWidget() {
         text: 'I could not process that safely. Your existing results have not changed.',
       }])
     } finally {
-      busyRef.current = false
-      setIsReplying(false)
+      if (epoch === accountEpoch.current) { busyRef.current = false; setIsReplying(false) }
     }
   }, [dashboard, isReplying, isClearing, effectiveResponseLanguage, revealReply, sessionId])
 
@@ -424,18 +431,20 @@ function SynWidget() {
     setIsClearing(true)
     setClearError('')
     finishActiveReveal(false)
+    const epoch = accountEpoch.current
     try {
       if (sessionId) await clearSynSession(sessionId)
+      if (epoch !== accountEpoch.current) return
       setSessionId(null)
       setFailedRequest(null)
       setPendingPlan(null)
       lastPlanDraftRef.current = null
       setMessages([initialMessage])
     } catch {
+      if (epoch !== accountEpoch.current) return
       setClearError('Memory could not be cleared. Your conversation is still here. Please retry.')
     } finally {
-      busyRef.current = false
-      setIsClearing(false)
+      if (epoch === accountEpoch.current) { busyRef.current = false; setIsClearing(false) }
     }
   }
 
@@ -467,6 +476,11 @@ function SynWidget() {
       sessionStorage.removeItem('careersim_syn_transcript_v1')
     } catch { /* Storage may be disabled; private messages stay in React state. */ }
   }, [])
+  useEffect(() => {
+    const clear = () => { accountEpoch.current++; finishActiveReveal(false); busyRef.current=false; planSaveRef.current=false; setIsSavingPlan(false); setIsClearing(false); setPlanSaveError(''); setIsReplying(false); setSessionId(null); setMessages([initialMessage]); setPendingPlan(null); setDashboard(null); setFailedRequest(null); setDraft(''); setLoadError(''); lastPlanDraftRef.current=null }
+    window.addEventListener('careersim:account-changed', clear)
+    return () => window.removeEventListener('careersim:account-changed', clear)
+  }, [finishActiveReveal])
 
   useEffect(() => {
     const container = conversationRef.current
@@ -512,8 +526,10 @@ function SynWidget() {
     planSaveRef.current = true
     setIsSavingPlan(true)
     setPlanSaveError('')
+    const epoch = accountEpoch.current
     try {
-      const result = await saveExplorationPlan(pendingPlan)
+      const result = await saveExplorationPlan({ ...pendingPlan, sessionId })
+      if (epoch !== accountEpoch.current) return
       if (result?.saved !== true) throw new Error('Save not confirmed')
       setPendingPlan(null)
       setMessages((current) => [...current, {
@@ -522,10 +538,10 @@ function SynWidget() {
         text: 'Your exploration plan has been saved. You can revise it as you gather evidence.',
       }])
     } catch {
+      if (epoch !== accountEpoch.current) return
       setPlanSaveError('Could not confirm the save. Your draft is kept here; please retry.')
     } finally {
-      planSaveRef.current = false
-      setIsSavingPlan(false)
+      if (epoch === accountEpoch.current) { planSaveRef.current = false; setIsSavingPlan(false) }
     }
   }
 

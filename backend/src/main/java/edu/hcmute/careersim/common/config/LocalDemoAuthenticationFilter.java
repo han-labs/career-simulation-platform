@@ -17,9 +17,12 @@ final class LocalDemoAuthenticationFilter extends OncePerRequestFilter {
 
     private static final String GUIDANCE_PATH = "/v1/guidance";
     private final String demoEmail;
+    private final edu.hcmute.careersim.identity.access.StudentAccountAccess accounts;
 
-    LocalDemoAuthenticationFilter(String demoEmail) {
+    LocalDemoAuthenticationFilter(
+            String demoEmail, edu.hcmute.careersim.identity.access.StudentAccountAccess accounts) {
         this.demoEmail = demoEmail;
+        this.accounts = accounts;
     }
 
     @Override
@@ -33,9 +36,19 @@ final class LocalDemoAuthenticationFilter extends OncePerRequestFilter {
             HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            var account =
+                    accounts.findByEmail(demoEmail)
+                            .filter(a -> "STUDENT".equals(a.role()) && "ACTIVE".equals(a.status()));
+            if (account.isEmpty()) {
+                filterChain.doFilter(request, response);
+                return;
+            }
             var authentication =
                     new UsernamePasswordAuthenticationToken(
-                            demoEmail, null, List.of(new SimpleGrantedAuthority("ROLE_STUDENT")));
+                            new edu.hcmute.careersim.identity.access.AccountPrincipal(
+                                    account.get().id(), demoEmail),
+                            null,
+                            List.of(new SimpleGrantedAuthority("ROLE_STUDENT")));
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }

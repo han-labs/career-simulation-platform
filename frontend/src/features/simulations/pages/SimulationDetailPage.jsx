@@ -6,13 +6,12 @@ import { Link, useParams } from 'react-router-dom'
 import SimulationDetail from '../components/SimulationDetail.jsx'
 import { backendDeveloperSimulation } from '../data/backendDeveloperSimulation.js'
 import { fetchSimulationDetail } from '../api/simulationApi.js'
+import { explicitDemoFixtures } from '../../../shared/api/coreApi.js'
 
 function SimulationDetailPage() {
   const { t } = useI18n()
   const { slug } = useParams()
   const [state, setState] = useState({ status: 'loading', simulation: null })
-  console.log('Detail page state:', state)
-  console.log('Slug:', slug)
 
   useEffect(() => {
     let active = true
@@ -21,9 +20,9 @@ function SimulationDetailPage() {
         if (active) setState({ status: 'ready', simulation })
       })
       .catch((error) => {
-        console.warn('Simulation detail API unavailable; using mock data.', error)
+        console.warn('Simulation detail API unavailable.', error)
         if (!active) return
-        const fallback = slug === backendDeveloperSimulation.id
+        const fallback = explicitDemoFixtures && slug === backendDeveloperSimulation.id
           ? backendDeveloperSimulation
           : null
         setState({ status: 'ready', simulation: fallback })

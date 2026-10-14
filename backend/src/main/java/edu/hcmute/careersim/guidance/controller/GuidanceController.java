@@ -25,53 +25,58 @@ import org.springframework.web.bind.annotation.RestController;
 public class GuidanceController {
 
     private final GuidanceService guidanceService;
+    private final edu.hcmute.careersim.identity.access.ActorAccess actors;
+
+    private String email(Principal p) {
+        return actors.student(p).email();
+    }
 
     @GetMapping("/dashboard")
     public ApiResponse<DashboardResponse> getDashboard(Principal principal) {
-        return ApiResponse.success(guidanceService.getDashboard(principal.getName()));
+        return ApiResponse.success(guidanceService.getDashboard(email(principal)));
     }
 
     @PostMapping("/syn/messages")
     public ApiResponse<SynMessageResponse> sendMessage(
             Principal principal, @Valid @RequestBody SynMessageRequest request) {
-        return ApiResponse.success(guidanceService.sendMessage(principal.getName(), request));
+        return ApiResponse.success(guidanceService.sendMessage(email(principal), request));
     }
 
     @DeleteMapping("/syn/sessions/{sessionId}")
     public ApiResponse<Boolean> clearSession(Principal principal, @PathVariable UUID sessionId) {
         return ApiResponse.success(
                 "Syn conversation memory cleared.",
-                guidanceService.clearSynSession(principal.getName(), sessionId));
+                guidanceService.clearSynSession(email(principal), sessionId));
     }
 
     @GetMapping("/syn/turns/{id}")
     public ApiResponse<edu.hcmute.careersim.guidance.dto.SynTurnResponse> getTurn(
             Principal principal, @PathVariable UUID id) {
-        return ApiResponse.success(guidanceService.getTurn(principal.getName(), id));
+        return ApiResponse.success(guidanceService.getTurn(email(principal), id));
     }
 
     @GetMapping("/syn/requests/{id}")
     public ApiResponse<edu.hcmute.careersim.guidance.dto.SynTurnResponse> getRequest(
             Principal principal, @PathVariable UUID id) {
-        return ApiResponse.success(guidanceService.getRequestTurn(principal.getName(), id));
+        return ApiResponse.success(guidanceService.getRequestTurn(email(principal), id));
     }
 
     @PostMapping("/syn/turns/{id}/cancel")
     public ApiResponse<Boolean> cancelTurn(Principal principal, @PathVariable UUID id) {
-        guidanceService.cancelTurn(principal.getName(), id);
+        guidanceService.cancelTurn(email(principal), id);
         return ApiResponse.success(true);
     }
 
     @GetMapping("/knowledge/chunks/{id}")
     public ApiResponse<SynMessageResponse.EvidenceReference> source(
             Principal principal, @PathVariable long id) {
-        return ApiResponse.success(guidanceService.getKnowledgeSource(principal.getName(), id));
+        return ApiResponse.success(guidanceService.getKnowledgeSource(email(principal), id));
     }
 
     @PostMapping("/plans")
     public ApiResponse<PlanResponse> savePlan(
             Principal principal, @Valid @RequestBody SavePlanRequest request) {
         return ApiResponse.success(
-                "Exploration plan saved.", guidanceService.savePlan(principal.getName(), request));
+                "Exploration plan saved.", guidanceService.savePlan(email(principal), request));
     }
 }

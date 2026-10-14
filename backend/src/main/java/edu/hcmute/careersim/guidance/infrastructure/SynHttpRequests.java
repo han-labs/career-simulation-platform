@@ -28,6 +28,10 @@ public final class SynHttpRequests {
     private SynHttpRequests() {}
 
     public static ClientHttpRequestFactory deadlineAware(int seconds) {
+        return deadlineAware(seconds, null);
+    }
+
+    public static ClientHttpRequestFactory deadlineAware(int seconds, String provider) {
         Duration maximum = Duration.ofSeconds(Math.max(1, Math.min(seconds, 20)));
         return (uri, method) ->
                 new ClientHttpRequest() {
@@ -62,6 +66,7 @@ public final class SynHttpRequests {
                     public ClientHttpResponse execute() throws IOException {
                         byte[] body = buffer.toByteArray();
                         SynExecutionScope.checkExternal();
+                        if (provider != null) SynExecutionScope.checkProvider(provider);
                         Duration timeout = SynExecutionScope.remaining(maximum);
                         if (!IN_FLIGHT.tryAcquire())
                             throw new IOException("Provider concurrency limit reached");
@@ -79,7 +84,13 @@ public final class SynHttpRequests {
                                                 && !name.equalsIgnoreCase("Host"))
                                             values.forEach(value -> builder.header(name, value));
                                     });
-                            pending = CLIENT.sendAsync(builder.build(), info -> limitedBody());
+                            pending =
+                                    SynExecutionScope.admit(
+                                            provider,
+                                            () ->
+                                                    CLIENT.sendAsync(
+                                                            builder.build(),
+                                                            info -> limitedBody()));
                             var response = pending.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
                             var responseHeaders = new HttpHeaders();
                             response.headers().map().forEach(responseHeaders::put);

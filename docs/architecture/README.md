@@ -12,16 +12,21 @@ flowchart TB
     Agent["Syn bounded agent orchestrator"]
     Tools["Approved evidence and resource tools"]
     Database[("PostgreSQL")]
+    Core["Versioned assessment / enrollment / final work / completion"]
+    Assets[("Private asset volume")]
     AIAdapter["Backend AI adapter"]
     LLM["External LLM provider"]
     Fallback["Deterministic feedback templates"]
 
-    Student -->|HTTPS| Gateway
-    Enterprise -->|HTTPS| Gateway
+    Student -->|HTTP local; HTTPS at production edge| Gateway
+    Enterprise -->|HTTP local; HTTPS at production edge| Gateway
     Gateway --> Frontend
     Gateway -->|REST API| Backend
     Frontend -->|REST API through gateway| Backend
     Backend -->|JPA and JDBC| Database
+    Backend --> Core
+    Core -->|same datasource transaction| Database
+    Backend -->|authorized upload/download| Assets
     Backend --> Agent
     Agent --> Tools
     Tools --> Database
@@ -36,14 +41,14 @@ flowchart TB
 
 | Module | Responsibility | Current state |
 |---|---|---|
-| `identity` | Authentication, roles, profiles, consent | Account/consent read boundary exists; runtime login remains pending |
-| `assessment` | RIASEC questionnaire and deterministic scoring | Preliminary US-01 backend implemented |
-| `catalog` | Published simulation discovery | Working foundation slice |
-| `simulation` | Tasks, attempts, submissions, deterministic evaluation | Preliminary US-02 backend implemented |
-| `guidance` | Dashboard summaries, bounded session memory, typed read tools, bounded LLM tool calling, schema validation, and deterministic Standard fallback | US-03 bounded agent and global Syn widget implemented; runtime login remains pending |
-| `enterprise` | Simulation authoring, publishing, and monitoring | Boundary reserved |
-| `common` | Narrow cross-cutting API/configuration/error primitives | Working foundation |
-| `system` | Health and operational endpoints | Working foundation |
+| `identity` | Accounts, session/CSRF, profile, purpose/recipient consent, stable actor ports | Package A code and isolated tests; valuable-runtime rollout gated |
+| `assessment` | Versioned attempts/results and frozen RIASEC evaluator | New v2 workflow; v1 immutable history retained |
+| `catalog` | Published metadata discovery | v2 consumes ScenarioCatalogAccess; v1 remains separate |
+| `simulation` | Enterprise-owned versioned content, enrollment, deliverables, final work, answers/completion | New ungraded v2 workflow; legacy grading isolated behind write switch |
+| `guidance` | Typed dashboard, confirmed plan history and existing Syn | New participation stays separate from old score cards; existing bounded AI/fallback retained |
+| `enterprise` | Organizations, representatives, verification/publication permission | Admin-managed permission independent of registration |
+| `common` | API, audit, canonical values and protected asset storage | Association-specific download policies injected through SPI |
+| `system` | Health, reviewed import/preflight and ledger | Dry-run default; no automatic historical version/consent/completion imports |
 
 Each module exposes a service interface as its application facade. Controllers depend on that interface, while implementation classes hide DAOs, entities, mappers, integrations, and transaction boundaries.
 
@@ -80,6 +85,22 @@ The root `docker-compose.yml` implements the architecture as four local services
 3. `backend` executes business rules and integrations.
 4. `postgres` stores durable application data in a named volume.
 
+Private bytes use a second named volume at `/app/private-assets`. Core routes and
+the React core client default to disabled until a coordinated rollout. The runtime
+database user and Flyway migrator can use separate credentials; deployment must
+provision least-privilege roles before valuable-runtime startup. No production
+cutover or default Compose startup was performed for Package A.
+
+Package A adds V13–V16 only: 25 tables, 46 during coexistence (including the 21
+retained legacy tables, excluding Flyway history). It uses JDBC records/explicit
+SQL for new persistence and retains the nine legacy JPA mappings with validate.
+The configurable Agent Platform and V17–V19 remain Package B.
+
+[Package A consolidated implementation/evidence report](../../.agent/reports/package-a-core-verification.vi.md)
+records exact scope, tests, limits and the implemented request sequence. The
+isolated gateway test uses an ephemeral Nginx/PG17 container and a host Spring Boot
+server; it is distinct from deployment of the four-service Compose stack.
+
 The source architecture image is retained in `.agent/references/system-architecture.png`. This Mermaid diagram must be updated when the deployed topology changes.
 
 
@@ -87,7 +108,7 @@ The source architecture image is retained in `.agent/references/system-architect
 
 PostgreSQL now requires pgvector. V10 adds versioned turn/session lifecycle, V11 adds published knowledge document/version/chunk tables and `vector(768)`, V12 adds sanitized trace metadata. Business evidence remains relational and authoritative. No frontend-to-provider, model-to-SQL or model-to-plan-write path was added.
 
-The production message flow uses short snapshot/begin/finalization transactions around an external-call phase, not one long transaction. The seventh read tool, SEARCH_KNOWLEDGE, combines exact vector retrieval and local full-text search. Publication is an internal reviewed workflow, independent of chat. Deadline/cancellation and shared schema validation protect the generation boundary. Runtime authentication remains a separate dependency; localhost demo is not a production identity mechanism.
+The message flow uses short snapshot/begin/finalization transactions around an external-call phase. The seventh read tool, SEARCH_KNOWLEDGE, combines exact vector retrieval and local full-text search. Publication is an internal reviewed workflow, independent of chat. Deadline/cancellation and shared schema validation protect the generation boundary. Package A supplies session authentication and explicit provider grants; the old consent timestamp is historical only. A single-instance per-user admission lock coordinates outbound dispatch with revoke, and finish/replay revalidate authorization. Horizontal scaling requires new admission coordination. Localhost demo is explicitly profile-gated and remains separate from production authentication.
 
 [Complete Vietnamese component map, sequence, fallbacks and Q&A](syn-core-rag-implementation.vi.md).
 # Syn A/B/C continuation

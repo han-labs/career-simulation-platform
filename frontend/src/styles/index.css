@@ -3110,3 +3110,15 @@ a {
     animation-duration: 0.01ms !important;
   }
 }
+/* Package A forms use native controls and visible keyboard focus. */
+.core-flow { max-width: 64rem; padding-block: 2rem; }
+.core-flow form, .core-flow fieldset { display: grid; gap: 1rem; margin-block: 1.25rem; }
+.core-flow label { display: grid; gap: .4rem; }
+.core-flow input:not([type="checkbox"]), .core-flow textarea, .core-flow select { width: 100%; padding: .7rem; border: 1px solid #64748b; border-radius: .4rem; color: #172033; background: #fff; font: inherit; }
+.core-flow textarea { min-height: 8rem; }
+.core-flow button { min-height: 2.75rem; cursor: pointer; }
+.core-flow :focus-visible { outline: 3px solid #2563eb; outline-offset: 3px; }
+.core-flow [role="alert"] { color: #991b1b; background: #fef2f2; padding: 1rem; }
+.core-flow [role="status"] { padding: .75rem; background: #eff6ff; color: #173b6d; }
+.core-flow fieldset:disabled { opacity: .85; }
+.core-prewrap { white-space: pre-wrap; overflow-wrap: anywhere; }

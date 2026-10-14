@@ -25,7 +25,7 @@ public class GeminiEmbeddingProvider implements EmbeddingProvider {
         client =
                 builder.clone()
                         .baseUrl(base)
-                        .requestFactory(SynHttpRequests.deadlineAware(3))
+                        .requestFactory(SynHttpRequests.deadlineAware(3, "gemini"))
                         .build();
     }
 

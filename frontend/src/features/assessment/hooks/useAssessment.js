@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { apiRequest } from '../../../shared/api/httpClient.js'
 
 const STORAGE_KEY = 'careersim_assessment_state_v2'
 
@@ -48,10 +49,7 @@ export function useAssessment() {
     setIsLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/v1/assessments/questions')
-      if (!res.ok) throw new Error('Failed to load questions')
-      const json = await res.json()
-      setQuestions(json.data)
+      setQuestions(await apiRequest('/v1/assessments/questions'))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -63,15 +61,10 @@ export function useAssessment() {
     setIsLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/v1/assessments/attempts', {
+      const data = await apiRequest('/v1/assessments/attempts', {
         method: 'POST',
-        headers: {
-          'X-Student-Id': '1' // Backend mock requirement
-        }
       })
-      if (!res.ok) throw new Error('Failed to start assessment attempt')
-      const json = await res.json()
-      setState(prev => ({ ...prev, status: 'in_progress', attemptId: json.data.id }))
+      setState(prev => ({ ...prev, status: 'in_progress', attemptId: data.id }))
     } catch (err) {
       setError(err.message)
     } finally {
@@ -93,19 +86,15 @@ export function useAssessment() {
         score: score
       }))
 
-      const res = await fetch(`/api/v1/assessments/attempts/${state.attemptId}/submit`, {
+      const data = await apiRequest(`/v1/assessments/attempts/${state.attemptId}/submit`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Student-Id': '1'
         },
         body: JSON.stringify({ answers: answersPayload })
       })
 
-      if (!res.ok) throw new Error('Failed to submit assessment')
-      const json = await res.json()
-      
-      setState(prev => ({ ...prev, status: 'completed', result: json.data }))
+      setState(prev => ({ ...prev, status: 'completed', result: data }))
     } catch (err) {
       setError(err.message)
     } finally {

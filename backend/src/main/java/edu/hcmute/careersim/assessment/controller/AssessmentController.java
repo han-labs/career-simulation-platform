@@ -23,30 +23,55 @@ import org.springframework.web.bind.annotation.RestController;
 public class AssessmentController {
 
     private final AssessmentService assessmentService;
+    private final edu.hcmute.careersim.identity.access.ActorAccess actors;
+
+    @org.springframework.beans.factory.annotation.Value("${app.legacy-write-enabled:false}")
+    private boolean legacyWrites;
 
     @GetMapping("/questions")
-    public ApiResponse<List<RiasecQuestionDto>> getQuestions() {
+    public ApiResponse<List<RiasecQuestionDto>> getQuestions(java.security.Principal principal) {
+        actors.student(principal);
         return ApiResponse.success(assessmentService.getActiveQuestions());
     }
 
     @PostMapping("/attempts")
     public ApiResponse<AssessmentAttemptDto> startAttempt(
-            @RequestHeader(value = "X-Student-Id", defaultValue = "1") Long studentId) {
-        return ApiResponse.success(assessmentService.startAttempt(studentId));
+            java.security.Principal principal,
+            @RequestHeader(value = "X-Student-Id", required = false) Long studentId) {
+        long owner = owner(principal, studentId);
+        if (!legacyWrites)
+            throw new edu.hcmute.careersim.common.exception.ApiException(
+                    edu.hcmute.careersim.common.exception.ErrorCode.WORKFLOW_UPGRADE_REQUIRED);
+        return ApiResponse.success(assessmentService.startAttempt(owner));
     }
 
     @PostMapping("/attempts/{id}/submit")
     public ApiResponse<AssessmentResultDto> submitAnswers(
             @PathVariable Long id,
-            @RequestHeader(value = "X-Student-Id", defaultValue = "1") Long studentId,
+            java.security.Principal principal,
+            @RequestHeader(value = "X-Student-Id", required = false) Long studentId,
             @Valid @RequestBody SubmitAnswersRequest request) {
-        return ApiResponse.success(assessmentService.submitAnswers(id, studentId, request));
+        long owner = owner(principal, studentId);
+        if (!legacyWrites)
+            throw new edu.hcmute.careersim.common.exception.ApiException(
+                    edu.hcmute.careersim.common.exception.ErrorCode.WORKFLOW_UPGRADE_REQUIRED);
+        return ApiResponse.success(assessmentService.submitAnswers(id, owner, request));
     }
 
     @GetMapping("/attempts/{id}/result")
     public ApiResponse<AssessmentResultDto> getResult(
             @PathVariable Long id,
-            @RequestHeader(value = "X-Student-Id", defaultValue = "1") Long studentId) {
-        return ApiResponse.success(assessmentService.getAttemptResult(id, studentId));
+            java.security.Principal principal,
+            @RequestHeader(value = "X-Student-Id", required = false) Long studentId) {
+        return ApiResponse.success(
+                assessmentService.getAttemptResult(id, owner(principal, studentId)));
+    }
+
+    private long owner(java.security.Principal principal, Long header) {
+        long id = actors.student(principal).id();
+        if (header != null && header != id)
+            throw new edu.hcmute.careersim.common.exception.ApiException(
+                    edu.hcmute.careersim.common.exception.ErrorCode.FORBIDDEN);
+        return id;
     }
 }
