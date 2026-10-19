@@ -16,3 +16,21 @@ it('fails closed on unavailable CSRF without sending the requested mutation', as
   await expect(client.apiRequest('/v2/plans/confirm', { method: 'POST' })).rejects.toMatchObject({ code: 'NETWORK_ERROR' })
   expect(fetcher).toHaveBeenCalledTimes(1)
 })
+it('rejects a late private response after an account change', async () => {
+  let finish
+  vi.stubGlobal('fetch', vi.fn(() => new Promise(resolve => { finish = resolve })))
+  const pending = client.apiRequest('/v2/assessment-attempts/1/result')
+  client.invalidateAccount()
+  finish(response({ privateResult: 'owner A' }))
+  await expect(pending).rejects.toMatchObject({ code: 'STALE_ACCOUNT' })
+})
+it('does not send an old mutation if the account changes while CSRF is loading', async () => {
+  let finish
+  const fetcher = vi.fn(() => new Promise(resolve => { finish = resolve }))
+  vi.stubGlobal('fetch', fetcher)
+  const pending = client.apiRequest('/v2/me/consents', { method: 'POST' })
+  client.invalidateAccount()
+  finish(response({ token: 'owner-A-token' }))
+  await expect(pending).rejects.toMatchObject({ code: 'STALE_ACCOUNT' })
+  expect(fetcher).toHaveBeenCalledTimes(1)
+})

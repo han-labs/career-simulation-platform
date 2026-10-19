@@ -1,0 +1,36 @@
+import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
+import { apiRequest } from '../../shared/api/httpClient.js'
+import { command, draftKey, readDraft, writeDraft } from '../../shared/api/coreApi.js'
+import { useI18n } from '../../shared/i18n/useI18n.js'
+import JsonField from '../../shared/ui/JsonField.jsx'
+
+const dimensions = ['R', 'I', 'A', 'S', 'E', 'C']
+const blank = () => ({ evaluatorKey: 'riasec-sum', evaluatorVersion: '1', scoringConfig: { schemaVersion: 1, dimensions, aggregation: 'SUM', minAnswer: 1, maxAnswer: 5, tieOrder: dimensions }, questions: [] })
+
+export default function AssessmentAdministration() {
+  const { t } = useI18n()
+  const [owner, setOwner] = useState(null), [types, setTypes] = useState([]), [type, setType] = useState(''), [version, setVersion] = useState(null)
+  const [draft, setDraft] = useState(blank), [busy, setBusy] = useState(false), [error, setError] = useState(''), [dirty, setDirty] = useState(true)
+  useEffect(() => { let active = true; Promise.all([apiRequest('/v2/me'), apiRequest('/v2/admin/assessment-types')]).then(([me, list]) => { if (!active) return; if (me.role !== 'ADMIN') throw new Error('You are not allowed to perform this action.'); setOwner(me.id); setTypes(list); setDraft(readDraft(draftKey(me.id, 'assessment-authoring', 'draft')) || blank()) }).catch(e => { if (active) setError(e.message) }); return () => { active = false } }, [])
+  function edit(value) { setDraft(value); setDirty(true); if (owner) writeDraft(draftKey(owner, 'assessment-authoring', 'draft'), value) }
+  async function createType(event) { event.preventDefault(); setBusy(true); setError(''); const form = new FormData(event.currentTarget); try { const id = await command('/v2/admin/assessment-types', Object.fromEntries(form)); setTypes(prev => [...prev, { id, code: form.get('code'), name: form.get('name') }]); setType(id); event.target.reset() } catch (e) { setError(e.message) } finally { setBusy(false) } }
+  async function load(event) { event.preventDefault(); setBusy(true); setError(''); const id = new FormData(event.currentTarget).get('version'); try { const v = await apiRequest(`/v2/admin/assessment-versions/${encodeURIComponent(id)}`); setVersion(v); setType(v.typeId); setDraft({ evaluatorKey: v.evaluatorKey, evaluatorVersion: v.evaluatorVersion, scoringConfig: v.scoringConfig, questions: v.questions.map(q => ({ position: q.position, prompt: q.prompt, responseType: q.responseType, responseConfig: q.responseConfig, translations: q.translations, required: q.required })) }); setDirty(false) } catch (e) { setError(e.message) } finally { setBusy(false) } }
+  async function save(publish) { setBusy(true); setError(''); try { let v; if (publish) v = await command(`/v2/admin/assessment-versions/${version.id}/publish`, {}, version.revision); else if (version?.status === 'DRAFT') v = await command(`/v2/admin/assessment-versions/${version.id}`, draft, version.revision, 'PUT'); else v = await command(`/v2/admin/assessment-types/${type}/versions`, draft); setVersion(v); setDirty(false); setTypes(await apiRequest('/v2/admin/assessment-types')) } catch (e) { setError(e.message) } finally { setBusy(false) } }
+  return <section className="section-shell core-flow"><h1>{t('Assessment administration')}</h1><Link to="/account">{t('Account and privacy')}</Link>{error && <p role="alert">{t(error)}</p>}
+    {owner && <><form onSubmit={createType}><label>{t('Assessment type code')}<input name="code" required maxLength={80} /></label><label>{t('Name')}<input name="name" required maxLength={160} /></label><button disabled={busy}>{t('Create assessment type')}</button></form>
+      <form onSubmit={load}><label>{t('Load version by ID')}<input name="version" required pattern="[1-9][0-9]*" /></label><button disabled={busy}>{t('Load version')}</button></form>
+      <label>{t('Assessment type')}<select value={type} onChange={e => { setType(e.target.value); setVersion(null); edit(blank()) }}><option value="">{t('Select assessment type')}</option>{types.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}</select></label>
+      <form onSubmit={e => { e.preventDefault(); save(false) }}><fieldset disabled={busy}><legend>{t('Versioned assessment content')}</legend>
+        <label>{t('Evaluator')}<select value={draft.evaluatorKey} onChange={e => { const dims = e.target.value === 'riasec-sum' ? dimensions : ['PEOPLE', 'INFORMATION']; edit({ ...draft, evaluatorKey: e.target.value, scoringConfig: { ...draft.scoringConfig, dimensions: dims, tieOrder: dims } }) }}><option value="riasec-sum">RIASEC sum v1</option><option value="profile-sum">Self-report profile sum v1</option></select></label>
+        {draft.evaluatorKey === 'profile-sum' && <label>{t('Category codes (comma separated)')}<input value={draft.scoringConfig.dimensions.join(',')} onChange={e => { const dims = e.target.value.toUpperCase().split(',').map(d => d.trim()); edit({ ...draft, scoringConfig: { ...draft.scoringConfig, dimensions: dims, tieOrder: dims } }) }} /></label>}
+        {draft.questions.map((question, index) => <fieldset key={index}><legend>{t('Question')} {index + 1}</legend><label>{t('Prompt')}<textarea required value={question.prompt} onChange={e => edit({ ...draft, questions: draft.questions.map((q, n) => n === index ? { ...q, prompt: e.target.value } : q) })} /></label><label>{t('Category')}<select value={question.responseConfig.dimension} onChange={e => edit({ ...draft, questions: draft.questions.map((q, n) => n === index ? { ...q, responseConfig: { ...q.responseConfig, dimension: e.target.value } } : q) })}>{draft.scoringConfig.dimensions.map(d => <option key={d}>{d}</option>)}</select></label><label>{t('Vietnamese prompt')}<textarea value={question.translations.vi?.prompt ?? ''} onChange={e => edit({ ...draft, questions: draft.questions.map((q, n) => n === index ? { ...q, translations: { ...q.translations, vi: { prompt: e.target.value } } } : q) })} /></label><button type="button" onClick={() => edit({ ...draft, questions: draft.questions.filter((_, n) => n !== index).map((q, n) => ({ ...q, position: n + 1 })) })}>{t('Remove question')}</button></fieldset>)}
+        <button type="button" onClick={() => edit({ ...draft, questions: [...draft.questions, { position: draft.questions.length + 1, prompt: '', responseType: 'LIKERT', responseConfig: { schemaVersion: 1, min: 1, max: 5, dimension: draft.scoringConfig.dimensions[0] }, translations: {}, required: true }] })}>{t('Add question')}</button>
+        <JsonField label={t('Reviewed scoring configuration')} value={draft.scoringConfig} onChange={scoringConfig => edit({ ...draft, scoringConfig })} />
+        <JsonField label={t('Reviewed questions and translations')} value={draft.questions} onChange={questions => edit({ ...draft, questions })} />
+        <p>{t('Publish only reviewed content. Results are exploration evidence, not a proficiency certificate.')}</p><button disabled={!type}>{t(version?.status === 'DRAFT' ? 'Save draft' : 'Save as new version')}</button>
+      </fieldset></form>
+      {version && <><p>{t('Version')} {version.id} · {version.status} · {version.hash}</p><button disabled={busy || dirty || version.status !== 'DRAFT'} onClick={() => save(true)}>{t('Publish reviewed version')}</button></>}
+    </>}
+  </section>
+}

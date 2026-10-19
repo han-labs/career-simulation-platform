@@ -2,6 +2,13 @@
 
 The MVP is a modular monolith deployed as separate frontend, backend, database, and reverse-proxy containers. The external LLM is an optional provider behind a backend-owned interface. PostgreSQL remains the only source of application data, and the LLM never receives direct database access.
 
+Current approved Security/Auth and Core increment (2026-10-19):
+[P1/P2 contracts, credential lifecycle, version compatibility and migration boundary](p1-p2-security-core.md).
+It adds V19/V20 after immutable V1–V18. Authentication now uses short-lived JWT
+cookies with CSRF; HttpSession holds only CSRF/OAuth handshake state. Historical
+Package A/Syn session-authentication and future Package B numbering below describe
+their earlier checkpoints and are not the current release contract.
+
 ```mermaid
 flowchart TB
     Student["Student browser"]
@@ -9,6 +16,8 @@ flowchart TB
     Gateway["Nginx reverse proxy"]
     Frontend["React and Vite frontend"]
     Backend["Spring Boot modular monolith"]
+    Identity["Identity: JWT cookies / CSRF / current authority"]
+    Google["Optional Google OIDC provider"]
     Agent["Syn bounded agent orchestrator"]
     Tools["Approved evidence and resource tools"]
     Database[("PostgreSQL")]
@@ -24,6 +33,9 @@ flowchart TB
     Gateway -->|REST API| Backend
     Frontend -->|REST API through gateway| Backend
     Backend -->|JPA and JDBC| Database
+    Backend --> Identity
+    Identity -->|server-side authorization code / OIDC| Google
+    Identity -->|identity / credential version / revocation| Database
     Backend --> Core
     Core -->|same datasource transaction| Database
     Backend -->|authorized upload/download| Assets

@@ -13,8 +13,11 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.*;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.*;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.security.web.csrf.*;
 import org.springframework.web.cors.*;
 
@@ -41,6 +44,10 @@ public class SecurityConfig {
             ObjectMapper mapper,
             CsrfTokenRepository csrf,
             Environment env,
+            edu.hcmute.careersim.identity.service.BrowserAuthentication browserAuth,
+            BrowserCredentialCookies cookies,
+            edu.hcmute.careersim.identity.access.ActorAccess actors,
+            org.springframework.beans.factory.ObjectProvider<ClientRegistrationRepository> clients,
             org.springframework.beans.factory.ObjectProvider<
                             edu.hcmute.careersim.identity.access.StudentAccountAccess>
                     accounts,
@@ -53,10 +60,12 @@ public class SecurityConfig {
                                         .csrfTokenRequestHandler(
                                                 new CsrfTokenRequestAttributeHandler()))
                 .cors(Customizer.withDefaults())
-                .sessionManagement(
-                        s ->
-                                s.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-                                        .sessionFixation(f -> f.changeSessionId()))
+                .securityContext(
+                        c ->
+                                c.securityContextRepository(
+                                        new RequestAttributeSecurityContextRepository()))
+                .requestCache(c -> c.disable())
+                .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .logout(l -> l.disable())
                 .formLogin(f -> f.disable())
                 .httpBasic(b -> b.disable())
@@ -69,12 +78,18 @@ public class SecurityConfig {
                                         .frameOptions(f -> f.deny()))
                 .authorizeHttpRequests(
                         r ->
-                                r.requestMatchers("/health", "/v2/auth/csrf")
+                                r.requestMatchers(
+                                                "/health",
+                                                "/v2/auth/csrf",
+                                                "/v2/auth/providers",
+                                                "/oauth2/authorization/google",
+                                                "/login/oauth2/code/google")
                                         .permitAll()
                                         .requestMatchers(
                                                 HttpMethod.POST,
                                                 "/v2/auth/register",
-                                                "/v2/auth/login")
+                                                "/v2/auth/login",
+                                                "/v2/auth/logout")
                                         .permitAll()
                                         .requestMatchers(
                                                 HttpMethod.GET,
@@ -113,6 +128,39 @@ public class SecurityConfig {
                                                                     "Access or CSRF validation denied.",
                                                                     req.getRequestURI()));
                                                 }));
+        http.addFilterBefore(
+                new BrowserAuthenticationFilter(browserAuth, cookies, actors, mapper),
+                org.springframework.security.web.csrf.CsrfFilter.class);
+        if (clients.getIfAvailable() != null) {
+            var resolver =
+                    new DefaultOAuth2AuthorizationRequestResolver(
+                            clients.getObject(), "/oauth2/authorization");
+            resolver.setAuthorizationRequestCustomizer(
+                    OAuth2AuthorizationRequestCustomizers.withPkce());
+            http.oauth2Login(
+                    o ->
+                            o.authorizationEndpoint(
+                                            a ->
+                                                    a.authorizationRequestResolver(resolver)
+                                                            .authorizationRequestRepository(
+                                                                    GoogleOAuthFlow.requests()))
+                                    .authorizedClientRepository(GoogleOAuthFlow.transientClients())
+                                    .successHandler(
+                                            (req, res, auth) ->
+                                                    GoogleOAuthFlow.success(
+                                                            req,
+                                                            res,
+                                                            auth,
+                                                            browserAuth,
+                                                            cookies,
+                                                            csrf))
+                                    .failureHandler(
+                                            (req, res, error) -> {
+                                                org.springframework.security.core.context
+                                                        .SecurityContextHolder.clearContext();
+                                                res.sendRedirect("/account?oauthError=denied");
+                                            }));
+        }
         if (localDemo && env.acceptsProfiles(Profiles.of("local-demo")))
             http.addFilterBefore(
                     new LocalDemoAuthenticationFilter(email, accounts.getObject()),

@@ -41,6 +41,23 @@ public class VersionedAssessmentDao {
                                 Long.toString(r.getLong(4))));
     }
 
+    public List<Type> administrationTypes() {
+        return jdbc.query(
+                "SELECT id::text,code,name,active_version_id::text FROM public.assessment_type ORDER BY id",
+                (r, n) -> new Type(r.getString(1), r.getString(2), r.getString(3), r.getString(4)));
+    }
+
+    public List<Version> versions(long type) {
+        return jdbc
+                .query(
+                        "SELECT id FROM public.assessment_version WHERE assessment_type_id=? ORDER BY version_number DESC LIMIT 100",
+                        (r, n) -> r.getLong(1),
+                        type)
+                .stream()
+                .map(id -> version(id, false))
+                .toList();
+    }
+
     public String typeCode(long type) {
         return jdbc.queryForObject(
                 "SELECT code FROM public.assessment_type WHERE id=?", String.class, type);

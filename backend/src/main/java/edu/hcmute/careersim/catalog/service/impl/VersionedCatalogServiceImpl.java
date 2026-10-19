@@ -12,6 +12,11 @@ import org.springframework.stereotype.Service;
 public class VersionedCatalogServiceImpl implements VersionedCatalogService {
     private final ScenarioCatalogAccess scenarios;
 
+    public edu.hcmute.careersim.simulation.dto.ScenarioContracts.CatalogPage search(
+            edu.hcmute.careersim.simulation.dto.ScenarioContracts.CatalogQuery query) {
+        return scenarios.search(query);
+    }
+
     public List<Summary> list(Long after, int limit) {
         return scenarios.list(after, limit);
     }

@@ -32,6 +32,11 @@ import org.springframework.test.web.servlet.MockMvc;
         excludeAutoConfiguration = UserDetailsServiceAutoConfiguration.class)
 @Import(SecurityConfig.class)
 class GuidanceControllerTest {
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private edu.hcmute.careersim.identity.service.BrowserAuthentication browserAuthentication;
+
+    @org.springframework.test.context.bean.override.mockito.MockitoBean
+    private edu.hcmute.careersim.common.config.BrowserCredentialCookies browserCredentialCookies;
 
     @Autowired private MockMvc mockMvc;
 

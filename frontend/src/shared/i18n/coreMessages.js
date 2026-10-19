@@ -1,6 +1,8 @@
 // Package A presentation strings. Persisted content translations remain version-pinned.
 export const coreMessages = Object.fromEntries(`
 Account and privacy ⇢ Tài khoản và quyền riêng tư
+Select an assessment type ⇢ Chọn loại đánh giá
+The requested assessment type has no published version. ⇢ Loại đánh giá được yêu cầu chưa có phiên bản công bố.
 Sign in ⇢ Đăng nhập
 Sign out ⇢ Đăng xuất
 Register ⇢ Đăng ký
@@ -73,4 +75,114 @@ All required deliverables must be supplied. ⇢ Cần cung cấp đủ sản ph�
 The draft changed. Reload before saving. ⇢ Bản nháp đã thay đổi. Hãy tải lại trước khi lưu.
 The request requires an authenticated session. ⇢ Yêu cầu cần một phiên đăng nhập.
 No simulations are published yet. ⇢ Chưa có mô phỏng nào được công bố.
+
+Sign in with Google ⇢ Đăng nhập bằng Google
+Link Google to this account ⇢ Liên kết Google với tài khoản này
+Enterprise workspace ⇢ Không gian doanh nghiệp
+Assessment administration ⇢ Quản trị đánh giá
+Publishing permission is separate from enterprise registration. ⇢ Quyền xuất bản được cấp riêng sau khi đăng ký doanh nghiệp.
+Scenario version ⇢ Phiên bản mô phỏng
+New scenario draft ⇢ Bản nháp mô phỏng mới
+Clone as new draft ⇢ Sao chép thành bản nháp mới
+Scenario draft ⇢ Bản nháp mô phỏng
+Slug ⇢ Đường dẫn định danh
+Difficulty ⇢ Độ khó
+Estimated minutes ⇢ Thời lượng dự kiến (phút)
+Translations (EN/VI) ⇢ Bản dịch tiếng Anh và tiếng Việt
+Content provenance and review ⇢ Nguồn gốc và rà soát nội dung
+Title ⇢ Tiêu đề
+Target role ⇢ Vai trò nghề nghiệp
+Career track ⇢ Nhóm nghề nghiệp
+Summary ⇢ Tóm tắt
+Introduction ⇢ Giới thiệu
+Learning objectives ⇢ Mục tiêu thực hành
+Workplace context ⇢ Bối cảnh công việc
+Instructions ⇢ Hướng dẫn
+Task type ⇢ Loại nhiệm vụ
+Required task ⇢ Nhiệm vụ bắt buộc
+Deliverable definitions ⇢ Định nghĩa sản phẩm cần nộp
+Task resources ⇢ Tài nguyên nhiệm vụ
+Practiced skill IDs ⇢ Mã kỹ năng được thực hành
+Model answer and translations ⇢ Đáp án mẫu và bản dịch
+Reviewed quiz rubric (optional) ⇢ Quy tắc chấm quiz đã rà soát (tùy chọn)
+Remove task ⇢ Xóa nhiệm vụ khỏi bản nháp
+Add task ⇢ Thêm nhiệm vụ
+Preview saved version ⇢ Xem trước phiên bản đã lưu
+Publish reviewed version ⇢ Xuất bản phiên bản đã rà soát
+Aggregate participation ⇢ Thống kê tham gia tổng hợp
+Only aggregate counts are shown; private student evidence requires separate consent. ⇢ Chỉ hiển thị số liệu tổng hợp; minh chứng riêng tư của sinh viên cần sự đồng ý riêng.
+Participants ⇢ Người tham gia
+Search simulations ⇢ Tìm mô phỏng
+All ⇢ Tất cả
+Sort simulations ⇢ Sắp xếp mô phỏng
+Publication order ⇢ Thứ tự xuất bản
+Newest first ⇢ Mới nhất trước
+Search ⇢ Tìm kiếm
+Next page ⇢ Trang tiếp theo
+First page ⇢ Trang đầu
+Quiz score ⇢ Điểm quiz
+Completion does not depend on this score. ⇢ Việc hoàn thành không phụ thuộc vào điểm này.
+Self-review recorded ⇢ Đã ghi nhận tự đối chiếu
+I have compared my work and completed self-review ⇢ Tôi đã đối chiếu bài làm và hoàn thành tự xem lại
+Self-reported exploration results do not certify proficiency. ⇢ Kết quả tự đánh giá phục vụ khám phá nghề nghiệp, không chứng nhận năng lực.
+Start another attempt ⇢ Bắt đầu lượt làm mới
+Assessment type code ⇢ Mã loại đánh giá
+Name ⇢ Tên
+Create assessment type ⇢ Tạo loại đánh giá
+Load version by ID ⇢ Tải phiên bản theo mã
+Load version ⇢ Tải phiên bản
+Select assessment type ⇢ Chọn loại đánh giá
+Versioned assessment content ⇢ Nội dung đánh giá theo phiên bản
+Evaluator ⇢ Phương pháp tính kết quả
+Reviewed scoring configuration ⇢ Cấu hình tính kết quả đã rà soát
+Reviewed questions and translations ⇢ Câu hỏi và bản dịch đã rà soát
+Publish only reviewed content. Results are exploration evidence, not a proficiency certificate. ⇢ Chỉ xuất bản nội dung đã rà soát. Kết quả là minh chứng khám phá nghề nghiệp, không phải chứng nhận năng lực.
+Save as new version ⇢ Lưu thành phiên bản mới
+The account changed. Reload your saved work. ⇢ Tài khoản đã thay đổi. Hãy tải lại bài đã lưu của bạn.
+Finalize and self-review the previous task first. ⇢ Hãy nộp chính thức và tự đối chiếu nhiệm vụ trước đó.
+Invalid or expired sign-in. ⇢ Phiên đăng nhập không hợp lệ hoặc đã hết hạn.
+You are not allowed to perform this action. ⇢ Bạn không có quyền thực hiện thao tác này.
+
+Invalid JSON ⇢ JSON không hợp lệ
+New ordered versions require all tasks. Deliverables can be optional. ⇢ Phiên bản có thứ tự mới yêu cầu tất cả nhiệm vụ. Từng sản phẩm nộp có thể là tùy chọn.
+Deliverable ⇢ Sản phẩm cần nộp
+Format ⇢ Định dạng
+Required deliverable ⇢ Sản phẩm bắt buộc
+Maximum characters ⇢ Số ký tự tối đa
+Advanced validation ⇢ Quy tắc kiểm tra nâng cao
+Validation configuration ⇢ Cấu hình kiểm tra
+Remove deliverable ⇢ Xóa sản phẩm khỏi bản nháp
+Add deliverable ⇢ Thêm sản phẩm cần nộp
+Add quiz choices ⇢ Thêm câu hỏi lựa chọn
+Enable reviewed quiz scoring ⇢ Bật tính điểm quiz đã rà soát
+Correct choices ⇢ Các lựa chọn đúng
+Task resource ⇢ Tài nguyên nhiệm vụ
+Resource URL ⇢ Đường dẫn tài nguyên
+Upload resource ⇢ Tải lên tài nguyên
+Release policy ⇢ Thời điểm mở tài nguyên
+When task is accessible ⇢ Khi được phép làm nhiệm vụ
+After final submission (private file) ⇢ Sau khi nộp chính thức (tệp riêng tư)
+Remove resource ⇢ Xóa tài nguyên khỏi bản nháp
+Add resource ⇢ Thêm tài nguyên
+Translations and advanced task settings ⇢ Bản dịch và thiết lập nhiệm vụ nâng cao
+Content origin ⇢ Nguồn gốc nội dung
+Original content ⇢ Nội dung tự biên soạn
+Licensed content ⇢ Nội dung có giấy phép
+License or authorship statement ⇢ Giấy phép hoặc xác nhận tác giả
+Source URL ⇢ Đường dẫn nguồn
+I have reviewed the content, answers and publication rights. ⇢ Tôi đã rà soát nội dung, đáp án và quyền xuất bản.
+Category codes (comma separated) ⇢ Mã nhóm (phân cách bằng dấu phẩy)
+Question ⇢ Câu hỏi
+Prompt ⇢ Nội dung câu hỏi
+Category ⇢ Nhóm
+Vietnamese prompt ⇢ Câu hỏi tiếng Việt
+Remove question ⇢ Xóa câu hỏi khỏi bản nháp
+Add question ⇢ Thêm câu hỏi
+Select an answer ⇢ Chọn câu trả lời
+
+Sign in to your existing account, then explicitly link Google. ⇢ Đăng nhập tài khoản hiện có, sau đó chủ động liên kết Google.
+Google sign-in was not completed. Please try again. ⇢ Chưa hoàn tất đăng nhập Google. Vui lòng thử lại.
+Enrollment not found. ⇢ Không tìm thấy lượt tham gia mô phỏng.
+Account is not active. ⇢ Tài khoản không ở trạng thái hoạt động.
+Access or CSRF validation denied. ⇢ Truy cập hoặc xác thực CSRF bị từ chối.
 `.trim().split('\n').map(line => line.split(' ⇢ ')))

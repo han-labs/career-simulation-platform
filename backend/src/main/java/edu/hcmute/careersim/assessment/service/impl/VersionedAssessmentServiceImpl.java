@@ -2,7 +2,7 @@ package edu.hcmute.careersim.assessment.service.impl;
 
 import edu.hcmute.careersim.assessment.access.VersionedAssessmentAccess;
 import edu.hcmute.careersim.assessment.dao.VersionedAssessmentDao;
-import edu.hcmute.careersim.assessment.domain.RiasecV1Evaluator;
+import edu.hcmute.careersim.assessment.domain.AssessmentEvaluatorRegistry;
 import edu.hcmute.careersim.assessment.dto.VersionedAssessmentContracts.*;
 import edu.hcmute.careersim.assessment.service.*;
 import edu.hcmute.careersim.common.audit.AuditWriter;
@@ -21,9 +21,21 @@ public class VersionedAssessmentServiceImpl
                 AssessmentAuthoringService,
                 VersionedAssessmentAccess {
     private final VersionedAssessmentDao dao;
-    private final RiasecV1Evaluator evaluator;
+    private final AssessmentEvaluatorRegistry evaluator;
     private final ActorAccess actors;
     private final AuditWriter audit;
+
+    @Transactional(readOnly = true)
+    public List<Type> administrationTypes(long actor) {
+        ActorAccess.requireRole(actors.requireId(actor), "ADMIN");
+        return dao.administrationTypes();
+    }
+
+    @Transactional(readOnly = true)
+    public List<Version> versions(long actor, long type) {
+        ActorAccess.requireRole(actors.requireId(actor), "ADMIN");
+        return dao.versions(type);
+    }
 
     private void student(long actor) {
         ActorAccess.requireRole(actors.requireId(actor), "STUDENT");
@@ -156,9 +168,7 @@ public class VersionedAssessmentServiceImpl
         }
         CoreValues.match(revision, a.revision());
         var v = dao.version(a.version(), false);
-        var result =
-                evaluator.evaluate(
-                        dao.typeCode(CoreValues.id(v.typeId())), v.id(), v.questions(), items);
+        var result = evaluator.evaluate(v, dao.typeCode(CoreValues.id(v.typeId())), items);
         dao.responses(a, items);
         dao.result(a, v, hash, result);
         audit.record(actor, "ASSESSMENT_SUBMITTED", "assessment_attempt", id, Map.of("hash", hash));
