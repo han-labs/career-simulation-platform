@@ -50,6 +50,17 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AssessmentServiceImpl implements AssessmentService {
 
+    private final edu.hcmute.careersim.identity.access.ActorAccess actors;
+
+    @org.springframework.beans.factory.annotation.Value("${app.legacy-write-enabled:false}")
+    private boolean legacyWrites;
+
+    private void student(Long id, boolean write) {
+        edu.hcmute.careersim.identity.access.ActorAccess.requireRole(
+                (write ? actors.lock(id) : actors.requireId(id)), "STUDENT");
+        if (write && !legacyWrites) throw new ApiException(ErrorCode.WORKFLOW_UPGRADE_REQUIRED);
+    }
+
     private final RiasecQuestionRepository questionRepository;
     private final AssessmentAttemptRepository attemptRepository;
     private final AssessmentAnswerRepository answerRepository;
@@ -72,6 +83,7 @@ public class AssessmentServiceImpl implements AssessmentService {
     @Override
     @Transactional
     public AssessmentAttemptDto startAttempt(Long studentId) {
+        student(studentId, true);
         AssessmentAttempt attempt = new AssessmentAttempt();
         attempt.setStudentId(studentId);
         attempt.setAssessmentType("RIASEC");
@@ -84,6 +96,7 @@ public class AssessmentServiceImpl implements AssessmentService {
     @Transactional
     public AssessmentResultDto submitAnswers(
             Long attemptId, Long studentId, SubmitAnswersRequest request) {
+        student(studentId, true);
         AssessmentAttempt attempt =
                 attemptRepository
                         .findByIdAndStudentId(attemptId, studentId)
@@ -105,7 +118,9 @@ public class AssessmentServiceImpl implements AssessmentService {
         Map<Long, RiasecQuestion> questionMap =
                 activeQuestions.stream().collect(Collectors.toMap(RiasecQuestion::getId, q -> q));
 
-        if (request.answers().size() != activeQuestions.size()) {
+        if (request.answers().size() != activeQuestions.size()
+                || request.answers().stream().map(AnswerItemDto::questionId).distinct().count()
+                        != activeQuestions.size()) {
             throw new ApiException(
                     ErrorCode.VALIDATION_ERROR, "You must answer all active questions.");
         }
@@ -152,6 +167,7 @@ public class AssessmentServiceImpl implements AssessmentService {
     @Override
     @Transactional(readOnly = true)
     public AssessmentResultDto getAttemptResult(Long attemptId, Long studentId) {
+        student(studentId, false);
         AssessmentAttempt attempt =
                 attemptRepository
                         .findByIdAndStudentId(attemptId, studentId)
@@ -182,6 +198,7 @@ public class AssessmentServiceImpl implements AssessmentService {
     @Override
     @Transactional
     public AssessmentAttemptDto startQuizAttempt(String quizType, Long studentId) {
+        student(studentId, true);
         String type = requireQuizType(quizType);
         quizSubmissionPolicy.requireValidQuestions(
                 type,
@@ -197,6 +214,7 @@ public class AssessmentServiceImpl implements AssessmentService {
     @Transactional
     public CareerQuizResultDto submitQuizAnswers(
             Long attemptId, Long studentId, SubmitAnswersRequest request) {
+        student(studentId, true);
         AssessmentAttempt attempt = findOwnedQuizAttempt(attemptId, studentId);
         if ("COMPLETED".equals(attempt.getStatus()))
             return getQuizAttemptResult(attemptId, studentId);
@@ -234,6 +252,7 @@ public class AssessmentServiceImpl implements AssessmentService {
     @Override
     @Transactional(readOnly = true)
     public CareerQuizResultDto getQuizAttemptResult(Long attemptId, Long studentId) {
+        student(studentId, false);
         AssessmentAttempt attempt = findOwnedQuizAttempt(attemptId, studentId);
         if (!"COMPLETED".equals(attempt.getStatus())) {
             throw new ApiException(ErrorCode.BAD_REQUEST, "Attempt is not completed yet.");

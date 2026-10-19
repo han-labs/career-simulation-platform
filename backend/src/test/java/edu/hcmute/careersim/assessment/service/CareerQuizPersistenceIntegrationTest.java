@@ -21,7 +21,7 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-@SpringBootTest
+@SpringBootTest(properties = {"app.legacy-write-enabled=true", "app.core-v2-enabled=false"})
 @Testcontainers(disabledWithoutDocker = true)
 class CareerQuizPersistenceIntegrationTest {
 
@@ -56,11 +56,13 @@ class CareerQuizPersistenceIntegrationTest {
                         """,
                         Long.class,
                         "assessment-test-" + UUID.randomUUID() + "@example.test");
+        jdbcTemplate.update("INSERT INTO student_profiles(user_id) VALUES (?)", studentId);
     }
 
     @AfterEach
     void removeSyntheticStudent() {
         jdbcTemplate.update("DELETE FROM assessment_attempts WHERE student_id = ?", studentId);
+        jdbcTemplate.update("DELETE FROM student_profiles WHERE user_id = ?", studentId);
         jdbcTemplate.update("DELETE FROM app_users WHERE id = ?", studentId);
     }
 
@@ -107,10 +109,7 @@ class CareerQuizPersistenceIntegrationTest {
                                 String.class,
                                 attempt.id()))
                 .isEqualTo("WORK_ACTIVITIES:COMPLETED");
-        assertThatThrownBy(
-                        () ->
-                                assessmentService.getQuizAttemptResult(
-                                        attempt.id(), studentId + 1_000_000))
+        assertThatThrownBy(() -> assessmentService.getQuizAttemptResult(attempt.id(), 1L))
                 .isInstanceOf(NotFoundException.class);
     }
 

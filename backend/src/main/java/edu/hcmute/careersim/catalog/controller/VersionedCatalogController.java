@@ -14,7 +14,21 @@ import org.springframework.web.bind.annotation.*;
 public class VersionedCatalogController {
     private final VersionedCatalogService service;
 
-    @GetMapping
+    @GetMapping(params = "paged=true")
+    public ApiResponse<?> search(
+            @RequestParam(required = false) String q,
+            @RequestParam(required = false) String careerTrack,
+            @RequestParam(required = false) String difficulty,
+            @RequestParam(defaultValue = "ID_ASC") String sort,
+            @RequestParam(required = false) String cursor,
+            @RequestParam(defaultValue = "20") int limit) {
+        return ApiResponse.success(
+                service.search(
+                        new edu.hcmute.careersim.simulation.dto.ScenarioContracts.CatalogQuery(
+                                q, careerTrack, difficulty, sort, cursor, limit)));
+    }
+
+    @GetMapping(params = "!paged")
     public ApiResponse<?> list(
             @RequestParam(required = false) String cursor,
             @RequestParam(defaultValue = "20") int limit) {

@@ -52,6 +52,381 @@ import org.testcontainers.utility.DockerImageName;
 @Testcontainers
 class CorePackageAIntegrationTest {
     @Test
+    void orderedQuizZeroScoreRequiresRealSelfReviewAndFreeformCompletesWithoutGrading()
+            throws Exception {
+        var published = orderedQuizScenario();
+        var e = enrollments.enroll(student, Long.parseLong(published.id()));
+        long eid = Long.parseLong(e.id()),
+                tid = Long.parseLong(e.tasks().get(0).id()),
+                next = Long.parseLong(e.tasks().get(1).id());
+        assertThat(e.progressionMode()).isEqualTo("ORDERED_SELF_REVIEW");
+        assertThat(e.tasks().get(1).definitions()).isEmpty();
+        assertThat(e.tasks().get(1).instructions()).isNull();
+        assertThat(e.tasks().get(1).translations().path("vi").path("title").asText())
+                .isEqualTo("Vietnamese task");
+        assertThat(e.tasks().get(1).translations().toString()).doesNotContain("Restricted");
+        assertThatThrownBy(() -> submissions.read(student, eid, next))
+                .isInstanceOf(ApiException.class);
+        assertThatThrownBy(() -> submissions.save(student, eid, next, 0, new Items(List.of())))
+                .isInstanceOf(ApiException.class);
+        assertThatThrownBy(() -> answers.readAnswer(student, eid, tid))
+                .isInstanceOf(ApiException.class);
+        assertThatThrownBy(() -> submissions.selfReview(student, eid, tid))
+                .isInstanceOf(ApiException.class);
+        var payload =
+                List.of(
+                        new Item(
+                                e.tasks().get(0).definitions().get(0).id(),
+                                null,
+                                null,
+                                null,
+                                CoreValues.tree(Map.of("choice", "B"))));
+        var request = new Finalize(UUID.randomUUID(), payload);
+        var result = submissions.finalizeTask(student, eid, tid, 0, request);
+        assertThat(result.quizResult().path("percentage").asInt()).isZero();
+        assertThat(result.submittedByUserId()).isEqualTo(Long.toString(student));
+        assertThat(submissions.finalizeTask(student, eid, tid, 0, request)).isEqualTo(result);
+        assertThat(enrollments.read(student, eid).status()).isEqualTo("IN_PROGRESS");
+        assertThatThrownBy(() -> submissions.read(student, eid, next))
+                .isInstanceOf(ApiException.class);
+        assertThatThrownBy(() -> submissions.selfReview(other, eid, tid))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.NotFoundException.class);
+        assertThat(answers.readAnswer(student, eid, tid).answer().content())
+                .isEqualTo("Reviewed model answer");
+        var reviewed = parallel(() -> submissions.selfReview(student, eid, tid));
+        assertThat(reviewed.get(0).reviewedAt())
+                .isEqualTo(reviewed.get(1).reviewedAt())
+                .isNotNull();
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT count(*) FROM task_self_review WHERE submission_id=?",
+                                Integer.class,
+                                Long.parseLong(result.submissionId())))
+                .isEqualTo(1);
+        var unlocked = enrollments.read(student, eid).tasks().get(1);
+        assertThat(unlocked.translations().path("vi").path("instructions").asText())
+                .isEqualTo("Restricted translated instructions");
+        var finalPractical =
+                submissions.finalizeTask(
+                        student, eid, next, 0, new Finalize(UUID.randomUUID(), items(unlocked)));
+        assertThat(finalPractical.quizResult()).isNull();
+        assertThat(finalPractical.reviewedAt()).isNull();
+        assertThat(enrollments.read(student, eid).status()).isEqualTo("COMPLETED");
+        var completion = completions.read(student, Long.parseLong(finalPractical.completionId()));
+        submissions.selfReview(student, eid, next);
+        assertThat(completions.read(student, Long.parseLong(completion.id())))
+                .isEqualTo(completion);
+        assertThatThrownBy(
+                        () ->
+                                jdbc.update(
+                                        "UPDATE task_quiz_result SET score_data='{}' WHERE submission_id=?",
+                                        Long.parseLong(result.submissionId())))
+                .isInstanceOf(org.springframework.dao.DataAccessException.class);
+        assertThatThrownBy(
+                        () -> jdbc.update("UPDATE task_rubric SET version=2 WHERE task_id=?", tid))
+                .isInstanceOf(org.springframework.dao.DataAccessException.class);
+        assertThatThrownBy(
+                        () ->
+                                jdbc.update(
+                                        "DELETE FROM scenario_learning_policy WHERE scenario_version_id=?",
+                                        Long.parseLong(published.id())))
+                .isInstanceOf(org.springframework.dao.DataAccessException.class);
+    }
+
+    private Version orderedQuizScenario() {
+        var old = scenario(2, false);
+        var draft =
+                scenarios.cloneVersion(
+                        representative, Long.parseLong(old.scenarioId()), Long.parseLong(old.id()));
+        var original = draft.tasks().get(0);
+        var definition =
+                new Definition(
+                        null,
+                        1,
+                        "Quiz choices",
+                        "JSON",
+                        true,
+                        CoreValues.tree(
+                                Map.of(
+                                        "schemaVersion",
+                                        1,
+                                        "jsonSchema",
+                                        Map.of(
+                                                "type",
+                                                "object",
+                                                "properties",
+                                                Map.of(
+                                                        "choice",
+                                                        Map.of(
+                                                                "type",
+                                                                "string",
+                                                                "enum",
+                                                                List.of("A", "B"))),
+                                                "required",
+                                                List.of("choice"),
+                                                "additionalProperties",
+                                                false))));
+        var quiz =
+                new Task(
+                        original.id(),
+                        1,
+                        original.title(),
+                        original.workplaceContext(),
+                        original.instructions(),
+                        true,
+                        original.translations(),
+                        List.of(definition),
+                        List.of(),
+                        List.of(),
+                        original.modelAnswer(),
+                        "QUIZ",
+                        new Rubric(
+                                1,
+                                "quiz-exact/1",
+                                CoreValues.tree(
+                                        Map.of(
+                                                "schemaVersion",
+                                                1,
+                                                "definitionPosition",
+                                                1,
+                                                "answers",
+                                                Map.of("choice", "A")))));
+        var second = draft.tasks().get(1);
+        var translatedSecond =
+                new Task(
+                        second.id(),
+                        second.position(),
+                        second.title(),
+                        second.workplaceContext(),
+                        second.instructions(),
+                        true,
+                        CoreValues.tree(
+                                Map.of(
+                                        "vi",
+                                        Map.of(
+                                                "title",
+                                                "Vietnamese task",
+                                                "instructions",
+                                                "Restricted translated instructions",
+                                                "workplaceContext",
+                                                "Restricted translated context"))),
+                        second.definitions(),
+                        second.resources(),
+                        second.skillIds(),
+                        second.modelAnswer(),
+                        second.taskType(),
+                        second.rubric());
+        draft =
+                scenarios.update(
+                        representative,
+                        Long.parseLong(draft.id()),
+                        draft.revision(),
+                        new Draft(draft.metadata(), List.of(quiz, translatedSecond)));
+        return scenarios.publish(representative, Long.parseLong(draft.id()), draft.revision());
+    }
+
+    @Test
+    void independentAssessmentMethodsRetakesAndOptionalAssessmentEnrollment() {
+        var riasec = assessment();
+        var type =
+                assessmentAuthor.createType(
+                        admin,
+                        new VersionedAssessmentContracts.TypeRequest(
+                                "PROFILE_" + UUID.randomUUID(), "Synthetic self-report"));
+        var config =
+                CoreValues.tree(
+                        Map.of(
+                                "schemaVersion",
+                                1,
+                                "dimensions",
+                                List.of("PEOPLE", "INFORMATION"),
+                                "aggregation",
+                                "SUM",
+                                "minAnswer",
+                                1,
+                                "maxAnswer",
+                                5,
+                                "tieOrder",
+                                List.of("PEOPLE", "INFORMATION")));
+        var questions =
+                List.of("PEOPLE", "INFORMATION").stream()
+                        .map(
+                                d ->
+                                        new VersionedAssessmentContracts.QuestionDraft(
+                                                d.equals("PEOPLE") ? 1 : 2,
+                                                "Synthetic self-report: " + d,
+                                                "LIKERT",
+                                                CoreValues.tree(
+                                                        Map.of(
+                                                                "schemaVersion",
+                                                                1,
+                                                                "min",
+                                                                1,
+                                                                "max",
+                                                                5,
+                                                                "dimension",
+                                                                d)),
+                                                CoreValues.tree(Map.of()),
+                                                true))
+                        .toList();
+        var profile =
+                assessmentAuthor.createVersion(
+                        admin,
+                        Long.parseLong(type),
+                        new VersionedAssessmentContracts.VersionDraft(
+                                "profile-sum", "1", config, questions));
+        profile = assessmentAuthor.publish(admin, Long.parseLong(profile.id()), profile.revision());
+        var noAssessment = scenario(1, false);
+        assertThat(enrollments.enroll(student, Long.parseLong(noAssessment.id())).id())
+                .isNotBlank();
+        for (var version : List.of(riasec, profile, profile)) {
+            var attempt =
+                    assessments.start(student, Long.parseLong(version.id()), UUID.randomUUID());
+            assessments.submit(
+                    student,
+                    Long.parseLong(attempt.id()),
+                    0,
+                    new VersionedAssessmentContracts.Responses(responses(attempt)));
+        }
+        var results = assessmentResults.readOwned(student);
+        assertThat(results).hasSize(3);
+        assertThat(
+                        results.stream()
+                                .map(VersionedAssessmentContracts.Result::evaluatorKey)
+                                .distinct()
+                                .toList())
+                .containsExactlyInAnyOrder("riasec-sum", "profile-sum");
+        assertThat(results.stream().filter(r -> r.evaluatorKey().equals("profile-sum")).toList())
+                .allSatisfy(
+                        r -> {
+                            assertThat(r.resultData().has("dimensions")).isFalse();
+                            assertThat(r.resultData().path("categories")).hasSize(2);
+                        });
+    }
+
+    @Autowired edu.hcmute.careersim.assessment.access.VersionedAssessmentAccess assessmentResults;
+    @Autowired edu.hcmute.careersim.simulation.access.ScenarioCatalogAccess catalogue;
+
+    @Test
+    void filteredCatalogueUsesStableCursorAndEnterpriseStatisticsNeverReturnPrivateWork()
+            throws Exception {
+        String term = "Catalogue " + UUID.randomUUID();
+        var template = scenario(1, false);
+        var metadata = template.metadata();
+        for (int i = 0; i < 3; i++) {
+            var m =
+                    new Metadata(
+                            term,
+                            metadata.targetRole(),
+                            metadata.careerTrack(),
+                            metadata.summary(),
+                            metadata.introduction(),
+                            metadata.learningObjectives(),
+                            metadata.difficulty(),
+                            10,
+                            metadata.translations(),
+                            metadata.provenance());
+            var task = template.tasks().get(0);
+            var copied =
+                    new Task(
+                            null,
+                            1,
+                            task.title(),
+                            task.workplaceContext(),
+                            task.instructions(),
+                            true,
+                            task.translations(),
+                            List.of(
+                                    new Definition(
+                                            null,
+                                            1,
+                                            "Response",
+                                            "TEXT",
+                                            true,
+                                            CoreValues.tree(
+                                                    Map.of(
+                                                            "schemaVersion",
+                                                            1,
+                                                            "minLength",
+                                                            1,
+                                                            "maxLength",
+                                                            100)))),
+                            List.of(),
+                            List.of(),
+                            task.modelAnswer());
+            var v =
+                    scenarios.create(
+                            representative,
+                            new Create(
+                                    "catalogue-" + UUID.randomUUID(),
+                                    new Draft(m, List.of(copied))));
+            scenarios.publish(representative, Long.parseLong(v.id()), v.revision());
+        }
+        String cursor = null;
+        Set<String> ids = new LinkedHashSet<>();
+        do {
+            var page =
+                    catalogue.search(
+                            new CatalogQuery(
+                                    term,
+                                    metadata.careerTrack(),
+                                    "INTRODUCTORY",
+                                    "TITLE_ASC",
+                                    cursor,
+                                    1));
+            assertThat(page.items()).hasSize(1);
+            assertThat(ids.add(page.items().get(0).id())).isTrue();
+            cursor = page.nextCursor();
+        } while (cursor != null);
+        assertThat(ids).hasSize(3);
+        var page = catalogue.search(new CatalogQuery(term, null, null, "DURATION_ASC", null, 1));
+        assertThatThrownBy(
+                        () ->
+                                catalogue.search(
+                                        new CatalogQuery(
+                                                "changed",
+                                                null,
+                                                null,
+                                                "DURATION_ASC",
+                                                page.nextCursor(),
+                                                1)))
+                .isInstanceOf(ApiException.class);
+        var detail =
+                catalogue.find(
+                        template.id() == null
+                                ? "missing"
+                                : scenarios.slug(representative, Long.parseLong(template.id())));
+        assertThat(detail.taskOutline()).hasSize(1);
+        assertThat(json.writeValueAsString(detail))
+                .doesNotContain("modelAnswer", "quizScoringConfig", "Reviewed model answer");
+        enrollments.enroll(student, Long.parseLong(template.id()));
+        enrollments.enroll(other, Long.parseLong(template.id()));
+        var summary =
+                scenarios.participation(representative, tenant).stream()
+                        .filter(s -> s.scenarioVersionId().equals(template.id()))
+                        .findFirst()
+                        .orElseThrow();
+        assertThat(summary.participants()).isEqualTo(2);
+        assertThat(summary.completions()).isZero();
+        assertThat(json.writeValueAsString(summary))
+                .doesNotContain("studentId", "email", "contentText");
+        long foreign =
+                Long.parseLong(
+                        identity.register(
+                                        new IdentityContracts.Registration(
+                                                "foreign-" + UUID.randomUUID() + "@example.test",
+                                                PASSWORD,
+                                                "Foreign",
+                                                "ENTERPRISE",
+                                                "Foreign Enterprise"))
+                                .id());
+        assertThatThrownBy(() -> scenarios.participation(foreign, tenant))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.NotFoundException.class);
+        assertThatThrownBy(() -> scenarios.get(foreign, Long.parseLong(template.id())))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.NotFoundException.class);
+    }
+
+    @Test
     void runtimeRoleHasDataAccessButCannotOwnSchema() throws Exception {
         jdbc.execute(
                 "CREATE ROLE package_a_runtime NOLOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT");
@@ -356,6 +731,51 @@ class CorePackageAIntegrationTest {
     }
 
     @Test
+    void learningPolicyChildEditSerializesWithPublicationAndFreezesAfterward() throws Exception {
+        var original = scenario(1, false);
+        var draft =
+                scenarios.cloneVersion(
+                        representative,
+                        Long.parseLong(original.scenarioId()),
+                        Long.parseLong(original.id()));
+        long task = Long.parseLong(draft.tasks().get(0).id());
+        var pool = Executors.newSingleThreadExecutor();
+        var started = new CountDownLatch(1);
+        try (var connection = PG.createConnection("")) {
+            connection.setAutoCommit(false);
+            try (var statement =
+                    connection.prepareStatement(
+                            "UPDATE public.task_learning_policy SET task_type='TEXT' WHERE task_id=?")) {
+                statement.setLong(1, task);
+                assertThat(statement.executeUpdate()).isEqualTo(1);
+            }
+            var publish =
+                    pool.submit(
+                            () -> {
+                                started.countDown();
+                                return scenarios.publish(
+                                        representative,
+                                        Long.parseLong(draft.id()),
+                                        draft.revision());
+                            });
+            assertThat(started.await(5, TimeUnit.SECONDS)).isTrue();
+            assertThatThrownBy(() -> publish.get(50, TimeUnit.MILLISECONDS))
+                    .isInstanceOf(TimeoutException.class);
+            connection.commit();
+            assertThat(publish.get(5, TimeUnit.SECONDS).tasks().get(0).taskType())
+                    .isEqualTo("TEXT");
+            assertThatThrownBy(
+                            () ->
+                                    jdbc.update(
+                                            "UPDATE public.task_learning_policy SET task_type='PRACTICAL' WHERE task_id=?",
+                                            task))
+                    .isInstanceOf(org.springframework.dao.DataAccessException.class);
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
     void answerAttachmentsAreAssociationAuthorizedAndReleaseOnlyAfterFinal() {
         var original = scenario(1, false);
         var draft =
@@ -488,13 +908,13 @@ class CorePackageAIntegrationTest {
 
     @Test
     void realGatewayNoAiWorkflowAndIsolatedBackupRestore() throws Exception {
-        var v = scenario(1, false);
+        var v = orderedQuizScenario();
         var av = assessment();
         org.testcontainers.Testcontainers.exposeHostPorts(port);
         String gateway =
                 "server { listen 80; root /usr/share/nginx/html; location /api/ { proxy_pass http://host.testcontainers.internal:"
                         + port
-                        + "/api/; proxy_set_header Host $host; } location / { try_files $uri /index.html; } }";
+                        + "/api/; proxy_set_header Host $http_host; } location / { try_files $uri /index.html; } }";
         Path bundle = Path.of("../frontend/dist").toAbsolutePath().normalize();
         assertThat(java.nio.file.Files.exists(bundle.resolve("index.html")))
                 .as("Build frontend before gateway smoke")
@@ -573,7 +993,14 @@ class CorePackageAIntegrationTest {
                             base,
                             "PUT",
                             taskBase + "/submission",
-                            new Items(items(task)),
+                            new Items(
+                                    List.of(
+                                            new Item(
+                                                    task.definitions().get(0).id(),
+                                                    null,
+                                                    null,
+                                                    null,
+                                                    CoreValues.tree(Map.of("choice", "B"))))),
                             0L);
             assertThat(
                             gatewayRequest(http, base, "GET", taskBase + "/submission", null, null)
@@ -586,7 +1013,15 @@ class CorePackageAIntegrationTest {
                             base,
                             "POST",
                             taskBase + "/submission/finalize",
-                            new Finalize(UUID.randomUUID(), items(task)),
+                            new Finalize(
+                                    UUID.randomUUID(),
+                                    List.of(
+                                            new Item(
+                                                    task.definitions().get(0).id(),
+                                                    null,
+                                                    null,
+                                                    null,
+                                                    CoreValues.tree(Map.of("choice", "B"))))),
                             draft.path("revision").asLong());
             assertThat(finalWork.path("status").asText()).isEqualTo("FINAL");
             assertThat(
@@ -603,7 +1038,40 @@ class CorePackageAIntegrationTest {
                                     .path("content")
                                     .asText())
                     .isEqualTo("Đáp án mẫu");
-            String cid = finalWork.path("completionId").asText();
+            assertThat(finalWork.path("quizResult").path("percentage").asInt()).isZero();
+            assertThat(finalWork.path("completionId").isNull()).isTrue();
+            var waiting = gatewayRequest(http, base, "GET", "/v2/enrollments/" + eid, null, null);
+            assertThat(waiting.path("progression").get(1).path("accessible").asBoolean()).isFalse();
+            assertThat(waiting.path("tasks").get(1).path("translations").toString())
+                    .doesNotContain("Restricted");
+            gatewayRequest(http, base, "POST", taskBase + "/self-review", Map.of(), null);
+            var unlocked = gatewayRequest(http, base, "GET", "/v2/enrollments/" + eid, null, null);
+            assertThat(unlocked.path("progression").get(1).path("accessible").asBoolean()).isTrue();
+            assertThat(unlocked.path("tasks").get(1).path("translations").toString())
+                    .contains("Restricted translated instructions");
+            var practical = v.tasks().get(1);
+            var finalRequest = new Finalize(UUID.randomUUID(), items(practical));
+            String practicalBase = "/v2/enrollments/" + eid + "/tasks/" + practical.id();
+            var practicalFinal =
+                    gatewayRequest(
+                            http,
+                            base,
+                            "POST",
+                            practicalBase + "/submission/finalize",
+                            finalRequest,
+                            0L);
+            assertThat(practicalFinal.path("quizResult").isNull()).isTrue();
+            assertThat(practicalFinal.path("reviewedAt").isNull()).isTrue();
+            assertThat(
+                            gatewayRequest(
+                                    http,
+                                    base,
+                                    "POST",
+                                    practicalBase + "/submission/finalize",
+                                    finalRequest,
+                                    0L))
+                    .isEqualTo(practicalFinal);
+            String cid = practicalFinal.path("completionId").asText();
             var completion =
                     gatewayRequest(http, base, "GET", "/v2/completions/" + cid, null, null);
             assertThat(completion.path("resumeSnippetText").asText())
@@ -674,7 +1142,7 @@ class CorePackageAIntegrationTest {
                             restored.queryForObject(
                                     "SELECT max(version::integer) FROM public.flyway_schema_history WHERE success",
                                     Integer.class))
-                    .isEqualTo(18);
+                    .isEqualTo(20);
             assertThat(
                             restored.queryForObject(
                                     "SELECT resume_snippet_text FROM public.simulation_completion WHERE id=?",
@@ -686,7 +1154,7 @@ class CorePackageAIntegrationTest {
                                     "SELECT count(*) FROM public.task_submission WHERE enrollment_id=? AND status='FINAL'",
                                     Integer.class,
                                     Long.parseLong(eid)))
-                    .isEqualTo(1);
+                    .isEqualTo(2);
             long next =
                     restored.queryForObject(
                             "INSERT INTO public.assessment_attempt(student_id,assessment_version_id,start_request_id) VALUES (?,?,?) RETURNING id",
@@ -719,6 +1187,7 @@ class CorePackageAIntegrationTest {
             throws Exception {
         var request =
                 java.net.http.HttpRequest.newBuilder(java.net.URI.create(base + path))
+                        .header("Origin", base.substring(0, base.length() - 4))
                         .timeout(java.time.Duration.ofSeconds(30));
         if (!method.equals("GET")) {
             var token =
@@ -1420,31 +1889,47 @@ class CorePackageAIntegrationTest {
                         .path("data")
                         .path("token")
                         .asText();
-        mvc.perform(
-                        post("/v2/auth/login")
-                                .session(session)
-                                .header("X-CSRF-TOKEN", token)
-                                .contentType("application/json")
-                                .content(
-                                        json.writeValueAsString(
-                                                new IdentityContracts.Login(email, PASSWORD))))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(Long.toString(student)));
+        var login =
+                mvc.perform(
+                                post("/v2/auth/login")
+                                        .session(session)
+                                        .header("X-CSRF-TOKEN", token)
+                                        .contentType("application/json")
+                                        .content(
+                                                json.writeValueAsString(
+                                                        new IdentityContracts.Login(
+                                                                email, PASSWORD))))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.data.id").value(Long.toString(student)))
+                        .andReturn();
+        var credential = login.getResponse().getCookie("CAREERSIM_AUTH");
+        assertThat(credential).isNotNull();
         assertThat(session.getId()).isNotEqualTo(oldId);
-        mvc.perform(get("/v2/me").session(session)).andExpect(status().isOk());
+        mvc.perform(get("/v2/me").session(session)).andExpect(status().isUnauthorized());
+        mvc.perform(get("/v2/me").session(session).cookie(credential)).andExpect(status().isOk());
         mvc.perform(
                         post("/v1/assessments/attempts")
                                 .session(session)
+                                .cookie(credential)
                                 .with(csrf())
                                 .header("X-Student-Id", other))
                 .andExpect(status().isForbidden());
-        mvc.perform(post("/v1/assessments/attempts").session(session).with(csrf()))
+        mvc.perform(
+                        post("/v1/assessments/attempts")
+                                .session(session)
+                                .cookie(credential)
+                                .with(csrf()))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.code").value("WORKFLOW_UPGRADE_REQUIRED"));
-        mvc.perform(post("/v2/auth/logout").session(session).header("X-CSRF-TOKEN", token))
+        mvc.perform(
+                        post("/v2/auth/logout")
+                                .session(session)
+                                .cookie(credential)
+                                .header("X-CSRF-TOKEN", token))
                 .andExpect(status().isForbidden());
         identity.status(admin, student, actors.requireId(student).revision(), "LOCKED");
-        mvc.perform(get("/v2/me").session(session)).andExpect(status().isForbidden());
+        mvc.perform(get("/v2/me").session(session).cookie(credential))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -1530,7 +2015,7 @@ class CorePackageAIntegrationTest {
 
     @Test
     void parallelVersionsEnrollmentFinalizationAndFixedCompletion() throws Exception {
-        var v = scenario(2, true);
+        var v = scenario(2, false);
         var enrollment = parallel(() -> enrollments.enroll(student, Long.parseLong(v.id())));
         assertThat(enrollment.get(0).id()).isEqualTo(enrollment.get(1).id());
         var e = enrollment.get(0);
@@ -1548,27 +2033,18 @@ class CorePackageAIntegrationTest {
         assertThat(enrollments.enroll(student, Long.parseLong(clone.id())).id())
                 .isNotEqualTo(e.id());
         assertThat(enrollments.read(student, eid).scenarioVersionId()).isEqualTo(v.id());
-        var gate = new CountDownLatch(1);
-        var pool = Executors.newFixedThreadPool(2);
-        try {
-            List<Future<Submission>> results = new ArrayList<>();
-            for (var task : e.tasks().subList(0, 2))
-                results.add(
-                        pool.submit(
-                                () -> {
-                                    gate.await();
-                                    return submissions.finalizeTask(
-                                            student,
-                                            eid,
-                                            Long.parseLong(task.id()),
-                                            0,
-                                            new Finalize(UUID.randomUUID(), items(task)));
-                                }));
-            gate.countDown();
-            for (var r : results)
-                assertThat(r.get(20, TimeUnit.SECONDS).status()).isEqualTo("FINAL");
-        } finally {
-            pool.shutdownNow();
+        assertThatThrownBy(
+                        () -> submissions.read(student, eid, Long.parseLong(e.tasks().get(1).id())))
+                .isInstanceOf(ApiException.class);
+        for (var task : v.tasks()) {
+            var request = new Finalize(UUID.randomUUID(), items(task));
+            var finals =
+                    parallel(
+                            () ->
+                                    submissions.finalizeTask(
+                                            student, eid, Long.parseLong(task.id()), 0, request));
+            assertThat(finals.get(0)).isEqualTo(finals.get(1));
+            submissions.selfReview(student, eid, Long.parseLong(task.id()));
         }
         var finished = enrollments.read(student, eid);
         assertThat(finished.status()).isEqualTo("COMPLETED");
@@ -1580,13 +2056,7 @@ class CorePackageAIntegrationTest {
                                 .content())
                 .isEqualTo("Reviewed model answer");
         jdbc.update("UPDATE public.app_users SET display_name='Changed' WHERE id=?", student);
-        var optional = e.tasks().get(2);
-        submissions.finalizeTask(
-                student,
-                eid,
-                Long.parseLong(optional.id()),
-                0,
-                new Finalize(UUID.randomUUID(), items(optional)));
+        submissions.selfReview(student, eid, Long.parseLong(e.tasks().get(1).id()));
         assertThat(completions.read(student, Long.parseLong(c.id()))).isEqualTo(c);
         assertThatThrownBy(
                         () ->

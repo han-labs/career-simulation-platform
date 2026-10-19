@@ -54,7 +54,8 @@ public class IdentityServiceImpl implements IdentityService {
             String hash = c.get().hash();
             try {
                 valid =
-                        (hash.startsWith("{pbkdf2@SpringSecurity_v5_8}")
+                        hash != null
+                                && (hash.startsWith("{pbkdf2@SpringSecurity_v5_8}")
                                         || hash.matches(
                                                 "\\{bcrypt}\\$2[aby]\\$\\d{2}\\$[./A-Za-z0-9]{53}"))
                                 && passwords.matches(r.password(), hash);

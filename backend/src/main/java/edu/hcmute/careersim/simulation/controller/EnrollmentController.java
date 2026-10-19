@@ -83,6 +83,14 @@ public class EnrollmentController {
                         r));
     }
 
+    @PostMapping("/enrollments/{eid}/tasks/{tid}/self-review")
+    public ApiResponse<?> selfReview(
+            Principal p, @PathVariable String eid, @PathVariable String tid) {
+        return ApiResponse.success(
+                submissions.selfReview(
+                        actors.student(p).id(), CoreValues.id(eid), CoreValues.id(tid)));
+    }
+
     @GetMapping("/enrollments/{eid}/tasks/{tid}/model-answer")
     public ApiResponse<?> answer(Principal p, @PathVariable String eid, @PathVariable String tid) {
         return ApiResponse.success(

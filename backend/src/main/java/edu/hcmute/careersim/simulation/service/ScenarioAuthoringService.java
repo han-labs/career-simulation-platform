@@ -4,6 +4,10 @@ import edu.hcmute.careersim.simulation.dto.ScenarioContracts.*;
 import java.util.List;
 
 public interface ScenarioAuthoringService {
+    List<Version> versions(long actor);
+
+    List<ParticipationSummary> participation(long actor, long enterprise);
+
     String slug(long actor, long version);
 
     Version create(long actor, Create request);

@@ -12,6 +12,17 @@ import org.springframework.stereotype.Repository;
 @RequiredArgsConstructor
 public class ScenarioDao {
     private final JdbcTemplate jdbc;
+    private final LearningPolicyDao learning;
+
+    public Version ownedVersion(long version, long enterprise, boolean lock) {
+        if (!Boolean.TRUE.equals(
+                jdbc.queryForObject(
+                        "SELECT EXISTS(SELECT 1 FROM public.scenario_version v JOIN public.scenario s ON s.id=v.scenario_id WHERE v.id=? AND s.enterprise_id=?)",
+                        Boolean.class,
+                        version,
+                        enterprise))) throw new NotFoundException("Scenario version not found.");
+        return version(version, lock);
+    }
 
     public record Root(
             long id, long enterprise, String slug, String status, long revision, Long current) {}
@@ -44,21 +55,24 @@ public class ScenarioDao {
     }
 
     public long version(long scenario, Metadata m) {
-        return jdbc.queryForObject(
-                "INSERT INTO public.scenario_version(scenario_id,version_number,title,target_role,career_track,summary,introduction,learning_objectives,difficulty,estimated_minutes,translations,provenance) SELECT ?,COALESCE(MAX(version_number),0)+1,?,?,?,?,?,?,?,?,CAST(? AS jsonb),CAST(? AS jsonb) FROM public.scenario_version WHERE scenario_id=? RETURNING id",
-                Long.class,
-                scenario,
-                m.title(),
-                m.targetRole(),
-                m.careerTrack(),
-                m.summary(),
-                m.introduction(),
-                m.learningObjectives(),
-                m.difficulty(),
-                m.estimatedMinutes(),
-                CoreValues.write(m.translations()),
-                CoreValues.write(m.provenance()),
-                scenario);
+        long id =
+                jdbc.queryForObject(
+                        "INSERT INTO public.scenario_version(scenario_id,version_number,title,target_role,career_track,summary,introduction,learning_objectives,difficulty,estimated_minutes,translations,provenance) SELECT ?,COALESCE(MAX(version_number),0)+1,?,?,?,?,?,?,?,?,CAST(? AS jsonb),CAST(? AS jsonb) FROM public.scenario_version WHERE scenario_id=? RETURNING id",
+                        Long.class,
+                        scenario,
+                        m.title(),
+                        m.targetRole(),
+                        m.careerTrack(),
+                        m.summary(),
+                        m.introduction(),
+                        m.learningObjectives(),
+                        m.difficulty(),
+                        m.estimatedMinutes(),
+                        CoreValues.write(m.translations()),
+                        CoreValues.write(m.provenance()),
+                        scenario);
+        learning.create(id);
+        return id;
     }
 
     public Version version(long id, boolean lock) {
@@ -142,7 +156,9 @@ public class ScenarioDao {
                                     definitions(id),
                                     resources(id),
                                     skillIds(id),
-                                    answer(id));
+                                    answer(id),
+                                    learning.type(id),
+                                    learning.rubric(id));
                         })
                 .toList();
     }
@@ -232,6 +248,8 @@ public class ScenarioDao {
     public void replaceTasks(long version, List<Task> tasks) {
         for (String table :
                 List.of(
+                        "task_rubric",
+                        "task_learning_policy",
                         "task_skill",
                         "model_answer",
                         "task_resource",
@@ -267,6 +285,7 @@ public class ScenarioDao {
                         t.instructions(),
                         t.required(),
                         CoreValues.write(t.translations()));
+            learning.put(id, t);
             for (var d : t.definitions()) {
                 if (d.id() == null)
                     jdbc.update(

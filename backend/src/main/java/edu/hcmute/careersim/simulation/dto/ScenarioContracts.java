@@ -39,6 +39,11 @@ public final class ScenarioContracts {
 
     public record Answer(String content, JsonNode translations) {}
 
+    public record Rubric(int version, String evaluatorKey, JsonNode quizScoringConfig) {}
+
+    public record TaskProgress(
+            String taskId, boolean accessible, boolean finalized, boolean reviewed) {}
+
     public record Task(
             String id,
             int position,
@@ -50,7 +55,37 @@ public final class ScenarioContracts {
             List<Definition> definitions,
             List<Resource> resources,
             List<String> skillIds,
-            Answer modelAnswer) {}
+            Answer modelAnswer,
+            String taskType,
+            Rubric rubric) {
+        public Task(
+                String id,
+                int position,
+                String title,
+                String workplaceContext,
+                String instructions,
+                boolean required,
+                JsonNode translations,
+                List<Definition> definitions,
+                List<Resource> resources,
+                List<String> skillIds,
+                Answer modelAnswer) {
+            this(
+                    id,
+                    position,
+                    title,
+                    workplaceContext,
+                    instructions,
+                    required,
+                    translations,
+                    definitions,
+                    resources,
+                    skillIds,
+                    modelAnswer,
+                    "PRACTICAL",
+                    null);
+        }
+    }
 
     public record Draft(
             @Valid @NotNull Metadata metadata, @NotNull @Size(max = 100) List<Task> tasks) {}
@@ -74,13 +109,46 @@ public final class ScenarioContracts {
             Metadata metadata,
             List<Task> tasks) {}
 
+    public record CatalogQuery(
+            String q,
+            String careerTrack,
+            String difficulty,
+            String sort,
+            String cursor,
+            int limit) {}
+
+    public record CatalogPage(List<Summary> items, String nextCursor) {}
+
+    public record TaskOutline(
+            String id, int position, String title, boolean required, String taskType) {}
+
+    public record ParticipationSummary(
+            String scenarioVersionId,
+            String scenarioId,
+            String title,
+            int versionNumber,
+            long enrollments,
+            long participants,
+            long completions) {}
+
     public record Summary(
             String id,
             String slug,
             String scenarioVersionId,
             String enterpriseId,
             String enterpriseName,
-            Metadata metadata) {}
+            Metadata metadata,
+            List<TaskOutline> taskOutline) {
+        public Summary(
+                String id,
+                String slug,
+                String scenarioVersionId,
+                String enterpriseId,
+                String enterpriseName,
+                Metadata metadata) {
+            this(id, slug, scenarioVersionId, enterpriseId, enterpriseName, metadata, List.of());
+        }
+    }
 
     public record SkillRequest(@NotBlank String code, @NotBlank String name) {}
 
@@ -110,7 +178,35 @@ public final class ScenarioContracts {
             long revision,
             Instant submittedAt,
             String completionId,
-            List<Item> items) {}
+            List<Item> items,
+            JsonNode quizResult,
+            Instant reviewedAt,
+            String submittedByUserId) {
+        public Submission(
+                String submissionId,
+                String enrollmentId,
+                String taskId,
+                String scenarioVersionId,
+                String status,
+                long revision,
+                Instant submittedAt,
+                String completionId,
+                List<Item> items) {
+            this(
+                    submissionId,
+                    enrollmentId,
+                    taskId,
+                    scenarioVersionId,
+                    status,
+                    revision,
+                    submittedAt,
+                    completionId,
+                    items,
+                    null,
+                    null,
+                    null);
+        }
+    }
 
     public record Enrollment(
             String id,
@@ -124,7 +220,9 @@ public final class ScenarioContracts {
             Metadata metadata,
             List<Task> tasks,
             int requiredTasks,
-            int finalRequiredTasks) {}
+            int finalRequiredTasks,
+            String progressionMode,
+            List<TaskProgress> progression) {}
 
     public record Completion(
             String id,

@@ -68,11 +68,26 @@ public class VersionedAssessmentController {
         return ApiResponse.success(authoring.createType(actors.admin(p).id(), r));
     }
 
+    @GetMapping("/admin/assessment-types")
+    public ApiResponse<?> administrationTypes(Principal p) {
+        return ApiResponse.success(authoring.administrationTypes(actors.admin(p).id()));
+    }
+
+    @GetMapping("/admin/assessment-types/{id}/versions")
+    public ApiResponse<?> versions(Principal p, @PathVariable String id) {
+        return ApiResponse.success(authoring.versions(actors.admin(p).id(), CoreValues.id(id)));
+    }
+
     @PostMapping("/admin/assessment-types/{id}/versions")
     public ApiResponse<?> version(
             Principal p, @PathVariable String id, @Valid @RequestBody VersionDraft r) {
         return ApiResponse.success(
                 authoring.createVersion(actors.admin(p).id(), CoreValues.id(id), r));
+    }
+
+    @GetMapping("/admin/assessment-versions/{id}")
+    public ApiResponse<?> version(Principal p, @PathVariable String id) {
+        return ApiResponse.success(authoring.getVersion(actors.admin(p).id(), CoreValues.id(id)));
     }
 
     @PutMapping("/admin/assessment-versions/{id}")

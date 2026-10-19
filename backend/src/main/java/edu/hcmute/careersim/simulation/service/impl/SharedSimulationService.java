@@ -21,6 +21,7 @@ public class SharedSimulationService implements SharedSimulationAccess, FileUseA
     private final EnterpriseAccess enterprises;
     private final SimulationAccessDao access;
     private final EnrollmentDao enrollments;
+    private final LearningPolicyDao learning;
     private final CompletionDao completions;
 
     @Transactional(readOnly = true)
@@ -86,6 +87,7 @@ public class SharedSimulationService implements SharedSimulationAccess, FileUseA
         long e =
                 access.enrollment(actor, r.version())
                         .orElseThrow(() -> new NotFoundException("Resource not found."));
+        learning.requireAccessible(e, r.version(), r.task());
         if ("AFTER_SUBMISSION".equals(r.release())
                 && enrollments
                         .submission(e, r.task(), false)

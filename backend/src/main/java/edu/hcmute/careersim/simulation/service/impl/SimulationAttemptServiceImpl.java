@@ -34,6 +34,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class SimulationAttemptServiceImpl implements SimulationAttemptService {
 
+    private final edu.hcmute.careersim.identity.access.ActorAccess actors;
+
+    @org.springframework.beans.factory.annotation.Value("${app.legacy-write-enabled:false}")
+    private boolean legacyWrites;
+
     private final CareerSimulationDao simulationDao;
     private final SimulationTaskDao taskDao;
     private final SimulationAttemptDao attemptDao;
@@ -45,14 +50,15 @@ public class SimulationAttemptServiceImpl implements SimulationAttemptService {
     @Transactional
     public SubmitAttemptResponse submitAttempt(
             String slug, Long studentId, SubmitAttemptRequest request) {
+        edu.hcmute.careersim.identity.access.ActorAccess.requireRole(
+                actors.requireId(studentId), "STUDENT");
+        if (!legacyWrites) throw new ApiException(ErrorCode.WORKFLOW_UPGRADE_REQUIRED);
         validateRequest(request);
         log.info(
                 "Submit attempt: slug={}, studentId={}, answersCount={}",
                 slug,
                 studentId,
                 request.answers().size());
-        // TODO(auth): replace header-based studentId with JWT claim when identity module is ready
-        // Tracking: .agent/reports/ai/2026-09-11-us-02-frontend.md
         var simulation =
                 simulationDao
                         .findBySlugAndStatus(slug, SimulationStatus.PUBLISHED)
@@ -60,6 +66,14 @@ public class SimulationAttemptServiceImpl implements SimulationAttemptService {
                                 () -> new NotFoundException("Published simulation was not found."));
         List<SimulationTask> tasks =
                 taskDao.findBySimulationIdOrderByDisplayOrderAsc(simulation.getId());
+        var allowed =
+                tasks.stream()
+                        .map(SimulationTask::getId)
+                        .collect(java.util.stream.Collectors.toSet());
+        if (!allowed.containsAll(request.answers().keySet())
+                || request.answers().values().stream().anyMatch(java.util.Objects::isNull))
+            throw new ApiException(
+                    ErrorCode.BAD_REQUEST, "Answers must belong to the selected simulation.");
         List<TaskOutcomeDto> outcomes =
                 tasks.stream().map(task -> evaluateTask(task, request.answers())).toList();
         int correctCount = (int) outcomes.stream().filter(TaskOutcomeDto::isCorrect).count();

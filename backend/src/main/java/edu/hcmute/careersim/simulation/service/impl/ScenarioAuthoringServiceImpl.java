@@ -27,6 +27,8 @@ public class ScenarioAuthoringServiceImpl
     }
 
     private final ScenarioDao dao;
+    private final edu.hcmute.careersim.simulation.dao.ScenarioReadDao readDao;
+    private final edu.hcmute.careersim.simulation.domain.QuizTaskEvaluator quiz;
     private final ActorAccess actors;
     private final EnterpriseAccess enterprise;
     private final DeliverableValidator validator;
@@ -34,8 +36,10 @@ public class ScenarioAuthoringServiceImpl
     private final AuditWriter audit;
 
     private Version owned(long actor, long version, boolean lock) {
-        var v = dao.version(version, false);
-        enterprise.requireMember(actor, CoreValues.id(v.enterpriseId()));
+        ActorAccess.requireRole(actors.requireId(actor), "ENTERPRISE");
+        var membership = enterprise.mine(actor);
+        enterprise.requireMember(actor, CoreValues.id(membership.enterpriseId()));
+        var v = dao.ownedVersion(version, CoreValues.id(membership.enterpriseId()), false);
         if (lock) {
             dao.root(CoreValues.id(v.scenarioId()), true);
             return dao.version(version, true);
@@ -114,7 +118,9 @@ public class ScenarioAuthoringServiceImpl
                                                                                 r.releasePolicy()))
                                                         .toList(),
                                                 t.skillIds(),
-                                                t.modelAnswer()))
+                                                t.modelAnswer(),
+                                                t.taskType() == null ? "PRACTICAL" : t.taskType(),
+                                                t.rubric()))
                         .toList();
         dao.replaceTasks(id, tasks);
         return dao.version(id, false);
@@ -154,7 +160,18 @@ public class ScenarioAuthoringServiceImpl
         CoreValues.match(revision, v.revision());
         var r = new Draft(v.metadata(), v.tasks());
         validate(actor, CoreValues.id(v.enterpriseId()), r, v, true);
-        String hash = CoreValues.hash(r);
+        if (r.tasks().stream().anyMatch(t -> !t.required()))
+            CoreValues.invalid(
+                    "New ordered versions require all tasks; optional skip is not supported.");
+        String hash =
+                CoreValues.hash(
+                        Map.of(
+                                "draft",
+                                r,
+                                "policyVersion",
+                                "ordered-review/1",
+                                "scoringSchemaVersion",
+                                "1"));
         dao.publish(version, CoreValues.id(v.scenarioId()), hash);
         audit.record(
                 actor, "SCENARIO_PUBLISHED", "scenario_version", version, Map.of("hash", hash));
@@ -245,6 +262,7 @@ public class ScenarioAuthoringServiceImpl
         Set<String> taskIds = new HashSet<>();
         var vocabulary = dao.skills();
         for (var t : r.tasks()) {
+            quiz.publication(t);
             if (t == null || t.position() < 1 || !positions.add(t.position()))
                 CoreValues.invalid("Duplicate/invalid task position.");
             CoreValues.text(t.title(), 180);
@@ -340,6 +358,24 @@ public class ScenarioAuthoringServiceImpl
     }
 
     @Transactional(readOnly = true)
+    public CatalogPage search(CatalogQuery query) {
+        return readDao.search(query);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Version> versions(long actor) {
+        var membership = enterprise.mine(actor);
+        enterprise.requireMember(actor, CoreValues.id(membership.enterpriseId()));
+        return readDao.versions(CoreValues.id(membership.enterpriseId()));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ParticipationSummary> participation(long actor, long tenant) {
+        enterprise.requireMember(actor, tenant);
+        return readDao.participation(tenant);
+    }
+
+    @Transactional(readOnly = true)
     public List<Summary> list(Long after, int limit) {
         return dao.catalog(after, Math.max(1, Math.min(limit, 100)));
     }
@@ -350,9 +386,27 @@ public class ScenarioAuthoringServiceImpl
                 dao.bySlug(slug)
                         .orElseThrow(() -> new NotFoundException("Published scenario not found."));
         var version = dao.version(v, false);
-        return dao.catalog(CoreValues.id(version.scenarioId()) - 1, 1).stream()
-                .filter(s -> s.slug().equals(slug))
-                .findFirst()
-                .orElseThrow(() -> new NotFoundException("Published scenario not found."));
+        var s =
+                dao.catalog(CoreValues.id(version.scenarioId()) - 1, 1).stream()
+                        .filter(x -> x.slug().equals(slug))
+                        .findFirst()
+                        .orElseThrow(() -> new NotFoundException("Published scenario not found."));
+        return new Summary(
+                s.id(),
+                s.slug(),
+                s.scenarioVersionId(),
+                s.enterpriseId(),
+                s.enterpriseName(),
+                s.metadata(),
+                version.tasks().stream()
+                        .map(
+                                t ->
+                                        new TaskOutline(
+                                                t.id(),
+                                                t.position(),
+                                                t.title(),
+                                                t.required(),
+                                                t.taskType()))
+                        .toList());
     }
 }

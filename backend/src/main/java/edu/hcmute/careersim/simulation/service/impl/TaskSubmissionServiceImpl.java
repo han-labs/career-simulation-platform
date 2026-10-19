@@ -17,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class TaskSubmissionServiceImpl implements TaskSubmissionService, ModelAnswerAccess {
     private final EnrollmentDao dao;
+    private final LearningPolicyDao learning;
+    private final edu.hcmute.careersim.simulation.domain.QuizTaskEvaluator quiz;
     private final ScenarioDao scenarios;
     private final ActorAccess actors;
     private final DeliverableValidator validator;
@@ -42,6 +44,7 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService, ModelAn
         student(actor);
         var e = dao.owned(actor, enrollment, false);
         task(e, task);
+        learning.requireAccessible(enrollment, e.version(), task);
         var s = dao.submission(enrollment, task, false);
         return s.map(x -> view(x))
                 .orElseGet(
@@ -68,7 +71,10 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService, ModelAn
                 s.revision(),
                 s.submitted(),
                 dao.completionId(s.enrollment()).orElse(null),
-                dao.items(s.id()));
+                dao.items(s.id()),
+                learning.score(s.id()),
+                learning.reviewed(s.id()),
+                learning.actor(s.id()));
     }
 
     @Transactional
@@ -76,6 +82,7 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService, ModelAn
         ActorAccess.requireRole(actors.lock(actor), "STUDENT");
         var e = dao.owned(actor, enrollment, true);
         var t = task(e, task);
+        learning.requireAccessible(enrollment, e.version(), task);
         var s = dao.draft(e, task);
         if ("FINAL".equals(s.status())) throw new ApiException(ErrorCode.FINAL_SUBMISSION_LOCKED);
         CoreValues.match(revision, s.revision());
@@ -97,6 +104,7 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService, ModelAn
         ActorAccess.requireRole(actors.lock(actor), "STUDENT");
         var e = dao.owned(actor, enrollment, true);
         var t = task(e, task);
+        learning.requireAccessible(enrollment, e.version(), task);
         if (r.requestId() == null) CoreValues.invalid("Final request UUID required.");
         var s = dao.draft(e, task);
         var items = validator.validate(actor, t.definitions(), r.items(), true);
@@ -113,9 +121,29 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService, ModelAn
         dao.save(s, items);
         dao.started(enrollment);
         dao.finalizeTask(s.id(), r.requestId(), hash);
+        learning.finalized(s.id(), actor, t, quiz.evaluate(t, items));
         completion.completeIfEligible(actor, enrollment);
         audit.record(actor, "TASK_FINALIZED", "task_submission", s.id(), Map.of("hash", hash));
         return view(dao.submission(enrollment, task, false).orElseThrow());
+    }
+
+    @Transactional
+    public Submission selfReview(long actor, long enrollment, long task) {
+        ActorAccess.requireRole(actors.lock(actor), "STUDENT");
+        var e = dao.owned(actor, enrollment, true);
+        task(e, task);
+        learning.requireAccessible(enrollment, e.version(), task);
+        var s =
+                dao.submission(enrollment, task, true)
+                        .filter(x -> "FINAL".equals(x.status()))
+                        .orElseThrow(
+                                () ->
+                                        new ApiException(
+                                                ErrorCode.CONFLICT,
+                                                "Finalize this task before self-review."));
+        learning.review(s.id(), actor);
+        audit.record(actor, "TASK_SELF_REVIEWED", "task_submission", s.id(), Map.of());
+        return view(s);
     }
 
     @Transactional(readOnly = true)
@@ -123,6 +151,7 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService, ModelAn
         student(actor);
         var e = dao.owned(actor, enrollment, false);
         var t = task(e, task);
+        learning.requireAccessible(enrollment, e.version(), task);
         if (dao.submission(enrollment, task, false)
                 .filter(s -> "FINAL".equals(s.status()))
                 .isEmpty())

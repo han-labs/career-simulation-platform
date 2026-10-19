@@ -10,7 +10,7 @@ const focusableSelector = [
   'textarea:not([disabled])',
 ].join(',')
 
-function SubmissionConfirmationDialog({ open, onConfirm, onCancel }) {
+function SubmissionConfirmationDialog({ open, onConfirm, onCancel, title = 'Submit simulation?', message = 'After submitting, you cannot change your answers. Your result will be shown immediately.' }) {
   const { t } = useI18n()
   const dialogRef = useRef(null)
   const cancelButtonRef = useRef(null)
@@ -69,8 +69,8 @@ function SubmissionConfirmationDialog({ open, onConfirm, onCancel }) {
         aria-modal="true"
         aria-labelledby="submission-dialog-title"
       >
-        <h2 id="submission-dialog-title">{t("Submit simulation?")}</h2>
-        <p> {t("After submitting, you cannot change your answers. Your result will be shown immediately.")} </p>
+        <h2 id="submission-dialog-title">{t(title)}</h2>
+        <p>{t(message)}</p>
         <div className="confirmation-dialog__actions">
           <button className="button button--secondary" type="button" ref={cancelButtonRef} onClick={onCancel}> {t("Cancel")} </button>
           <button className="button" type="button" onClick={onConfirm}> {t("Confirm submit")} </button>

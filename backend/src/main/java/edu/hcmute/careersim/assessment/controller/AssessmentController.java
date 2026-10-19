@@ -78,29 +78,37 @@ public class AssessmentController {
     }
 
     @GetMapping("/quizzes/{type}/questions")
-    public ApiResponse<List<CareerQuizQuestionDto>> getQuizQuestions(@PathVariable String type) {
+    public ApiResponse<List<CareerQuizQuestionDto>> getQuizQuestions(
+            @PathVariable String type, java.security.Principal principal) {
+        actors.student(principal);
         return ApiResponse.success(assessmentService.getQuizQuestions(type));
     }
 
     @PostMapping("/quizzes/{type}/attempts")
     public ApiResponse<AssessmentAttemptDto> startQuizAttempt(
             @PathVariable String type,
-            @RequestHeader(value = "X-Student-Id", defaultValue = "1") Long studentId) {
-        return ApiResponse.success(assessmentService.startQuizAttempt(type, studentId));
+            java.security.Principal principal,
+            @RequestHeader(value = "X-Student-Id", required = false) Long studentId) {
+        return ApiResponse.success(
+                assessmentService.startQuizAttempt(type, owner(principal, studentId)));
     }
 
     @PostMapping("/quizzes/attempts/{id}/submit")
     public ApiResponse<CareerQuizResultDto> submitQuizAnswers(
             @PathVariable Long id,
-            @RequestHeader(value = "X-Student-Id", defaultValue = "1") Long studentId,
+            java.security.Principal principal,
+            @RequestHeader(value = "X-Student-Id", required = false) Long studentId,
             @Valid @RequestBody SubmitAnswersRequest request) {
-        return ApiResponse.success(assessmentService.submitQuizAnswers(id, studentId, request));
+        return ApiResponse.success(
+                assessmentService.submitQuizAnswers(id, owner(principal, studentId), request));
     }
 
     @GetMapping("/quizzes/attempts/{id}/result")
     public ApiResponse<CareerQuizResultDto> getQuizResult(
             @PathVariable Long id,
-            @RequestHeader(value = "X-Student-Id", defaultValue = "1") Long studentId) {
-        return ApiResponse.success(assessmentService.getQuizAttemptResult(id, studentId));
+            java.security.Principal principal,
+            @RequestHeader(value = "X-Student-Id", required = false) Long studentId) {
+        return ApiResponse.success(
+                assessmentService.getQuizAttemptResult(id, owner(principal, studentId)));
     }
 }

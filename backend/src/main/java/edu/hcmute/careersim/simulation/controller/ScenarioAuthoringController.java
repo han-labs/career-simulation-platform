@@ -19,6 +19,17 @@ public class ScenarioAuthoringController {
     private final ScenarioAuthoringService service;
     private final ActorAccess actors;
 
+    @GetMapping("/enterprise/scenario-versions")
+    public ApiResponse<?> versions(Principal p) {
+        return ApiResponse.success(service.versions(actors.require(p).id()));
+    }
+
+    @GetMapping("/enterprises/{id}/participation-summary")
+    public ApiResponse<?> participation(Principal p, @PathVariable String id) {
+        return ApiResponse.success(
+                service.participation(actors.require(p).id(), CoreValues.id(id)));
+    }
+
     @PostMapping("/enterprise/scenarios")
     public ApiResponse<?> create(Principal p, @Valid @RequestBody Create r) {
         return ApiResponse.success(service.create(actors.require(p).id(), r));

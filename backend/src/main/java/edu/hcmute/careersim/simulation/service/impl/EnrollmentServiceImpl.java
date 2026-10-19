@@ -23,6 +23,7 @@ public class EnrollmentServiceImpl implements EnrollmentService, ParticipationEv
     }
 
     private final EnrollmentDao dao;
+    private final LearningPolicyDao learning;
     private final ScenarioDao scenarios;
     private final CompletionDao completions;
     private final ActorAccess actors;
@@ -50,6 +51,12 @@ public class EnrollmentServiceImpl implements EnrollmentService, ParticipationEv
         if ("SUSPENDED".equals(v.availabilityStatus()))
             throw new ApiException(ErrorCode.FORBIDDEN, "Scenario access is suspended.");
         Set<String> done = dao.finalTasks(id);
+        var progress = learning.progress(id, e.version());
+        Set<String> accessible =
+                progress.stream()
+                        .filter(TaskProgress::accessible)
+                        .map(TaskProgress::taskId)
+                        .collect(java.util.stream.Collectors.toSet());
         var tasks =
                 v.tasks().stream()
                         .map(
@@ -58,22 +65,35 @@ public class EnrollmentServiceImpl implements EnrollmentService, ParticipationEv
                                                 t.id(),
                                                 t.position(),
                                                 t.title(),
-                                                t.workplaceContext(),
-                                                t.instructions(),
+                                                accessible.contains(t.id())
+                                                        ? t.workplaceContext()
+                                                        : null,
+                                                accessible.contains(t.id())
+                                                        ? t.instructions()
+                                                        : null,
                                                 t.required(),
-                                                t.translations(),
-                                                t.definitions(),
+                                                accessible.contains(t.id())
+                                                        ? t.translations()
+                                                        : titleTranslations(t.translations()),
+                                                accessible.contains(t.id())
+                                                        ? t.definitions()
+                                                        : List.of(),
                                                 t.resources().stream()
                                                         .filter(
                                                                 r ->
-                                                                        "TASK_ACCESS"
-                                                                                        .equals(
-                                                                                                r
-                                                                                                        .releasePolicy())
-                                                                                || done.contains(
-                                                                                        t.id()))
+                                                                        accessible.contains(t.id())
+                                                                                && ("TASK_ACCESS"
+                                                                                                .equals(
+                                                                                                        r
+                                                                                                                .releasePolicy())
+                                                                                        || done
+                                                                                                .contains(
+                                                                                                        t
+                                                                                                                .id())))
                                                         .toList(),
                                                 List.of(),
+                                                null,
+                                                t.taskType(),
                                                 null))
                         .toList();
         return new Enrollment(
@@ -88,7 +108,22 @@ public class EnrollmentServiceImpl implements EnrollmentService, ParticipationEv
                 scenarios.publicMetadata(v.metadata()),
                 tasks,
                 dao.required(e.version()),
-                dao.finalRequired(id, e.version()));
+                dao.finalRequired(id, e.version()),
+                learning.ordered(e.version()) ? "ORDERED_SELF_REVIEW" : "LEGACY",
+                progress);
+    }
+
+    private com.fasterxml.jackson.databind.JsonNode titleTranslations(
+            com.fasterxml.jackson.databind.JsonNode translations) {
+        var safe = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode();
+        translations
+                .fields()
+                .forEachRemaining(
+                        entry -> {
+                            var title = entry.getValue().get("title");
+                            if (title != null) safe.putObject(entry.getKey()).set("title", title);
+                        });
+        return safe;
     }
 
     @Transactional(readOnly = true)

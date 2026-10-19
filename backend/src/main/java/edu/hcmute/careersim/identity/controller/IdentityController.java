@@ -1,19 +1,22 @@
 package edu.hcmute.careersim.identity.controller;
 
+import edu.hcmute.careersim.common.config.BrowserCredentialCookies;
+import edu.hcmute.careersim.common.config.GoogleOAuthFlow;
 import edu.hcmute.careersim.common.response.ApiResponse;
 import edu.hcmute.careersim.common.value.CoreValues;
 import edu.hcmute.careersim.identity.access.*;
 import edu.hcmute.careersim.identity.dto.IdentityContracts.*;
+import edu.hcmute.careersim.identity.dto.OAuthLinkIntent;
 import edu.hcmute.careersim.identity.service.*;
 import jakarta.servlet.http.*;
 import jakarta.validation.Valid;
 import java.security.Principal;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.security.web.csrf.*;
 import org.springframework.web.bind.annotation.*;
 
@@ -25,6 +28,33 @@ public class IdentityController {
     private final ConsentService consents;
     private final ActorAccess actors;
     private final CsrfTokenRepository csrf;
+    private final BrowserAuthentication browser;
+    private final BrowserCredentialCookies cookies;
+
+    @Value("${app.auth.google.enabled:false}")
+    private boolean googleEnabled;
+
+    @GetMapping("/auth/providers")
+    public ApiResponse<?> providers() {
+        return ApiResponse.success(Map.of("google", googleEnabled));
+    }
+
+    @PostMapping("/auth/google/link")
+    public ApiResponse<?> link(Principal p, HttpServletRequest req) {
+        if (!googleEnabled)
+            throw new edu.hcmute.careersim.common.exception.ApiException(
+                    edu.hcmute.careersim.common.exception.ErrorCode.SERVICE_UNAVAILABLE);
+        long user = actors.require(p).id();
+        req.getSession()
+                .setAttribute(
+                        OAuthLinkIntent.KEY,
+                        new OAuthLinkIntent(
+                                user,
+                                browser.version(user),
+                                GoogleOAuthFlow.hash(cookies.read(req)),
+                                java.time.Instant.now().plusSeconds(300)));
+        return ApiResponse.success(Map.of("authorizationUrl", "/api/oauth2/authorization/google"));
+    }
 
     @GetMapping("/auth/csrf")
     public ApiResponse<Map<String, String>> csrf(CsrfToken token) {
@@ -56,12 +86,15 @@ public class IdentityController {
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
         new CsrfAuthenticationStrategy(csrf).onAuthentication(auth, request, response);
-        new HttpSessionSecurityContextRepository().saveContext(context, request, response);
+        cookies.write(request, response, browser.issue(p.id()));
         return ApiResponse.success(identity.me(p.id()));
     }
 
     @PostMapping("/auth/logout")
     public ApiResponse<Boolean> logout(HttpServletRequest req, HttpServletResponse res) {
+        String token = cookies.read(req);
+        if (token != null) browser.revoke(token);
+        cookies.write(req, res, null);
         var s = req.getSession(false);
         if (s != null) s.invalidate();
         SecurityContextHolder.clearContext();
