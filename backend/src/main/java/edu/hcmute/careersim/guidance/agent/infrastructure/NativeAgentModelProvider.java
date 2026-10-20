@@ -17,7 +17,13 @@ import org.springframework.web.client.*;
 public class NativeAgentModelProvider implements AgentModelProvider {
     private final ObjectMapper json;
     private final RestClient gemini, openai;
-    private final String googleKey, openaiKey, googleModel, openaiModel, selected;
+    private final String googleKey,
+            openaiKey,
+            googleModel,
+            openaiModel,
+            selected,
+            googleBase,
+            openaiBase;
 
     public NativeAgentModelProvider(
             ObjectMapper json,
@@ -30,6 +36,8 @@ public class NativeAgentModelProvider implements AgentModelProvider {
             @Value("${app.ai.gemini.base-url}") String googleBase,
             @Value("${app.ai.base-url}") String openaiBase) {
         this.json = json;
+        this.googleBase = googleBase;
+        this.openaiBase = openaiBase;
         this.selected = selected;
         this.googleKey = googleKey;
         this.openaiKey = openaiKey;
@@ -90,8 +98,8 @@ public class NativeAgentModelProvider implements AgentModelProvider {
                                                         .PROVIDER_UNAVAILABLE));
         try {
             return model.provider().equals("gemini")
-                    ? gemini(model, instructions, query, exchanges, search)
-                    : openai(model, instructions, query, exchanges, search);
+                    ? gemini(model, instructions, query, exchanges, search, null, null)
+                    : openai(model, instructions, query, exchanges, search, null, null);
         } catch (SynGuidanceProvider.ProviderException failure) {
             throw failure;
         } catch (RestClientResponseException remote) {
@@ -112,7 +120,9 @@ public class NativeAgentModelProvider implements AgentModelProvider {
             String instructions,
             String query,
             List<Exchange> exchanges,
-            boolean search) {
+            boolean search,
+            List<Tool> definitions,
+            java.util.function.Consumer<String> delta) {
         var contents = new ArrayList<Object>();
         contents.add(Map.of("role", "user", "parts", List.of(Map.of("text", query))));
         for (var x : exchanges) {
@@ -146,14 +156,36 @@ public class NativeAgentModelProvider implements AgentModelProvider {
                                                     "Retrieve passages from explicitly granted published knowledge bases. No answer generation or writes.",
                                                     "parameters",
                                                     parameters())))));
+        if (definitions != null) {
+            body.remove("tools");
+            if (!definitions.isEmpty())
+                body.put(
+                        "tools",
+                        List.of(
+                                Map.of(
+                                        "functionDeclarations",
+                                        definitions.stream()
+                                                .map(
+                                                        t ->
+                                                                Map.of(
+                                                                        "name",
+                                                                        wireName(t.name()),
+                                                                        "description",
+                                                                        t.description(),
+                                                                        "parameters",
+                                                                        t.parameters()))
+                                                .toList())));
+        }
         bounded(body);
         var response =
-                gemini.post()
-                        .uri("/models/{model}:generateContent", model.model())
-                        .header("x-goog-api-key", googleKey)
-                        .body(body)
-                        .retrieve()
-                        .body(JsonNode.class);
+                delta != null
+                        ? streamed(model, body, delta)
+                        : gemini.post()
+                                .uri("/models/{model}:generateContent", model.model())
+                                .header("x-goog-api-key", googleKey)
+                                .body(body)
+                                .retrieve()
+                                .body(JsonNode.class);
         if (response == null) throw failure(SynGuidanceProvider.FailureKind.MALFORMED_OUTPUT);
         var usage = response.path("usageMetadata");
         SynExecutionScope.recordUsage(
@@ -188,7 +220,9 @@ public class NativeAgentModelProvider implements AgentModelProvider {
             String instructions,
             String query,
             List<Exchange> exchanges,
-            boolean search) {
+            boolean search,
+            List<Tool> definitions,
+            java.util.function.Consumer<String> delta) {
         var messages = new ArrayList<Object>();
         messages.add(Map.of("role", "system", "content", instructions));
         messages.add(Map.of("role", "user", "content", query));
@@ -223,14 +257,41 @@ public class NativeAgentModelProvider implements AgentModelProvider {
                                             "Read explicitly granted published knowledge passages, without writes.",
                                             "parameters",
                                             parameters()))));
+        if (definitions != null) {
+            body.remove("tools");
+            if (!definitions.isEmpty())
+                body.put(
+                        "tools",
+                        definitions.stream()
+                                .map(
+                                        t ->
+                                                Map.of(
+                                                        "type",
+                                                        "function",
+                                                        "function",
+                                                        Map.of(
+                                                                "name",
+                                                                wireName(t.name()),
+                                                                "description",
+                                                                t.description(),
+                                                                "parameters",
+                                                                t.parameters())))
+                                .toList());
+        }
+        if (delta != null) {
+            body.put("stream", true);
+            body.put("stream_options", Map.of("include_usage", true));
+        }
         bounded(body);
         var response =
-                openai.post()
-                        .uri("/chat/completions")
-                        .header("Authorization", "Bearer " + openaiKey)
-                        .body(body)
-                        .retrieve()
-                        .body(JsonNode.class);
+                delta != null
+                        ? streamed(model, body, delta)
+                        : openai.post()
+                                .uri("/chat/completions")
+                                .header("Authorization", "Bearer " + openaiKey)
+                                .body(body)
+                                .retrieve()
+                                .body(JsonNode.class);
         if (response == null) throw failure(SynGuidanceProvider.FailureKind.MALFORMED_OUTPUT);
         var usage = response.path("usage");
         SynExecutionScope.recordUsage(
@@ -253,6 +314,147 @@ public class NativeAgentModelProvider implements AgentModelProvider {
                 message.deepCopy(),
                 List.copyOf(calls),
                 calls.isEmpty() ? output(message.path("content").asText()) : null);
+    }
+
+    public Decision stream(
+            String key,
+            String instructions,
+            String query,
+            List<Exchange> exchanges,
+            List<Tool> tools,
+            java.util.function.Consumer<String> delta) {
+        var model =
+                models().stream()
+                        .filter(m -> m.key().equals(key) && m.available())
+                        .findFirst()
+                        .orElseThrow(
+                                () ->
+                                        failure(
+                                                SynGuidanceProvider.FailureKind
+                                                        .PROVIDER_UNAVAILABLE));
+        return model.provider().equals("gemini")
+                ? gemini(model, instructions, query, exchanges, false, tools, delta)
+                : openai(model, instructions, query, exchanges, false, tools, delta);
+    }
+
+    private JsonNode streamed(Model model, Object body, java.util.function.Consumer<String> delta) {
+        var text = new StringBuilder();
+        var parts = json.createArrayNode();
+        var calls = new TreeMap<Integer, com.fasterxml.jackson.databind.node.ObjectNode>();
+        var usage =
+                new java.util.concurrent.atomic.AtomicReference<JsonNode>(json.createObjectNode());
+        boolean google = model.provider().equals("gemini");
+        String url =
+                (google ? googleBase : openaiBase).replaceAll("/$", "")
+                        + (google
+                                ? "/models/" + model.model() + ":streamGenerateContent?alt=sse"
+                                : "/chat/completions");
+        try {
+            SynHttpRequests.stream(
+                    java.net.URI.create(url),
+                    model.provider(),
+                    google
+                            ? Map.of("x-goog-api-key", googleKey)
+                            : Map.of("Authorization", "Bearer " + openaiKey),
+                    json.writeValueAsBytes(body),
+                    raw -> {
+                        JsonNode e;
+                        try {
+                            e = json.readTree(raw);
+                        } catch (Exception invalid) {
+                            throw failure(SynGuidanceProvider.FailureKind.MALFORMED_OUTPUT);
+                        }
+                        if (e.has("error"))
+                            throw failure(SynGuidanceProvider.FailureKind.PROVIDER_REJECTED);
+                        if (google) {
+                            if (e.has("usageMetadata")) usage.set(e.path("usageMetadata"));
+                            for (var p :
+                                    e.path("candidates").path(0).path("content").path("parts")) {
+                                if (p.has("text") && !p.path("thought").asBoolean()) {
+                                    String d = p.path("text").asText();
+                                    text.append(d);
+                                    delta.accept(d);
+                                } else if (p.has("functionCall") || p.has("thoughtSignature"))
+                                    parts.add(p.deepCopy());
+                            }
+                        } else {
+                            if (e.hasNonNull("usage")) usage.set(e.path("usage"));
+                            var d = e.path("choices").path(0).path("delta");
+                            if (d.path("content").isTextual()) {
+                                String value = d.path("content").asText();
+                                text.append(value);
+                                delta.accept(value);
+                            }
+                            for (var c : d.path("tool_calls")) {
+                                int index = c.path("index").asInt();
+                                if (index < 0 || index > 7)
+                                    throw failure(SynGuidanceProvider.FailureKind.ITERATION_LIMIT);
+                                var target =
+                                        calls.computeIfAbsent(
+                                                index,
+                                                i ->
+                                                        json.createObjectNode()
+                                                                .put("id", "")
+                                                                .put("type", "function")
+                                                                .set(
+                                                                        "function",
+                                                                        json.createObjectNode()
+                                                                                .put("name", "")
+                                                                                .put(
+                                                                                        "arguments",
+                                                                                        "")));
+                                if (c.has("id"))
+                                    target.put(
+                                            "id",
+                                            target.path("id").asText() + c.path("id").asText());
+                                var f =
+                                        (com.fasterxml.jackson.databind.node.ObjectNode)
+                                                target.path("function");
+                                if (c.path("function").has("name"))
+                                    f.put(
+                                            "name",
+                                            f.path("name").asText()
+                                                    + c.path("function").path("name").asText());
+                                if (c.path("function").has("arguments"))
+                                    f.put(
+                                            "arguments",
+                                            f.path("arguments").asText()
+                                                    + c.path("function")
+                                                            .path("arguments")
+                                                            .asText());
+                            }
+                        }
+                        if (text.length() > 16000)
+                            throw failure(SynGuidanceProvider.FailureKind.MALFORMED_OUTPUT);
+                    });
+        } catch (java.io.IOException e) {
+            throw failure(SynGuidanceProvider.FailureKind.TIMEOUT_OR_TRANSPORT);
+        }
+        if (google) {
+            if (!text.isEmpty()) parts.addObject().put("text", text.toString());
+            return json.createObjectNode()
+                    .<com.fasterxml.jackson.databind.node.ObjectNode>set(
+                            "usageMetadata", usage.get())
+                    .set(
+                            "candidates",
+                            json.createArrayNode()
+                                    .add(
+                                            json.createObjectNode()
+                                                    .set(
+                                                            "content",
+                                                            json.createObjectNode()
+                                                                    .put("role", "model")
+                                                                    .set("parts", parts))));
+        }
+        var message =
+                json.createObjectNode().put("role", "assistant").put("content", text.toString());
+        if (!calls.isEmpty()) message.set("tool_calls", json.valueToTree(calls.values()));
+        return json.createObjectNode()
+                .<com.fasterxml.jackson.databind.node.ObjectNode>set("usage", usage.get())
+                .set(
+                        "choices",
+                        json.createArrayNode()
+                                .add(json.createObjectNode().set("message", message)));
     }
 
     private void bounded(Object body) {
@@ -279,11 +481,18 @@ public class NativeAgentModelProvider implements AgentModelProvider {
     }
 
     private String canonical(String name) {
-        return "kb_search".equals(name) ? "kb.search" : name;
+        return Set.of(
+                                "kb_search",
+                                "assessment_lookup",
+                                "simulation_explore",
+                                "simulation_myEvidence")
+                        .contains(name)
+                ? name.replaceFirst("_", ".")
+                : name;
     }
 
     private String wireName(String name) {
-        return "kb.search".equals(name) ? "kb_search" : name;
+        return name.replace('.', '_');
     }
 
     private SynGuidanceProvider.ProviderException failure(SynGuidanceProvider.FailureKind kind) {

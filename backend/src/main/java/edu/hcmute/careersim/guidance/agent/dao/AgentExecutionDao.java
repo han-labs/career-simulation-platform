@@ -109,6 +109,54 @@ public class AgentExecutionDao {
         return get(id, false);
     }
 
+    public Execution acceptStudent(
+            long actor,
+            UUID session,
+            UUID config,
+            UUID inputId,
+            UUID request,
+            String hash,
+            String task,
+            Object input,
+            String model,
+            String promptHash,
+            String configHash,
+            long privacy,
+            long epoch) {
+        UUID id = UUID.randomUUID();
+        jdbc.update(
+                "INSERT INTO public.agent_execution(id,execution_mode,task_type,initiated_by_user_id,session_id,configuration_id,input_interaction_id,input_snapshot,request_id,request_hash,status,model_key,prompt_hash,configuration_hash,privacy_version,context_epoch) VALUES (?,'STUDENT_CHAT',?,?,?,?,?,CAST(? AS jsonb),?,?,'ACCEPTED',?,?,?,?,?)",
+                id,
+                task,
+                actor,
+                session,
+                config,
+                inputId,
+                CoreValues.write(input),
+                request,
+                hash,
+                model,
+                promptHash,
+                configHash,
+                privacy,
+                epoch);
+        return get(id, false);
+    }
+
+    public long epoch(UUID execution) {
+        return jdbc.queryForObject(
+                "SELECT context_epoch FROM public.agent_execution WHERE id=?",
+                Long.class,
+                execution);
+    }
+
+    public long privacy(UUID execution) {
+        return jdbc.queryForObject(
+                "SELECT privacy_version FROM public.agent_execution WHERE id=?",
+                Long.class,
+                execution);
+    }
+
     public void finish(
             UUID id,
             String status,

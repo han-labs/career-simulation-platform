@@ -53,11 +53,18 @@ public class AgentConfigurationPolicy {
                 Set.of("enabled", "maxRounds", "maxToolCalls", "topK", "timeoutSeconds"));
         var enabled = r.toolPolicy().path("enabled");
         if (!enabled.isArray()
-                || enabled.size() > 1
+                || enabled.size() > 4
                 || java.util.stream.StreamSupport.stream(enabled.spliterator(), false)
-                        .anyMatch(n -> !n.isTextual() || !"kb.search".equals(n.asText())))
-            CoreValues.invalid(
-                    "Only implemented preview tools can be enabled; Student domain tools are P5.");
+                        .anyMatch(
+                                n ->
+                                        !n.isTextual()
+                                                || !Set.of(
+                                                                "kb.search",
+                                                                "assessment.lookup",
+                                                                "simulation.explore",
+                                                                "simulation.myEvidence")
+                                                        .contains(n.asText())))
+            CoreValues.invalid("Only implemented read-only tools may be enabled.");
         integer(r.toolPolicy(), "maxRounds", 1, 4);
         integer(r.toolPolicy(), "maxToolCalls", 0, 8);
         integer(r.toolPolicy(), "topK", 1, 10);
@@ -65,10 +72,8 @@ public class AgentConfigurationPolicy {
         if (!enabled.isEmpty() && r.toolPolicy().path("maxToolCalls").asInt() == 0)
             CoreValues.invalid("Enabled tools require a positive tool-call budget.");
         object(r.memoryPolicy(), Set.of("enabled"));
-        if (!r.memoryPolicy().path("enabled").isBoolean()
-                || r.memoryPolicy().path("enabled").asBoolean())
-            CoreValues.invalid(
-                    "Conversation memory belongs to P5 and is disabled in Admin preview.");
+        if (!r.memoryPolicy().path("enabled").isBoolean())
+            CoreValues.invalid("Memory must be explicitly enabled or disabled.");
         object(r.outputPolicy(), Set.of("schemaVersion", "grounding", "maxCharacters"));
         if (!CoreValues.schemaOne(r.outputPolicy())
                 || !Set.of("KB_ONLY", "GENERAL_ALLOWED")

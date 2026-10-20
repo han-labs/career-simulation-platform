@@ -1243,7 +1243,7 @@ class AgentPlatformIntegrationTest {
                         restored.queryForObject(
                                 "SELECT max(version::int) FROM flyway_schema_history",
                                 Integer.class))
-                .isEqualTo(21);
+                .isEqualTo(22);
     }
 
     @Test

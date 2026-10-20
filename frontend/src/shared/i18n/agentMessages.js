@@ -119,4 +119,72 @@ Restore preserved local draft ⇢ Khôi phục bản nháp cục bộ đã giữ
 There is insufficient authorized knowledge to answer this question. ⇢ Không có đủ tri thức trong phạm vi được phép để trả lời câu hỏi này.
 The Agent could not complete this request safely. Core assessments and simulations remain available. ⇢ Agent chưa thể hoàn tất yêu cầu này một cách an toàn. Bạn vẫn có thể sử dụng các bài đánh giá và mô phỏng.
 Ranked passages retrieved; no answer model called. ⇢ Đã truy xuất các đoạn nguồn theo xếp hạng; không gọi mô hình tạo câu trả lời.
+
+Student Agent ⇢ Agent dành cho sinh viên
+Exploration support does not certify professional competence. Your assessments and simulations remain independent of AI. ⇢ Hỗ trợ khám phá không chứng nhận năng lực chuyên môn. Đánh giá và mô phỏng của bạn hoạt động độc lập với AI.
+Conversations ⇢ Các cuộc hội thoại
+New conversation title ⇢ Tiêu đề hội thoại mới
+Optional context from my conversations ⇢ Ngữ cảnh tùy chọn từ hội thoại của tôi
+Requires memory enabled in the assigned configuration. Deleted source conversations invalidate derived context. ⇢ Cấu hình được gán phải bật bộ nhớ. Xóa hội thoại nguồn sẽ vô hiệu hóa ngữ cảnh dẫn xuất.
+Start conversation ⇢ Bắt đầu hội thoại
+Delete my conversation ⇢ Xóa hội thoại của tôi
+Confirm conversation deletion ⇢ Xác nhận xóa hội thoại
+Deletion also invalidates dependent summaries and stops pending responses. Preserved local drafts remain private to this account. ⇢ Việc xóa cũng vô hiệu hóa bản tóm tắt phụ thuộc và dừng câu trả lời đang xử lý. Bản nháp cục bộ vẫn thuộc riêng tài khoản này.
+Confirm deletion ⇢ Xác nhận xóa
+Keep conversation ⇢ Giữ hội thoại
+Conversation ⇢ Hội thoại
+Pinned configuration version ⇢ Phiên bản cấu hình đã cố định
+You ⇢ Bạn
+Agent response ⇢ Câu trả lời của Agent
+This response is no longer available under the current authorization. ⇢ Câu trả lời này không còn khả dụng với quyền truy cập hiện tại.
+Load more messages ⇢ Tải thêm tin nhắn
+Reconnect saved execution ⇢ Kết nối lại lượt thực thi đã lưu
+Message to Agent ⇢ Tin nhắn gửi Agent
+Drafts stay with this account. A repeated request resumes its original execution; edit the message to start another. ⇢ Bản nháp thuộc tài khoản này. Gửi lại cùng yêu cầu sẽ tiếp tục lượt thực thi cũ; sửa tin nhắn để tạo yêu cầu khác.
+Send message ⇢ Gửi tin nhắn
+Request insight report ⇢ Yêu cầu báo cáo nhận định
+Suggest draft plan ⇢ Gợi ý bản nháp kế hoạch
+Draft exploration plan ⇢ Bản nháp kế hoạch khám phá
+Nothing is saved as a plan until you confirm this exact suggestion. ⇢ Kế hoạch chỉ được lưu sau khi bạn xác nhận đúng gợi ý này.
+Confirm and save this plan ⇢ Xác nhận và lưu kế hoạch này
+My insight reports ⇢ Báo cáo nhận định của tôi
+Load saved reports ⇢ Tải báo cáo đã lưu
+Difficulties ⇢ Khó khăn
+Limitations ⇢ Giới hạn
+Suggested next steps ⇢ Bước tiếp theo được gợi ý
+Create an evidence-based insight report for me. ⇢ Tạo báo cáo nhận định dựa trên bằng chứng cho tôi.
+Suggest an exploration plan draft for me. ⇢ Gợi ý bản nháp kế hoạch khám phá cho tôi.
+Exploration plan confirmed. View it on your dashboard. ⇢ Đã xác nhận kế hoạch khám phá. Xem kế hoạch trên bảng tổng quan của bạn.
+AI Usage Dashboard ⇢ Bảng thống kê sử dụng AI
+Aggregate usage only. Student transcripts and reports are never included. ⇢ Chỉ hiển thị số liệu tổng hợp. Không bao gồm hội thoại và báo cáo riêng tư của sinh viên.
+From date (UTC) ⇢ Từ ngày (UTC)
+Through date (UTC) ⇢ Đến hết ngày (UTC)
+Execution mode ⇢ Chế độ thực thi
+All execution modes ⇢ Mọi chế độ thực thi
+Load usage ⇢ Tải số liệu sử dụng
+Known estimated subtotals exclude unknown costs. Partial metrics are not complete totals or billed amounts. ⇢ Tổng ước tính đã biết không bao gồm chi phí chưa xác định. Số liệu một phần không phải tổng đầy đủ hay số tiền thanh toán.
+Executions and known resource usage ⇢ Lượt thực thi và tài nguyên sử dụng đã biết
+Actual native tool attempts ⇢ Lượt gọi công cụ gốc thực tế
+Server retrieval is excluded from native tool counts. Denied attempts are separate from successful tool executions. ⇢ Truy xuất do máy chủ thực hiện không tính là gọi công cụ gốc. Lượt bị từ chối được tách khỏi lượt thực thi công cụ thành công.
+Mode ⇢ Chế độ
+Executions ⇢ Lượt thực thi
+Mean latency (ms) ⇢ Độ trễ trung bình (ms)
+Unknown token executions ⇢ Lượt chưa xác định số token
+Known estimated USD ⇢ USD ước tính đã biết
+Unknown cost executions ⇢ Lượt chưa xác định chi phí
+Partial cost executions ⇢ Lượt có chi phí một phần
+Unknown ⇢ Chưa xác định
+Input tokens ⇢ Token đầu vào
+Output tokens ⇢ Token đầu ra
+The stream ended before completion. Reconnect the saved execution. ⇢ Luồng trả lời đã dừng trước khi hoàn tất. Hãy kết nối lại lượt thực thi đã lưu.
+Skills practiced ⇢ Kỹ năng đã thực hành
+Status ⇢ Trạng thái
+Agent resource unavailable. ⇢ Tài nguyên Agent không còn khả dụng.
+Conversation unavailable. ⇢ Hội thoại không còn khả dụng.
+Recorded model attempts ⇢ Lượt gọi model đã ghi nhận
+Unknown model attempt executions ⇢ Lượt chưa xác định số lần gọi model
+Latency samples ⇢ Mẫu đo độ trễ
+Estimated cost executions ⇢ Lượt có chi phí ước tính
+No-model executions ⇢ Lượt không gọi model
+Latency averages use finished executions only. Unknown metrics are separate from executions without a model call. ⇢ Độ trễ trung bình chỉ tính lượt đã kết thúc. Số liệu chưa xác định được tách riêng khỏi lượt không gọi model.
 `.trim().split('\n').map(line => line.split(' ⇢ ')))

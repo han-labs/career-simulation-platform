@@ -256,6 +256,9 @@ class NativeAgentModelProviderTest {
                 "/",
                 exchange -> {
                     try {
+                        // Drain the request before closing an empty HTTP response; otherwise
+                        // the fixture can reset the socket before the client observes status429.
+                        exchange.getRequestBody().readAllBytes();
                         if (count.getAndIncrement() == 0) {
                             exchange.sendResponseHeaders(429, -1);
                             return;

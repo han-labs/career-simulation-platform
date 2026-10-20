@@ -11,13 +11,17 @@ their earlier checkpoints and are not the current release contract.
 
 P3/P4 adds scoped KB Studio and immutable Agent Builder on V21, behind an explicit
 feature flag. See [P3/P4 boundaries and execution sequence](agent-platform-p3-p4.md)
-and [API contract](../api/agent-platform-p3-p4.md). Student chat/history/SSE remain P5.
+and [API contract](../api/agent-platform-p3-p4.md).
+P5/P6 now adds Student sessions/SSE, explicit reports, confirmed plan suggestions and
+safe usage aggregates on additive V22. See [current P5/P6 runtime](student-agent-p5-p6.md)
+and [Student/usage contracts](../api/student-agent-p5-p6.md); the P3/P4 document is its
+historical checkpoint, not a statement that Student runtime is still absent.
 
 ```mermaid
 flowchart TB
     Admin["Admin browser: KB Studio / Agent Builder"]
     Studio["guidance.knowledge: staged sources / scoped retrieval"]
-    Platform["guidance.agent: registry / exact-version preview / execution ledger"]
+    Platform["guidance.agent: registry / pinned Student sessions / shared native controller / ledger"]
     Student["Student browser"]
     Enterprise["Enterprise or content provider browser"]
     Gateway["Nginx reverse proxy"]
@@ -41,6 +45,8 @@ flowchart TB
     Studio --> Assets
     Platform -->|explicit KB grants| Studio
     Platform -->|ledger / assignments / sealed configurations| Database
+    Platform -->|read-only Core facades; exact-source plan confirmation| Core
+    Platform -->|history / lineage / reports / safe usage| Database
     Platform --> AIAdapter
     Platform -->|failed validation/provider unavailable| Fallback
     Student -->|HTTP local; HTTPS at production edge| Gateway
@@ -63,6 +69,15 @@ flowchart TB
     LLM -->|typed function calls / validated JSON; runtime-specific budgets| AIAdapter
     Agent -->|timeout invalid output unavailable tool or pass limit| Fallback
     Fallback --> Backend
+    Database --> PGVolume[(Persistent PostgreSQL / pgvector volume)]
+    subgraph LocalOrDeploymentHost["Local test host or deployment Docker host; no production deployment in P5/P6 verification"]
+        Gateway
+        Frontend
+        Backend
+        Database
+        PGVolume
+        Assets
+    end
 ```
 
 ## Backend modules
@@ -73,7 +88,7 @@ flowchart TB
 | `assessment` | RIASEC, Interests, Abilities, and Work Activities assessments with deterministic scoring | Versioned multi-type assessments and preserved historical results (P1/P2) |
 | `catalog` | Published simulation discovery | Working foundation slice |
 | `simulation` | Tasks, attempts, submissions, deterministic evaluation | Pinned versions, ordered final/self-review policy with historical compatibility (P2) |
-| `guidance` | Dashboard summaries, bounded session memory, typed read tools, bounded LLM tool calling, schema validation, and deterministic Standard fallback | Legacy Syn preserved; guidance.knowledge + guidance.agent add flag-gated P3/P4 |
+| `guidance` | Dashboard summaries, bounded session memory, typed read tools, bounded LLM tool calling, schema validation, and deterministic Standard fallback | Legacy Syn preserved; flag-gated P3–P6 KB/registry/Student runtime/reports/usage |
 | `enterprise` | Simulation authoring, publishing, and monitoring | Owned draft/preview/publish and aggregate monitoring (P2) |
 | `common` | Narrow cross-cutting API/configuration/error primitives | Working foundation |
 | `system` | Health and operational endpoints | Working foundation |
