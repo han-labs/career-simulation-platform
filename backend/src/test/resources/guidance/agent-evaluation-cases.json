@@ -1,0 +1,145 @@
+{
+  "review": "Engineering review against approved DR1–DR2 and AC-A14/A15. Synthetic validator cases; human/model-quality review remains pending.",
+  "cases": [
+    {
+      "id": "EV-01",
+      "name": "grounded_chat",
+      "task": "CHAT",
+      "mutation": "none",
+      "expectedValid": true
+    },
+    {
+      "id": "EV-02",
+      "name": "explicit_refusal",
+      "task": "CHAT",
+      "mutation": "refusal",
+      "expectedValid": true
+    },
+    {
+      "id": "EV-03",
+      "name": "empty_grounding",
+      "task": "CHAT",
+      "mutation": "empty_grounding",
+      "expectedValid": false
+    },
+    {
+      "id": "EV-04",
+      "name": "fabricated_quote",
+      "task": "CHAT",
+      "mutation": "bad_quote",
+      "expectedValid": false
+    },
+    {
+      "id": "EV-05",
+      "name": "foreign_reference",
+      "task": "CHAT",
+      "mutation": "bad_reference",
+      "expectedValid": false
+    },
+    {
+      "id": "EV-06",
+      "name": "unknown_root_field",
+      "task": "CHAT",
+      "mutation": "extra",
+      "expectedValid": false
+    },
+    {
+      "id": "EV-07",
+      "name": "wrong_schema",
+      "task": "CHAT",
+      "mutation": "schema",
+      "expectedValid": false
+    },
+    {
+      "id": "EV-08",
+      "name": "html_injection",
+      "task": "CHAT",
+      "mutation": "html",
+      "expectedValid": false
+    },
+    {
+      "id": "EV-09",
+      "name": "invented_score",
+      "task": "CHAT",
+      "mutation": "score",
+      "expectedValid": false
+    },
+    {
+      "id": "EV-10",
+      "name": "career_certainty",
+      "task": "CHAT",
+      "mutation": "certainty",
+      "expectedValid": false
+    },
+    {
+      "id": "EV-11",
+      "name": "report_practiced_skill",
+      "task": "INSIGHT_REPORT",
+      "mutation": "none",
+      "expectedValid": true
+    },
+    {
+      "id": "EV-12",
+      "name": "report_unknown_hypothesis_source",
+      "task": "INSIGHT_REPORT",
+      "mutation": "bad_hypothesis",
+      "expectedValid": false
+    },
+    {
+      "id": "EV-13",
+      "name": "report_fabricated_practiced_skill",
+      "task": "INSIGHT_REPORT",
+      "mutation": "bad_skill",
+      "expectedValid": false
+    },
+    {
+      "id": "EV-14",
+      "name": "report_missing_disclaimer",
+      "task": "INSIGHT_REPORT",
+      "mutation": "missing_disclaimer",
+      "expectedValid": false
+    },
+    {
+      "id": "EV-15",
+      "name": "report_claims_certification",
+      "task": "INSIGHT_REPORT",
+      "mutation": "bad_disclaimer",
+      "expectedValid": false
+    },
+    {
+      "id": "EV-16",
+      "name": "unsolicited_report",
+      "task": "CHAT",
+      "mutation": "unsolicited",
+      "expectedValid": false
+    },
+    {
+      "id": "EV-17",
+      "name": "draft_plan",
+      "task": "PLAN_SUGGESTION",
+      "mutation": "none",
+      "expectedValid": true
+    },
+    {
+      "id": "EV-18",
+      "name": "oversized_plan",
+      "task": "PLAN_SUGGESTION",
+      "mutation": "too_many_steps",
+      "expectedValid": false
+    },
+    {
+      "id": "EV-19",
+      "name": "plan_foreign_reference",
+      "task": "PLAN_SUGGESTION",
+      "mutation": "bad_plan_reference",
+      "expectedValid": false
+    },
+    {
+      "id": "EV-20",
+      "name": "unicode_direction_override",
+      "task": "CHAT",
+      "mutation": "bidi",
+      "expectedValid": false
+    }
+  ]
+}

@@ -126,6 +126,195 @@ public final class SynHttpRequests {
                 };
     }
 
+    /**
+     * Incremental bounded SSE transport, sharing Syn admission, cancellation and connection limits.
+     */
+    public static void stream(
+            URI uri,
+            String provider,
+            java.util.Map<String, String> headers,
+            byte[] body,
+            java.util.function.Consumer<String> data) {
+        SynExecutionScope.checkProvider(provider);
+        if (!IN_FLIGHT.tryAcquire())
+            throw new IllegalStateException("Provider concurrency limit reached");
+        CompletableFuture<HttpResponse<Flow.Publisher<List<ByteBuffer>>>> pending = null;
+        final var subscription =
+                new java.util.concurrent.atomic.AtomicReference<Flow.Subscription>();
+        try {
+            Duration timeout = SynExecutionScope.remaining(Duration.ofSeconds(60));
+            var request =
+                    HttpRequest.newBuilder(uri)
+                            .timeout(timeout)
+                            .header("Content-Type", "application/json")
+                            .header("Accept", "text/event-stream");
+            headers.forEach(request::header);
+            pending =
+                    SynExecutionScope.admit(
+                            provider,
+                            () ->
+                                    CLIENT.sendAsync(
+                                            request.POST(
+                                                            HttpRequest.BodyPublishers.ofByteArray(
+                                                                    body))
+                                                    .build(),
+                                            HttpResponse.BodyHandlers.ofPublisher()));
+            var response = pending.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
+            if (response.statusCode() != 200) {
+                response.body()
+                        .subscribe(
+                                new Flow.Subscriber<List<ByteBuffer>>() {
+                                    public void onSubscribe(Flow.Subscription s) {
+                                        s.cancel();
+                                    }
+
+                                    public void onNext(List<ByteBuffer> b) {}
+
+                                    public void onError(Throwable t) {}
+
+                                    public void onComplete() {}
+                                });
+                throw new edu.hcmute.careersim.guidance.service.SynGuidanceProvider
+                        .ProviderException(
+                        response.statusCode() == 429
+                                ? edu.hcmute.careersim.guidance.service.SynGuidanceProvider
+                                        .FailureKind.PROVIDER_RATE_LIMITED
+                                : response.statusCode() >= 500
+                                        ? edu.hcmute.careersim.guidance.service.SynGuidanceProvider
+                                                .FailureKind.PROVIDER_UNAVAILABLE
+                                        : edu.hcmute.careersim.guidance.service.SynGuidanceProvider
+                                                .FailureKind.PROVIDER_REJECTED);
+            }
+            var queue = new ArrayBlockingQueue<Object>(32);
+            Object eof = new Object();
+            response.body()
+                    .subscribe(
+                            new Flow.Subscriber<>() {
+                                int bytes;
+
+                                public void onSubscribe(Flow.Subscription s) {
+                                    subscription.set(s);
+                                    s.request(1);
+                                }
+
+                                public void onNext(List<ByteBuffer> buffers) {
+                                    var out = new ByteArrayOutputStream();
+                                    for (var b : buffers) {
+                                        bytes += b.remaining();
+                                        if (bytes > MAX_RESPONSE_BYTES) {
+                                            onError(new IOException("Provider response too large"));
+                                            subscription.get().cancel();
+                                            return;
+                                        }
+                                        byte[] a = new byte[b.remaining()];
+                                        b.get(a);
+                                        out.writeBytes(a);
+                                    }
+                                    if (!queue.offer(out.toByteArray())) {
+                                        subscription.get().cancel();
+                                        onError(
+                                                new IOException(
+                                                        "Provider stream exceeded queue budget"));
+                                    }
+                                }
+
+                                public void onError(Throwable e) {
+                                    queue.clear();
+                                    queue.offer(e);
+                                }
+
+                                public void onComplete() {
+                                    if (!queue.offer(eof)) {
+                                        queue.clear();
+                                        queue.offer(
+                                                new IOException(
+                                                        "Provider stream exceeded queue budget"));
+                                    }
+                                }
+                            });
+            var input =
+                    new InputStream() {
+                        byte[] current = new byte[0];
+                        int index;
+                        boolean ended;
+
+                        public int read(byte[] bytes, int offset, int length) throws IOException {
+                            if (length == 0) return 0;
+                            int first = read();
+                            if (first < 0) return -1;
+                            bytes[offset] = (byte) first;
+                            int extra = Math.min(length - 1, current.length - index);
+                            System.arraycopy(current, index, bytes, offset + 1, extra);
+                            index += extra;
+                            return 1 + extra;
+                        }
+
+                        public int read() throws IOException {
+                            if (ended) return -1;
+                            while (index >= current.length) {
+                                if (current.length > 0) {
+                                    current = new byte[0];
+                                    index = 0;
+                                    subscription.get().request(1);
+                                }
+                                SynExecutionScope.checkExternal();
+                                SynExecutionScope.checkProvider(provider);
+                                if (SynExecutionScope.remaining(Duration.ofSeconds(60)).isZero())
+                                    throw new IOException("Stream deadline");
+                                Object next;
+                                try {
+                                    next = queue.poll(100, TimeUnit.MILLISECONDS);
+                                } catch (InterruptedException e) {
+                                    Thread.currentThread().interrupt();
+                                    throw new IOException(e);
+                                }
+                                if (next == null) continue;
+                                if (next == eof) {
+                                    ended = true;
+                                    return -1;
+                                }
+                                if (next instanceof Throwable t)
+                                    throw new IOException("Provider stream interrupted", t);
+                                current = (byte[]) next;
+                                index = 0;
+                            }
+                            return current[index++] & 255;
+                        }
+                    };
+            try (var reader =
+                    new BufferedReader(
+                            new InputStreamReader(
+                                    input, java.nio.charset.StandardCharsets.UTF_8))) {
+                String line;
+                var event = new StringBuilder();
+                while ((line = reader.readLine()) != null) {
+                    if (line.isEmpty()) {
+                        if (!event.isEmpty()) {
+                            String value = event.toString();
+                            event.setLength(0);
+                            if ("[DONE]".equals(value)) break;
+                            data.accept(value);
+                        }
+                    } else if (line.startsWith("data:")) {
+                        if (!event.isEmpty()) event.append('\n');
+                        event.append(line.substring(5).stripLeading());
+                    }
+                }
+                if (!event.isEmpty() && !"[DONE]".contentEquals(event))
+                    data.accept(event.toString());
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("Provider stream interrupted");
+        } catch (IOException | ExecutionException | TimeoutException e) {
+            throw new IllegalStateException("Provider stream unavailable");
+        } finally {
+            if (subscription.get() != null) subscription.get().cancel();
+            if (pending != null && !pending.isDone()) pending.cancel(true);
+            IN_FLIGHT.release();
+        }
+    }
+
     private static HttpResponse.BodySubscriber<byte[]> limitedBody() {
         var delegate = HttpResponse.BodySubscribers.ofByteArray();
         return new HttpResponse.BodySubscriber<>() {

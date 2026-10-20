@@ -25,6 +25,7 @@ import org.springframework.transaction.support.TransactionTemplate;
 public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
     private final KnowledgeStudioDao dao;
     private final ActorAccess actors;
+    private final edu.hcmute.careersim.guidance.agent.dao.AgentRegistryDao registry;
     private final FileAssetService files;
     private final KnowledgeParser parser;
     private final EmbeddingProvider embedding;
@@ -35,6 +36,7 @@ public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
     public KnowledgeStudioServiceImpl(
             KnowledgeStudioDao dao,
             ActorAccess actors,
+            edu.hcmute.careersim.guidance.agent.dao.AgentRegistryDao registry,
             FileAssetService files,
             KnowledgeParser parser,
             EmbeddingProvider embedding,
@@ -43,6 +45,7 @@ public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
             PlatformTransactionManager tm) {
         this.dao = dao;
         this.actors = actors;
+        this.registry = registry;
         this.files = files;
         this.parser = parser;
         this.embedding = embedding;
@@ -416,8 +419,18 @@ public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
                 .orElseThrow(() -> new NotFoundException("Published source unavailable."));
     }
 
+    private void reader(long actor, UUID configuration) {
+        var who = actors.requireId(actor);
+        if ("ADMIN".equals(who.role())) return;
+        if (!"STUDENT".equals(who.role()) || configuration == null)
+            throw new NotFoundException("Knowledge scope unavailable.");
+        var c = registry.configuration(configuration);
+        if (!registry.assignedConfiguration(actor, UUID.fromString(c.agentId()), configuration))
+            throw new NotFoundException("Knowledge scope unavailable.");
+    }
+
     public void requireAvailable(long admin, UUID configuration, Set<UUID> bases) {
-        admin(admin);
+        reader(admin, configuration);
         if (configuration != null && !dao.grants(configuration).containsAll(bases))
             throw new ApiException(
                     ErrorCode.FORBIDDEN,
@@ -430,7 +443,7 @@ public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
         if (!org.springframework.transaction.support.TransactionSynchronizationManager
                 .isActualTransactionActive())
             throw new IllegalStateException("Authority locking requires a caller transaction.");
-        admin(admin);
+        reader(admin, configuration);
         for (var kb : bases.stream().sorted().toList()) available(kb, true);
         requireAvailable(admin, configuration, bases);
         for (var p : evidence) {

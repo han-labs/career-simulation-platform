@@ -21,6 +21,8 @@ import { agentPlatformEnabled } from '../features/admin/agentPlatform/platformAp
 import KnowledgeStudioPage from '../features/admin/knowledge/KnowledgeStudioPage.jsx'
 import AgentBuilderPage from '../features/admin/agents/AgentBuilderPage.jsx'
 import AssignedAgentsPage from '../features/agents/AssignedAgentsPage.jsx'
+import StudentAgentPage from '../features/agents/StudentAgentPage.jsx'
+import AgentUsagePage from '../features/admin/agentPlatform/AgentUsagePage.jsx'
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -56,6 +58,8 @@ function App() {
         {agentPlatformEnabled && <Route path="admin/knowledge" element={<KnowledgeStudioPage />} />}
         {agentPlatformEnabled && <Route path="admin/agents" element={<AgentBuilderPage />} />}
         {agentPlatformEnabled && <Route path="agents" element={<AssignedAgentsPage />} />}
+        {agentPlatformEnabled && <Route path="agents/:agentId" element={<StudentAgentPage />} />}
+        {agentPlatformEnabled && <Route path="admin/ai-usage" element={<AgentUsagePage />} />}
         <Route path="assessment" element={coreEnabled ? <VersionedAssessmentPage /> : <AssessmentPage />} />
         <Route path="assessment/:assessmentType" element={coreEnabled ? <VersionedAssessmentPage /> : <AssessmentPage />} />
         <Route path="simulations" element={coreEnabled ? <CoreCatalogPage /> : <SimulationCatalogPage />} />

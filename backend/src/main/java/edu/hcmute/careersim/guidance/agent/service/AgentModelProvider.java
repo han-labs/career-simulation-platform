@@ -15,6 +15,24 @@ public interface AgentModelProvider {
 
     record Exchange(Decision decision, List<JsonNode> observations) {}
 
+    record Tool(String name, String description, JsonNode parameters) {}
+
+    /** Real deltas when supported; compatibility providers emit no invented stream segments. */
+    default Decision stream(
+            String model,
+            String instructions,
+            String query,
+            List<Exchange> exchanges,
+            List<Tool> tools,
+            java.util.function.Consumer<String> delta) {
+        return decide(
+                model,
+                instructions,
+                query,
+                exchanges,
+                tools.stream().anyMatch(t -> t.name().equals("kb.search")));
+    }
+
     List<Model> models();
 
     default Set<String> modelKeys() {

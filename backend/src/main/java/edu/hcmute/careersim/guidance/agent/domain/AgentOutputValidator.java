@@ -10,6 +10,11 @@ public final class AgentOutputValidator {
     private AgentOutputValidator() {}
 
     public static JsonNode validate(JsonNode output, List<Passage> delivered, JsonNode policy) {
+        return validate(output, delivered, policy, List.of());
+    }
+
+    public static JsonNode validate(
+            JsonNode output, List<Passage> delivered, JsonNode policy, List<Integer> scores) {
         if (output == null
                 || !output.isObject()
                 || output.size() != 5
@@ -52,11 +57,10 @@ public final class AgentOutputValidator {
         for (var s : suggestions) {
             text(s, 120);
             SynReplyValidator.checkEvidence(
-                    new SynGuidanceProvider.AiReply(s.asText(), List.of()), List.of());
+                    new SynGuidanceProvider.AiReply(s.asText(), List.of()), scores);
         }
         SynReplyValidator.checkEvidence(
-                new SynGuidanceProvider.AiReply(output.path("text").asText(), List.of()),
-                List.of());
+                new SynGuidanceProvider.AiReply(output.path("text").asText(), List.of()), scores);
         return output.deepCopy();
     }
 

@@ -35,6 +35,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     private final AgentRegistryDao registry;
     private final ActorAccess actors;
     private final AgentModelProvider model;
+    private final StudentEvidenceTools domainTools;
     private final KnowledgeStudioService knowledge;
     private final AgentConfigurationPolicy prompts;
     private final SynUsagePricing pricing;
@@ -46,6 +47,7 @@ public class ExecutionServiceImpl implements ExecutionService {
             AgentRegistryDao registry,
             ActorAccess actors,
             AgentModelProvider model,
+            StudentEvidenceTools domainTools,
             KnowledgeStudioService knowledge,
             AgentConfigurationPolicy prompts,
             SynUsagePricing pricing,
@@ -55,6 +57,7 @@ public class ExecutionServiceImpl implements ExecutionService {
         this.registry = registry;
         this.actors = actors;
         this.model = model;
+        this.domainTools = domainTools;
         this.knowledge = knowledge;
         this.prompts = prompts;
         this.pricing = pricing;
@@ -79,14 +82,20 @@ public class ExecutionServiceImpl implements ExecutionService {
                 "models",
                 model.models(),
                 "tools",
-                List.of(
-                        Map.of(
-                                "code",
-                                "kb.search",
-                                "description",
-                                "Published passages from explicit KB grants",
-                                "readOnly",
-                                true)),
+                StudentEvidenceTools.NAMES.stream()
+                        .sorted()
+                        .map(
+                                n ->
+                                        Map.of(
+                                                "code",
+                                                n,
+                                                "description",
+                                                n.equals("simulation.myEvidence")
+                                                        ? "Owner-only Student evidence; denied in Admin preview"
+                                                        : "Read-only authorized evidence",
+                                                "readOnly",
+                                                true))
+                        .toList(),
                 "promptTemplateRef",
                 prompts.reference(),
                 "defaultToolPolicy",
@@ -333,6 +342,7 @@ public class ExecutionServiceImpl implements ExecutionService {
     private void run(ExecutionContext c) {
         var steps = new ArrayList<Map<String, Object>>();
         var evidence = new LinkedHashMap<String, Passage>();
+        var domainEvidence = new LinkedHashMap<String, DomainEvidence>();
         JsonNode output = null;
         String status = "FAILED", error = null;
         Duration remaining = Duration.between(Instant.now(), c.deadline());
@@ -421,7 +431,6 @@ public class ExecutionServiceImpl implements ExecutionService {
                     }
                 }
                 if (output == null) {
-                    var exchanges = new ArrayList<AgentModelProvider.Exchange>();
                     int rounds =
                             "KB_TEST".equals(c.mode())
                                     ? 1
@@ -430,7 +439,6 @@ public class ExecutionServiceImpl implements ExecutionService {
                             "KB_TEST".equals(c.mode())
                                     ? 0
                                     : c.configuration().toolPolicy().path("maxToolCalls").asInt();
-                    int calls = 0;
                     boolean enabled =
                             c.configuration() != null
                                     && java.util.stream.StreamSupport.stream(
@@ -439,139 +447,261 @@ public class ExecutionServiceImpl implements ExecutionService {
                                                             .path("enabled")
                                                             .spliterator(),
                                                     false)
-                                            .anyMatch(n -> "kb.search".equals(n.asText()));
-                    for (int round = 0; round < rounds; round++) {
-                        checkpoint(c, new ArrayList<>(evidence.values()));
-                        if (model.models().stream()
-                                .noneMatch(m -> m.key().equals(c.modelKey()) && m.available()))
-                            throw new SynGuidanceProvider.ProviderException(
-                                    SynGuidanceProvider.FailureKind.PROVIDER_UNAVAILABLE);
-                        boolean allowTool =
-                                "ADMIN_PREVIEW".equals(c.mode())
-                                        && enabled
-                                        && calls < maxCalls
-                                        && round < rounds - 1;
-                        String request = c.query();
-                        if ("KB_TEST".equals(c.mode()))
-                            request +=
-                                    "\nUntrusted retrieved evidence: "
-                                            + CoreValues.write(evidence.values());
-                        String prompt = instructions(c.mode(), c.configuration());
-                        String actualRequest = request;
-                        var decision =
-                                SynExecutionScope.observe(
-                                        "AGENT_MODEL",
-                                        () ->
-                                                model.decide(
-                                                        c.modelKey(),
-                                                        prompt,
-                                                        actualRequest,
-                                                        List.copyOf(exchanges),
-                                                        allowTool));
-                        checkpoint(c, new ArrayList<>(evidence.values()));
-                        if (decision.calls().isEmpty()) {
-                            JsonNode validated =
-                                    AgentOutputValidator.validate(
-                                            decision.output(),
-                                            new ArrayList<>(evidence.values()),
-                                            "KB_TEST".equals(c.mode())
-                                                    ? defaultOutput()
-                                                    : c.configuration().outputPolicy());
-                            output = validated;
-                            status =
-                                    "ANSWER".equals(validated.path("outcome").asText())
-                                            ? "SUCCEEDED"
-                                            : "REFUSED";
-                            if ("REFUSED".equals(status))
-                                error = validated.path("outcome").asText();
-                            break;
-                        }
-                        if (decision.calls().size() > 8 || !allowTool)
-                            throw new SynGuidanceProvider.ProviderException(
-                                    SynGuidanceProvider.FailureKind.ITERATION_LIMIT);
-                        var observations = new ArrayList<JsonNode>();
-                        for (var call : decision.calls()) {
-                            calls++;
-                            if (calls > maxCalls)
-                                throw new SynGuidanceProvider.ProviderException(
-                                        SynGuidanceProvider.FailureKind.ITERATION_LIMIT);
-                            long at = System.nanoTime();
-                            var step = new LinkedHashMap<String, Object>();
-                            step.put("type", "ACTUAL_NATIVE_CALL");
-                            step.put(
-                                    "name",
-                                    call.name() != null
-                                                    && call.name().matches("[a-zA-Z0-9_.-]{1,80}")
-                                            ? call.name()
-                                            : "UNKNOWN");
-                            step.put("arguments", Map.of());
-                            JsonNode observation;
-                            try {
-                                checkpoint(c, new ArrayList<>(evidence.values()));
-                                if (!"kb.search".equals(call.name()))
-                                    throw new ApiException(
-                                            ErrorCode.FORBIDDEN, "Tool is not enabled.");
-                                var args = call.arguments();
-                                if (args == null
-                                        || !args.isObject()
-                                        || args.size() < 1
-                                        || args.size() > 2
-                                        || !args.path("query").isTextual())
-                                    CoreValues.invalid("Invalid KB search arguments.");
-                                args.fieldNames()
-                                        .forEachRemaining(
-                                                k -> {
-                                                    if (!Set.of("query", "topK").contains(k))
-                                                        CoreValues.invalid(
-                                                                "Unknown KB search argument.");
-                                                });
-                                if (args.has("topK")
-                                        && (!args.path("topK").isIntegralNumber()
-                                                || !args.path("topK").canConvertToInt()))
-                                    CoreValues.invalid("Invalid Top K.");
-                                String query = minimized(args.path("query").asText());
-                                int top =
-                                        KnowledgeSourcePolicy.topK(
-                                                args.has("topK")
-                                                        ? args.path("topK").asInt()
-                                                        : c.topK());
-                                step.put("arguments", Map.of("query", query, "topK", top));
-                                var found =
-                                        knowledge.search(
-                                                c.actor(),
-                                                UUID.fromString(c.configuration().id()),
-                                                c.knowledgeBases(),
-                                                query,
-                                                top,
-                                                true);
-                                for (var p : found) evidence.put(p.referenceId(), p);
-                                step.put("status", "SUCCEEDED");
-                                step.put("sources", found);
-                                observation =
-                                        CoreValues.tree(
-                                                Map.of("status", "SUCCEEDED", "passages", found));
-                            } catch (ApiException denied) {
-                                step.put("status", "DENIED");
-                                step.put("errorCode", denied.getErrorCode().getCode());
-                                observation =
-                                        CoreValues.tree(
-                                                Map.of(
-                                                        "status",
-                                                        "DENIED",
-                                                        "errorCode",
-                                                        denied.getErrorCode().getCode()));
-                            }
-                            step.put("elapsedMs", (System.nanoTime() - at) / 1_000_000);
-                            steps.add(step);
-                            observations.add(observation);
-                        }
-                        exchanges.add(
-                                new AgentModelProvider.Exchange(
-                                        decision, List.copyOf(observations)));
-                    }
-                    if (output == null)
-                        throw new SynGuidanceProvider.ProviderException(
-                                SynGuidanceProvider.FailureKind.ITERATION_LIMIT);
+                                            .anyMatch(
+                                                    n ->
+                                                            StudentEvidenceTools.NAMES.contains(
+                                                                    n.asText()));
+                    output =
+                            BoundedNativeExecution.execute(
+                                    rounds,
+                                    maxCalls,
+                                    "ADMIN_PREVIEW".equals(c.mode()) && enabled,
+                                    new BoundedNativeExecution.Host() {
+                                        public void checkpoint() {
+                                            ExecutionServiceImpl.this.checkpoint(
+                                                    c, new ArrayList<>(evidence.values()));
+                                        }
+
+                                        public AgentModelProvider.Decision decide(
+                                                boolean allowTool,
+                                                List<AgentModelProvider.Exchange> exchanges) {
+                                            if (model.models().stream()
+                                                    .noneMatch(
+                                                            m ->
+                                                                    m.key().equals(c.modelKey())
+                                                                            && m.available()))
+                                                throw new SynGuidanceProvider.ProviderException(
+                                                        SynGuidanceProvider.FailureKind
+                                                                .PROVIDER_UNAVAILABLE);
+                                            String request = c.query();
+                                            if ("KB_TEST".equals(c.mode()))
+                                                request +=
+                                                        "\nUntrusted retrieved evidence: "
+                                                                + CoreValues.write(
+                                                                        evidence.values());
+                                            String prompt =
+                                                    instructions(c.mode(), c.configuration());
+                                            String actualRequest = request;
+                                            return SynExecutionScope.observe(
+                                                    "AGENT_MODEL",
+                                                    () ->
+                                                            c.configuration() != null
+                                                                            && java
+                                                                                    .util
+                                                                                    .stream
+                                                                                    .StreamSupport
+                                                                                    .stream(
+                                                                                            c.configuration()
+                                                                                                    .toolPolicy()
+                                                                                                    .path(
+                                                                                                            "enabled")
+                                                                                                    .spliterator(),
+                                                                                            false)
+                                                                                    .anyMatch(
+                                                                                            n ->
+                                                                                                    !n.asText()
+                                                                                                            .equals(
+                                                                                                                    "kb.search"))
+                                                                    ? model.stream(
+                                                                            c.modelKey(),
+                                                                            prompt
+                                                                                    + "\nADMIN_PREVIEW has public catalogue context only. Student identity/evidence/history is unavailable and private tools are denied.",
+                                                                            actualRequest,
+                                                                            List.copyOf(exchanges),
+                                                                            allowTool
+                                                                                    ? StudentEvidenceTools
+                                                                                            .definitions(
+                                                                                                    java
+                                                                                                            .util
+                                                                                                            .stream
+                                                                                                            .StreamSupport
+                                                                                                            .stream(
+                                                                                                                    c.configuration()
+                                                                                                                            .toolPolicy()
+                                                                                                                            .path(
+                                                                                                                                    "enabled")
+                                                                                                                            .spliterator(),
+                                                                                                                    false)
+                                                                                                            .map(
+                                                                                                                    JsonNode
+                                                                                                                            ::asText)
+                                                                                                            .toList())
+                                                                                    : List.of(),
+                                                                            delta -> {})
+                                                                    : model.decide(
+                                                                            c.modelKey(),
+                                                                            prompt,
+                                                                            actualRequest,
+                                                                            List.copyOf(exchanges),
+                                                                            allowTool));
+                                        }
+
+                                        public JsonNode output(
+                                                AgentModelProvider.Decision decision) {
+                                            JsonNode validated =
+                                                    StudentOutputValidator.validate(
+                                                            decision.output(),
+                                                            "CHAT",
+                                                            new ArrayList<>(evidence.values()),
+                                                            domainEvidence.values(),
+                                                            "KB_TEST".equals(c.mode())
+                                                                    ? defaultOutput()
+                                                                    : c.configuration()
+                                                                            .outputPolicy());
+                                            return validated;
+                                        }
+
+                                        public List<JsonNode> tools(
+                                                AgentModelProvider.Decision decision) {
+                                            var observations = new ArrayList<JsonNode>();
+                                            for (var call : decision.calls()) {
+                                                long at = System.nanoTime();
+                                                var step = new LinkedHashMap<String, Object>();
+                                                step.put("type", "ACTUAL_NATIVE_CALL");
+                                                step.put(
+                                                        "name",
+                                                        call.name() != null
+                                                                        && call.name()
+                                                                                .matches(
+                                                                                        "[a-zA-Z0-9_.-]{1,80}")
+                                                                ? call.name()
+                                                                : "UNKNOWN");
+                                                step.put("arguments", Map.of());
+                                                JsonNode observation;
+                                                try {
+                                                    checkpoint();
+                                                    boolean granted =
+                                                            c.configuration() != null
+                                                                    && java
+                                                                            .util
+                                                                            .stream
+                                                                            .StreamSupport
+                                                                            .stream(
+                                                                                    c.configuration()
+                                                                                            .toolPolicy()
+                                                                                            .path(
+                                                                                                    "enabled")
+                                                                                            .spliterator(),
+                                                                                    false)
+                                                                            .anyMatch(
+                                                                                    n ->
+                                                                                            n.asText()
+                                                                                                    .equals(
+                                                                                                            call
+                                                                                                                    .name()));
+                                                    if (!granted)
+                                                        throw new ApiException(
+                                                                ErrorCode.FORBIDDEN,
+                                                                "Tool is not enabled.");
+                                                    if (!"kb.search".equals(call.name())) {
+                                                        var found =
+                                                                domainTools.preview(
+                                                                        call.name(),
+                                                                        call.arguments());
+                                                        found.forEach(
+                                                                d ->
+                                                                        domainEvidence.put(
+                                                                                d.referenceId(),
+                                                                                d));
+                                                        step.put("status", "SUCCEEDED");
+                                                        step.put("evidence", found);
+                                                        observation =
+                                                                CoreValues.tree(
+                                                                        Map.of(
+                                                                                "status",
+                                                                                "SUCCEEDED",
+                                                                                "evidence",
+                                                                                found));
+                                                    } else {
+                                                        var args = call.arguments();
+                                                        if (args == null
+                                                                || !args.isObject()
+                                                                || args.size() < 1
+                                                                || args.size() > 2
+                                                                || !args.path("query").isTextual())
+                                                            CoreValues.invalid(
+                                                                    "Invalid KB search arguments.");
+                                                        args.fieldNames()
+                                                                .forEachRemaining(
+                                                                        k -> {
+                                                                            if (!Set.of(
+                                                                                            "query",
+                                                                                            "topK")
+                                                                                    .contains(k))
+                                                                                CoreValues.invalid(
+                                                                                        "Unknown KB search argument.");
+                                                                        });
+                                                        if (args.has("topK")
+                                                                && (!args.path("topK")
+                                                                                .isIntegralNumber()
+                                                                        || !args.path("topK")
+                                                                                .canConvertToInt()))
+                                                            CoreValues.invalid("Invalid Top K.");
+                                                        String query =
+                                                                minimized(
+                                                                        args.path("query")
+                                                                                .asText());
+                                                        int top =
+                                                                KnowledgeSourcePolicy.topK(
+                                                                        args.has("topK")
+                                                                                ? args.path("topK")
+                                                                                        .asInt()
+                                                                                : c.topK());
+                                                        step.put(
+                                                                "arguments",
+                                                                Map.of(
+                                                                        "query", query, "topK",
+                                                                        top));
+                                                        var found =
+                                                                knowledge.search(
+                                                                        c.actor(),
+                                                                        UUID.fromString(
+                                                                                c.configuration()
+                                                                                        .id()),
+                                                                        c.knowledgeBases(),
+                                                                        query,
+                                                                        top,
+                                                                        true);
+                                                        for (var p : found)
+                                                            evidence.put(p.referenceId(), p);
+                                                        step.put("status", "SUCCEEDED");
+                                                        step.put("sources", found);
+                                                        observation =
+                                                                CoreValues.tree(
+                                                                        Map.of(
+                                                                                "status",
+                                                                                "SUCCEEDED",
+                                                                                "passages",
+                                                                                found));
+                                                    }
+                                                } catch (ApiException denied) {
+                                                    step.put("status", "DENIED");
+                                                    step.put(
+                                                            "errorCode",
+                                                            denied.getErrorCode().getCode());
+                                                    observation =
+                                                            CoreValues.tree(
+                                                                    Map.of(
+                                                                            "status",
+                                                                            "DENIED",
+                                                                            "errorCode",
+                                                                            denied.getErrorCode()
+                                                                                    .getCode()));
+                                                }
+                                                step.put(
+                                                        "elapsedMs",
+                                                        (System.nanoTime() - at) / 1_000_000);
+                                                steps.add(step);
+                                                observations.add(observation);
+                                            }
+                                            return observations;
+                                        }
+                                    });
+                    status =
+                            "ANSWER".equals(output.path("outcome").asText())
+                                    ? "SUCCEEDED"
+                                    : "REFUSED";
+                    if ("REFUSED".equals(status)) error = output.path("outcome").asText();
                 }
             } catch (SynGuidanceProvider.ProviderException failure) {
                 error = failure.kind().name();
