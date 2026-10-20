@@ -1,0 +1,96 @@
+# AI Usage Log — Career Simulation System
+
+**Course:** New Technologies in Software Engineering  
+**Artifact required by:** Final Project Assignment, Section 5.3  
+**Log compiled:** 2026-10-21  
+**Status:** **DRAFT — human verification and contributor sign-off required before submission**
+
+> **Transparency note.** This record is being consolidated after several development milestones using existing Git history, AI-assisted development reports, and test evidence. It is **not** evidence that a repository-level `AI_USAGE.md` existed at M2. Do not backdate commits or claim earlier submission. Summarized prompts below are **reconstructions of task instructions**, not verified verbatim chat transcripts. The people who used the tools must validate or replace them with accurate excerpts.
+
+## 1. Recording rules
+
+- The team maintains **one shared root-level `AI_USAGE.md`**. Every contributor adds **their own truthful entries** for AI-assisted code, tests, diagrams, UI, and documentation they actually used.
+- Each entry records: **responsible person, tool, approximate date, task/key prompt, AI-produced area, what a human checked/changed, and verifiable evidence** (files, tests, PRs, commits).
+- Never list an AI tool or human reviewer merely because a generated report suggested one. **Do not invent prompts, approvals, manual testing, live-model results, or teammate contributions.**
+- Keep credentials, student data, JWTs, private chat transcripts, personal local paths, and unreviewed raw logs **out of this file**.
+- `PASS` from automated tests establishes only the stated automated checks, not human sign-off or live AI quality.
+
+## 2. Main AI-assisted work — team review required
+
+| ID | Responsible contributor / tool | Key prompt or instruction *(summary; verify actual transcript)* | Main AI-assisted output | Human verification / changes and evidence | Status |
+|---|---|---|---|---|---|
+| AI-01 | **Owner: confirm**; ChatGPT (requirements/design assistant) and AI-assisted planning | Align frozen Requirements Baseline v1/DR1–DR2 to Target Design v1.2, preserve accepted rules, identify safe P1–P6 implementation sequence. | Core/Agent/ERD design notes, architecture contracts and implementation-plan support. | Team must confirm diagram/cardinality and requirements review. See `docs/requirements/CareerSim_Requirements_Baseline_v1_Chat2_Handoff.md`, `docs/architecture/data-model/`, architecture documentation. | Human reviewer and precise prompt: **TO CONFIRM** |
+| AI-02 | **Owner: confirm**; Sol (AI coding assistant) | Implement P1 authentication/security and P2 versioned Core workflows without altering older migrations; test against isolated PostgreSQL. | Identity/security, assessments, Enterprise scenarios, Student simulations, tests. | PR [#2](https://github.com/han-labs/career-simulation-platform/pull/2); source under `backend/src/main/java/edu/hcmute/careersim/identity/`, `assessment/`, `simulation/`; corresponding backend/frontend tests. Live Google OAuth **not verified** by these tests. | Automated evidence available; human reviewer: **TO CONFIRM** |
+| AI-03 | **Owner: confirm**; Sol (AI coding assistant) | Implement P3 Knowledge Base Studio and P4 Agent Builder, immutable versioned configurations, preview/publish/assignment, scoped KB and execution tracking; retain V1–V20. | KB ingestion/retrieval, Agent administration, native-provider adapters, V21, React Admin screens and tests. | PR [#3](https://github.com/han-labs/career-simulation-platform/pull/3); `docs/api/agent-platform-p3-p4.md`; `backend/src/test/java/edu/hcmute/careersim/guidance/agent/AgentPlatformIntegrationTest.java`. See **FIX-01** and **FIX-02** below. | Automated evidence available; human reviewer: **TO CONFIRM** |
+| AI-04 | **Owner: confirm**; Sol (AI coding assistant) | Implement P5 Student Agent with authorized tools/SSE/history and P6 InsightReport, confirmed plan and Admin usage, preserving earlier Core/KB behavior; add only additive migration. | Student Agent, read-only tools, session/history/streaming, structured outputs, V22, usage dashboard and tests. | PR [#4](https://github.com/han-labs/career-simulation-platform/pull/4); `docs/api/student-agent-p5-p6.md`; `StudentAgentIntegrationTest.java`, `AgentEvaluationTest.java`, `StudentAgentUpgradeIntegrationTest.java`. 20 deterministic evaluation cases are **not** 20 live-LLM cases; AC-A09/A17 remain pending live/human review. | Automated evidence available; human reviewer: **TO CONFIRM** |
+| AI-05 | **Owner: confirm**; ChatGPT used for report/specification drafting (Chat 3) | Reconcile 13 selected report stories / 16 use cases with frozen 15-story baseline, design, code evidence and real acceptance gaps. | Academic report draft, requirement/use-case wording, traceability support. | Human must review approved business decisions, story/UC IDs, citations and unverifiable claims before submission. Do not claim the document is validated only because AI drafted it. | Exact prompts, editor, and reviewed report version: **TO CONFIRM** |
+| AI-06 | **Owner: confirm**; ChatGPT image generation / ChatGPT HTML generation (Chat 2) | Create an architecture figure and interactive explanation of frontend, Spring Boot backend, PostgreSQL/pgvector, provider and one AI request. | Architecture illustration and interactive learning HTML. | Use only if included in final deliverables. Human must correct conceptual inaccuracies: pgvector is **inside** PostgreSQL; actual adapters are Gemini/OpenAI; model tool requests are executed/authorized by the backend; SSE events can stream before final completion. | Inclusion and final reviewed asset: **TO CONFIRM** |
+
+**How to finalize the prompt column:** Replace each summarized instruction with a short **faithful extract of the real prompt** or a precisely labeled paraphrase verified against the relevant chat; do not manufacture verbatim quotations.
+
+## 3. Two actual issues detected and corrected during AI-assisted development
+
+These are **documented defects from the AI-assisted P3/P4 implementation**. Before final submission, the responsible contributor should confirm that the defective change was AI-generated, then sign off on the reproduction and correction evidence. The underlying raw logs remain local/private unless safely redacted.
+
+### FIX-01 — Null-handling defect in Agent configuration validation
+
+- **Area:** `backend/src/main/java/edu/hcmute/careersim/guidance/agent/domain/AgentConfigurationPolicy.java`
+- **Problem:** An earlier validation path relied on `List.of(...).contains(null)`, which threw an unexpected `NullPointerException` for a missing value instead of returning a proper validation response.
+- **How detected:** Early P3/P4 slice tests. Private evidence: `.agent/reports/p3-p4-first-slice-tests-initial.log` (reported lines 99–104).
+- **Fix:** Replace unsafe null-membership logic with null-safe field extraction and explicit allowlist validation. Keep invalid configuration requests rejected without a server error.
+- **How checked:** `AgentPlatformIntegrationTest` exact-save/configuration validation tests and later P3/P4 regression gates reported passing. Reviewer should link the exact corresponding test/commit before sign-off.
+- **Human attribution:** **TO CONFIRM** (person who reviewed and accepted the correction).
+
+### FIX-02 — Unexpected HTTP 301 in Knowledge Base create/upload routing
+
+- **Area:** `frontend/nginx.conf`, `deployment/nginx/default.conf`
+- **Problem:** A trailing-slash Nginx `location` rule redirected the Knowledge Base API path with HTTP **301** instead of preserving the expected API response, breaking the gateway scenario.
+- **How detected:** Actual local gateway HTTP test of the P3/P4 upload/ingest/publish flow. Private evidence: `.agent/reports/p3-p4-gateway-initial-failure.log` (reported lines 128–129).
+- **Fix:** Adjust exact-prefix routing for the relevant API path to prevent unwanted slash canonicalization. This is separate from any later uncommitted SSE proxy-timeout changes.
+- **How checked:** `AgentPlatformIntegrationTest` gateway tests; source in merged `main` for P3/P4. The latest public/deployed proxy configuration must still be checked separately.
+- **Human attribution:** **TO CONFIRM**.
+
+## 4. Individual contributor records (each person completes their own section)
+
+> **Do not assign Git aliases or modules to people by guessing.** Each person confirms the work and AI assistance they personally performed. If a person did not use AI for some work, write that accurately; never invent usage to fill a quota.
+
+### Contributor A — [Full name / confirmed Git alias]
+
+| Date | Tool | Main code/files or documentation | Real key prompt or faithful short summary | Human checks / edits / tests | PR/commit |
+|---|---|---|---|---|---|
+| [date] | [tool or `No AI used`] | [path / module] | [prompt, or N/A] | [what YOU actually verified or changed] | [link] |
+
+**Contributor approval:** [name] — [date] — [confirmed / corrections requested]
+
+### Contributor B — [Full name / confirmed Git alias]
+
+| Date | Tool | Main code/files or documentation | Real key prompt or faithful short summary | Human checks / edits / tests | PR/commit |
+|---|---|---|---|---|---|
+| [date] | [tool or `No AI used`] | [path / module] | [prompt, or N/A] | [what YOU actually verified or changed] | [link] |
+
+**Contributor approval:** [name] — [date] — [confirmed / corrections requested]
+
+### Contributor C — [Full name / confirmed Git alias]
+
+| Date | Tool | Main code/files or documentation | Real key prompt or faithful short summary | Human checks / edits / tests | PR/commit |
+|---|---|---|---|---|---|
+| [date] | [tool or `No AI used`] | [path / module] | [prompt, or N/A] | [what YOU actually verified or changed] | [link] |
+
+**Contributor approval:** [name] — [date] — [confirmed / corrections requested]
+
+## 5. Evidence and acceptance boundaries
+
+- Merged P1/P2, P3/P4, P5/P6: GitHub PRs [#2](https://github.com/han-labs/career-simulation-platform/pull/2), [#3](https://github.com/han-labs/career-simulation-platform/pull/3), [#4](https://github.com/han-labs/career-simulation-platform/pull/4).
+- Automated P5/P6 verification as **reported** in the existing evidence: backend 305 PASS / 5 SKIP, frontend 97/97 PASS, isolated Flyway through V22, and browser smoke using mock provider. This does **not** establish live-provider/human acceptance.
+- Source-controlled evaluation dataset: `backend/src/test/resources/guidance/agent-evaluation-cases.json`; human review and real-model runs remain separate.
+- An existing related note is `docs/ai/AI_USAGE_P5_P6.md`. This top-level file is the **assignment-wide index**, not a replacement for genuine contributor records.
+- Do **not** commit raw `.agent/reports/*.log`, `.env` secrets, private screenshots, runtime tokens, local filesystem paths, or raw student transcripts to provide proof. Cite sanitized, shareable paths and tests.
+
+## 6. Final submission checklist
+
+- [ ] Every person confirms their own AI tools, prompt entries, changes and Git identity.
+- [ ] All six AI-assistance rows edited to reflect tools/people/files actually used; remove rows that did not occur.
+- [ ] Two defect examples confirmed as AI-generated changes, with test/fix evidence and human reviewer.
+- [ ] No credential, private data, personal path, raw execution log or invented claim in `AI_USAGE.md`.
+- [ ] Final `AI_USAGE.md` merged to `main` by PR before final submission.
+- [ ] Do not imply the M2 log existed in Git before it was actually added.
