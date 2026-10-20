@@ -16,6 +16,13 @@ public class AuditWriter {
 
     @Transactional(propagation = Propagation.MANDATORY)
     public void record(Long actor, String action, String type, long id, Map<String, ?> detail) {
+        recordKey(actor, action, type, Long.toString(id), detail);
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void recordKey(
+            Long actor, String action, String type, String id, Map<String, ?> detail) {
+        CoreValues.text(id, 180);
         if (detail.keySet().stream()
                 .anyMatch(
                         k ->
@@ -37,7 +44,7 @@ public class AuditWriter {
                 actor,
                 action,
                 type,
-                Long.toString(id),
+                id,
                 data);
     }
 }

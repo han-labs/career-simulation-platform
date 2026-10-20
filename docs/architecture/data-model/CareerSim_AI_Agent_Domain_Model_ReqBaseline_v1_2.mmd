@@ -1,0 +1,203 @@
+classDiagram
+direction LR
+%% CAREERSIM TARGET AI AGENT DOMAIN MODEL — REQUIREMENTS BASELINE v1.2 (2026-10-19)
+%% MVP: Student Agent + Admin Builder/KB Studio; RAG A, real tool calling B, structured output C.
+%% No Student chat-file upload, Enterprise Agent, generic write proposals, Agent-to-Agent review,
+%% or advanced cross-session learning in the MVP; keep future extensibility, NOT phantom entities.
+%% No Service/Controller/DTO/DAO/tool implementation class, no relationship-word labels.
+namespace IdentityAndConsent {
+    class UserAccount {
+        -id: UUID
+        -role: AccountRole
+    }
+    class ConsentGrant {
+        -id: UUID
+        -userId: UUID
+        -purpose: ConsentPurpose
+        -status: ConsentStatus
+        -policyVersion: String
+        -expiresAt: Instant
+        +isEffective(): boolean
+        +revoke(): void
+    }
+}
+namespace AgentRegistryAndAccess {
+    class Agent {
+        -id: UUID
+        -name: String
+        -purpose: String
+        -status: AgentStatus
+        -allowedRoles: Set~AccountRole~
+        -publishedConfigurationId: UUID
+        +isAssignable(): boolean
+    }
+    class AgentConfiguration {
+        -id: UUID
+        -versionNumber: int
+        -modelKey: String
+        -promptTemplate: String
+        -toolPolicy: JsonNode
+        -memoryPolicy: JsonNode
+        -status: ConfigStatus
+        -publishedAt: Instant
+        +allowsTool(code): boolean
+    }
+    class AgentAssignment {
+        -id: UUID
+        -studentUserId: UUID
+        -agentId: UUID
+        -assignedByAdminUserId: UUID
+        -status: AssignmentStatus
+        -assignedAt: Instant
+        -revokedAt: Instant
+        +isEffective(): boolean
+    }
+}
+namespace ChatAndExecution {
+    class AgentSession {
+        -id: UUID
+        -ownerUserId: UUID
+        -agentId: UUID
+        -configurationId: UUID
+        -title: String
+        -status: SessionStatus
+        -contextSummary: JsonNode
+        -summarySourceRefs: JsonNode
+        -summaryStatus: SummaryStatus
+        -summaryUpdatedAt: Instant
+        -startedAt: Instant
+        -deletedAt: Instant
+        +deleteHistory(): void
+    }
+    class InteractionRecord {
+        -id: UUID
+        -sequenceNumber: int
+        -actorType: InteractionActor
+        -promptOrContent: JsonNode
+        -createdAt: Instant
+    }
+    class AgentExecution {
+        -id: UUID
+        -configurationId: UUID
+        -sessionId: UUID
+        -inputInteractionId: UUID
+        -knowledgeBaseId: UUID
+        -inputSnapshot: JsonNode
+        -taskType: AgentTaskType
+        -executionMode: ExecutionMode
+        -initiatedByUserId: UUID
+        -toolStepsAndSources: JsonNode
+        -outputSnapshot: JsonNode
+        -status: ExecutionStatus
+        -refusalOrErrorCode: String
+        -inputTokens: long
+        -outputTokens: long
+        -estimatedCost: Decimal
+        -latencyMs: long
+        -startedAt: Instant
+        -finishedAt: Instant
+    }
+    class InsightReport {
+        -id: UUID
+        -ownerUserId: UUID
+        -requestedInteractionId: UUID
+        -sourceExecutionId: UUID
+        -schemaVersion: String
+        -structuredInsights: JsonNode
+        -evidenceRefs: JsonNode
+        -status: ReportStatus
+        -createdAt: Instant
+    }
+    class ExplorationPlan {
+        -id: UUID
+        -ownerUserId: UUID
+        -sourceExecutionId: UUID
+        -planData: JsonNode
+        -confirmedAt: Instant
+    }
+}
+namespace AdminKnowledgeAndRAG {
+    class KnowledgeBase {
+        -id: UUID
+        -name: String
+        -scopeType: KnowledgeScopeType
+        -enterpriseId: UUID
+        -visibility: KnowledgeVisibility
+        -status: KnowledgeBaseStatus
+        +isRetrievable(): boolean
+    }
+    class KnowledgeAsset {
+        -id: UUID
+        -knowledgeBaseId: UUID
+        -assetKey: String
+        -title: String
+        -sourceFileId: UUID
+        -sourceUri: String
+        -mimeType: String
+        -uploadedByAdminUserId: UUID
+        -versionNumber: int
+        -contentHash: String
+        -ingestionStatus: IngestionStatus
+        -publicationStatus: PublicationStatus
+        -publishedAt: Instant
+    }
+    class KnowledgeChunk {
+        -id: UUID
+        -sourceAssetId: UUID
+        -chunkIndex: int
+        -contentText: String
+        -sourceLocation: String
+        -embeddingRef: String
+    }
+}
+UserAccount "1" *-- "0..*" ConsentGrant
+Agent "1" *-- "1..*" AgentConfiguration
+UserAccount "1" -- "0..*" AgentAssignment
+Agent "1" -- "0..*" AgentAssignment
+UserAccount "1" -- "0..*" AgentSession
+Agent "1" -- "0..*" AgentSession
+AgentSession "1" *-- "0..*" InteractionRecord
+AgentSession "0..1" -- "0..*" AgentExecution
+AgentConfiguration "1" -- "0..*" AgentSession
+AgentConfiguration "0..1" -- "0..*" AgentExecution
+KnowledgeBase "0..1" -- "0..*" AgentExecution
+AgentConfiguration "0..*" -- "0..*" KnowledgeBase
+UserAccount "1" -- "0..*" InsightReport
+AgentExecution "1" -- "0..*" InsightReport
+UserAccount "1" -- "0..*" ExplorationPlan
+AgentExecution "1" -- "0..*" ExplorationPlan
+KnowledgeBase "1" *-- "0..*" KnowledgeAsset
+KnowledgeAsset "1" *-- "0..*" KnowledgeChunk
+%% Student can run only an active, assigned Agent/config; assignment creator must be Admin.
+%% Admin alone authors/publishes Agent configs and ingests KB files.
+%% AGENT_EXECUTION.sessionId is optional: null for Admin Agent preview/test;
+%% real Student chat execution has a matching owner-scoped AgentSession.
+%% Standalone Admin KB Studio Test is independent of Student chat and need not
+%% be represented as AgentExecution when no AgentConfiguration exists.
+%% Admin preview is an AgentExecution with executionMode=ADMIN_PREVIEW before config publish.
+%% Admin KB Test is distinct from a Student AgentSession and uses scoped source evidence.
+%% AgentExecution stores actual model-invoked tool calls: 3 approved read-only domain tools.
+%% Stored structured reports require explicit request, schema-validated output, owner-only access.
+%% Plans are persisted only after Student confirms, not when the Agent suggests a plan.
+%% AgentSession.contextSummary can contain bounded same-owner prior-session context;
+%% summarySourceRefs records all originating session IDs / interaction IDs (transitive lineage).
+%% summaryStatus: NONE | VALID | INVALIDATED. Use a summary only when VALID and source refs
+%% remain authorized, undeleted and owned by the same user. On deleting any referenced
+%% interaction/session, invalidate every dependent summary (including in OTHER sessions);
+%% it must not be reused until recomputed solely from remaining permitted sources.
+%% Retention of backups / audit is OPEN. No fixed 30/90-day expiration.
+%% Core remains usable without any external LLM. ModelAnswer access controls apply to tools/RAG.
+
+%% v1.2 compatibility rules (READ-ONLY target model):
+%% Session.configurationId is pinned on first Student chat creation. A later Agent publish
+%% never silently changes the version used by that existing session.
+%% ADMIN_PREVIEW: execution has inputSnapshot and configurationId, but no session or
+%% inputInteractionId. KB_TEST: execution has knowledgeBaseId and inputSnapshot,
+%% may have NO AgentConfiguration/session/interaction; logs evidence and latency.
+%% STUDENT_CHAT: execution has a pinned session/config and authorized interaction.
+%% ADMIN_PREVIEW and KB_TEST both persist executionMode, initiatedByUserId,
+%% toolStepsAndSources, outputSnapshot, status, timing, tokens and cost WHEN available;
+%% token/cost may be null if KB Test is retrieval-only (do not invent model usage).
+%% KnowledgeBase.scopeType PLATFORM or ENTERPRISE; enterpriseId required iff ENTERPRISE.
+%% MVP Admin KB Studio uses PLATFORM only; enterprise scope is future-capable, access
+%% is NEVER granted implicitly by enterpriseId or visibility.

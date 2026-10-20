@@ -5,6 +5,18 @@ import java.util.function.BooleanSupplier;
 
 /** Request-scoped deadline and consent revalidation; always closed by the use-case service. */
 public final class SynExecutionScope implements AutoCloseable {
+    /** Optional host authority admission; wraps only dispatch start, never response waiting. */
+    public interface DispatchAdmission {
+        <T> T admit(java.util.function.Supplier<T> start);
+    }
+
+    private DispatchAdmission dispatchAdmission;
+
+    public SynExecutionScope withDispatchAdmission(DispatchAdmission value) {
+        dispatchAdmission = value;
+        return this;
+    }
+
     private static final ThreadLocal<SynExecutionScope> CURRENT = new ThreadLocal<>();
     private final java.util.List<java.util.Map<String, Object>> calls = new java.util.ArrayList<>();
     private final java.util.List<java.util.Map<String, Object>> usage = new java.util.ArrayList<>();
@@ -102,9 +114,14 @@ public final class SynExecutionScope implements AutoCloseable {
                     if (provider != null) checkProvider(provider);
                     return dispatch.get();
                 };
-        return scope != null && scope.admission != null
-                ? scope.admission.serialized(scope.owner, checked)
-                : checked.get();
+        java.util.function.Supplier<T> existing =
+                () ->
+                        scope != null && scope.admission != null
+                                ? scope.admission.serialized(scope.owner, checked)
+                                : checked.get();
+        return scope != null && scope.dispatchAdmission != null
+                ? scope.dispatchAdmission.admit(existing)
+                : existing.get();
     }
 
     public static boolean mayUseProvider(String provider) {

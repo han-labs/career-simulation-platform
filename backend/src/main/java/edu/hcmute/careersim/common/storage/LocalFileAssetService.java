@@ -39,6 +39,15 @@ public class LocalFileAssetService implements FileAssetService {
     }
 
     public Asset upload(long actor, String name, String mime, byte[] bytes) {
+        return upload(actor, name, mime, bytes, false);
+    }
+
+    public Asset uploadKnowledgeSource(long admin, String name, String mime, byte[] bytes) {
+        ActorAccess.requireRole(actors.requireId(admin), "ADMIN");
+        return upload(admin, name, mime, bytes, true);
+    }
+
+    private Asset upload(long actor, String name, String mime, byte[] bytes, boolean knowledge) {
         actors.requireId(actor);
         CoreValues.text(name, 255);
         if (name.contains("/")
@@ -47,13 +56,26 @@ public class LocalFileAssetService implements FileAssetService {
             CoreValues.invalid("Invalid file name.");
         if (bytes == null || bytes.length == 0 || bytes.length > 10485760)
             CoreValues.invalid("File must be 1 byte to 10 MiB.");
-        validateMime(mime, bytes);
+        boolean office =
+                knowledge
+                        && Set.of(
+                                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+                                .contains(mime);
+        if (office) {
+            if (bytes.length < 4
+                    || bytes[0] != 'P'
+                    || bytes[1] != 'K'
+                    || bytes[2] != 3
+                    || bytes[3] != 4) CoreValues.invalid("Invalid Office source signature.");
+        } else validateMime(knowledge && "text/markdown".equals(mime) ? "text/plain" : mime, bytes);
         Long enterprise = upload.enterpriseFor(actor);
         String hash = CoreValues.bytesHash(bytes);
         String key = storage.put(bytes);
         return tx.execute(
                 s -> {
                     actors.lock(actor);
+                    if (knowledge) ActorAccess.requireRole(actors.requireId(actor), "ADMIN");
                     if (!Objects.equals(enterprise, upload.enterpriseFor(actor)))
                         throw new ApiException(ErrorCode.CONFLICT, "Upload context changed.");
                     long id = dao.stage(actor, enterprise, key, name, mime, bytes.length, hash);

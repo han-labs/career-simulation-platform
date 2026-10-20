@@ -3,6 +3,7 @@ import { apiRequest } from '../../shared/api/httpClient.js'
 import { command } from '../../shared/api/coreApi.js'
 import { useI18n } from '../../shared/i18n/useI18n.js'
 import { Link, useSearchParams } from 'react-router-dom'
+import { agentPlatformEnabled } from '../admin/agentPlatform/platformApi.js'
 
 export default function AccountPage() {
   const { t } = useI18n()
@@ -50,6 +51,8 @@ export default function AccountPage() {
       <p>{account.displayName} · {account.role}</p><button onClick={logout}>{t('Sign out')}</button>
       {account.role === 'ENTERPRISE' && <Link to="/enterprise">{t('Enterprise workspace')}</Link>}
       {account.role === 'ADMIN' && <Link to="/admin/assessments">{t('Assessment administration')}</Link>}
+      {agentPlatformEnabled && account.role === 'ADMIN' && <><Link to="/admin/knowledge">{t('Knowledge Base Studio')}</Link><Link to="/admin/agents">{t('Agent Builder')}</Link></>}
+      {agentPlatformEnabled && account.role === 'STUDENT' && <Link to="/agents">{t('My assigned Agents')}</Link>}
       {google && <button disabled={busy} onClick={linkGoogle}>{t('Link Google to this account')}</button>}
       <h2>{t('Purpose-specific consent')}</h2><p>{t('Consent is optional. Assessment and simulations work without external AI consent. Revoking consent blocks future access; it cannot recall data already delivered.')}</p>
       <ul>{account.consents?.map(g => <li key={g.id}>{g.purpose} · {g.recipientKey} · {t(g.effective ? 'Active' : 'Revoked or expired')} {g.effective && <button disabled={busy} onClick={() => revoke(g.id)}>{t('Revoke')}</button>}</li>)}</ul>

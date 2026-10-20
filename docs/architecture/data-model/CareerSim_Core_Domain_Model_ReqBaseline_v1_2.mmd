@@ -1,0 +1,158 @@
+classDiagram
+direction LR
+%% CAREERSIM TARGET DOMAIN MODEL — REQUIREMENTS BASELINE v1 (2026-10-19)
+%% NOT the current Java implementation or the Flyway V1–V18 physical schema.
+%% Domain view: no DTO, DAO, Controller, Service, or infrastructure classes.
+%% D-01: valid final task submission completes a task regardless of quiz score;
+%% free-form/practical tasks are not automatically graded.
+%% D-02: practiced skills derive from completed tasks, not proficiency awards.
+%% Assessment before simulation is OPTIONAL. ScenarioVersion remains pinned by ID.
+namespace IdentityAndEnterprise {
+    class UserAccount {
+        -id: UUID
+        -email: String
+        -role: AccountRole
+        -status: AccountStatus
+        +isActive(): boolean
+    }
+    class StudentProfile {
+        -id: UUID
+        -major: String
+        -institution: String
+        -careerGoal: String
+        -declaredInterests: Set~String~
+        +updateInterests(values): void
+    }
+    class Enterprise {
+        -id: UUID
+        -name: String
+        -description: String
+        -verificationStatus: VerificationStatus
+        -publishingStatus: PublishingStatus
+        +canPublish(): boolean
+    }
+    class EnterpriseRepresentative {
+        -id: UUID
+        -membershipStatus: MembershipStatus
+        -publishingPermission: boolean
+        +canPublish(): boolean
+    }
+}
+namespace ScenarioAndParticipation {
+    class Scenario {
+        -id: UUID
+        -availabilityStatus: ScenarioAvailability
+        -currentPublishedVersionId: UUID
+        +isAvailable(): boolean
+    }
+    class ScenarioVersion {
+        -id: UUID
+        -versionNumber: int
+        -status: PublicationStatus
+        -title: String
+        -targetRole: String
+        -learningObjectives: String
+        +validatePublication(): boolean
+    }
+    class SimulationTask {
+        -id: UUID
+        -orderIndex: int
+        -taskType: TaskType
+        -title: String
+        -workplaceContext: String
+        -instructions: String
+        -required: boolean
+        -practicedSkillCodes: Set~String~
+        +validateEvidence(taskData): boolean
+    }
+    class TaskDeliverableDefinition {
+        -id: UUID
+        -name: String
+        -format: DeliverableFormat
+        -required: boolean
+        -validationConfig: JsonNode
+        +accepts(value: JsonNode): boolean
+    }
+    class ModelAnswer {
+        -id: UUID
+        -content: String
+        -releasePolicy: AnswerReleasePolicy
+        +canRevealFor(submission): boolean
+    }
+    class TaskRubric {
+        -id: UUID
+        -version: int
+        -quizScoringConfig: JsonNode
+        +evaluateQuiz(answers): JsonNode
+    }
+    class SimulationSubmission {
+        -id: UUID
+        -participantUserId: UUID
+        -submittedByUserId: UUID
+        -scenarioId: UUID
+        -scenarioVersionId: UUID
+        -taskResponses: JsonNode
+        -taskStates: JsonNode
+        -taskScores: JsonNode
+        -status: SubmissionStatus
+        -startedAt: Instant
+        -submittedAt: Instant
+        -completedAt: Instant
+        -certificateCode: String
+        -resumeSnippetText: String
+        +saveTaskDraft(taskId, data): void
+        +finalizeTask(taskId): void
+        +recordSelfReview(taskId): void
+        +practicedSkills(): Set~String~
+        +isComplete(): boolean
+    }
+}
+namespace InitialAssessment {
+    class AssessmentType {
+        -id: UUID
+        -code: String
+        -name: String
+    }
+    class AssessmentVersion {
+        -id: UUID
+        -versionNumber: int
+        -status: PublicationStatus
+        -evaluatorKey: String
+        -scoringConfig: JsonNode
+        +validatePublication(): boolean
+    }
+    class AssessmentAttempt {
+        -id: UUID
+        -status: AttemptStatus
+        -startedAt: Instant
+        -submittedAt: Instant
+        +recordAnswer(questionId, data): void
+        +submit(): void
+    }
+    class AssessmentResult {
+        -id: UUID
+        -resultData: JsonNode
+        -interpretation: String
+        -calculatedAt: Instant
+    }
+}
+UserAccount "1" *-- "0..1" StudentProfile
+UserAccount "1" -- "0..1" EnterpriseRepresentative
+Enterprise "1" -- "0..*" EnterpriseRepresentative
+Enterprise "1" -- "0..*" Scenario
+UserAccount "1" -- "0..*" SimulationSubmission
+Scenario "1" -- "0..*" SimulationSubmission
+UserAccount "1" -- "0..*" AssessmentAttempt
+AssessmentType "1" *-- "0..*" AssessmentVersion
+AssessmentVersion "1" -- "0..*" AssessmentAttempt
+AssessmentAttempt "1" *-- "0..1" AssessmentResult
+Scenario "1" *-- "0..*" ScenarioVersion
+ScenarioVersion "1" *-- "1..*" SimulationTask
+SimulationTask "1" *-- "1..*" TaskDeliverableDefinition
+SimulationTask "1" *-- "0..1" ModelAnswer
+SimulationTask "1" *-- "0..1" TaskRubric
+%% TaskRubric is OPTIONAL and QUIZ-ONLY; there is no free-form auto-grading.
+%% Task completion and practiced skills DO NOT depend on quiz pass thresholds.
+%% taskStates stores per-task draft/final + post-unlock self-review/next-task gate; taskScores is quiz-only.
+%% The version-id is pinned, although Submission is drawn directly to UserAccount + Scenario.
+%% ModelAnswer must stay hidden from UI, API, tools and RAG until task unlock.

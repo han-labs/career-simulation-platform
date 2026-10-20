@@ -152,6 +152,7 @@ class SecurityCoreUpgradeIntegrationTest {
                                 edu.hcmute.careersim.CareerSimulationApplication.class)
                         .run(
                                 "--server.port=0",
+                                "--spring.flyway.target=20",
                                 "--server.address=127.0.0.1",
                                 "--spring.datasource.url=" + PG.getJdbcUrl(),
                                 "--spring.datasource.username=" + PG.getUsername(),

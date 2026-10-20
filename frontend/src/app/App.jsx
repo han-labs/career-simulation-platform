@@ -17,6 +17,10 @@ import CoreDashboardPage from '../features/guidance/pages/CoreDashboardPage.jsx'
 import CoreCatalogPage from '../features/simulations/pages/CoreCatalogPage.jsx'
 import EnterpriseWorkspace from '../features/enterprise/EnterpriseWorkspace.jsx'
 import AssessmentAdministration from '../features/admin/AssessmentAdministration.jsx'
+import { agentPlatformEnabled } from '../features/admin/agentPlatform/platformApi.js'
+import KnowledgeStudioPage from '../features/admin/knowledge/KnowledgeStudioPage.jsx'
+import AgentBuilderPage from '../features/admin/agents/AgentBuilderPage.jsx'
+import AssignedAgentsPage from '../features/agents/AssignedAgentsPage.jsx'
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -49,6 +53,9 @@ function App() {
       <Route element={<ApplicationLayout />}>
         <Route index element={<LandingPage />} />
         <Route path="account" element={<AccountPage />} />
+        {agentPlatformEnabled && <Route path="admin/knowledge" element={<KnowledgeStudioPage />} />}
+        {agentPlatformEnabled && <Route path="admin/agents" element={<AgentBuilderPage />} />}
+        {agentPlatformEnabled && <Route path="agents" element={<AssignedAgentsPage />} />}
         <Route path="assessment" element={coreEnabled ? <VersionedAssessmentPage /> : <AssessmentPage />} />
         <Route path="assessment/:assessmentType" element={coreEnabled ? <VersionedAssessmentPage /> : <AssessmentPage />} />
         <Route path="simulations" element={coreEnabled ? <CoreCatalogPage /> : <SimulationCatalogPage />} />

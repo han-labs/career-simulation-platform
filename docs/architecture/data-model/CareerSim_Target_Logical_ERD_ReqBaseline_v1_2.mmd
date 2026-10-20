@@ -1,0 +1,340 @@
+erDiagram
+    %% CAREERSIM TARGET Logical ERD — Requirements Baseline v1.2, 2026-10-19.
+    %% NOT the deployed physical schema or a statement of implemented features.
+    %% Preserve historic Flyway V1–V18; do not map each UML class 1:1 to a table.
+    %% Relationships have no descriptive labels per presentation requirement.
+    USER_ACCOUNT ||--o| STUDENT_PROFILE : ""
+    USER_ACCOUNT ||--o| ENTERPRISE_REPRESENTATIVE : ""
+    ENTERPRISE ||--o{ ENTERPRISE_REPRESENTATIVE : ""
+    USER_ACCOUNT ||--o{ CONSENT_GRANT : ""
+    ENTERPRISE |o--o{ CONSENT_GRANT : ""
+    ASSESSMENT_TYPE ||--o{ ASSESSMENT_VERSION : ""
+    ASSESSMENT_VERSION ||--o{ ASSESSMENT_QUESTION : ""
+    USER_ACCOUNT ||--o{ ASSESSMENT_ATTEMPT : ""
+    ASSESSMENT_VERSION ||--o{ ASSESSMENT_ATTEMPT : ""
+    ASSESSMENT_ATTEMPT ||--o{ ASSESSMENT_RESPONSE : ""
+    ASSESSMENT_QUESTION ||--o{ ASSESSMENT_RESPONSE : ""
+    ASSESSMENT_ATTEMPT ||--o| ASSESSMENT_RESULT : ""
+    ENTERPRISE ||--o{ SCENARIO : ""
+    SCENARIO ||--o{ SCENARIO_VERSION : ""
+    SCENARIO_VERSION ||--|{ SIMULATION_TASK : ""
+    SIMULATION_TASK ||--|{ TASK_DELIVERABLE_DEFINITION : ""
+    SIMULATION_TASK ||--o| MODEL_ANSWER : ""
+    SIMULATION_TASK ||--o| TASK_RUBRIC : ""
+    USER_ACCOUNT ||--o{ SIMULATION_SUBMISSION : ""
+    SCENARIO ||--o{ SIMULATION_SUBMISSION : ""
+    SCENARIO_VERSION ||--o{ SIMULATION_SUBMISSION : ""
+    AGENT ||--|{ AGENT_CONFIGURATION : ""
+    AGENT ||--o{ AGENT_ASSIGNMENT : ""
+    USER_ACCOUNT ||--o{ AGENT_ASSIGNMENT : ""
+    AGENT ||--o{ AGENT_SESSION : ""
+    USER_ACCOUNT ||--o{ AGENT_SESSION : ""
+    AGENT_SESSION ||--o{ INTERACTION_RECORD : ""
+    AGENT_SESSION |o--o{ AGENT_EXECUTION : ""
+    AGENT_CONFIGURATION ||--o{ AGENT_SESSION : ""
+    KNOWLEDGE_BASE |o--o{ AGENT_EXECUTION : ""
+    AGENT_CONFIGURATION |o--o{ AGENT_EXECUTION : ""
+    AGENT_CONFIGURATION ||--o{ AGENT_CONFIG_KB_SCOPE : ""
+    KNOWLEDGE_BASE ||--o{ AGENT_CONFIG_KB_SCOPE : ""
+    USER_ACCOUNT ||--o{ INSIGHT_REPORT : ""
+    AGENT_EXECUTION ||--o{ INSIGHT_REPORT : ""
+    USER_ACCOUNT ||--o{ EXPLORATION_PLAN : ""
+    AGENT_EXECUTION ||--o{ EXPLORATION_PLAN : ""
+    KNOWLEDGE_BASE ||--o{ KNOWLEDGE_ASSET : ""
+    KNOWLEDGE_ASSET ||--o{ KNOWLEDGE_CHUNK : ""
+
+    USER_ACCOUNT {
+        uuid id PK
+        string email UK
+        string role
+        string status
+    }
+    STUDENT_PROFILE {
+        uuid id PK
+        uuid userId FK,UK
+        string careerGoal
+    }
+    ENTERPRISE {
+        uuid id PK
+        string name
+        string description
+        string verificationStatus
+        string publishingStatus
+    }
+    ENTERPRISE_REPRESENTATIVE {
+        uuid id PK
+        uuid userId FK,UK
+        uuid enterpriseId FK
+        string membershipStatus
+        boolean publishingPermission
+    }
+    CONSENT_GRANT {
+        uuid id PK
+        uuid userId FK
+        uuid enterpriseId FK
+        string purpose
+        string status
+        string policyVersion
+        timestamp expiresAt
+    }
+    ASSESSMENT_TYPE {
+        uuid id PK
+        string code UK
+        string name
+    }
+    ASSESSMENT_VERSION {
+        uuid id PK
+        uuid assessmentTypeId FK
+        int versionNumber
+        string status
+        string evaluatorKey
+        jsonb scoringConfig
+    }
+    ASSESSMENT_QUESTION {
+        uuid id PK
+        uuid assessmentVersionId FK
+        int position
+        string prompt
+        jsonb responseConfig
+    }
+    ASSESSMENT_ATTEMPT {
+        uuid id PK
+        uuid userId FK
+        uuid assessmentVersionId FK
+        string status
+        timestamp startedAt
+        timestamp submittedAt
+    }
+    ASSESSMENT_RESPONSE {
+        uuid id PK
+        uuid attemptId FK
+        uuid questionId FK
+        jsonb answerData
+    }
+    ASSESSMENT_RESULT {
+        uuid id PK
+        uuid attemptId FK,UK
+        jsonb resultData
+        string interpretation
+        timestamp calculatedAt
+    }
+    SCENARIO {
+        uuid id PK
+        uuid enterpriseId FK
+        uuid currentPublishedVersionId FK
+        string availabilityStatus
+    }
+    SCENARIO_VERSION {
+        uuid id PK
+        uuid scenarioId FK
+        int versionNumber
+        string status
+        string title
+        string targetRole
+    }
+    SIMULATION_TASK {
+        uuid id PK
+        uuid scenarioVersionId FK
+        int position
+        string taskType
+        string title
+        boolean required
+        jsonb practicedSkillCodes
+    }
+    TASK_DELIVERABLE_DEFINITION {
+        uuid id PK
+        uuid taskId FK
+        string name
+        string format
+        boolean required
+        jsonb validationConfig
+    }
+    MODEL_ANSWER {
+        uuid id PK
+        uuid taskId FK,UK
+        text content
+        string releasePolicy
+    }
+    TASK_RUBRIC {
+        uuid id PK
+        uuid taskId FK,UK
+        int version
+        jsonb quizScoringConfig
+    }
+    SIMULATION_SUBMISSION {
+        uuid id PK
+        uuid participantUserId FK
+        uuid submittedByUserId FK
+        uuid scenarioId FK
+        uuid scenarioVersionId FK
+        jsonb taskResponses
+        jsonb taskStates
+        jsonb taskScores
+        string status
+        timestamp startedAt
+        timestamp submittedAt
+        timestamp completedAt
+        string certificateCode
+        text resumeSnippetText
+    }
+    AGENT {
+        uuid id PK
+        uuid publishedConfigurationId FK
+        string name
+        string purpose
+        string status
+        jsonb allowedRoles
+    }
+    AGENT_CONFIGURATION {
+        uuid id PK
+        uuid agentId FK
+        int versionNumber
+        string modelKey
+        text promptTemplate
+        jsonb toolPolicy
+        jsonb memoryPolicy
+        string status
+        timestamp publishedAt
+    }
+    AGENT_ASSIGNMENT {
+        uuid id PK
+        uuid agentId FK
+        uuid studentUserId FK
+        uuid assignedByAdminUserId FK
+        string status
+        timestamp assignedAt
+        timestamp revokedAt
+    }
+    AGENT_CONFIG_KB_SCOPE {
+        uuid configurationId PK,FK
+        uuid knowledgeBaseId PK,FK
+        jsonb accessScope
+    }
+    AGENT_SESSION {
+        uuid id PK
+        uuid ownerUserId FK
+        uuid agentId FK
+        uuid configurationId FK
+        string title
+        string status
+        jsonb contextSummary
+        jsonb summarySourceRefs
+        string summaryStatus
+        timestamp summaryUpdatedAt
+        timestamp startedAt
+        timestamp deletedAt
+    }
+    INTERACTION_RECORD {
+        uuid id PK
+        uuid sessionId FK
+        int sequenceNumber
+        string actorType
+        jsonb promptOrContent
+        timestamp createdAt
+    }
+    AGENT_EXECUTION {
+        uuid id PK
+        uuid sessionId FK
+        uuid configurationId FK
+        uuid inputInteractionId FK
+        uuid knowledgeBaseId FK
+        jsonb inputSnapshot
+        string taskType
+        string executionMode
+        uuid initiatedByUserId FK
+        jsonb toolStepsAndSources
+        jsonb outputSnapshot
+        string status
+        string refusalOrErrorCode
+        bigint inputTokens
+        bigint outputTokens
+        decimal estimatedCost
+        bigint latencyMs
+        timestamp startedAt
+        timestamp finishedAt
+    }
+    INSIGHT_REPORT {
+        uuid id PK
+        uuid ownerUserId FK
+        uuid requestedInteractionId FK
+        uuid sourceExecutionId FK
+        string schemaVersion
+        jsonb structuredInsights
+        jsonb evidenceRefs
+        string status
+        timestamp createdAt
+    }
+    EXPLORATION_PLAN {
+        uuid id PK
+        uuid ownerUserId FK
+        uuid sourceExecutionId FK
+        jsonb planData
+        timestamp confirmedAt
+    }
+    KNOWLEDGE_BASE {
+        uuid id PK
+        string name
+        string scopeType
+        uuid enterpriseId FK
+        string visibility
+        string status
+    }
+    KNOWLEDGE_ASSET {
+        uuid id PK
+        uuid knowledgeBaseId FK
+        string assetKey
+        string title
+        uuid sourceFileId
+        string sourceUri
+        string mimeType
+        uuid uploadedByAdminUserId FK
+        int versionNumber
+        string contentHash
+        string ingestionStatus
+        string publicationStatus
+        timestamp publishedAt
+    }
+    KNOWLEDGE_CHUNK {
+        uuid id PK
+        uuid sourceAssetId FK
+        int chunkIndex
+        text contentText
+        string sourceLocation
+        string embeddingRef
+    }
+
+    %% Integrity/authorization invariants (not columns or extra tables):
+    %% - Task valid finality, not passing quiz score, drives completion & practiced skills.
+    %% - Task rubric is optional for quiz only; no free-form auto-grade.
+    %% - ScenarioVersion is pinned; model answers remain hidden until task unlock.
+    %% - AgentConfiguration published versions immutable; only Admin assigns Student.
+    %% - Student can run active assigned Agent; KB access uses explicit config grant.
+    %% - AGENT_EXECUTION.sessionId is NULLABLE: optional Student session; Admin preview
+    %%   has no session. executionMode and initiator identify actor.
+    %% - Never fabricate a Student session for an Admin Agent preview/test. AgentExecution
+    %%   references AgentConfiguration; independent Admin KB Studio Test may be audited
+    %%   separately rather than forcibly mapped to AgentExecution.
+    %% - KB assets have ingestion and publication lifecycles; invalid parse cannot replace published source.
+    %% - Student-uploaded chat files and second-Agent critique are DEFERRED.
+    %% - InsightReport only on Student request, schema-validated, owner-only.
+    %% - ExplorationPlan only persisted after clear Student confirmation.
+    %% - summarySourceRefs lists source session/interaction IDs (incl. same-user previous
+    %%   sessions and transitive lineage); summaryStatus tracks NONE/VALID/INVALIDATED.
+    %% - When any source chat/interaction is deleted, every dependent summary is INVALIDATED
+    %%   and cannot be reused until regenerated from still-permitted user-owned data.
+    %% - summaryUpdatedAt records latest summary generation/invalidation timestamp.
+    %% - No guessed 30/90-day history retention; policy remains OPEN.
+
+    %% v1.2 integrity constraints and modes:
+    %% AGENT_SESSION.configurationId NOT NULL, foreign key to immutable published config,
+    %% pinned at chat creation and never changed by subsequent publish.
+    %% AGENT_EXECUTION.sessionId, inputInteractionId, configurationId, knowledgeBaseId
+    %% are NULLABLE as appropriate; inputSnapshot required for trace of standalone tests.
+    %% STUDENT_CHAT: session/config/interaction required and config matches session.
+    %% ADMIN_PREVIEW: config required; session/interaction optional NULL, input required.
+    %% KB_TEST: KB required; config/session/interaction optional NULL; input required.
+    %% All modes track initiator, evidence, timing, status, tools, and model usage when
+    %% available; retrieval-only KB Test may have NULL tokens/cost (not fabricated).
+    %% KNOWLEDGE_BASE.scopeType PLATFORM or ENTERPRISE; enterpriseId NULL iff PLATFORM;
+    %% enterpriseId REQUIRED if ENTERPRISE. MVP allows PLATFORM KB workflows only.
+    %% Tenant KB requires explicit access grants, not scope inference.
