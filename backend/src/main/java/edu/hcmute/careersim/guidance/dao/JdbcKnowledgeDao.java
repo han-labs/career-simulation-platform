@@ -21,6 +21,7 @@ class JdbcKnowledgeDao implements KnowledgeDao {
         %s AS rank FROM knowledge_chunks c JOIN knowledge_versions v ON v.id=c.version_id
         JOIN knowledge_documents d ON d.id=v.document_id
         WHERE d.status='PUBLISHED' AND d.active_version_id=v.id
+        AND NOT EXISTS(SELECT 1 FROM knowledge_document_scope scoped WHERE scoped.document_id=d.id)
         """;
     private final RowMapper<KnowledgeChunk> mapping =
             (rs, i) ->
@@ -80,6 +81,13 @@ class JdbcKnowledgeDao implements KnowledgeDao {
                         "SELECT id FROM knowledge_documents WHERE source_key=? FOR UPDATE",
                         Long.class,
                         d.sourceKey());
+        if (Boolean.TRUE.equals(
+                jdbc.queryForObject(
+                        "SELECT EXISTS(SELECT 1 FROM knowledge_document_scope WHERE document_id=?)",
+                        Boolean.class,
+                        doc)))
+            throw new IllegalStateException(
+                    "Scoped knowledge requires the authenticated KB Studio workflow.");
         List<Long> existing =
                 jdbc.query(
                         "SELECT id FROM knowledge_versions WHERE document_id=? AND content_hash=? AND embedding_profile=?",
@@ -122,7 +130,9 @@ class JdbcKnowledgeDao implements KnowledgeDao {
     }
 
     public void revoke(String key) {
-        jdbc.update("UPDATE knowledge_documents SET status='REVOKED' WHERE source_key=?", key);
+        jdbc.update(
+                "UPDATE knowledge_documents d SET status='REVOKED' WHERE source_key=? AND NOT EXISTS(SELECT 1 FROM knowledge_document_scope s WHERE s.document_id=d.id)",
+                key);
     }
 
     static String vectorLiteral(double[] values) {

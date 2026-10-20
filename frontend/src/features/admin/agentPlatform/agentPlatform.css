@@ -1,0 +1,17 @@
+.platform-nav { display:flex; flex-wrap:wrap; gap:16px; margin:16px 0 24px; }
+.platform-nav a[aria-current="page"] { color:var(--sage-ink); font-weight:700; text-decoration:underline; }
+.platform-grid { display:grid; grid-template-columns:minmax(180px, 240px) minmax(0,1fr); gap:24px; align-items:start; }
+.platform-card { padding:20px; margin:16px 0; background:var(--paper); border:1px solid var(--line); border-radius:16px; min-width:0; }
+.platform-card pre, .platform-passages pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:360px; overflow:auto; }
+.platform-card code { overflow-wrap:anywhere; }
+.platform-list { padding:0; list-style:none; display:grid; gap:8px; }
+.platform-list button { width:100%; text-align:left; }
+.platform-list button[aria-pressed="true"] { outline:2px solid var(--tech); outline-offset:2px; }
+.platform-passages { display:grid; gap:16px; padding-left:24px; }
+.platform-passages li { padding:12px; border:1px solid var(--line); border-radius:12px; overflow-wrap:anywhere; }
+.platform-metrics { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:12px; }
+.platform-metrics dt { color:var(--muted); font-size:14px; }
+.platform-metrics dd { margin:4px 0; overflow-wrap:anywhere; }
+.platform-actions { display:flex; flex-wrap:wrap; gap:12px; margin:12px 0; }
+.platform-card textarea { min-height:110px; }
+@media(max-width:680px) { .platform-grid { grid-template-columns:1fr; } .platform-card { padding:14px; } }

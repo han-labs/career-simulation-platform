@@ -9,8 +9,15 @@ cookies with CSRF; HttpSession holds only CSRF/OAuth handshake state. Historical
 Package A/Syn session-authentication and future Package B numbering below describe
 their earlier checkpoints and are not the current release contract.
 
+P3/P4 adds scoped KB Studio and immutable Agent Builder on V21, behind an explicit
+feature flag. See [P3/P4 boundaries and execution sequence](agent-platform-p3-p4.md)
+and [API contract](../api/agent-platform-p3-p4.md). Student chat/history/SSE remain P5.
+
 ```mermaid
 flowchart TB
+    Admin["Admin browser: KB Studio / Agent Builder"]
+    Studio["guidance.knowledge: staged sources / scoped retrieval"]
+    Platform["guidance.agent: registry / exact-version preview / execution ledger"]
     Student["Student browser"]
     Enterprise["Enterprise or content provider browser"]
     Gateway["Nginx reverse proxy"]
@@ -27,6 +34,15 @@ flowchart TB
     LLM["External LLM provider"]
     Fallback["Deterministic feedback templates"]
 
+    Admin -->|HTTP local; HTTPS at production edge| Gateway
+    Backend --> Studio
+    Backend --> Platform
+    Studio -->|reused chunks vector768 / immutable source versions| Database
+    Studio --> Assets
+    Platform -->|explicit KB grants| Studio
+    Platform -->|ledger / assignments / sealed configurations| Database
+    Platform --> AIAdapter
+    Platform -->|failed validation/provider unavailable| Fallback
     Student -->|HTTP local; HTTPS at production edge| Gateway
     Enterprise -->|HTTP local; HTTPS at production edge| Gateway
     Gateway --> Frontend
@@ -44,7 +60,7 @@ flowchart TB
     Tools --> Database
     Agent --> AIAdapter
     AIAdapter -->|tool declarations and bounded context| LLM
-    LLM -->|typed function calls or validated JSON; max 2 passes| AIAdapter
+    LLM -->|typed function calls / validated JSON; runtime-specific budgets| AIAdapter
     Agent -->|timeout invalid output unavailable tool or pass limit| Fallback
     Fallback --> Backend
 ```
@@ -53,12 +69,12 @@ flowchart TB
 
 | Module | Responsibility | Current state |
 |---|---|---|
-| `identity` | Authentication, roles, profiles, consent | Account/consent read boundary exists; runtime login remains pending |
-| `assessment` | RIASEC, Interests, Abilities, and Work Activities assessments with deterministic scoring | US-01 APIs and persisted assessment results implemented; login remains pending |
+| `identity` | Authentication, roles, profiles, consent | Google OIDC / JWT cookies / current actor / purpose-specific consent (P1) |
+| `assessment` | RIASEC, Interests, Abilities, and Work Activities assessments with deterministic scoring | Versioned multi-type assessments and preserved historical results (P1/P2) |
 | `catalog` | Published simulation discovery | Working foundation slice |
-| `simulation` | Tasks, attempts, submissions, deterministic evaluation | Preliminary US-02 backend implemented |
-| `guidance` | Dashboard summaries, bounded session memory, typed read tools, bounded LLM tool calling, schema validation, and deterministic Standard fallback | US-03 bounded agent and global Syn widget implemented; runtime login remains pending |
-| `enterprise` | Simulation authoring, publishing, and monitoring | Boundary reserved |
+| `simulation` | Tasks, attempts, submissions, deterministic evaluation | Pinned versions, ordered final/self-review policy with historical compatibility (P2) |
+| `guidance` | Dashboard summaries, bounded session memory, typed read tools, bounded LLM tool calling, schema validation, and deterministic Standard fallback | Legacy Syn preserved; guidance.knowledge + guidance.agent add flag-gated P3/P4 |
+| `enterprise` | Simulation authoring, publishing, and monitoring | Owned draft/preview/publish and aggregate monitoring (P2) |
 | `common` | Narrow cross-cutting API/configuration/error primitives | Working foundation |
 | `system` | Health and operational endpoints | Working foundation |
 
@@ -107,7 +123,8 @@ Package A adds V15–V18 only, after unchanged main/Syn V1–V14: 25 tables, 49
 during coexistence (including the 24 retained tables after the main merge,
 excluding Flyway history). It uses JDBC records/explicit SQL for new persistence
 and retains existing legacy JPA mappings with validate. The configurable Agent
-Platform and V19–V21 remain planned Package B.
+Platform now uses V21; P1/P2 already added V19/V20. Earlier Package B numbering
+is historical and superseded by Target v1.2 P3–P6.
 
 [Package A consolidated implementation/evidence report](../../.agent/reports/package-a-core-verification.vi.md)
 records exact scope, tests, limits and the implemented request sequence. The

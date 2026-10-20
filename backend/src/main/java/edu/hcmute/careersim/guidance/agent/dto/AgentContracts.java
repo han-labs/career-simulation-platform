@@ -1,0 +1,90 @@
+package edu.hcmute.careersim.guidance.agent.dto;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.*;
+
+public final class AgentContracts {
+    private AgentContracts() {}
+
+    public record Agent(
+            String id,
+            String name,
+            String purpose,
+            String status,
+            long revision,
+            String publishedConfigurationId,
+            Instant createdAt) {}
+
+    public record AgentInput(String name, String purpose, String status) {}
+
+    public record Configuration(
+            String id,
+            String agentId,
+            int versionNumber,
+            String modelKey,
+            String promptTemplate,
+            String promptTemplateRef,
+            String promptHash,
+            JsonNode toolPolicy,
+            JsonNode memoryPolicy,
+            JsonNode outputPolicy,
+            List<String> knowledgeBaseIds,
+            String status,
+            String contentHash,
+            Instant createdAt,
+            Instant publishedAt) {}
+
+    public record ConfigurationInput(
+            String modelKey,
+            String promptTemplate,
+            String promptTemplateRef,
+            JsonNode toolPolicy,
+            JsonNode memoryPolicy,
+            JsonNode outputPolicy,
+            List<UUID> knowledgeBaseIds) {}
+
+    public record Preview(UUID requestId, String query) {}
+
+    public record Assign(String studentUserId) {}
+
+    public record Assignment(
+            String id,
+            String agentId,
+            String studentUserId,
+            String assignedByAdminUserId,
+            String status,
+            Instant assignedAt,
+            Instant revokedAt) {}
+
+    public record PublicAgent(String id, String name, String purpose) {}
+
+    public record Execution(
+            String id,
+            String executionMode,
+            String taskType,
+            String initiatedByUserId,
+            String sessionId,
+            String configurationId,
+            String inputInteractionId,
+            String knowledgeBaseId,
+            UUID requestId,
+            JsonNode inputSnapshot,
+            String status,
+            String errorCode,
+            JsonNode toolStepsAndSources,
+            JsonNode outputSnapshot,
+            String modelKey,
+            String promptHash,
+            String configurationHash,
+            Long inputTokens,
+            Long outputTokens,
+            BigDecimal estimatedCost,
+            String costStatus,
+            Long latencyMs,
+            JsonNode pricingSnapshot,
+            Instant startedAt,
+            Instant finishedAt,
+            boolean cancellationRequested) {}
+}
