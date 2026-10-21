@@ -1,3 +1,7 @@
+<!-- documentation-sync-2026-10-22 -->
+> **Source distinction checked 2026-10-22:** the dedicated 90-second Agent SSE locations described near the end of this document remain pre-existing local changes in `frontend/nginx.conf` and `deployment/nginx/default.conf`, not in checked `origin/main@5486f9f`. Main backend already emits `X-Accel-Buffering: no` and keepalives. Keep earlier working-tree smoke separate from as-merged/deployed verification; no proxy change/test is performed here. See [current catalogue and report/code discrepancies](../requirements/REPORT_CODE_ALIGNMENT_2026-10-22.md).
+
+<!-- preserved-content-start -->
 # P5/P6 — current implementation boundary
 
 The approved Spring Boot modular monolith and Core BIGINT identifiers remain.
@@ -98,3 +102,5 @@ allow90-second read timeouts. Provider streams, tool execution and event journal
 bounded. API, UI and exact automated/manual verification are recorded separately in
 [API contracts](../api/student-agent-p5-p6.md) and the consolidated completion report.
 Live Google/provider quality and course delivery acceptance are not inferred from mocks.
+
+<!-- preserved-content-end -->

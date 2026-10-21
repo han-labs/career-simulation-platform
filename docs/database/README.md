@@ -1,3 +1,26 @@
+<!-- documentation-sync-2026-10-22 -->
+# Current PostgreSQL and Flyway documentation
+
+Checked `origin/main@5486f9f` has **22 unique migrations V1–V22** in [the migration directory](../../backend/src/main/resources/db/migration). Flyway owns additive schema changes; preserve all existing filenames/SQL/checksums. No schema/runtime database was modified or inspected by this documentation task.
+
+- V13/V14 retain Syn vector/trace infrastructure; Package A occupies V15–V18.
+- V19 browser authentication/identity; V20 ordered learning/self-review.
+- V21 KB Studio/Agent execution foundation; V22 Student history, reports and plan-source integrity.
+- V19–V21 are **not reserved future Package B versions**. Discover the next unused version from then-current main before any separately approved migration.
+- Physical Core BIGINT/normalized enrollment/submission/deliverables coexist with UUID Agent entities. Target logical diagrams do not mandate replacing those tables.
+- Preserve legacy evidence/consents/version pins. No fabricated ownership, scores, self-reviews, completions or consent grants.
+- [P1/P2](../architecture/p1-p2-security-core.md), [P3/P4](../architecture/agent-platform-p3-p4.md), [P5/P6](../architecture/student-agent-p5-p6.md), [current discrepancy register](../requirements/REPORT_CODE_ALIGNMENT_2026-10-22.md) describe current behavior and verification limits.
+
+Fresh/upgrade/backup-restore evidence in existing tests used isolated PostgreSQL. This does not verify any valuable runtime DB, production restart or cutover. Retention/physical purge and backup policy remain a separate real-data gate; legacy Syn TTLs do not define Student Agent retention.
+
+## Historical database notes
+
+The original notes below retain earlier schema counts, migration roadmaps and localhost demo defaults for provenance only. Their future reservations and no-history statements are superseded by the current index above; immutable SQL itself has not been edited.
+
+<details>
+<summary>Historical content preserved unchanged</summary>
+
+<!-- preserved-content-start -->
 # PostgreSQL and migration rules
 
 - PostgreSQL is the system of record.
@@ -93,3 +116,7 @@ Do not use Flyway repair/clean or rename scripts already applied to a shared or
 valuable database. Runtime history is NOT VERIFIED by this repository fix; any
 valuable-data upgrade remains separately gated. Run a clean Maven build after
 renaming so old SQL resources do not remain in `backend/target/classes`.
+
+<!-- preserved-content-end -->
+
+</details>

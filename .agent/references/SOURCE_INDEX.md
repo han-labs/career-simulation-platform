@@ -1,3 +1,7 @@
+<!-- documentation-sync-2026-10-22 -->
+> **HISTORICAL proposal summary — navigation only.** Its 3-US IDs, demo boundaries and ten-case milestone are preserved as originally recorded. For current scope use [10 report US / 16 UC](../../docs/requirements/README.md) and [official team allocation](../../docs/TEAM_ASSIGNMENTS.md); frozen Baseline v1 + DR1–DR2 own business rules. Final assignment evaluation requires at least 20 cases with expected/actual and before/after evidence, not ten. Do not treat this summary as the current source hierarchy.
+
+<!-- preserved-content-start -->
 # Supplied Proposal Source Index
 
 ## Product intent
@@ -48,3 +52,5 @@ Backend Developer simulation with three tasks: interpret an API response, choose
 ## Important unresolved item
 
 The proposal mentions a hosted Gemini direction and an example/specific model label in different sections, while also stating that the exact model should be selected after a real smoke test and comparison. Treat provider/model choice and all measurements as unresolved until executed evidence exists.
+
+<!-- preserved-content-end -->

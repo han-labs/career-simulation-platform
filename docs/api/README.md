@@ -1,3 +1,24 @@
+<!-- documentation-sync-2026-10-22 -->
+# Current API index
+
+Base context is `/api`. Core/Auth/Agent contracts use `/api/v2`; legacy catalogue/assessment/Syn `/api/v1` routes remain under their compatibility/authorization flags. This index does not rename endpoints or infer completion from route existence.
+
+- [P1/P2 authentication and Core contracts](../architecture/p1-p2-security-core.md): JWT HttpOnly/Secure/Lax cookie, default 900 seconds, CSRF writes, per-jti logout/current actor, explicit safe linking; no identity chosen by client user IDs.
+- [P3/P4 KB Studio / Builder / Preview / Assignment](agent-platform-p3-p4.md).
+- [P5/P6 Student sessions / SSE / reports / plan confirmation / safe usage](student-agent-p5-p6.md).
+- [EN/VI contract](site-localization.md).
+- [Current UC/US](../requirements/README.md), [report/code discrepancies](../requirements/REPORT_CODE_ALIGNMENT_2026-10-22.md).
+
+Wrong-role denial and foreign private-resource masking have distinct 403/404 contracts. Model answers are owner/final/version/release gated. Exact-source plan confirmation is not an arbitrary plan editor; no autonomous write tool is implied. Published historical scenario versions retain their semantics.
+
+## Historical v1 inventory
+
+The previous envelope/inventory is retained below for legacy context. It is not a complete current endpoint list or evidence that identity is still pending.
+
+<details>
+<summary>Historical content preserved unchanged</summary>
+
+<!-- preserved-content-start -->
 # API conventions
 
 Base path: `/api/v1`
@@ -130,3 +151,7 @@ Conversation-quality update: `webSearch.status` additionally distinguishes RATE_
 Syn message responses optionally include `webSearch: {status, retrievedAt, sources, searchSuggestionsHtml}`. Each source contains `referenceId` (W1–W3, turn-local), `title`, `url`, `excerpt`. These are provider-grounded live sources, not reviewed catalog entries or published K citations. Status may be LIVE_WEB, DISABLED, NO_CONSENT, NEEDS_TOPIC, UNAVAILABLE, NO_SOURCES, INCOMPLETE or INVALID_METADATA. `retrievedAt` is the search time, not a freshness guarantee. Provider search HTML is rendered only in an isolated sandboxed iframe; never inject it into the app DOM.
 
 Primary `intent` remains for compatibility, but `toolTrace` can reflect several composed capabilities. Quick actions remain deterministic. Provider failure can preserve catalog resources, simulations, plan drafts and already returned web sources with Standard provenance. Plan save authorization is unchanged.
+
+<!-- preserved-content-end -->
+
+</details>

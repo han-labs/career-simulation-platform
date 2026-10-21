@@ -1,3 +1,45 @@
+<!-- documentation-sync-2026-10-22 -->
+# CareerSim current tasks
+
+Updated 2026-10-22. This file owns **current progress**; [TEAM_ASSIGNMENTS](../docs/TEAM_ASSIGNMENTS.md) owns the confirmed person/UC allocation. Current catalogue is [10 selected US / 16 UC](../docs/requirements/README.md), not legacy 3 US or frozen Baseline 15 US.
+
+## Official allocation and current state
+
+| Person | Assigned UC | Selected report US | Current state |
+|---|---|---|---|
+| Person 1 | UC-01, UC-02, UC-03 | US-01, US-02, US-03 | Existing P1/P2; reconcile API/UI/tests and complete owned UAT; live Google remains pending |
+| Person 2 | UC-04, UC-05, UC-09 | US-04, US-05, US-06, US-10 | Existing catalogue/simulation/usage; resolve completion/recommendation wording before affected code |
+| Person 3 (project lead) | UC-06, UC-07, UC-08 | US-07, US-08, US-09 | Existing Student Agent/KB/Builder; coordinate integration, source-hash plan semantics and live AI evidence |
+
+Exact people/Git identities and reviewer rotation remain pending group sign-off. Cross-cutting security/schema/proxy work needs a named task owner and project-lead review. Supplementary UC maintenance owners are not inferred; UC-14 is deferred.
+
+## Current work queue
+
+| Work | Owner / dependency | Status / completion condition |
+|---|---|---|
+| Import CORRECTED catalogue and synchronize navigation | Documentation task authorized by project lead | Documentation updated; static verification in [alignment register](../docs/requirements/REPORT_CODE_ALIGNMENT_2026-10-22.md); no runtime acceptance claimed |
+| Decide report/code wording differences | Chat 3/business owner with affected Person and lead | OPEN: UC-04 recommendations, UC-05 final review/completion/new attempt/evaluation, UC-06 editable plan; retain current rules until explicit decision |
+| Assigned integration/UAT | Respective Person 1/2/3 | Pending explicit task plan and actual evidence; do not rebuild P1–P6 |
+| Live Google and authorized live AI evaluation | Assigned UC owner; lead coordinates credentials/budget | PENDING; this documentation task does not authorize provider/database calls |
+| AC-A09 / full AC-A17 | Person 3 coordinates with report/evaluation owners | PENDING live native three-domain-tool evidence and human-reviewed product cases; 20 deterministic fixtures are not equivalent |
+| Supplementary specs UC-10–13/15–16 | Owner to be agreed | Supporting documentation only; no automatic new implementation allocation |
+| Retention, deployed HTTPS, restart/NFR and course evidence | Lead coordinates a named owner | OPEN; no invented measurements, policy or acceptance |
+| Safe Git publication | Repository owner | Review explicit Markdown whitelist, existing dirty changes and contact/raw-log risks; no staging/commit/push performed here |
+
+P1–P6/V22 already exist on checked main. Previous build/test counts are dated evidence in completion reports, not freshly executed results. Immutable V1–V22, private histories and existing working files/deletions must be preserved.
+
+## Gate before any application change
+
+Use a plan in `.agent/plans/` with catalogue-qualified UC/US and AC references, owner/reviewer, current API/tests, main/alternative/exception flows, scope and current discrepancies. Await an explicit decision only for affected business/security/ownership conflicts; do not infer approval from report wording or an old plan. For final AI acceptance use at least 20 cases and separate mock, wire, live and human evidence.
+
+## Historical tasks
+
+The previous task ledger follows unchanged for traceability. Its old frontend-only allocations, “not implemented” rows, package labels and completed milestones are historical and do not override the official current allocation.
+
+<details>
+<summary>Historical content preserved unchanged</summary>
+
+<!-- preserved-content-start -->
 # Career Simulation Platform Task Board
 
 ## 0 Ownership boundary
@@ -147,3 +189,68 @@ Continuation 2026-10-02: private evidence scope and negated simulation fixes, bo
   frontend core-enabled check: 76 passed plus lint/build. Source/JAR versions 1–18
   unique, 18 SQL hashes unchanged; isolated V14 upgrade/history/preservation and
   gateway/restore passed. Compose/diff checks passed.
+
+## 13 Approved Security/Auth P1 + Core Alignment P2 — 2026-10-19
+
+- Continue from `plans/p1-p2-security-core.md`; P3–P6 remain excluded. Here P1/P2
+  refer to the 2026-10-19 target v1.2 packages, not the historical Syn phases.
+- Google OIDC/JWT cookie/current-actor/CSRF, safe explicit linking and per-token
+  logout; real-actor legacy Career Quiz; account-scoped frontend drafts/responses.
+- Ordered task/self-review policy and optional quiz results use additive V19/V20;
+  existing published versions keep historical policy. Existing normalized tables,
+  BIGINT Core identifiers, consents, evidence and Syn infrastructure are preserved.
+- Consolidated evidence and acceptance status: `reports/p1-p2-completion.vi.md`.
+  Final backend: 213 PASS / 4 opt-in SKIP / 0 FAIL/ERROR; frontend default/Core
+  each 86 PASS plus lint/build. Protected inputs 40/40 unchanged; 20 migrations
+  unique with V1–V18 preserved and isolated V18→V20 verified.
+  Browser automation was disabled in Work settings during final continuation;
+  the new confirmation UI has component evidence and HTTP gateway regression,
+  but the final full browser rerun/live Google remain explicitly unverified.
+- Production cutover, valuable-data migration, real Google/provider verification,
+  human content/UAT review and course-report integration are separate handoffs.
+
+## 14 Approved KB Studio and Agent Builder P3/P4 — 2026-10-20
+
+- Scope and sequence: `plans/US-09-10-agent-platform-foundation.md`.
+- Implemented new Admin KB/Agent folders and public assigned-Agent Student list;
+  minimal coordinated navigation/shared JSON-editor integration preserves other
+  member-owned Core/Syn UI. Stable contracts: `../docs/api/agent-platform-p3-p4.md`.
+- V21 reuses V13 knowledge storage, adds scoped source lifecycle and immutable
+  registry/execution integrity. V1–V20 append-only; no valuable database migrated.
+- Consolidated current-run evidence/AC status/limitations and P5/P6 prerequisites:
+  `reports/p3-p4-completion.vi.md`. Browser use disabled by Work settings; HTTP
+  gateway and component tests must not be described as manual browser acceptance.
+- P5/P6 remain outside this approval. Real content review, provider/model access,
+  D5 retention, course report and owner coordination are explicit release handoffs.
+
+  Final P3/P4 gate: backend264 total/260 PASS/4 opt-in live SKIP/0 FAIL/ERROR;
+  frontend default/enabled each90 PASS +lint/build. Isolated gateways/restore and
+  V20-to-V21 upgrade passed;21 unique migrations,62/62 protected inputs preserved.
+  Browser UAT and live model verification remain unavailable/not executed.
+
+
+## P5/P6 implementation checkpoint — 2026-10-20
+
+Approved Student Agent + Reports/Plans/Usage code is integrated on
+`feat/student-agent-and-ai-reporting` from main `1b11b593e0bc0cbc613eedfbfb7ba5307f89e12a`.
+Existing P1–P4/Core/Syn and V1–V21 remain preserved. Additive V22 adds source lineage,
+durable events/reports and exact-source plan-confirmation integrity; no legacy backfill.
+Student/Admin/KB hosts share BoundedNativeExecution with native provider adapters;
+current owner/assignment/consent/source/epoch checks govern dispatch, commit and replay.
+No autonomous business writes or deferred Enterprise/private-upload features.
+
+Final local gates: backend clean verify310 tests (305 pass,0 fail/error,5 skip),
+frontend97 pass with lint/build in default and enabled configurations; isolated
+fresh/upgrade/checksum/backup/gateway checks pass. Browser13 smoke assertions used
+real UI/Nginx/PG and mocked providers.20 actual deterministic schema/evidence cases
+are separate from live-model quality. AC-A09 and full AC-A17 remain NOT VERIFIED;
+real Google OAuth, approved live-model/human20-case review and release/course delivery
+are pending. No commit, push, merge, valuable DB migration or deployment.
+
+See `.agent/reports/p5-p6-completion.vi.md`, verification/preservation manifests,
+`docs/api/student-agent-p5-p6.md`, `docs/architecture/student-agent-p5-p6.md` and
+`docs/ai/AI_USAGE_P5_P6.md`. Original user content above is preserved byte-for-byte.
+
+<!-- preserved-content-end -->
+
+</details>

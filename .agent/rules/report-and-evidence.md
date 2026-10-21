@@ -35,7 +35,7 @@ When code/topology changes, update `docs/architecture/README.md` and the report 
 - Record executed prompt, actual response/result, exact model identifier, timestamp, measured latency method, and pass/fail criteria.
 - Preserve the minimum necessary sanitized evidence.
 - Separate smoke-test success from product-quality evaluation.
-- Use at least ten product evaluation cases and summarize failure analysis.
+- Final acceptance requires at least 20 cases with expected/actual results, pass rate, before/after comparison and failure analysis. Distinguish historical ten-case milestones and deterministic validator fixtures from live-model/human-reviewed product evidence.
 - Never copy the proposal's planned or example measurement into the final result as if observed.
 
 ## Final submission checklist
@@ -51,3 +51,7 @@ When code/topology changes, update `docs/architecture/README.md` and the report 
 - Ubuntu VM/Docker Compose evidence or explicit documented blocker.
 
 Use `templates/report-update.md` and store audits under `reports/`.
+
+Paths in the preceding sentence are relative to `.agent/`. Publish only reviewed, sanitized Markdown evidence. Raw logs, JSON execution/baseline dumps, screenshots, tokens and personal metadata are not automatically safe to stage. `.gitignore` currently re-includes `.agent/**`; use an explicit path whitelist and inspect the staged diff rather than `git add -A`.
+
+Current report catalogue is [10 selected US / 16 UC](../../docs/requirements/README.md), with [official person/UC scope](../../docs/TEAM_ASSIGNMENTS.md). Frozen Baseline v1 IDs and legacy 3-US IDs need explicit catalogue qualification. Never rewrite a historical report to imply newly observed acceptance.

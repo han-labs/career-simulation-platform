@@ -5,6 +5,7 @@ This file governs AI used to build the software. Product AI behavior is addition
 ## Before accepting generated code
 
 - Confirm the source user story, acceptance criteria, sequence/domain design, and owner.
+- Qualify the catalogue: current report 10 US/16 UC, frozen Baseline v1 15 US, or legacy 3 US. Follow [official assignments](../../docs/TEAM_ASSIGNMENTS.md), keep UC-14 deferred, and consult [unresolved alignment points](../../docs/requirements/REPORT_CODE_ALIGNMENT_2026-10-22.md) before changing affected behavior.
 - Ask for or create a file-level plan and record unresolved assumptions.
 - Limit the change to one feature/foundation item.
 - Inspect existing code to avoid duplicate entities, endpoints, rules, or migrations.

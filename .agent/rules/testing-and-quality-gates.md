@@ -34,7 +34,7 @@ An integrated feature also requires a running-stack smoke test through the Nginx
 
 ## AI evaluation tests
 
-Maintain at least ten cases across:
+Final assignment acceptance requires at least 20 cases with expected and actual results, pass rate and a before/after comparison. Historical ten-case milestones remain historical. Include cases across:
 
 - normal differentiated evidence;
 - ambiguous/even RIASEC scores;
@@ -46,6 +46,10 @@ Maintain at least ten cases across:
 - malformed/non-schema response;
 - unsafe or overconfident advice;
 - deterministic fallback equivalence for objective scores.
+
+Twenty deterministic validator fixtures are engineering evidence, not twenty live-model quality cases. Record provider/model/config/source versions and human review separately; AC-A09/full AC-A17 remain pending without the required live/human evidence.
+
+For documentation-only changes, validate links/anchors, current 10-US/16-UC mapping and official assignments, source excerpts, discrepancies and preservation. Do not launch applications, migrate databases or rerun the full test suite merely to synchronize Markdown. Use [the current catalogue](../../docs/requirements/README.md) and [team scope](../../docs/TEAM_ASSIGNMENTS.md).
 
 ## Rules
 
