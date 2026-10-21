@@ -1,3 +1,36 @@
+<!-- documentation-sync-2026-10-22 -->
+# CareerSim current project context
+
+Current documentation synchronization: 2026-10-22, checked against `origin/main@5486f9f4a3a56519c396bcebffd49fe0ff4776e2`. Local checkout remains `6a3e989`; do not discard its existing changes. P1–P6/V22 are already present, not a new implementation request.
+
+## Sources with separate authority
+
+- **Catalogue:** [10 report-selected US](../docs/requirements/user-stories/REPORT_SELECTED_10_US.md), [16 UC](../docs/requirements/use-cases/README.md), from the current report and CORRECTED handoff.
+- **Business rules:** [frozen Baseline v1 + DR1–DR2](../docs/requirements/CareerSim_Requirements_Baseline_v1_Chat2_Handoff.md), unchanged. Its 15 US IDs differ from current report IDs.
+- **Work allocation:** [TEAM_ASSIGNMENTS](../docs/TEAM_ASSIGNMENTS.md), confirmed by the project lead; [TASKS](TASKS.md) owns current progress.
+- **As-built:** [architecture index](../docs/architecture/README.md), [P1/P2](../docs/architecture/p1-p2-security-core.md), [P3/P4 API](../docs/api/agent-platform-p3-p4.md), [P5/P6 API](../docs/api/student-agent-p5-p6.md), source/tests and recorded evidence.
+- **Conflicts and provenance:** [report/code alignment](../docs/requirements/REPORT_CODE_ALIGNMENT_2026-10-22.md). A catalogue import is not business-rule approval or live acceptance.
+
+## Product and current boundary
+
+CareerSim supports student IT-career exploration. Student, Enterprise Representative and Administrator use a Spring Boot modular monolith, Java 17, React/Vite **JavaScript/JSX**, PostgreSQL/pgvector, Flyway and a backend-owned Gemini/OpenAI adapter. Logical Target v1.2 does not replace physical Core BIGINT/normalized storage.
+
+Assessment is optional. Results stay separate and versioned. Enrollment pins a ScenarioVersion. Valid FINAL submissions determine completion independently of quiz pass score; explicit self-review unlocks the next task. Model answers remain owner/release authorized. Skills are practiced, not certified proficiency.
+
+Assigned Student Agents use pinned configurations, current consent, scoped KB/read-only tools, durable history/SSE, validated explicit InsightReports and exact-source/hash plan confirmation. Admin Preview and KB Test have no fake Student session. Admin usage aggregates exclude private transcripts/reports. Core remains usable without AI.
+
+**Selected ownership:** Person 1 UC-01–03 / US-01–03; Person 2 UC-04/05/09 / US-04/05/06/10; Person 3 (project lead) UC-06/07/08 / US-07/08/09. Supplementary UC-10–16 are not new work assignments; UC-14 recruitment invitations remain deferred. Do not infer real names/Git aliases from old ownership or commit counts.
+
+Keep UC-05 completion/evaluation, UC-04 recommendations, UC-06 plan editing and UC-08 naming discrepancies visible. AC-A09/full AC-A17, real Google OAuth, human/live quality review, deployment/NFR/UAT and backup-retention decisions remain separately evidenced gates. Never invent a 30/90-day Student Agent retention policy.
+
+## Historical context
+
+The original content below is retained byte-for-byte, including pre-existing user checkpoints. Statements such as “auth pending”, legacy 3-US scope, Syn TTLs and earlier package numbering describe their dated increments only; they are not the current task source.
+
+<details>
+<summary>Historical content preserved unchanged</summary>
+
+<!-- preserved-content-start -->
 # Career Simulation Platform Project Context
 
 ### Website EN/VI checkpoint — 2026-10-13
@@ -122,3 +155,51 @@ Approved implementation now includes strict shared output checks, bounded/cancel
 Latest user feedback authorizes chat to prioritize LLM explanation over visible evidence cards, a bounded second generation repair, and general educational answers when RAG lacks sources. Source-specific claims/citations still require actual evidence. DevOps/AI topics are supported for explanation/search without adding catalog simulations. Architecture details: `../docs/architecture/syn-coach-abc.vi.md`, verification `reports/us-03-syn-conversation-quality-verification.md`.
 
 Approved continuation composes resource/simulation/plan capabilities, improves Vietnamese and ordered follow-up, retains same-path catalog fallback, retries Gemini 429/503 once within the deadline and checks broad competence claim patterns. Optional Google Search grounding provides turn-local W sources distinct from reviewed catalog and published K knowledge; only generic controlled topic queries reach search. Default execution is still server-planned with one generation pass, not unrestricted autonomous reasoning. Web results require consent and remain unreviewed; provider failure preserves local cards. RAG corpus drafts are not published without actual content review. See `../docs/architecture/syn-coach-abc.vi.md`, `reports/us-03-syn-coach-abc-verification.md` and `../docs/testing/syn-coach-manual.vi.md`.
+
+### Approved Security/Auth and Core P1/P2 — 2026-10-19
+
+This P1/P2 naming refers to Astra's Target v1.2 Master Plan, separately from the
+historical Syn P1/P2 checkpoint. Scope is US01–08 / AC-S01–S07, R01, C01–C07 and
+applicable D01. V19/V20 are additive security/learning changes after V18.
+JWT/Google, account-scoped browser state, legacy actor/gate repair, ordered
+learning/self-review, independent quiz scores/assessment methods and authorized
+catalogue/enterprise workflows are described in
+`../docs/architecture/p1-p2-security-core.md`. Syn/RAG/consent infrastructure stays;
+P3–P6 and real deployment remain outside this implementation approval.
+
+### Approved Agent Platform P3/P4 — 2026-10-20
+
+The project lead approved US-09/10 packages P3/P4 after merged P1/P2. New
+`guidance.knowledge` and `guidance.agent` subpackages add reviewed KB Studio,
+immutable configurations, exact saved Admin preview, explicit assignment and
+three-mode execution storage on additive V21. Existing Core/Syn, consent and
+V1–V20 are preserved. Feature flags defaultfalse; no P5/P6 Student chat/history/
+SSE/reports/plans/usage dashboard is implemented. Contracts and evidence:
+`../docs/api/agent-platform-p3-p4.md`, `reports/p3-p4-completion.vi.md`.
+
+
+## P5/P6 implementation checkpoint — 2026-10-20
+
+Approved Student Agent + Reports/Plans/Usage code is integrated on
+`feat/student-agent-and-ai-reporting` from main `1b11b593e0bc0cbc613eedfbfb7ba5307f89e12a`.
+Existing P1–P4/Core/Syn and V1–V21 remain preserved. Additive V22 adds source lineage,
+durable events/reports and exact-source plan-confirmation integrity; no legacy backfill.
+Student/Admin/KB hosts share BoundedNativeExecution with native provider adapters;
+current owner/assignment/consent/source/epoch checks govern dispatch, commit and replay.
+No autonomous business writes or deferred Enterprise/private-upload features.
+
+Final local gates: backend clean verify310 tests (305 pass,0 fail/error,5 skip),
+frontend97 pass with lint/build in default and enabled configurations; isolated
+fresh/upgrade/checksum/backup/gateway checks pass. Browser13 smoke assertions used
+real UI/Nginx/PG and mocked providers.20 actual deterministic schema/evidence cases
+are separate from live-model quality. AC-A09 and full AC-A17 remain NOT VERIFIED;
+real Google OAuth, approved live-model/human20-case review and release/course delivery
+are pending. No commit, push, merge, valuable DB migration or deployment.
+
+See `.agent/reports/p5-p6-completion.vi.md`, verification/preservation manifests,
+`docs/api/student-agent-p5-p6.md`, `docs/architecture/student-agent-p5-p6.md` and
+`docs/ai/AI_USAGE_P5_P6.md`. Original user content above is preserved byte-for-byte.
+
+<!-- preserved-content-end -->
+
+</details>

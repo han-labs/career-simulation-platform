@@ -1,3 +1,9 @@
+<!-- documentation-sync-2026-10-22 -->
+> **Current scope, 2026-10-22:** this file defines CareerSim UI/UX (sections 1–8). Use [current UC/US](../docs/requirements/README.md), [team assignments](../docs/TEAM_ASSIGNMENTS.md), [architecture](../docs/architecture/README.md) and [API contracts](../docs/api/README.md) for business/technical work.
+>
+> Dated technical/verification checkpoints below are preserved historical notes, not a second architecture or progress authority. [TASKS](TASKS.md) owns current progress. The Forage reference is inspiration only, not CareerSim's binding palette or licensed task content. Do not infer completion, plan-editing support or live AI acceptance from UI presentation; see [alignment](../docs/requirements/REPORT_CODE_ALIGNMENT_2026-10-22.md).
+
+<!-- preserved-content-start -->
 # Career Simulation Platform UI Design System
 
 Public product shorthand: **CareerSim**.
@@ -132,3 +138,55 @@ Avoid: page fades that delay work, scroll-triggered effects, auto-advancing ques
 - Keyboard access, semantic landmarks, correct heading order, form labels, error association, visible focus, and reduced motion are required.
 - Icon-only controls require an accessible name.
 - Touch targets should be at least 44 by 44 CSS pixels where practical.
+
+## Approved Target v1.2 P1/P2 checkpoint — 2026-10-19
+
+The approved Requirements Baseline v1/DR1–DR2 and Target v1.2 supersede earlier
+Core diagrams. Identity uses JWT HttpOnly/Secure/Lax cookies with CSRF, explicit
+issuer/subject OAuth linking, per-credential logout and current authority checks.
+Authentication is not persisted in HttpSession; CSRF/OAuth handshake may use it.
+New scenario versions use ordered FINAL + explicit self-review progression; old
+published versions retain their original policy/hash. Zero quiz score is valid
+completion evidence, and practical work requires no automatic grading.
+Physical additions are V19/V20; immutable V1–V18 and normalized BIGINT Core storage
+remain. See `../docs/architecture/p1-p2-security-core.md` and the implementation
+report for tested contracts and release limitations. No Agent Platform is added.
+
+## Approved Target v1.2 P3/P4 checkpoint — 2026-10-20
+
+KB source upload is private staging; parse/embed and provider calls occur outside
+DB transactions. Complete chunks/vectors + READY job commit atomically; explicit
+publish switches the active pointer. Configurations and KB grants seal on save;
+publish requires a successful preview of the exact saved hash. KB_TEST and
+ADMIN_PREVIEW never create a Student session or read private Student evidence.
+Execution admission/cancellation/current-source checks surround bounded native
+calls; provider protocol stays private, JSON/citations are validated before
+publication. Reuse Syn transport/embedding/usage/pricing and V13 vector768 while
+fencing scoped KB assets out of legacy retrieval. Session/history tables in V21
+are inert FK targets for future P5, not a completed chat feature. See
+`../docs/architecture/agent-platform-p3-p4.md` and the API contract.
+
+
+## P5/P6 implementation checkpoint — 2026-10-20
+
+Approved Student Agent + Reports/Plans/Usage code is integrated on
+`feat/student-agent-and-ai-reporting` from main `1b11b593e0bc0cbc613eedfbfb7ba5307f89e12a`.
+Existing P1–P4/Core/Syn and V1–V21 remain preserved. Additive V22 adds source lineage,
+durable events/reports and exact-source plan-confirmation integrity; no legacy backfill.
+Student/Admin/KB hosts share BoundedNativeExecution with native provider adapters;
+current owner/assignment/consent/source/epoch checks govern dispatch, commit and replay.
+No autonomous business writes or deferred Enterprise/private-upload features.
+
+Final local gates: backend clean verify310 tests (305 pass,0 fail/error,5 skip),
+frontend97 pass with lint/build in default and enabled configurations; isolated
+fresh/upgrade/checksum/backup/gateway checks pass. Browser13 smoke assertions used
+real UI/Nginx/PG and mocked providers.20 actual deterministic schema/evidence cases
+are separate from live-model quality. AC-A09 and full AC-A17 remain NOT VERIFIED;
+real Google OAuth, approved live-model/human20-case review and release/course delivery
+are pending. No commit, push, merge, valuable DB migration or deployment.
+
+See `.agent/reports/p5-p6-completion.vi.md`, verification/preservation manifests,
+`docs/api/student-agent-p5-p6.md`, `docs/architecture/student-agent-p5-p6.md` and
+`docs/ai/AI_USAGE_P5_P6.md`. Original user content above is preserved byte-for-byte.
+
+<!-- preserved-content-end -->

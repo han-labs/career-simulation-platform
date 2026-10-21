@@ -1,3 +1,31 @@
+<!-- documentation-sync-2026-10-22 -->
+# Current deployment documentation boundary
+
+See [P1/P2 auth/runtime contract](../architecture/p1-p2-security-core.md), [current API index](../api/README.md) and [report/code alignment](../requirements/REPORT_CODE_ALIGNMENT_2026-10-22.md) before preparing an isolated or real deployment.
+
+The merged source contains real identity/JWT/CSRF/Google integration; “login not implemented” in the historical guide is obsolete. Google/provider availability still needs separately authorized live verification. Keys stay backend-only in ignored local configuration/secret storage; never copy keys, JWTs or private transcripts into Git.
+
+## Configuration checks before any separately approved runtime work
+
+- Confirm the intended database and data value; do not point migrations at a valuable DB during tests.
+- Configure `JWT_SIGNING_KEY` securely, or explicitly isolated `JWT_ALLOW_EPHEMERAL_KEY=true`; ephemeral keys invalidate credentials on process restart. Never commit a sample real signing key.
+- Secure cookies default true, SameSite=Lax; public use requires correct HTTPS/proxy/origin/Google callback settings. HTTP exceptions belong only to explicitly isolated local tests.
+- Core/Agent runtime flags: `CORE_V2_ENABLED`, `AGENT_PLATFORM_ENABLED`; matching build flags: `VITE_CORE_V2_ENABLED`, `VITE_AGENT_PLATFORM_ENABLED`. They default off; legacy write rollout must follow the P1/P2 matrix, not default-user assumptions.
+- Provider defaults disabled; model labels/configuration are not proof of live availability. Do not enable paid calls to prove a Markdown update.
+- Compose declares persistent PG/asset volumes; config validation and isolated restore tests do not establish deployed Ubuntu/TLS/restart acceptance.
+
+## Nginx source-versus-working-tree distinction
+
+At checked main `5486f9f`, backend SSE emits `X-Accel-Buffering: no` and keepalives. The dedicated 90-second Agent SSE proxy locations are still pre-existing local changes in both Nginx configs. They were preserved, not merged or retested here. Do not claim the deployed/main proxy has those locations from old working-tree gateway smoke alone.
+
+## Historical deployment guide
+
+The preceding checks supersede the dated identity/demo claims below. Original commands are kept unchanged as history, not executed or endorsed for valuable databases by this documentation task.
+
+<details>
+<summary>Historical content preserved unchanged</summary>
+
+<!-- preserved-content-start -->
 # Deployment guide
 
 ## Local Docker Compose
@@ -107,3 +135,7 @@ Syn phase-specific usage and optional pinned price estimates: [cost trace config
 After source changes run `docker compose up -d --build backend frontend`, then restart gateway to refresh upstream DNS. For environment-only changes recreate backend; restarting an existing container does not reload its environment. Keep the existing Compose project name and database volume. The local A/B/C verification enables web and embeddings in the ignored `.env`; no corpus is automatically approved/published.
 
 Publish reviewed content with `scripts/Publish-SynKnowledge.ps1 -Manifest <approved-json>`. The one-shot backend uses the current Compose database, enables embeddings, mounts the manifest read-only, opens no host port and exits after ingestion. It does not roll back earlier documents if a later document fails. See [content review and evaluation](../data/knowledge/README.md).
+
+<!-- preserved-content-end -->
+
+</details>

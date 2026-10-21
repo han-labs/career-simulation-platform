@@ -1,4 +1,4 @@
-# US XX Feature Plan
+# Current catalogue UC / US Feature Plan
 
 Status: Draft / Awaiting approval / Approved / Implemented  
 Owner:  
@@ -7,6 +7,8 @@ Date:
 ## 1 Scope
 
 - User story or foundation item:
+- Catalogue/version and official selected UC/US IDs (never assume Baseline/legacy IDs are identical):
+- Assigned Person slot and human reviewer; cross-cutting owner if applicable:
 - Actor:
 - Source proposal/SRS section:
 - Acceptance criteria:

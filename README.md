@@ -1,3 +1,39 @@
+<!-- documentation-sync-2026-10-22 -->
+# CareerSim
+
+Career Simulation System for student IT-career exploration. React/Vite JavaScript/JSX, Java 17/Spring Boot modular monolith, PostgreSQL/pgvector and Flyway; optional backend-owned AI never changes objective results or blocks Core.
+
+## Current documentation and scope
+
+- [Documentation index](docs/README.md), [requirements/source order](docs/requirements/README.md).
+- [10 selected report US](docs/requirements/user-stories/REPORT_SELECTED_10_US.md), [16 UC / nine selected](docs/requirements/use-cases/README.md), [official assignments](docs/TEAM_ASSIGNMENTS.md).
+- [Frozen Baseline v1 + DR1–DR2](docs/requirements/CareerSim_Requirements_Baseline_v1_Chat2_Handoff.md): unchanged business invariants, separate 15-US IDs.
+- [As-built architecture](docs/architecture/README.md), [API](docs/api/README.md), [database](docs/database/README.md), [deployment](docs/deployment/README.md).
+- [Report/code discrepancies and synchronization evidence](docs/requirements/REPORT_CODE_ALIGNMENT_2026-10-22.md).
+- [AI_USAGE](AI_USAGE.md): shared draft/contributor review; [P5/P6 AI evidence limits](docs/ai/AI_USAGE_P5_P6.md).
+
+Checked `origin/main@5486f9f` contains P1–P6 and V1–V22. Registration/JWT/Google integration, versioned Core, KB Studio, Builder, assigned Student Agent, reports/plans and safe usage are existing code. Their automated/mock evidence does not establish real Google, live-model quality or deployed UAT. No reimplementation is requested.
+
+**Person 1:** UC-01/02/03 → US-01/02/03. **Person 2:** UC-04/05/09 → US-04/05/06/10. **Person 3 (lead):** UC-06/07/08 → US-07/08/09. Names/Git aliases/reviewer rota need separate sign-off. UC-10–16 are supplementary, UC-14 is deferred.
+
+## Development entry point
+
+Read [AGENTS](AGENTS.md) before changes, then use [.agent/TASKS](.agent/TASKS.md) for the current queue. Existing plans and legacy US identifiers are historical unless a current task explicitly references them.
+
+For code verification use the gates in [.agent/rules/testing-and-quality-gates.md](.agent/rules/testing-and-quality-gates.md). Documentation-only synchronization checks links/IDs/source consistency and preservation; no full suite, DB startup or paid provider is required.
+
+Current auth needs a backend signing-key configuration (or explicitly isolated development ephemeral key), Secure-cookie/HTTPS policy and separately configured Google credentials for live OAuth. Core/Agent runtime and Vite build flags are opt-in. Consult current deployment/auth contracts; do not use the old “no secret required/login pending” demo instructions below as the present deployment procedure.
+
+Never stage `.env`, raw agent logs, JSON evidence dumps, private screenshots or transcripts. The current ignore whitelist does not fully protect `.agent/**`; use explicit paths and inspect diffs. No commit/push/deployment is part of this documentation update.
+
+## Historical README
+
+The previous README is preserved below as a legacy foundation/Syn setup record, including its original commands and old ownership. It is not the current runbook, business baseline or selected catalogue.
+
+<details>
+<summary>Historical content preserved unchanged</summary>
+
+<!-- preserved-content-start -->
 # CareerSim
 
 CareerSim is the public shorthand for Career Simulation Platform for Students, an OOSE project that helps students explore IT careers through a RIASEC assessment, short task-based simulations, deterministic evaluation, and evidence-grounded AI guidance. The AI layer explains results; it never decides objective scores and is never required for the core workflow.
@@ -241,3 +277,7 @@ Do not commit `.env`, API keys, model credentials, private student data, or copi
 ### Syn core and vector RAG implementation
 
 Current component map, flows, fallback and Vietnamese viva guide: [Syn implementation](docs/architecture/syn-core-rag-implementation.vi.md). See [verification and open acceptance gates](.agent/reports/us-03-syn-core-vector-rag-verification.md) and [reviewed corpus ingestion/evaluation](docs/data/knowledge/README.md). The draft corpus is not automatically published. Voice/realtime remain future phases.
+
+<!-- preserved-content-end -->
+
+</details>

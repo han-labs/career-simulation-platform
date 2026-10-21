@@ -1,3 +1,7 @@
+<!-- documentation-sync-2026-10-22 -->
+> **HISTORICAL — legacy 3-US catalogue.** These US-01/02/03 IDs are not the current report IDs. Use [10 selected US](user-stories/REPORT_SELECTED_10_US.md), [16 UC](use-cases/README.md), [official assignments](../TEAM_ASSIGNMENTS.md) and [source/mapping index](README.md). Frozen Baseline v1 + DR1–DR2 still govern business invariants. Original text below is retained, not retroactively rewritten.
+
+<!-- preserved-content-start -->
 # Essential user stories
 
 ## US-01 Complete a RIASEC assessment
@@ -67,3 +71,5 @@ Acceptance baseline:
 - Training a proprietary LLM.
 - Full offline operation.
 - AI-generated objective scoring.
+
+<!-- preserved-content-end -->
