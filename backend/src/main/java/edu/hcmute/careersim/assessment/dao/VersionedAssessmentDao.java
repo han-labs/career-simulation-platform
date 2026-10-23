@@ -47,6 +47,20 @@ public class VersionedAssessmentDao {
                 (r, n) -> new Type(r.getString(1), r.getString(2), r.getString(3), r.getString(4)));
     }
 
+    public List<AttemptSummary> history(long owner) {
+        return jdbc.query(
+                "SELECT a.id,t.code,a.assessment_version_id,a.status,a.started_at,a.submitted_at FROM public.assessment_attempt a JOIN public.assessment_version v ON v.id=a.assessment_version_id JOIN public.assessment_type t ON t.id=v.assessment_type_id WHERE a.student_id=? ORDER BY a.started_at DESC,a.id DESC LIMIT 100",
+                (r, n) ->
+                        new AttemptSummary(
+                                Long.toString(r.getLong(1)),
+                                r.getString(2),
+                                Long.toString(r.getLong(3)),
+                                r.getString(4),
+                                r.getTimestamp(5).toInstant(),
+                                r.getTimestamp(6) == null ? null : r.getTimestamp(6).toInstant()),
+                owner);
+    }
+
     public List<Version> versions(long type) {
         return jdbc
                 .query(

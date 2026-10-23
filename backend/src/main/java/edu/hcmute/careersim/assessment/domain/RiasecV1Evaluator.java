@@ -100,7 +100,8 @@ public class RiasecV1Evaluator {
                 && questions.stream()
                         .filter(Question::required)
                         .anyMatch(q -> !seen.contains(q.id())))
-            CoreValues.invalid("Answer all required questions.");
+            CoreValues.invalid(
+                    "Please answer all required questions before submitting your career quiz.");
         return answers.stream()
                 .sorted(Comparator.comparingLong(a -> CoreValues.id(a.questionId())))
                 .toList();

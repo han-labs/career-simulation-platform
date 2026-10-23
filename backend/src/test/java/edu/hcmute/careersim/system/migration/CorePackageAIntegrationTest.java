@@ -2014,6 +2014,150 @@ class CorePackageAIntegrationTest {
     }
 
     @Test
+    void syntheticFourQuizTypesPersistDraftsRetakesAndSeparatePublishedVersions() {
+        // Synthetic fixtures only: this is not approval of production questionnaire content.
+        for (String code : List.of("RIASEC", "INTERESTS", "ABILITIES", "WORK_ACTIVITIES")) {
+            var dimensions =
+                    code.equals("RIASEC")
+                            ? RiasecV1Evaluator.DIMENSIONS
+                            : List.of("INFORMATION", "PEOPLE", "THINGS");
+            var config =
+                    CoreValues.tree(
+                            Map.of(
+                                    "schemaVersion",
+                                    1,
+                                    "dimensions",
+                                    dimensions,
+                                    "aggregation",
+                                    "SUM",
+                                    "minAnswer",
+                                    1,
+                                    "maxAnswer",
+                                    5,
+                                    "tieOrder",
+                                    dimensions));
+            var questions = new ArrayList<VersionedAssessmentContracts.QuestionDraft>();
+            for (String d : dimensions)
+                questions.add(
+                        new VersionedAssessmentContracts.QuestionDraft(
+                                questions.size() + 1,
+                                "Synthetic fixture " + d,
+                                "LIKERT",
+                                CoreValues.tree(
+                                        Map.of(
+                                                "schemaVersion",
+                                                1,
+                                                "min",
+                                                1,
+                                                "max",
+                                                5,
+                                                "dimension",
+                                                d)),
+                                CoreValues.tree(Map.of()),
+                                true));
+            long type =
+                    Long.parseLong(
+                            assessmentAuthor.createType(
+                                    admin,
+                                    new VersionedAssessmentContracts.TypeRequest(
+                                            code + "_FIXTURE_" + UUID.randomUUID(),
+                                            "Synthetic " + code)));
+            for (int number = 1; number <= 2; number++) {
+                var version =
+                        assessmentAuthor.createVersion(
+                                admin,
+                                type,
+                                new VersionedAssessmentContracts.VersionDraft(
+                                        code.equals("RIASEC") ? "riasec-sum" : "profile-sum",
+                                        "1",
+                                        config,
+                                        questions));
+                version =
+                        assessmentAuthor.publish(
+                                admin, Long.parseLong(version.id()), version.revision());
+                for (int retake = 0; retake < 2; retake++) {
+                    var attempt =
+                            assessments.start(
+                                    student, Long.parseLong(version.id()), UUID.randomUUID());
+                    long id = Long.parseLong(attempt.id());
+                    var payload =
+                            new VersionedAssessmentContracts.Responses(
+                                    attempt.questions().stream()
+                                            .map(
+                                                    q ->
+                                                            new VersionedAssessmentContracts.Answer(
+                                                                    q.id(),
+                                                                    CoreValues.tree(
+                                                                            Map.of(
+                                                                                    "schemaVersion",
+                                                                                    1,
+                                                                                    "value",
+                                                                                    5))))
+                                            .toList());
+                    var saved = assessments.save(student, id, 0, payload);
+                    assertThat(assessments.get(student, id).responses()).isEqualTo(payload.items());
+                    var result = assessments.submit(student, id, saved.revision(), payload);
+                    assertThat(assessments.result(student, id)).isEqualTo(result);
+                    assertThat(result.assessmentVersionId()).isEqualTo(version.id());
+                    result.resultData()
+                            .path(code.equals("RIASEC") ? "dimensions" : "categories")
+                            .forEach(
+                                    d -> {
+                                        assertThat(d.path("raw").asInt()).isEqualTo(5);
+                                        assertThat(d.path("min").asInt()).isEqualTo(1);
+                                        assertThat(d.path("max").asInt()).isEqualTo(5);
+                                    });
+                    assertThatThrownBy(() -> assessments.result(other, id))
+                            .isInstanceOf(ApiException.class);
+                }
+            }
+        }
+        assertThat(assessments.history(student)).hasSize(16);
+        assertThat(assessmentResults.readOwned(student)).hasSize(16);
+        assertThat(assessmentResults.readOwned(other)).isEmpty();
+    }
+
+    @Test
+    void assessmentHistorySeparatesOwnersDraftsAndResultsAndInactiveTypePreservesHistory() {
+        var v = assessment();
+        long version = Long.parseLong(v.id());
+        var draft = assessments.start(student, version, UUID.randomUUID());
+        var completed = assessments.start(student, version, UUID.randomUUID());
+        var payload = new VersionedAssessmentContracts.Responses(responses(completed));
+        var result = assessments.submit(student, Long.parseLong(completed.id()), 0, payload);
+        var foreign = assessments.start(other, version, UUID.randomUUID());
+        assertThat(assessments.history(student))
+                .extracting(VersionedAssessmentContracts.AttemptSummary::id)
+                .contains(draft.id(), completed.id())
+                .doesNotContain(foreign.id());
+        assertThat(assessments.history(student))
+                .filteredOn(r -> r.id().equals(completed.id()))
+                .allSatisfy(
+                        r -> {
+                            assertThat(r.status()).isEqualTo("SUBMITTED");
+                            assertThat(r.assessmentVersionId()).isEqualTo(v.id());
+                            assertThat(r.submittedAt()).isNotNull();
+                        });
+        jdbc.update(
+                "UPDATE public.assessment_type SET status='ARCHIVED' WHERE id=?",
+                Long.parseLong(v.typeId()));
+        assertThatThrownBy(
+                        () ->
+                                assessments.submit(
+                                        student,
+                                        Long.parseLong(draft.id()),
+                                        0,
+                                        new VersionedAssessmentContracts.Responses(
+                                                responses(draft))))
+                .isInstanceOf(ApiException.class);
+        assertThat(assessments.result(student, Long.parseLong(completed.id()))).isEqualTo(result);
+        assertThat(assessments.submit(student, Long.parseLong(completed.id()), 0, payload))
+                .isEqualTo(result);
+        assertThat(assessments.get(student, Long.parseLong(draft.id())).status())
+                .isEqualTo("IN_PROGRESS");
+    }
+
+    @Test
     void parallelVersionsEnrollmentFinalizationAndFixedCompletion() throws Exception {
         var v = scenario(2, false);
         var enrollment = parallel(() -> enrollments.enroll(student, Long.parseLong(v.id())));

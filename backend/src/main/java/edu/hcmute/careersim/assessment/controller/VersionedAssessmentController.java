@@ -31,6 +31,11 @@ public class VersionedAssessmentController {
                 service.start(actors.student(p).id(), CoreValues.id(id), r.requestId()));
     }
 
+    @GetMapping("/assessment-attempts")
+    public ApiResponse<?> history(Principal p) {
+        return ApiResponse.success(service.history(actors.student(p).id()));
+    }
+
     @GetMapping("/assessment-attempts/{id}")
     public ApiResponse<?> get(Principal p, @PathVariable String id) {
         return ApiResponse.success(service.get(actors.student(p).id(), CoreValues.id(id)));

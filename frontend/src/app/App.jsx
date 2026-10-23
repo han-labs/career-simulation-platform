@@ -1,5 +1,6 @@
-import { Route, Routes, useLocation } from 'react-router-dom'
-import { useEffect, useSyncExternalStore } from 'react'
+import { Route, Routes } from 'react-router-dom'
+import { useSyncExternalStore } from 'react'
+import NavigationScroll from '../shared/navigation/NavigationScroll.jsx'
 import { getAccountGeneration, subscribeAccount } from '../shared/api/httpClient.js'
 import AppShell from '../shared/layout/AppShell.jsx'
 import AssessmentPage from '../features/assessment/pages/AssessmentPage.jsx'
@@ -24,25 +25,11 @@ import AssignedAgentsPage from '../features/agents/AssignedAgentsPage.jsx'
 import StudentAgentPage from '../features/agents/StudentAgentPage.jsx'
 import AgentUsagePage from '../features/admin/agentPlatform/AgentUsagePage.jsx'
 
-function ScrollToTop() {
-  const { pathname, hash } = useLocation();
-
-  useEffect(() => {
-    if (!hash) {
-      setTimeout(() => {
-        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-      }, 0);
-    }
-  }, [pathname, hash]);
-
-  return null;
-}
-
 function ApplicationLayout() {
   const generation = useSyncExternalStore(subscribeAccount, getAccountGeneration)
   return (
     <>
-      <ScrollToTop />
+      <NavigationScroll />
       <AppShell key={generation} />
       <SynWidget />
     </>
