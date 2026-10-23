@@ -1,5 +1,9 @@
 # Current report and repository alignment
 
+## 2026-10-23 US-01 / UC-01 follow-up
+
+The explicit registration task authorizes completing Person 1 identity UI/API integration while preserving US-03. Existing P1 provides local registration and configured Google OIDC; the current UC-01 cancellation/field feedback/duplicate message needed UI reconciliation. The [registration contract](../api/registration-uc01.md) and [dated evidence](../../.agent/reports/us01-registration-2026-10-23.md) record the focused implementation and actual test status. No catalogue, frozen business rule, role, consent, scoring or migration change is inferred. Combined-feature acceptance and real Google/human UAT remain distinct gates.
+
 Checked 2026-10-22. This register records documentation provenance, verified source behavior and unresolved wording; it does not approve new business rules or claim new runtime acceptance.
 
 ## Source and repository baseline

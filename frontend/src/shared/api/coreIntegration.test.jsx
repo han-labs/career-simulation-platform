@@ -102,7 +102,7 @@ it('keeps zero-score final work complete and requires explicit review to unlock 
   expect(screen.getByRole('button', { name: 'View model answer' })).toBeTruthy()
 })
 it('explains an OAuth email collision and exposes only an explicit sign-in/link path', async () => {
-  apiRequest.mockImplementation(path => path === '/v2/auth/providers' ? Promise.resolve({ google: true }) : Promise.reject(new Error('Sign in is required.')))
+  apiRequest.mockImplementation(path => path === '/v2/auth/providers' ? Promise.resolve({ google: true }) : Promise.reject(Object.assign(new Error('Sign in is required.'), { status: 401 })))
   page(<AccountPage />, '/account?oauthError=link-required')
   expect(await screen.findByText('Sign in to your existing account, then explicitly link Google.')).toBeTruthy()
   expect(await screen.findByRole('link', { name: 'Sign in with Google' })).toBeTruthy()

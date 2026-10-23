@@ -44,4 +44,6 @@ A valid personal account is created; cancellation creates no account.
 
 Local registration/validation source exists. Identity linking and registration never imply automatic email-based role, membership or consent grants.
 
+2026-10-23 implementation follow-up: [registration contract and sequence](../../api/registration-uc01.md) documents accessible EN/VI required-field feedback, explicit duplicate-email guidance, cancellation before submission, unavailable-service recovery and the authenticated Career Assessments entry. Existing Google OIDC/JWT/CSRF infrastructure is reused. Runtime evidence and remaining live-Google/UAT limits are tracked separately; source flows above are unchanged.
+
 Checked main `5486f9f` and matching application source; source flows above are retained. See [alignment/provenance](../REPORT_CODE_ALIGNMENT_2026-10-22.md), [current catalogue](README.md) and [official allocation](../../TEAM_ASSIGNMENTS.md). Supplementary and deferred scope is not expanded by this comparison.

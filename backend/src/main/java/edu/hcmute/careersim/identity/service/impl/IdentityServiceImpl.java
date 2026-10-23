@@ -31,19 +31,21 @@ public class IdentityServiceImpl implements IdentityService {
         if (r.password() == null
                 || r.password().length() < 12
                 || r.password().length() > 128
-                || !Set.of("STUDENT", "ENTERPRISE").contains(r.role()))
+                || (!"STUDENT".equals(r.role()) && !"ENTERPRISE".equals(r.role())))
             CoreValues.invalid("Invalid registration.");
         if ("ENTERPRISE".equals(r.role())) CoreValues.text(r.enterpriseName(), 240);
+        long id;
         try {
-            long id = dao.register(r, passwords.encode(r.password()));
-            if ("STUDENT".equals(r.role())) dao.profile(id);
-            else enterprise.createFor(id, r.enterpriseName());
-            audit.record(id, "ACCOUNT_REGISTERED", "app_users", id, Map.of("status", "ACTIVE"));
-            return dao.account(id, List.of());
+            id = dao.register(r, passwords.encode(r.password()));
         } catch (DuplicateKeyException e) {
             throw new ApiException(
-                    ErrorCode.CONFLICT, "Registration cannot be completed with these details.");
+                    ErrorCode.CONFLICT,
+                    "An account with this email already exists. Please sign in.");
         }
+        if ("STUDENT".equals(r.role())) dao.profile(id);
+        else enterprise.createFor(id, r.enterpriseName());
+        audit.record(id, "ACCOUNT_REGISTERED", "app_users", id, Map.of("status", "ACTIVE"));
+        return dao.account(id, List.of());
     }
 
     @Transactional(readOnly = true)

@@ -475,6 +475,73 @@ class AuthenticationContractTest {
     }
 
     @Test
+    void newOidcStudentCanSubmitAndReloadCareerQuizWithIssuedCookie() throws Exception {
+        var session = new MockHttpSession();
+        var values = authorization(session, null);
+        var callback =
+                mvc.perform(
+                                get("/login/oauth2/code/google")
+                                        .session(session)
+                                        .param("state", values.get("state"))
+                                        .param("code", "synthetic"))
+                        .andExpect(redirectedUrl("/account?oauth=success"))
+                        .andReturn();
+        var cookie = callback.getResponse().getCookie(BrowserCredentialCookies.NAME);
+        assertThat(cookie).isNotNull();
+        long user = auth.verify(cookie.getValue()).id();
+        assertThat(user).isNotIn(student, other, enterprise);
+        mvc.perform(get("/v2/me").cookie(cookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.role").value("STUDENT"));
+        var csrfResponse =
+                mvc.perform(get("/v2/auth/csrf").session(session).cookie(cookie))
+                        .andExpect(status().isOk())
+                        .andReturn();
+        String token =
+                json.readTree(csrfResponse.getResponse().getContentAsString())
+                        .path("data")
+                        .path("token")
+                        .asText();
+        var started =
+                mvc.perform(
+                                post("/v1/assessments/quizzes/WORK_ACTIVITIES/attempts")
+                                        .session(session)
+                                        .cookie(cookie)
+                                        .header("X-CSRF-TOKEN", token))
+                        .andExpect(status().isOk())
+                        .andReturn();
+        String id =
+                json.readTree(started.getResponse().getContentAsString())
+                        .path("data")
+                        .path("id")
+                        .asText();
+        var questions =
+                mvc.perform(get("/v1/assessments/quizzes/WORK_ACTIVITIES/questions").cookie(cookie))
+                        .andExpect(status().isOk())
+                        .andReturn();
+        var answers = new ArrayList<Map<String, Object>>();
+        json.readTree(questions.getResponse().getContentAsString())
+                .path("data")
+                .forEach(q -> answers.add(Map.of("questionId", q.path("id").asLong(), "score", 3)));
+        mvc.perform(
+                        post("/v1/assessments/quizzes/attempts/" + id + "/submit")
+                                .session(session)
+                                .cookie(cookie)
+                                .header("X-CSRF-TOKEN", token)
+                                .contentType("application/json")
+                                .content(json.writeValueAsString(Map.of("answers", answers))))
+                .andExpect(status().isOk());
+        mvc.perform(get("/v1/assessments/quizzes/attempts/" + id + "/result").cookie(cookie))
+                .andExpect(status().isOk());
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT student_id FROM assessment_attempts WHERE id=?",
+                                Long.class,
+                                Long.parseLong(id)))
+                .isEqualTo(user);
+    }
+
+    @Test
     void concurrentExplicitLinksCannotTransferOrMergeAnExternalIdentity() throws Exception {
         var pool = java.util.concurrent.Executors.newFixedThreadPool(2);
         var barrier = new java.util.concurrent.CyclicBarrier(2);

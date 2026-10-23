@@ -1,0 +1,22 @@
+.identity-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: clamp(1.5rem, 4vw, 4rem); align-items: start; }
+.identity-intro { padding-block: 2rem; }
+.identity-intro h2 { font: 500 clamp(1.75rem, 4vw, 2.75rem)/1.2 Georgia, serif; color: var(--ink); }
+.identity-intro p { line-height: 1.7; }
+.identity-eyebrow { letter-spacing: .08em; font-weight: 700; color: var(--tech-deep); }
+.identity-card { min-width: 0; padding: clamp(1rem, 3vw, 2rem); background: var(--card); border: 1px solid var(--line); border-radius: var(--radius-lg); }
+.identity-card h2 { margin-block: 1.5rem .5rem; }
+.identity-modes { display: flex; gap: .5rem; padding: .25rem; background: var(--surface-muted); border-radius: .75rem; }
+.identity-modes button { flex: 1; border: 1px solid transparent; border-radius: .5rem; background: transparent; color: var(--ink-secondary); font: inherit; }
+.identity-modes button[aria-pressed="true"] { background: var(--card); border-color: var(--line-strong); color: var(--tech-deep); font-weight: 700; }
+.core-flow .identity-fields { padding: 0; border: 0; margin: 0; min-width: 0; }
+.identity-fields label { margin-bottom: .4rem; font-weight: 600; }
+.identity-fields input[aria-invalid="true"] { border: 2px solid #991b1b; }
+.identity-fields small { display: block; color: var(--ink-secondary); margin-top: .4rem; }
+.identity-field-error { display: block; margin-top: .4rem; color: #991b1b; font-size: .9rem; overflow-wrap: anywhere; }
+.identity-password { display: flex; flex-wrap: wrap; gap: .5rem; }
+.core-flow .identity-password input { flex: 1 1 10rem; min-width: 0; width: auto; }
+.identity-password button, .identity-cancel { background: transparent; border: 1px solid var(--line-strong); border-radius: .5rem; padding: .5rem .75rem; font: inherit; color: var(--ink); }
+.identity-google { display: flex; justify-content: center; align-items: center; min-height: 44px; padding: .75rem; border: 1px solid var(--line-strong); border-radius: .75rem; color: var(--ink); text-align: center; font-weight: 600; }
+.identity-provider-note { color: var(--ink-secondary); font-size: .9rem; line-height: 1.6; }
+.identity-card button:disabled, .identity-google[aria-disabled="true"] { opacity: .6; cursor: wait; }
+@media (max-width: 680px) { .identity-layout { grid-template-columns: minmax(0, 1fr); gap: 1rem; } .identity-intro { padding-block: 0; } }
