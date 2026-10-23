@@ -17,6 +17,13 @@
 
 ## 2. Main AI-assisted work — team review required
 
+2026-10-24 Docker startup repair (Codex; responsible human/reviewer to confirm):
+diagnosed the observed empty-JWT-key constructor failure separately from Google,
+preserved private configuration/data, added Compose readiness and safe local setup
+with startup regression tests. Evidence and remaining live-Google limits are in
+[the startup report](.agent/reports/compose-startup-2026-10-24.md). No automatic
+commit, push, merge or human-acceptance claim.
+
 | ID | Responsible contributor / tool | Key prompt or instruction *(summary; verify actual transcript)* | Main AI-assisted output | Human verification / changes and evidence | Status |
 |---|---|---|---|---|---|
 | AI-01 | **Owner: confirm**; ChatGPT (requirements/design assistant) and AI-assisted planning | Align frozen Requirements Baseline v1/DR1–DR2 to Target Design v1.2, preserve accepted rules, identify safe P1–P6 implementation sequence. | Core/Agent/ERD design notes, architecture contracts and implementation-plan support. | Team must confirm diagram/cardinality and requirements review. See `docs/requirements/CareerSim_Requirements_Baseline_v1_Chat2_Handoff.md`, `docs/architecture/data-model/`, architecture documentation. | Human reviewer and precise prompt: **TO CONFIRM** |

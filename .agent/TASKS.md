@@ -15,6 +15,13 @@ Exact people/Git identities and reviewer rotation remain pending group sign-off.
 
 ## Current work queue
 
+2026-10-24 urgent local Docker startup maintenance is authorized in the US-01/US-03
+integration worktree. [Plan](plans/UC-01-02-03-compose-startup.md),
+[current startup runbook](../docs/deployment/local-compose.md) and
+[executed evidence](reports/compose-startup-2026-10-24.md) cover JWT setup and
+Compose readiness. Original US-03 and parent checkouts are preserved; no automatic
+commit, push or main merge. Live Google login is a separate observed-UAT claim.
+
 2026-10-24 Person 1 Google sign up/sign in follow-up is authorized on the existing
 US-01 worktree. [Plan](plans/US-01-UC-02-google-identity.md) and
 [Google configuration](../docs/testing/google-identity.md) preserve P1/P2 and US-03.
