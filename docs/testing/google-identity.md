@@ -127,6 +127,25 @@ assessment scoring changes, implicit AI consent or new eligibility rule are adde
 
 ## Acceptance checklist and evidence boundaries
 
+On the isolated combined branch, run the frontend gate components sequentially.
+The supported thread pool avoids observed Windows fork-worker startup failures;
+all test files and assertions remain enabled. A failed fork-pool run is not a pass.
+
+```powershell
+cd frontend
+$env:VITE_CORE_V2_ENABLED='true'
+npm run lint
+npm run test:run -- --pool=threads --maxWorkers=1
+npm run build
+cd ../backend
+.\mvnw.cmd verify
+```
+
+The ordinary `npm run check` remains the default gate and was also executed. Final
+counts, known baseline failures and source commits belong to the
+[dated evidence](../../.agent/reports/google-identity-2026-10-24.md), not an assumption
+that a packaging command with skipped tests verifies runtime behavior.
+
 - Frontend: both modes, visible disabled/configured/loading/start/retry states,
   localized labels, cancellation/provider/link feedback, restoration and role landing.
 - Local signed OIDC fixture: real authorization/state/nonce/PKCE, signed ID token,

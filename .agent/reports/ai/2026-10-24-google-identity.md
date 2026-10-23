@@ -30,8 +30,17 @@ Human review and external Google/UAT acceptance remain pending.
 
 Actual commands, counts, failed attempts, integration/preservation and final commit are
 recorded in [the dated report](../google-identity-2026-10-24.md). Initial focused backend
-23 passed; frontend one-worker rerun 119 passed with lint/build; both Compose configurations
-validate. Remaining gates and browser evidence must be recorded before final handoff.
+23 passed; final feature frontend 119 passed with lint/build. Combined frontend
+158 passed after a documented fork-worker startup failure and supported thread-pool
+rerun, with lint/build; combined backend 346 discovered/339 passed/1 known Student
+Agent failure/6 skipped/0 errors. Identity 23 and assessment 29 passed. Both Compose
+configurations and packaging/format checks pass. The actual local browser registration,
+session restoration, Work Activities submit/save/reload, logout denial and re-login
+retrieval passed; desktop/tablet/mobile and keyboard/error states were inspected.
+Full-page capture failed; native viewport screenshots were retained privately. Google
+fonts are self-hosted official Latin/VI subsets with OFL and provenance; browser visitors
+make no new Google Fonts request. See the report for exact source commits, commands,
+runtime JAR hash and remaining human/external/full-suite acceptance gaps.
 
 No raw tokens, provider codes, secrets, private Student data or unrestricted transcripts
 are included in this log. Real Google acceptance cannot be inferred from local fixtures.

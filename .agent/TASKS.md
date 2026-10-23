@@ -18,7 +18,10 @@ Exact people/Git identities and reviewer rotation remain pending group sign-off.
 2026-10-24 Person 1 Google sign up/sign in follow-up is authorized on the existing
 US-01 worktree. [Plan](plans/US-01-UC-02-google-identity.md) and
 [Google configuration](../docs/testing/google-identity.md) preserve P1/P2 and US-03.
-External Google UAT remains pending real credentials; automated evidence is separate.
+External Google UAT remains pending real credentials; [final local evidence](reports/google-identity-2026-10-24.md)
+records combined frontend 158 passed, identity 23 and assessment 29 passed, actual
+browser persistence/re-login, and the recurring unrelated Student Agent full-suite
+failure (339 passed, 1 failed, 6 skipped). No release/integration-ready claim is made.
 
 2026-10-23 explicit Person 1 follow-up: US-01 / UC-01 registration implementation is isolated on `feature/us01-register-account`; protected US-03 remains on its original branch. API/browser registration-to-assessment evidence, complete test outcomes (including any failure/rerun), exact commits and live Google/security/UAT limits are in [the dated registration report](reports/us01-registration-2026-10-23.md). This does not change ownership or authorize a main merge or supplementary implementation.
 
