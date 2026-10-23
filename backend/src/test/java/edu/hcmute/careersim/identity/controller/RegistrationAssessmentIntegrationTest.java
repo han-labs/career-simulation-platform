@@ -11,6 +11,7 @@ import edu.hcmute.careersim.assessment.dto.VersionedAssessmentContracts.*;
 import edu.hcmute.careersim.assessment.service.AssessmentAuthoringService;
 import edu.hcmute.careersim.common.config.BrowserCredentialCookies;
 import edu.hcmute.careersim.common.value.CoreValues;
+import edu.hcmute.careersim.identity.service.BrowserAuthentication;
 import jakarta.servlet.http.Cookie;
 import java.util.*;
 import org.junit.jupiter.api.Test;
@@ -49,6 +50,7 @@ class RegistrationAssessmentIntegrationTest {
     @Autowired ObjectMapper json;
     @Autowired JdbcTemplate jdbc;
     @Autowired AssessmentAuthoringService authoring;
+    @Autowired BrowserAuthentication authentication;
     static final String PASSWORD = "synthetic-registration-2026";
 
     class Browser {
@@ -167,6 +169,98 @@ class RegistrationAssessmentIntegrationTest {
                         Long.parseLong(type),
                         new VersionDraft("riasec-sum", "1", config, questions));
         return authoring.publish(admin, Long.parseLong(version.id()), version.revision()).id();
+    }
+
+    @Test
+    void verifiedGoogleIdentityUsesCoreAssessmentAndReloadsAfterSubjectLogin() throws Exception {
+        // Service boundary fixture: full signed OIDC/state verification is covered separately
+        // by AuthenticationContractTest. No live Google acceptance is implied here.
+        String subject = "core-google-" + UUID.randomUUID();
+        String email = "google-" + UUID.randomUUID() + "@example.test";
+        long user =
+                authentication.externalIdentity(
+                        "https://accounts.google.com",
+                        subject,
+                        email,
+                        "Synthetic Google Student",
+                        null,
+                        null);
+        var browser = new Browser();
+        browser.credential =
+                new Cookie(BrowserCredentialCookies.NAME, authentication.issue(user).value());
+        browser.bootstrap();
+        mvc.perform(get("/v2/me").cookie(browser.credential))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.id").value(Long.toString(user)))
+                .andExpect(jsonPath("$.data.role").value("STUDENT"));
+        String version = publishedVersion();
+        var started =
+                mvc.perform(
+                                browser.write(
+                                        "/v2/assessment-versions/" + version + "/attempts",
+                                        Map.of("requestId", UUID.randomUUID())))
+                        .andExpect(status().isOk())
+                        .andReturn();
+        var attempt = data(started);
+        String id = attempt.path("id").asText();
+        var responses = new ArrayList<Map<String, Object>>();
+        attempt.path("questions")
+                .forEach(
+                        q ->
+                                responses.add(
+                                        Map.of(
+                                                "questionId",
+                                                q.path("id").asText(),
+                                                "answerData",
+                                                Map.of("schemaVersion", 1, "value", 3))));
+        var saved =
+                mvc.perform(
+                                browser.write(
+                                                "/v2/assessment-attempts/" + id + "/submit",
+                                                Map.of("items", responses))
+                                        .header("If-Match", "0"))
+                        .andExpect(status().isOk())
+                        .andReturn();
+        mvc.perform(browser.write("/v2/auth/logout", Map.of())).andExpect(status().isOk());
+        mvc.perform(get("/v2/assessment-attempts/" + id + "/result").cookie(browser.credential))
+                .andExpect(status().isUnauthorized());
+        long again =
+                authentication.externalIdentity(
+                        "https://accounts.google.com",
+                        subject,
+                        "changed-" + email,
+                        "Renamed",
+                        null,
+                        null);
+        assertThat(again).isEqualTo(user);
+        var renewed =
+                new Cookie(BrowserCredentialCookies.NAME, authentication.issue(again).value());
+        var loaded =
+                mvc.perform(get("/v2/assessment-attempts/" + id + "/result").cookie(renewed))
+                        .andExpect(status().isOk())
+                        .andReturn();
+        assertThat(data(loaded)).isEqualTo(data(saved));
+        assertThat(data(saved).path("resultData").path("dimensions").size()).isEqualTo(6);
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT count(*) FROM assessment_result WHERE attempt_id=?",
+                                Integer.class,
+                                Long.parseLong(id)))
+                .isEqualTo(1);
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT count(*) FROM app_users WHERE email=?",
+                                Integer.class,
+                                email))
+                .isEqualTo(1);
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT count(*) FROM student_profiles WHERE user_id=?",
+                                Integer.class,
+                                user))
+                .isEqualTo(1);
+        mvc.perform(get("/v2/assessment-attempts/" + id + "/result"))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

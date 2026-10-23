@@ -108,10 +108,43 @@ it('retains Enterprise registration with conditional required organization', asy
   await waitFor(() => expect(command).toHaveBeenCalledWith('/v2/auth/register', expect.objectContaining({ role: 'ENTERPRISE', enterpriseName: 'Synthetic Enterprise' })))
 })
 
-it('shows localized validation and only the configured Google authorization link', () => {
+it('shows localized validation and the configured Google authorization link in both modes', () => {
   page('vi', true)
-  expect(screen.getByRole('link', { name: 'Đăng nhập bằng Google' }).getAttribute('href')).toBe('/api/oauth2/authorization/google')
+  expect(screen.getByRole('link', { name: 'Tiếp tục với Google' }).getAttribute('href')).toBe('/api/oauth2/authorization/google')
   fireEvent.click(screen.getByRole('button', { name: 'Đăng ký', exact: true }))
+  expect(screen.getByRole('link', { name: 'Tiếp tục với Google' }).getAttribute('href')).toBe('/api/oauth2/authorization/google')
   fireEvent.submit(screen.getByRole('button', { name: 'Tạo tài khoản', exact: true }).closest('form'))
   expect(screen.getByRole('alert').textContent).toBe('Vui lòng kiểm tra các trường được đánh dấu.')
+})
+
+it('keeps a disabled Google option and an explanation visible when unconfigured', () => {
+  page()
+  expect(screen.getByRole('button', { name: 'Continue with Google' }).disabled).toBe(true)
+  expect(screen.getByText(/Google sign-in is not configured/)).toBeTruthy()
+  register()
+  expect(screen.getByRole('button', { name: 'Continue with Google' }).disabled).toBe(true)
+  const primary = screen.getByRole('button', { name: 'Create account', exact: true })
+  const google = screen.getByRole('button', { name: 'Continue with Google' })
+  const cancel = screen.getByRole('button', { name: 'Cancel registration' })
+  expect(primary.compareDocumentPosition(google) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(google.compareDocumentPosition(cancel) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
+it('starts the backend redirect without submitting local fields and locks repeated actions until retry', () => {
+  page('en', true); register()
+  const link = screen.getByRole('link', { name: 'Continue with Google' })
+  // Observe the real href action without letting jsdom attempt a network navigation.
+  const start = new MouseEvent('click', { bubbles: true, cancelable: true })
+  link.addEventListener('click', event => event.preventDefault(), { once: true })
+  fireEvent(link, start)
+  expect(link.getAttribute('href')).toBe('/api/oauth2/authorization/google')
+  expect(screen.getByRole('link', { name: 'Connecting to Google…' }).getAttribute('aria-disabled')).toBe('true')
+  expect(screen.getByRole('button', { name: 'Create account', exact: true }).matches(':disabled')).toBe(true)
+  expect(screen.getByRole('button', { name: 'Cancel registration' }).disabled).toBe(true)
+  const repeat = new MouseEvent('click', { bubbles: true, cancelable: true })
+  fireEvent(link, repeat)
+  expect(repeat.defaultPrevented).toBe(true)
+  expect(command).not.toHaveBeenCalled()
+  fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+  expect(screen.getByRole('link', { name: 'Continue with Google' }).getAttribute('aria-disabled')).toBeNull()
 })

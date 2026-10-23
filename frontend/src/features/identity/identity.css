@@ -12,11 +12,19 @@
 .identity-fields label { margin-bottom: .4rem; font-weight: 600; }
 .identity-fields input[aria-invalid="true"] { border: 2px solid #991b1b; }
 .identity-fields small { display: block; color: var(--ink-secondary); margin-top: .4rem; }
+.identity-fields > .button { width: 100%; min-height: 48px; }
 .identity-field-error { display: block; margin-top: .4rem; color: #991b1b; font-size: .9rem; overflow-wrap: anywhere; }
 .identity-password { display: flex; flex-wrap: wrap; gap: .5rem; }
 .core-flow .identity-password input { flex: 1 1 10rem; min-width: 0; width: auto; }
 .identity-password button, .identity-cancel { background: transparent; border: 1px solid var(--line-strong); border-radius: .5rem; padding: .5rem .75rem; font: inherit; color: var(--ink); }
-.identity-google { display: flex; justify-content: center; align-items: center; min-height: 44px; padding: .75rem; border: 1px solid var(--line-strong); border-radius: .75rem; color: var(--ink); text-align: center; font-weight: 600; }
+.identity-separator { display: flex; align-items: center; gap: 1rem; margin-block: 1.25rem; color: var(--ink-secondary); font-size: .9rem; }
+.identity-separator::before, .identity-separator::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+.core-flow .identity-google { display: flex; justify-content: center; align-items: center; gap: 10px; width: 100%; min-height: 48px; padding: 12px; border: 1px solid #747775; border-radius: .5rem; background: #fff; color: #1f1f1f; text-align: center; font: 500 .95rem/1.4 var(--font-ui, Arial, sans-serif); text-decoration: none; }
+.identity-google img { flex: 0 0 20px; object-fit: contain; }
+.identity-google:hover:not(:disabled):not([aria-disabled="true"]) { background: #f8faff; border-color: var(--tech); }
+.identity-google:focus-visible { outline: 3px solid var(--tech); outline-offset: 3px; }
+.identity-card > .identity-cancel { width: 100%; margin-top: 1rem; min-height: 44px; }
+.core-flow .identity-provider-retry { background: transparent; color: var(--tech-deep); text-decoration: underline; border: 0; padding: .5rem; min-height: 44px; font: inherit; }
 .identity-provider-note { color: var(--ink-secondary); font-size: .9rem; line-height: 1.6; }
-.identity-card button:disabled, .identity-google[aria-disabled="true"] { opacity: .6; cursor: wait; }
+.identity-card button:disabled, .identity-google[aria-disabled="true"] { opacity: .65; cursor: not-allowed; }
 @media (max-width: 680px) { .identity-layout { grid-template-columns: minmax(0, 1fr); gap: 1rem; } .identity-intro { padding-block: 0; } }

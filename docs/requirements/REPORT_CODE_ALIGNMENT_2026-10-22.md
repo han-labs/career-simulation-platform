@@ -1,5 +1,17 @@
 # Current report and repository alignment
 
+## 2026-10-24 US-01/02 Google follow-up
+
+The explicit attached task authorizes Google form/state and session-landing completion
+within Person 1. Reuse P1/P2 OIDC, issuer/subject uniqueness, verified email, explicit
+linking and JWT/CSRF; no approved HCMUTE-only identity restriction exists. The
+[setup and sequence](../testing/google-identity.md) distinguishes local signed-provider
+fixtures from unverified external Google UAT. Current HCM-UTE blue/white styling is
+retained per explicit user instruction, qualifying the historical DESIGN palette.
+No business-rule/catalogue/ownership/scoring/schema change is inferred. Safe callback
+codes now distinguish UC-02 cancellation, provider unavailability and locked account;
+successful current-account restoration precedes role landing.
+
 ## 2026-10-23 US-01 / UC-01 follow-up
 
 The explicit registration task authorizes completing Person 1 identity UI/API integration while preserving US-03. Existing P1 provides local registration and configured Google OIDC; the current UC-01 cancellation/field feedback/duplicate message needed UI reconciliation. The [registration contract](../api/registration-uc01.md) and [dated evidence](../../.agent/reports/us01-registration-2026-10-23.md) record the focused implementation and actual test status. No catalogue, frozen business rule, role, consent, scoring or migration change is inferred. Combined-feature acceptance and real Google/human UAT remain distinct gates.
