@@ -14,6 +14,12 @@ matching full-width actions, pending/retry feedback and EN/VI localization. Regi
 retains its fields and cancellation after Google. Provider lookup errors are distinct
 from missing configuration. Two-column HCM-UTE styling remains responsive.
 
+The Google action also uses official Google Sans Medium Latin/Vietnamese WOFF2
+subsets (about 29 kB combined), self-hosted with the upstream SIL OFL license and
+source/provenance. The rest of the site's typography remains unchanged. The license's
+single trailing space is normalized; font binaries are unmodified. A production build
+passed with both assets; no remote Google Fonts requests are introduced.
+
 AccountPage restores `/v2/me` before trusting callback success or choosing a role
 landing. Student opens Career Assessments; Core Enterprise/Admin open their existing
 workspaces; when Core is off they remain on Account. Invalid session and account lock
