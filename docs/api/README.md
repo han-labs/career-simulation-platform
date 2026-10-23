@@ -5,6 +5,7 @@ Base context is `/api`. Core/Auth/Agent contracts use `/api/v2`; legacy catalogu
 
 - [P1/P2 authentication and Core contracts](../architecture/p1-p2-security-core.md): JWT HttpOnly/Secure/Lax cookie, default 900 seconds, CSRF writes, per-jti logout/current actor, explicit safe linking; no identity chosen by client user IDs.
 - [US-01 / UC-01 registration contract and sequence](registration-uc01.md): registration feedback, cancellation, sign-in and assessment handoff.
+- [US-01/02 Google identity setup and callback sequence](../testing/google-identity.md): shared Google action, safe outcomes, role restoration and external acceptance limits.
 - [P3/P4 KB Studio / Builder / Preview / Assignment](agent-platform-p3-p4.md).
 - [P5/P6 Student sessions / SSE / reports / plan confirmation / safe usage](student-agent-p5-p6.md).
 - [EN/VI contract](site-localization.md).

@@ -3,11 +3,12 @@ import { Link, useNavigate } from 'react-router-dom'
 import { command } from '../../shared/api/coreApi.js'
 import { useI18n } from '../../shared/i18n/useI18n.js'
 import './identity.css'
+import googleLogo from './assets/google-g.png'
 
 const duplicateMessage = 'An account with this email already exists. Please sign in.'
 const unavailableMessage = 'Registration is temporarily unavailable. Please try again later.'
 
-export default function AuthenticationForm({ google, onAuthenticated }) {
+export default function AuthenticationForm({ google, providerError = false, onRetryProvider, onAuthenticated }) {
   const { t } = useI18n()
   const navigate = useNavigate()
   const formRef = useRef(null)
@@ -15,6 +16,7 @@ export default function AuthenticationForm({ google, onAuthenticated }) {
   const [mode, setMode] = useState('login')
   const [role, setRole] = useState('STUDENT')
   const [busy, setBusy] = useState(false)
+  const [authorizing, setAuthorizing] = useState(false)
   const [visible, setVisible] = useState(false)
   const [error, setError] = useState('')
   const [notice, setNotice] = useState('')
@@ -28,7 +30,7 @@ export default function AuthenticationForm({ google, onAuthenticated }) {
   }, [fields, busy, notice])
 
   function changeMode(next) {
-    if (pending.current) return
+    if (pending.current || authorizing) return
     formRef.current?.reset()
     setMode(next); setRole('STUDENT'); setVisible(false); setFields({}); setError(''); setNotice('')
   }
@@ -39,7 +41,7 @@ export default function AuthenticationForm({ google, onAuthenticated }) {
 
   async function submit(event) {
     event.preventDefault()
-    if (pending.current) return
+    if (pending.current || authorizing) return
     const form = formRef.current
     const values = Object.fromEntries(new FormData(form))
     const errors = {}
@@ -81,6 +83,10 @@ export default function AuthenticationForm({ google, onAuthenticated }) {
   }
   function fieldError(name) { return fields[name] && <span className="identity-field-error" id={`identity-${name}-error`}>{t(fields[name])}</span> }
 
+  const locked = busy || authorizing
+  const providerNote = providerError ? 'Google availability could not be checked. Try again or use email and password.'
+    : google == null ? 'Checking Google availability…' : !google ? 'Google sign-in is not configured in this environment. You can use email and password.' : ''
+
   return <div className="identity-layout">
     <aside className="identity-intro"><p className="identity-eyebrow">CareerSim</p><h2>{t('Your space to explore what comes next')}</h2>
       <p>{t('Save your career assessments and return to your exploration at your own pace.')}</p>
@@ -89,15 +95,15 @@ export default function AuthenticationForm({ google, onAuthenticated }) {
     </aside>
     <div className="identity-card">
       <div className="identity-modes" aria-label={t('Account access')}>
-        <button type="button" aria-pressed={!registering} disabled={busy} onClick={() => changeMode('login')}>{t('Sign in')}</button>
-        <button type="button" aria-pressed={registering} disabled={busy} onClick={() => changeMode('register')}>{t('Register')}</button>
+        <button type="button" aria-pressed={!registering} disabled={locked} onClick={() => changeMode('login')}>{t('Sign in')}</button>
+        <button type="button" aria-pressed={registering} disabled={locked} onClick={() => changeMode('register')}>{t('Register')}</button>
       </div>
       <h2>{t(registering ? 'Create your account' : 'Welcome back')}</h2>
       <p>{t(registering ? 'Required fields are marked with an asterisk.' : 'Sign in to continue your career exploration.')}</p>
       {notice && <p role="status">{t(notice)}</p>}
       {error && <p role="alert">{t(error)}</p>}
-      <form key={mode} ref={formRef} noValidate onSubmit={submit} aria-busy={busy}>
-        <fieldset disabled={busy} className="identity-fields">
+      <form key={mode} ref={formRef} noValidate onSubmit={submit} aria-busy={locked}>
+        <fieldset disabled={locked} className="identity-fields">
           {registering && <div><label htmlFor="identity-displayName">{t('Display name')} *</label><input {...attributes('displayName')} required maxLength={150} autoComplete="nickname" />{fieldError('displayName')}</div>}
           <div><label htmlFor="identity-email">{t('Email')} *</label><input {...attributes('email')} type="email" required autoComplete="username" maxLength={255} />{fieldError('email')}</div>
           <div><label htmlFor="identity-password">{t('Password')} *</label>
@@ -108,11 +114,17 @@ export default function AuthenticationForm({ google, onAuthenticated }) {
           {registering && <><div><label htmlFor="identity-role">{t('Role')} *</label><select {...attributes('role')} value={role} onChange={e => { setRole(e.target.value); setFields({}); setError('') }}><option value="STUDENT">{t('Student')}</option><option value="ENTERPRISE">{t('Enterprise')}</option></select></div>
             {role === 'ENTERPRISE' && <div><label htmlFor="identity-enterpriseName">{t('Enterprise name')} *</label><input {...attributes('enterpriseName')} required maxLength={240} autoComplete="organization" />{fieldError('enterpriseName')}</div>}</>}
           <button className="button button--primary" type="submit">{t(busy ? (registering ? 'Creating account…' : 'Signing in…') : registering ? 'Create account' : 'Sign in')}</button>
-          {registering && <button type="button" disabled={busy} className="identity-cancel" onClick={() => { formRef.current?.reset(); navigate('/') }}>{t('Cancel registration')}</button>}
         </fieldset>
       </form>
-      {google ? <a className="identity-google" href="/api/oauth2/authorization/google" aria-disabled={busy || undefined} onClick={e => { if (pending.current) e.preventDefault() }}>{t('Sign in with Google')}</a>
-        : <p className="identity-provider-note">{t('Google sign-in is not available in this environment. You can use email and password.')}</p>}
+      <div className="identity-separator"><span>{t('or')}</span></div>
+      {google ? <a className="identity-google" href="/api/oauth2/authorization/google" aria-disabled={locked || undefined}
+        onClick={e => { if (pending.current || authorizing) { e.preventDefault(); return } setAuthorizing(true) }}>
+        <img src={googleLogo} width="20" height="20" alt="" />{t(authorizing ? 'Connecting to Google…' : 'Continue with Google')}</a>
+        : <button type="button" className="identity-google" disabled aria-describedby="identity-provider-note"><img src={googleLogo} width="20" height="20" alt="" />{t('Continue with Google')}</button>}
+      {providerNote && <p id="identity-provider-note" className="identity-provider-note" aria-live="polite">{t(providerNote)}
+        {providerError && <button type="button" className="identity-provider-retry" onClick={onRetryProvider}>{t('Try again')}</button>}</p>}
+      {authorizing && <p className="identity-provider-note" role="status">{t('Opening Google securely. If navigation is blocked, try again.')} <button type="button" className="identity-provider-retry" onClick={() => setAuthorizing(false)}>{t('Try again')}</button></p>}
+      {registering && <button type="button" disabled={locked} className="identity-cancel" onClick={() => { formRef.current?.reset(); navigate('/') }}>{t('Cancel registration')}</button>}
     </div>
   </div>
 }

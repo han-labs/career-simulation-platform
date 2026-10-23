@@ -35,6 +35,11 @@ The actor receives an authorized session or an explicit unsuccessful-login outco
 - Preserve the source specification; verify exact API/UI behavior and automated tests against current `main` before marking as accepted.
 
 ## Verification tracking
+
+2026-10-24 follow-up: [Google identity plan](../../../.agent/plans/US-01-UC-02-google-identity.md)
+and [setup/sequence](../../testing/google-identity.md) cover both identity forms,
+cancel/provider/disabled/link feedback and role landing after session restoration.
+Local signed-provider evidence remains separate from pending external Google UAT.
 - API/component: [IdentityController.java](../../../backend/src/main/java/edu/hcmute/careersim/identity/controller/IdentityController.java); [AccountPage.jsx](../../../frontend/src/features/identity/AccountPage.jsx).
 - Automated tests: [AuthenticationContractTest.java](../../../backend/src/test/java/edu/hcmute/careersim/identity/controller/AuthenticationContractTest.java), [BrowserCredentialValidationTest.java](../../../backend/src/test/java/edu/hcmute/careersim/identity/service/BrowserCredentialValidationTest.java). Existing dated results are in local P1–P6 completion reports; **not rerun here**, not full UC acceptance.
 - Browser/UAT: **PENDING until observed**

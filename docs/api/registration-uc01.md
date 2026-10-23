@@ -42,4 +42,10 @@ Cancel before submission clears the in-memory form and returns home without a re
 
 Google continues through `/api/oauth2/authorization/google` and `/api/login/oauth2/code/google`, with backend-owned OIDC state/nonce/PKCE, verified email and issuer/subject binding. Collision requires explicit linking from a signed-in account. Disabled Google is explained. Synthetic signed OIDC fixture evidence must not be described as live Google acceptance.
 
+2026-10-24 Google follow-up: both forms show Continue with Google, separated from
+the primary email action; disabled availability remains visible with configuration
+feedback. Safe callback codes distinguish cancellation, provider outage, denied
+verification, disabled account and required linking. Successful `/v2/me` restoration
+precedes role landing. See [configuration and sequence](../testing/google-identity.md).
+
 Tests: `RegistrationServiceTest`, `RegistrationAssessmentIntegrationTest`, `AuthenticationContractTest`, `AuthenticationForm.test.jsx`, `AccountPage.test.jsx`; execution status belongs in the dated completion report.
