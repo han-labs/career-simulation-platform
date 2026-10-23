@@ -1,6 +1,6 @@
 # Report-selected US-01 / UC-01 — Register account
 
-Date: 2026-10-23. Status: authorized implementation; acceptance requires executed evidence.
+Date: 2026-10-23; handoff 2026-10-24. Status: implementation committed; local auth/US-03 integration verified; global acceptance gated by reproduced baseline Student Agent failure and pending live Google/human review. See the dated completion report for actual results.
 Owner: Person 1 (Identity & Assessment); human identity/reviewer pending official sign-off.
 Cross-cutting identity owner: this explicitly requested US-01 task; lead security review pending.
 
@@ -13,7 +13,7 @@ Current report ACs: eligible registration/identity flow; missing/invalid fields;
 
 Original checkout: `codex/us-03-career-quiz-alignment` at `62bbe10`, clean at inspection.
 US-03: `feat/us-03-career-quiz` at `69784e8753f4d74fac3354fad85325b91e31d0fa`.
-US-01: separate ignored `.codex-tmp/us01` worktree, `feature/us01-register-account`, from main `62bbe10` (cached origin/main matches). Remote freshness check failed network resolution; no claim of fresh remote verification. No original-checkout switch, stash, commit, reset or cleanup. US-01 contains no US-03 commit. After focused US-01 commit, use a separate temporary integration branch/worktree to merge committed US-03; never merge into main.
+US-01: separate ignored `.codex-tmp/us01` worktree, `feature/us01-register-account`, from main `62bbe10` (cached origin/main matches). Initial Git network check failed; a subsequent read-only GitHub connector comparison of `62bbe1012e9e5c03dad1719b84cd40fff5fce499` against remote `main` returned identical (0 ahead / 0 behind). No original-checkout switch, stash, commit, reset or cleanup. US-01 contains no US-03 commit. After focused US-01 commit, use a separate temporary integration branch/worktree to merge committed US-03; never merge into main.
 
 ## Flows and responsibilities
 

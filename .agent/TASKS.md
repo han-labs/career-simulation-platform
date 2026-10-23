@@ -15,6 +15,8 @@ Exact people/Git identities and reviewer rotation remain pending group sign-off.
 
 ## Current work queue
 
+2026-10-23 explicit Person 1 follow-up: US-01 / UC-01 registration implementation is isolated on `feature/us01-register-account`; protected US-03 remains on its original branch. API/browser registration-to-assessment evidence, complete test outcomes (including any failure/rerun), exact commits and live Google/security/UAT limits are in [the dated registration report](reports/us01-registration-2026-10-23.md). This does not change ownership or authorize a main merge or supplementary implementation.
+
 | Work | Owner / dependency | Status / completion condition |
 |---|---|---|
 | Import CORRECTED catalogue and synchronize navigation | Documentation task authorized by project lead | Documentation updated; static verification in [alignment register](../docs/requirements/REPORT_CODE_ALIGNMENT_2026-10-22.md); no runtime acceptance claimed |

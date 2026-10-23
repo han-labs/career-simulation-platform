@@ -4,6 +4,10 @@
 
 The explicit registration task authorizes completing Person 1 identity UI/API integration while preserving US-03. Existing P1 provides local registration and configured Google OIDC; the current UC-01 cancellation/field feedback/duplicate message needed UI reconciliation. The [registration contract](../api/registration-uc01.md) and [dated evidence](../../.agent/reports/us01-registration-2026-10-23.md) record the focused implementation and actual test status. No catalogue, frozen business rule, role, consent, scoring or migration change is inferred. Combined-feature acceptance and real Google/human UAT remain distinct gates.
 
+The UC-01 required-field summary is proposed wording. This UI uses “Please check the highlighted fields.” with associated “This field is required.” or invalid-value guidance; duplicate-email and unavailable-registration messages follow the UC proposal. This is a presentation choice, not a validation or eligibility-rule change. The remaining full-suite Student Agent failure is recorded in the dated evidence instead of being hidden by the successful registration/assessment slice.
+
+2026-10-24 baseline check: `StudentAgentIntegrationTest.deletedSourceDuringCallCannotResurrectDerivedContent` fails its line-545 fixture latch on unchanged main `62bbe10` as well as the combined tree. This separate Person 3/project-lead test investigation remains open; no Student Agent rule/test or US-03 logic is changed by the registration work. Global DoD is not reported green.
+
 Checked 2026-10-22. This register records documentation provenance, verified source behavior and unresolved wording; it does not approve new business rules or claim new runtime acceptance.
 
 ## Source and repository baseline
