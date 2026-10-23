@@ -43,6 +43,14 @@ public final class VersionedAssessmentContracts {
 
     public record Type(String id, String code, String name, String activeVersionId) {}
 
+    public record AttemptSummary(
+            String id,
+            String assessmentTypeCode,
+            String assessmentVersionId,
+            String status,
+            Instant startedAt,
+            Instant submittedAt) {}
+
     public record Version(
             String id,
             String typeId,

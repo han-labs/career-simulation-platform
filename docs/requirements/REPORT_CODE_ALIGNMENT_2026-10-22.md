@@ -44,6 +44,32 @@ Other source conditions, proposed English UI messages and supplementary flows ar
 
 ## Source/test traceability and acceptance limits
 
+### UC-03 scoped follow-up — 2026-10-23
+
+Later explicit user authorization permits a **controlled local** bootstrap of all
+four existing project quizzes. Local publication and real browser/API AC1–AC5 are
+now verified in [local demo evidence](../../.agent/reports/us-03-local-acceptance-2026-10-23.vi.md).
+The content-gap notes below describe the earlier checkpoint. This is not automatic
+production publication, psychometric validation or human report sign-off. V1–V22
+and frozen business rules remain unchanged.
+
+Current selected US-03 (Person 1) was rechecked at local HEAD `62bbe1012e9e5c03dad1719b84cd40fff5fce499`.
+No prior `.agent/plans/US-03-career-quiz-alignment.md` existed. The v2 page used a
+fixed legacy 35-point display, had no assessment-owned history view, and merged
+local drafts without a revision decision. These are addressed in the scoped
+[plan](../../.agent/plans/US-03-career-quiz-alignment.md) and
+[verification](../../.agent/reports/us-03-career-quiz-alignment.vi.md).
+An additive owner-only attempt-summary API reuses existing persistence; archived
+content blocks unfinished writes while preserving historical reads/idempotent retries.
+Frozen evaluator semantics and V1–V22 remain unchanged.
+
+**Content gap remains:** migrations do not seed reviewed published v2 questionnaires.
+Four available legacy quizzes do not prove four approved v2 versions. No automatic
+conversion/publication or historical result rewrite is authorized or implemented.
+Human publication/UAT and integrated evidence remain separately recorded gates;
+unit/component checks do not establish these. Other discrepancy dispositions above
+are unchanged.
+
 Each selected UC links its matching production controller/component and existing tests in its Verification tracking section. [Traceability](traceability-matrix.md) maps functional Baseline coverage without equating catalogues. Legacy three-story and former thirteen-story materials are labelled historical rather than rewritten or deleted.
 
 Prior local P5/P6 evidence records backend 305 PASS/5 SKIP, frontend 97 PASS per mode and isolated V22 upgrade/regressions. Those dated records are not a fresh run on `5486f9f`. No full suite, application startup, DB migration, paid provider, browser UAT or live Google verification ran in this documentation task. AC-A09/full AC-A17 and relevant live/human/deployment gates remain pending. Twenty deterministic schema/evidence cases are not twenty reviewed live-model cases.

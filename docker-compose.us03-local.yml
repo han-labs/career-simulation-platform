@@ -1,0 +1,14 @@
+# Explicit local demo only. Base deployment configuration is unchanged.
+services:
+  postgres:
+    ports: !override
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+  backend:
+    ports: !override
+      - "127.0.0.1:${BACKEND_PORT:-8081}:8080"
+  frontend:
+    ports: !override
+      - "127.0.0.1:${FRONTEND_PORT:-3000}:80"
+  gateway:
+    ports: !override
+      - "127.0.0.1:${GATEWAY_PORT:-8080}:80"

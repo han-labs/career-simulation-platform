@@ -19,11 +19,11 @@ function AssessmentProgressBar({ answeredCount, totalCount, progressPercent }) {
       </div>
       <div
         role="progressbar"
-        aria-label="Assessment progress"
+        aria-label={t('Assessment progress')}
         aria-valuemin={0}
         aria-valuemax={totalCount}
         aria-valuenow={answeredCount}
-        aria-valuetext={`${answeredCount} of ${totalCount} questions answered`}
+        aria-valuetext={`${answeredCount} / ${totalCount} ${t('completed')}`}
         style={{ height: '8px', background: 'var(--line)', borderRadius: '4px', overflow: 'hidden' }}
       >
         <div style={{ 
