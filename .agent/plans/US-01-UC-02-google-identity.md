@@ -1,6 +1,8 @@
 # Current report US-01/US-02 — Google registration and sign-in
 
-Status: Implementation authorized by the attached user request; acceptance pending evidence.
+Status: Implemented with recorded local identity/US-03 integration; external Google,
+human review and full-suite acceptance remain pending. See the
+[dated evidence](../reports/google-identity-2026-10-24.md).
 Owner: Person 1, UC-01/02; human reviewer and lead security review pending.
 Date: 2026-10-24.
 
