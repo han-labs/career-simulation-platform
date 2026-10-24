@@ -1,15 +1,15 @@
 <!-- documentation-sync-2026-10-22 -->
 # CareerSim current tasks
 
-Updated 2026-10-22. This file owns **current progress**; [TEAM_ASSIGNMENTS](../docs/TEAM_ASSIGNMENTS.md) owns the confirmed person/UC allocation. Current catalogue is [10 selected US / 16 UC](../docs/requirements/README.md), not legacy 3 US or frozen Baseline 15 US.
+Ownership updated 2026-10-25 by Team Lead; other progress checkpoints retain their dates. This file owns **current progress**; [TEAM_ASSIGNMENTS](../docs/TEAM_ASSIGNMENTS.md) owns the confirmed person/UC allocation. Current catalogue is [10 selected US / 16 UC](../docs/requirements/README.md), not legacy 3 US or frozen Baseline 15 US. Current branch scope remains UC-07 only; Phase 1 cleanup precedes any separately authorized Phase 2 redesign.
 
 ## Official allocation and current state
 
 | Person | Assigned UC | Selected report US | Current state |
 |---|---|---|---|
 | Person 1 | UC-01, UC-02, UC-03 | US-01, US-02, US-03 | Existing P1/P2; reconcile API/UI/tests and complete owned UAT; live Google remains pending |
-| Person 2 | UC-04, UC-05, UC-09 | US-04, US-05, US-06, US-10 | Existing catalogue/simulation/usage; resolve completion/recommendation wording before affected code |
-| Person 3 (project lead) | UC-06, UC-07, UC-08 | US-07, US-08, US-09 | Existing Student Agent/KB/Builder; coordinate integration, source-hash plan semantics and live AI evidence |
+| Person 2 | UC-04, UC-05, UC-06 | US-04, US-05, US-06, US-07 | Existing catalogue/simulation/Student Agent; resolve completion/recommendation wording and source-hash plan semantics before affected code |
+| Person 3 (project lead) | UC-07, UC-08, UC-09 | US-08, US-09, US-10 | Existing KB/Builder/usage; coordinate integration, release and live AI evidence with Person 2 |
 
 Exact people/Git identities and reviewer rotation remain pending group sign-off. Cross-cutting security/schema/proxy work needs a named task owner and project-lead review. Supplementary UC maintenance owners are not inferred; UC-14 is deferred.
 

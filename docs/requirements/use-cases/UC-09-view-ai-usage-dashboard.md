@@ -4,7 +4,7 @@
 > **Actor:** Administrator
 > **Report-selected User Story mapping:** US-10
 > **Specification source:** Current 2026-10-22 report §1.5
-> **Module owner:** Người 2
+> **Module owner:** Người 3 (Team Lead allocation, 2026-10-25)
 
 ## Trigger
 The actor wants to inspect AI workload and operational results.

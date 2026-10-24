@@ -3,7 +3,6 @@ import { useEffect, useSyncExternalStore } from 'react'
 import { getAccountGeneration, subscribeAccount } from '../shared/api/httpClient.js'
 import AppShell from '../shared/layout/AppShell.jsx'
 import AssessmentPage from '../features/assessment/pages/AssessmentPage.jsx'
-import SynWidget from '../features/guidance/components/SynWidget.jsx'
 import GuidancePage from '../features/guidance/pages/GuidancePage.jsx'
 import LandingPage from '../features/landing/pages/LandingPage.jsx'
 import SimulationAttemptPage from '../features/simulations/pages/SimulationAttemptPage.jsx'
@@ -44,7 +43,6 @@ function ApplicationLayout() {
     <>
       <ScrollToTop />
       <AppShell key={generation} />
-      <SynWidget />
     </>
   )
 }

@@ -14,7 +14,7 @@ Career Simulation System for student IT-career exploration. React/Vite JavaScrip
 
 Checked `origin/main@5486f9f` contains P1–P6 and V1–V22. Registration/JWT/Google integration, versioned Core, KB Studio, Builder, assigned Student Agent, reports/plans and safe usage are existing code. Their automated/mock evidence does not establish real Google, live-model quality or deployed UAT. No reimplementation is requested.
 
-**Person 1:** UC-01/02/03 → US-01/02/03. **Person 2:** UC-04/05/09 → US-04/05/06/10. **Person 3 (lead):** UC-06/07/08 → US-07/08/09. Names/Git aliases/reviewer rota need separate sign-off. UC-10–16 are supplementary, UC-14 is deferred.
+**Allocation updated 2026-10-25:** **Person 1:** UC-01/02/03 → US-01/02/03. **Person 2:** UC-04/05/06 → US-04/05/06/07. **Person 3 (lead):** UC-07/08/09 → US-08/09/10. This branch implements UC-07 only. Names/Git aliases/reviewer rota need separate sign-off. UC-10–16 are supplementary, UC-14 is deferred.
 
 ## Development entry point
 

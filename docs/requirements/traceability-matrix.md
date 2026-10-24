@@ -11,10 +11,10 @@ Use [the requirements index](README.md), [selected report stories](user-stories/
 | US-04 Explore simulations | UC-04 | 2 | US-06 |
 | US-05 Complete simulation | UC-05 | 2 | US-07 |
 | US-06 View simulation results | UC-05 | 2 | US-08 |
-| US-07 Consult career agent | UC-06 | 3 | US-11/12/13/14; Agent/KB access prerequisites remain |
+| US-07 Consult career agent | UC-06 | 2 | US-11/12/13/14; Agent/KB access prerequisites remain |
 | US-08 Manage knowledge base | UC-07 | 3 | US-09 |
 | US-09 Create AI agent | UC-08 | 3 | US-10 |
-| US-10 View AI usage dashboard | UC-09 | 2 | US-15 |
+| US-10 View AI usage dashboard | UC-09 | 3 | US-15 |
 
 Baseline profile/dashboard US-02 is documented by supplementary UC-10/11; Enterprise US-05 by UC-12/13; Admin assessment US-03 by UC-16; account administration also supports UC-15. These are supporting relationships, not new selected stories or person assignments. UC-14 is deferred. The exact prior-report UC renumbering comes from the supplied [UC index](use-cases/README.md#historical-uc-renumbering-2026-10-21--current).
 

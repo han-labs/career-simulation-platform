@@ -1,6 +1,8 @@
 // Package A presentation strings. Persisted content translations remain version-pinned.
 export const coreMessages = Object.fromEntries(`
 Account and privacy ⇢ Tài khoản và quyền riêng tư
+Account ⇢ Tài khoản
+No exploration plan has been saved. ⇢ Chưa lưu kế hoạch khám phá nào.
 Select an assessment type ⇢ Chọn loại đánh giá
 The requested assessment type has no published version. ⇢ Loại đánh giá được yêu cầu chưa có phiên bản công bố.
 Sign in ⇢ Đăng nhập

@@ -1,6 +1,6 @@
-# TEAM_ASSIGNMENTS — Current report scope (2026-10-22)
+# TEAM_ASSIGNMENTS — Current allocation (2026-10-25)
 
-> **Status:** **OFFICIAL UC/person and selected-US allocation**, confirmed directly by the project lead on 2026-10-22. Exact name/Git identity mapping and the proposed reviewer rotation still require group sign-off. This allocation covers the next integration/UAT work on **already merged P1–P6**, not permission to rewrite Core/AI modules. The current synchronization authorizes documentation changes only.
+> **Status:** **OFFICIAL UC/person and selected-US allocation**, updated directly by the Team Lead on 2026-10-25, superseding the 2026-10-22 allocation. Exact name/Git identity mapping and the proposed reviewer rotation still require group sign-off. This allocation covers integration/UAT work on **already merged P1–P6**, not permission to rewrite Core/AI modules. The current `feat/uc07-admin-knowledge-base` branch implements **UC-07 / US-08 only**; its approved Phase 1 cleanup does not authorize UC-08/09 implementation or Phase 2 redesign.
 >
 > **Source of truth:** current `docs/requirements/use-cases/README.md` and `docs/requirements/user-stories/REPORT_SELECTED_10_US.md`, supported by the frozen Baseline v1 + DR1–DR2.
 
@@ -9,8 +9,8 @@
 | Person | Functional area | Owned UC | Covering selected report US | Delivery responsibility |
 |---|---|---|---|---|
 | **Person 1** | Identity & Assessment | UC-01 Register account; UC-02 Log in; UC-03 Complete career quiz | US-01, US-02, US-03 | Inspect/complete assigned UI and API integration, auth/assessment correctness, role isolation, test evidence, UAT |
-| **Person 2** | Simulation & AI Usage | UC-04 Browse simulations; UC-05 Complete simulation; UC-09 View AI usage dashboard | US-04, US-05, **US-06**, US-10 | Catalogue/tasks/results/self-review and privacy-safe Admin usage UI/API integration, tests and UAT |
-| **Person 3 (project lead)** | Student Agent & Admin AI Platform | UC-06 Consult career agent; UC-07 Manage knowledge base; UC-08 Create AI agent | US-07, US-08, US-09 | Student Agent conversations/SSE/tools/report/plan, KB ingestion/test, Builder preview/publish/assignment; integration/release coordination |
+| **Person 2** | Simulation & Student Agent | UC-04 Browse simulations; UC-05 Complete simulation; UC-06 Consult career agent | US-04, US-05, **US-06**, US-07 | Catalogue/tasks/results/self-review and Student Agent conversations/SSE/tools/report/plan; integration, tests and UAT |
+| **Person 3 (project lead)** | Admin AI Platform & Usage | UC-07 Manage knowledge base; UC-08 Create AI agent; UC-09 View AI usage dashboard | US-08, US-09, US-10 | KB ingestion/test, Builder preview/publish/assignment and privacy-safe Admin usage; integration/release coordination |
 
 **Reviewers (proposed; confirm):** Person 2 reviews Person 1; Person 3 reviews Person 2; Person 1 reviews Person 3. For security/privacy/schema changes, also request project-lead review even where this repeats a reviewer.
 

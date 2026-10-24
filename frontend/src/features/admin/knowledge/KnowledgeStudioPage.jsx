@@ -4,7 +4,6 @@ import { apiRequest } from '../../../shared/api/httpClient.js'
 import { draftKey, readDraft, writeDraft } from '../../../shared/api/coreApi.js'
 import { useI18n } from '../../../shared/i18n/useI18n.js'
 import KnowledgeBaseDialog from './KnowledgeBaseDialog.jsx'
-import PlatformNav from '../agentPlatform/PlatformNav.jsx'
 import KnowledgeBaseTestPanel from './KnowledgeBaseTestPanel.jsx'
 import KnowledgeDocumentInspector from './KnowledgeDocumentInspector.jsx'
 import { kbPath, platformCommand, uploadSource } from '../agentPlatform/platformApi.js'
@@ -24,7 +23,7 @@ export default function KnowledgeStudioPage() {
   }, [])
   useEffect(() => { alive.current = true; Promise.resolve().then(load); return () => { alive.current = false } }, [load])
   const selected = search.get('kb')
-  return <section className="feature-page section-shell core-flow"><PlatformNav /><h1>{t('Knowledge Base Studio')}</h1><p>{t('Manage reviewed platform knowledge. Student private uploads and enterprise knowledge are unavailable here.')}</p>
+  return <section className="feature-page section-shell core-flow"><h1>{t('Knowledge Base Studio')}</h1><p>{t('Manage reviewed platform knowledge. Student private uploads and enterprise knowledge are unavailable here.')}</p>
     {error && <p role="alert">{t(error)}</p>}{loading && <p role="status">{t('Loading knowledge base...')}</p>}
     <div className="platform-grid"><aside><h2>{t('Knowledge bases')}</h2><button disabled={me?.role !== 'ADMIN'} onClick={() => setCreating(true)}>{t('Create knowledge base')}</button><button onClick={load}>{t('Refresh knowledge bases')}</button>
       {!loading && !error && !bases.length && <p>{t('No knowledge bases yet. Create an empty knowledge base to begin.')}</p>}

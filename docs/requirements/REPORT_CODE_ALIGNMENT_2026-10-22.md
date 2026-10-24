@@ -11,7 +11,15 @@ Checked 2026-10-22. This register records documentation provenance, verified sou
 - Report DOCX/ZIP binaries were not copied into the repository. Source paths here are repo-relative; no credentials, contact details or personal local paths are reproduced.
 - [Frozen Baseline v1/DR1–DR2](CareerSim_Requirements_Baseline_v1_Chat2_Handoff.md), Target v1.2 sources, all historical reports and V1–V22 SQL remain unchanged. Existing dirty Nginx changes, nine user-deleted historical design files and untracked evidence are preserved.
 
-## Confirmed allocation
+## Current ownership and cleanup follow-up — 2026-10-25
+
+Team Lead supersedes the dated allocation below: Person 1 UC-01/02/03; Person 2
+UC-04/05/06; Person 3 UC-07/08/09. Current metadata follows TEAM_ASSIGNMENTS;
+older allocation/evidence statements remain historical. In particular D04's
+UC-06 decision now belongs to Person 2 with the lead/BA, without changing the
+business issue or source-hash contract. This branch still implements UC-07 only.
+
+## Historical confirmed allocation — 2026-10-22
 
 ### UC-07 follow-up on `62bbe10` — 2026-10-23
 
