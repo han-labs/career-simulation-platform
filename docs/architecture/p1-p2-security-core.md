@@ -6,6 +6,11 @@ Syn P1/P2 reports describe historical releases, not this release's numbering.
 
 ## Authentication boundary
 
+2026-10-24 US-01/02 presentation follow-up reuses this boundary. The
+[Google setup/sequence](../testing/google-identity.md) maps shared form navigation,
+fixed callback outcomes and `/v2/me` restoration to existing services; no topology,
+identity schema, JWT transport or authorization policy changes.
+
 `Browser -> Nginx -> SecurityConfig/BrowserAuthenticationFilter -> Identity facade
 -> current account + credential version/revocations -> owning business service`.
 
