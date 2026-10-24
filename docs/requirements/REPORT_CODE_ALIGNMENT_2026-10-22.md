@@ -13,6 +13,26 @@ Checked 2026-10-22. This register records documentation provenance, verified sou
 
 ## Confirmed allocation
 
+### UC-07 follow-up on `62bbe10` — 2026-10-23
+
+Approved C1–C5 work is on `feat/uc07-admin-knowledge-base`, preserving the Owner's
+20 staged reference/documentation changes and untracked approved plan. The older
+Git/working-tree statements above remain dated provenance, not current status.
+
+- D07 remains **explicit publication after READY**, with review-revision safety.
+  Approved Reindex option A reuses an identical valid input/profile index as
+  unchanged; no new version or claimed rebuild and no resurrection after retirement.
+- Extraction now has generation-fenced attempt snapshots before embedding and
+  immutable version snapshots at staging, using existing V21 JSONB only.
+  Historical missing snapshots remain unavailable rather than reconstructed.
+- Report body/current selected **US-08 / UC-07** remains the selected catalogue;
+  historical report TOC/overview numbering is not silently adopted or renumbered.
+- No change to UC-06 plan-editing decision, UC-08 configuration/runtime contracts,
+  objective results, retained migrations, parser profile or vector dimension.
+- Fresh deterministic evidence and pending browser/human/live gates are recorded
+  in `.agent/reports/UC-07-completion.vi.md`; this follow-up does not revive missing
+  historical completion reports or claim a paid model evaluation.
+
 | Official person slot | Selected UC | Selected report US |
 |---|---|---|
 | Person 1 | UC-01, UC-02, UC-03 | US-01, US-02, US-03 |
