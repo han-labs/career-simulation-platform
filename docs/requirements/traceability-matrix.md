@@ -22,6 +22,24 @@ For each selected UC, the imported spec now links production source/tests and di
 
 ## Historical initial matrix
 
+### UC-07 / selected US-08 implementation evidence — 2026-10-23
+
+Approved plan: `.agent/plans/UC-07-manage-knowledge-base.md`; baseline `62bbe10`.
+This supplements the existing mapping to **Baseline US-09**, without renumbering.
+
+| Selected US-08 AC | Implementation / executable evidence |
+|---|---|
+| AC1 create/manage | `KnowledgeBaseDialog.jsx`, `KnowledgeStudioPage.jsx`; `knowledgeStudio.test.jsx` covers pinned revisions, preserved conflict drafts, late KB reads and write-success/list-failure. |
+| AC2 five formats/status | Existing parser/chunker/profile retained; `KnowledgeParserContractTest` checks extraction blocks plus unchanged chunks/locators across all formats; `AgentPlatformIntegrationTest` checks pre-embedding snapshots, storage failure and retry. |
+| AC3 publication/provenance | `KnowledgeDocumentInspector.jsx`; exact version/attempt detail, Unicode, missing historical snapshots and rapid-selection tests; full text omitted from lists. |
+| AC4 independent retrieval/answer | `KnowledgeBaseTestPanel.jsx`; separate modes, accepted-query snapshot and revalidation; existing ExecutionService remains authority. |
+| AC5 invalid/no-evidence/errors | Parser invalid-file tests; platform no-evidence/provider-failure tests; visible failure stage and snapshot availability. |
+| AC6 failed replacement preservation | Platform tests inject staging/publication rollback, cancellation and stale revision; Reindex A verifies unchanged version and zero new embedding calls, with no retired resurrection. |
+| UC-06/08/09 compatibility | Student/Builder regressions; `kbTestUsageCountsExecutionsNotIngestionOrReloadAndPreservesUnknownMetrics` verifies KB_TEST producer/aggregate contract without a dashboard expansion. |
+
+See `.agent/reports/UC-07-completion.vi.md` for commands actually executed and
+browser/live/human limitations. Source/test presence alone is not Human PASS.
+
 The original 3-US matrix follows unchanged; it does not define today's selected IDs.
 
 <details>

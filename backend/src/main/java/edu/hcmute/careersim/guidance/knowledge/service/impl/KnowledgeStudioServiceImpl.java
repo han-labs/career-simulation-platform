@@ -195,7 +195,20 @@ public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
                             lockAdmin(admin);
                             available(kb, true);
                             var j = dao.job(kb, id, true);
-                            if (Set.of("READY", "PUBLISHED").contains(j.state())) return j;
+                            if (Set.of("READY", "PUBLISHED").contains(j.state())) {
+                                var version =
+                                        dao.version(
+                                                kb,
+                                                j.assetKey(),
+                                                Long.parseLong(j.producedVersionId()),
+                                                true);
+                                if ("RETIRED".equals(version.status())
+                                        || dao.chunks(Long.parseLong(version.id())).isEmpty())
+                                    throw new ApiException(
+                                            ErrorCode.CONFLICT,
+                                            "The previous index is no longer reusable.");
+                                return j;
+                            }
                             if (Set.of("PARSING", "EMBEDDING").contains(j.state())
                                     && j.startedAt() != null
                                     && j.startedAt().isAfter(Instant.now().minusSeconds(180)))
@@ -206,6 +219,7 @@ public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
                         });
         if (Set.of("READY", "PUBLISHED").contains(claimed.state())) return claimed;
         long generation = claimed.revision(), started = System.nanoTime();
+        String[] phase = {"SOURCE_STORAGE"};
         try (var scope =
                 SynExecutionScope.open(
                                 Duration.ofSeconds(90), () -> active(admin, kb, id, generation))
@@ -235,12 +249,23 @@ public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
                                 Long.parseLong(claimed.sourceFileId()),
                                 "KNOWLEDGE_SOURCE",
                                 Long.parseLong(claimed.sourceFileId()));
+                phase[0] = "PARSING";
                 var parsed =
                         parser.parse(
                                 file.asset().originalName(),
                                 file.asset().mimeType(),
                                 file.bytes(),
                                 claimed.metadata().path("title").asText());
+                phase[0] = "SNAPSHOT_STORAGE";
+                var extraction = parsed.snapshot(dao.inputHash(id));
+                boolean stored =
+                        tx.execute(
+                                s -> {
+                                    lockAdmin(admin);
+                                    available(kb, true);
+                                    return dao.snapshot(kb, id, generation, extraction);
+                                });
+                if (!stored) return dao.job(kb, id, false);
                 String hash =
                         CoreValues.hash(
                                 Map.of(
@@ -252,6 +277,7 @@ public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
                                         embedding.profile()));
                 var previous = dao.existing(kb, claimed.assetKey(), hash, embedding.profile());
                 var vectors = new ArrayList<double[]>();
+                phase[0] = "EMBEDDING";
                 if (previous.isEmpty()) {
                     if (!embedding.available())
                         throw new KnowledgeParser.ParseFailure("EMBEDDING_UNAVAILABLE");
@@ -267,6 +293,7 @@ public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
                         vectors.add(v);
                     }
                 }
+                phase[0] = "STAGING_STORAGE";
                 return tx.execute(
                         s -> {
                             lockAdmin(admin);
@@ -283,15 +310,38 @@ public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
                                                             hash,
                                                             embedding.profile(),
                                                             parsed.chunks(),
-                                                            vectors));
+                                                            vectors,
+                                                            extraction));
                             var saved = dao.version(kb, claimed.assetKey(), version, true);
                             if ("RETIRED".equals(saved.status()))
                                 throw new ApiException(
                                         ErrorCode.CONFLICT,
                                         "Retired content requires a new source version.");
+                            if (previous.isPresent()) {
+                                var storedChunks = dao.chunks(version);
+                                boolean matches = storedChunks.size() == parsed.chunks().size();
+                                for (int i = 0; matches && i < storedChunks.size(); i++) {
+                                    var storedChunk = storedChunks.get(i);
+                                    var parsedChunk = parsed.chunks().get(i);
+                                    matches =
+                                            storedChunk.text().equals(parsedChunk.text())
+                                                    && storedChunk
+                                                            .section()
+                                                            .equals(parsedChunk.section())
+                                                    && storedChunk
+                                                            .sourceLocator()
+                                                            .equals(parsedChunk.locator());
+                                }
+                                if (!matches)
+                                    throw new ApiException(
+                                            ErrorCode.CONFLICT,
+                                            "The previous index is no longer reusable.");
+                            }
                             var metrics =
                                     new LinkedHashMap<String, Object>(
                                             pricing.enrich(SynExecutionScope.trace()));
+                            metrics.put("stage", "COMPLETE");
+                            metrics.put("outcome", previous.isPresent() ? "UNCHANGED" : "STAGED");
                             metrics.put("generation", generation);
                             metrics.put("latencyMs", (System.nanoTime() - started) / 1_000_000);
                             dao.finish(
@@ -313,6 +363,8 @@ public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
                 var metrics =
                         new LinkedHashMap<String, Object>(
                                 pricing.enrich(SynExecutionScope.trace()));
+                metrics.put("stage", phase[0]);
+                metrics.put("errorCode", error);
                 metrics.put("generation", generation);
                 metrics.put("latencyMs", (System.nanoTime() - started) / 1_000_000);
                 tx.executeWithoutResult(
@@ -321,6 +373,14 @@ public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
                             if (current.revision() == generation
                                     && Set.of("PARSING", "EMBEDDING").contains(current.state()))
                                 dao.finish(id, generation, "FAILED", null, error, metrics);
+                            else {
+                                metrics.put(
+                                        "outcome",
+                                        "CANCELLED".equals(current.state())
+                                                ? "CANCELLED"
+                                                : "SUPERSEDED");
+                                dao.recordAttempt(id, generation, metrics);
+                            }
                         });
                 return dao.job(kb, id, false);
             } finally {

@@ -20,3 +20,11 @@
 .platform-table th, .platform-table td { padding:8px; text-align:left; }
 .agent-history { white-space:pre-wrap; overflow-wrap:anywhere; }
 .agent-stream { white-space:pre-wrap; overflow-wrap:anywhere; }
+.kb-dialog-backdrop{position:fixed;inset:0;z-index:100;background:rgb(20 36 33 / 35%);display:grid;place-items:center;padding:16px}
+.kb-dialog{width:min(540px,100%);max-height:90dvh;overflow:auto;background:var(--card,#fff)}
+.kb-dialog fieldset{border:0;padding:0;min-width:0}
+.kb-extracted-text{white-space:pre-wrap;overflow-wrap:anywhere;max-height:480px;overflow:auto;padding:16px;border:1px solid var(--line);border-radius:8px}
+.kb-extracted-text p{margin:0 0 1em}
+.kb-dialog input,.kb-dialog select{max-width:100%}
+.platform-card fieldset{min-width:0}
+.platform-card input[type="file"]{max-width:100%}

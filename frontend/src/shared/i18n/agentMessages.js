@@ -187,4 +187,47 @@ Latency samples ⇢ Mẫu đo độ trễ
 Estimated cost executions ⇢ Lượt có chi phí ước tính
 No-model executions ⇢ Lượt không gọi model
 Latency averages use finished executions only. Unknown metrics are separate from executions without a model call. ⇢ Độ trễ trung bình chỉ tính lượt đã kết thúc. Số liệu chưa xác định được tách riêng khỏi lượt không gọi model.
+Edit knowledge base ⇢ Sửa kho tri thức
+Refresh knowledge bases ⇢ Tải lại danh sách kho tri thức
+No knowledge bases yet. Create an empty knowledge base to begin. ⇢ Chưa có kho tri thức. Hãy tạo một kho trống để bắt đầu.
+Drafts stay with this account and knowledge base. Closing keeps your draft; reloading a list does not change its reviewed revision. ⇢ Bản nháp gắn với tài khoản và kho này. Đóng vẫn giữ bản nháp; tải lại danh sách không thay đổi phiên bản đang sửa.
+Close and keep draft ⇢ Đóng và giữ bản nháp
+Discard draft and use refreshed version ⇢ Bỏ bản nháp và tải phiên bản mới nhất
+Documents ⇢ Tài liệu
+Test KB ⇢ Kiểm thử kho tri thức
+Knowledge workspace views ⇢ Các chế độ của kho tri thức
+Document inspector ⇢ Xem chi tiết tài liệu
+Loading document inspection... ⇢ Đang tải chi tiết tài liệu...
+Source version inspection ⇢ Xem phiên bản nguồn
+Ingestion attempt inspection ⇢ Xem lần xử lý tài liệu
+Attempt generation ⇢ Lần thực thi xử lý
+Failed stage ⇢ Giai đoạn ghi nhận
+Inspection views ⇢ Chế độ xem chi tiết
+Extracted text ⇢ Văn bản trích xuất
+Chunks ⇢ Các đoạn đã lập chỉ mục
+Normalized extraction snapshot ⇢ Bản chụp trích xuất chuẩn hóa
+Normalized extracted text ⇢ Văn bản trích xuất chuẩn hóa
+Extraction locators and warnings ⇢ Vị trí trích xuất và lưu ý
+No extraction snapshot was recorded for this version or attempt. Chunk text is not the original extraction snapshot. ⇢ Phiên bản hoặc lần xử lý này chưa lưu bản chụp trích xuất. Các đoạn chỉ mục không phải bản trích xuất gốc.
+Attempt extraction is not an indexed version. Inspect its produced version for stored chunks. ⇢ Bản trích xuất của lần xử lý không phải phiên bản chỉ mục. Hãy xem phiên bản tạo ra để đọc các đoạn đã lưu.
+Version or attempt provenance ⇢ Nguồn gốc phiên bản hoặc lần xử lý
+Inspect ingestion attempt ⇢ Xem lần xử lý
+Latest ingestion attempt ⇢ Lần xử lý mới nhất
+Currently published version ⇢ Phiên bản đang công bố
+Replace or check unchanged index ⇢ Thay tài liệu hoặc kiểm tra chỉ mục không đổi
+Check existing ingestion ⇢ Kiểm tra chỉ mục hiện có
+Index unchanged. The existing version was reused; no rebuild or new version was created. ⇢ Chỉ mục không đổi. Đã sử dụng phiên bản hiện có; không tái tạo chỉ mục hay tạo phiên bản mới.
+Ingestion ready. Inspect and explicitly publish the version. ⇢ Xử lý hoàn tất. Hãy xem lại và chủ động công bố phiên bản.
+Select the source file again to replace or check its index. An identical valid fingerprint remains unchanged. ⇢ Chọn lại file nguồn để thay thế hoặc kiểm tra chỉ mục. Dấu vân tay hợp lệ giống nhau sẽ giữ nguyên chỉ mục.
+Confirm source lifecycle action ⇢ Xác nhận thay đổi nguồn
+Publish this reviewed version? ⇢ Công bố phiên bản đã xem này?
+Retire this source? Current citations will become unavailable. ⇢ Ngừng sử dụng nguồn này? Các trích dẫn hiện tại sẽ không còn khả dụng.
+Confirm source action ⇢ Xác nhận thay đổi nguồn
+Keep current publication ⇢ Giữ trạng thái công bố hiện tại
+Test mode ⇢ Chế độ kiểm thử
+Retrieve passages ⇢ Truy xuất các đoạn
+Answer with sources ⇢ Trả lời kèm nguồn
+Submitted test request ⇢ Yêu cầu kiểm thử đã gửi
+Saved request details are unavailable for this historical execution. ⇢ Không có chi tiết yêu cầu đã lưu cho lượt thực thi lịch sử này.
+Knowledge base unavailable. ⇢ Kho tri thức không còn khả dụng.
 `.trim().split('\n').map(line => line.split(' ⇢ ')))

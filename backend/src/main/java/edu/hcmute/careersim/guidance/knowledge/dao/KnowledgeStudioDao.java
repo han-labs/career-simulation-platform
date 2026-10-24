@@ -2,6 +2,7 @@ package edu.hcmute.careersim.guidance.knowledge.dao;
 
 import static edu.hcmute.careersim.guidance.knowledge.dto.KnowledgeContracts.*;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import edu.hcmute.careersim.common.exception.NotFoundException;
 import edu.hcmute.careersim.common.value.CoreValues;
 import edu.hcmute.careersim.guidance.domain.KnowledgeChunker;
@@ -119,7 +120,7 @@ public class KnowledgeStudioDao {
 
     public List<Job> jobs(UUID kb) {
         return jdbc.query(
-                "SELECT * FROM public.knowledge_ingestion_job WHERE knowledge_base_id=? ORDER BY created_at DESC,id LIMIT 100",
+                "SELECT j.id,j.knowledge_base_id,j.asset_key,j.uploader_id,j.source_file_id,j.state,j.produced_version_id,j.error_code,j.parser_profile,j.embedding_profile,j.metadata_snapshot,COALESCE((SELECT jsonb_agg(a - 'extractionSnapshot' ORDER BY ord) FROM jsonb_array_elements(j.attempt_history) WITH ORDINALITY AS items(a,ord)),'[]'::jsonb) AS attempt_history,j.row_version,j.created_at,j.started_at,j.finished_at FROM public.knowledge_ingestion_job j WHERE knowledge_base_id=? ORDER BY created_at DESC,id LIMIT 100",
                 jobMap,
                 kb);
     }
@@ -164,11 +165,11 @@ public class KnowledgeStudioDao {
             String error,
             Map<String, Object> metrics) {
         return jdbc.update(
-                        "UPDATE public.knowledge_ingestion_job SET state=?,produced_version_id=?,error_code=?,finished_at=CURRENT_TIMESTAMP,attempt_history=attempt_history||CAST(? AS jsonb),row_version=row_version+1 WHERE id=? AND row_version=? AND state IN ('PARSING','EMBEDDING')",
+                        "UPDATE public.knowledge_ingestion_job SET state=?,produced_version_id=?,error_code=?,finished_at=CURRENT_TIMESTAMP,attempt_history=CAST(? AS jsonb),row_version=row_version+1 WHERE id=? AND row_version=? AND state IN ('PARSING','EMBEDDING')",
                         state,
                         version,
                         error,
-                        CoreValues.write(List.of(metrics)),
+                        CoreValues.write(mergedAttempt(id, generation, CoreValues.tree(metrics))),
                         id,
                         generation)
                 == 1;
@@ -180,12 +181,62 @@ public class KnowledgeStudioDao {
                 id);
     }
 
+    /** Lock and merge exactly one coherent entry per generation; never replace saved extraction. */
+    private JsonNode mergedAttempt(UUID id, long generation, JsonNode patch) {
+        if (!org.springframework.transaction.support.TransactionSynchronizationManager
+                .isActualTransactionActive())
+            throw new IllegalStateException("Attempt merge requires a caller transaction.");
+        var history =
+                (com.fasterxml.jackson.databind.node.ArrayNode)
+                        CoreValues.json(
+                                jdbc.queryForObject(
+                                        "SELECT attempt_history::text FROM public.knowledge_ingestion_job WHERE id=? FOR UPDATE",
+                                        String.class,
+                                        id));
+        com.fasterxml.jackson.databind.node.ObjectNode entry = null;
+        for (var attempt : history)
+            if (attempt.path("generation").asLong(-1) == generation) {
+                entry = (com.fasterxml.jackson.databind.node.ObjectNode) attempt;
+                break;
+            }
+        if (entry == null) {
+            entry = history.addObject();
+            entry.put("generation", generation);
+        }
+        var incoming = (com.fasterxml.jackson.databind.node.ObjectNode) patch.deepCopy();
+        if (entry.has("extractionSnapshot")) {
+            if (incoming.has("extractionSnapshot")
+                    && !entry.get("extractionSnapshot").equals(incoming.get("extractionSnapshot")))
+                throw new IllegalStateException("Attempt extraction is immutable.");
+            incoming.remove("extractionSnapshot");
+        }
+        entry.setAll(incoming);
+        return history;
+    }
+
+    public boolean snapshot(UUID kb, UUID id, long generation, JsonNode extraction) {
+        var current = job(kb, id, true);
+        if (current.revision() != generation || !"PARSING".equals(current.state())) return false;
+        var history =
+                mergedAttempt(
+                        id,
+                        generation,
+                        CoreValues.tree(
+                                Map.of("extractionSnapshot", extraction, "stage", "EXTRACTED")));
+        return jdbc.update(
+                        "UPDATE public.knowledge_ingestion_job SET attempt_history=CAST(? AS jsonb) WHERE id=? AND row_version=? AND state='PARSING'",
+                        CoreValues.write(history),
+                        id,
+                        generation)
+                == 1;
+    }
+
     public void recordAttempt(UUID id, long generation, Map<String, Object> metrics) {
+        var history = mergedAttempt(id, generation, CoreValues.tree(metrics));
         jdbc.update(
-                "UPDATE public.knowledge_ingestion_job j SET attempt_history=attempt_history||CAST(? AS jsonb) WHERE id=? AND NOT EXISTS(SELECT 1 FROM jsonb_array_elements(j.attempt_history) a WHERE a->>'generation'=?)",
-                CoreValues.write(List.of(metrics)),
-                id,
-                Long.toString(generation));
+                "UPDATE public.knowledge_ingestion_job SET attempt_history=CAST(? AS jsonb) WHERE id=?",
+                CoreValues.write(history),
+                id);
     }
 
     public boolean linkedSource(long file) {
@@ -209,8 +260,10 @@ public class KnowledgeStudioDao {
             String hash,
             String profile,
             List<KnowledgeParser.Chunk> chunks,
-            List<double[]> vectors) {
-        var m = job.metadata();
+            List<double[]> vectors,
+            JsonNode extractionSnapshot) {
+        var m = (com.fasterxml.jackson.databind.node.ObjectNode) job.metadata().deepCopy();
+        m.set("extractionSnapshot", extractionSnapshot);
         UUID kb = UUID.fromString(job.knowledgeBaseId());
         String key = "kb-" + kb + "-" + job.assetKey();
         jdbc.update(
@@ -322,7 +375,12 @@ public class KnowledgeStudioDao {
 
     public List<AssetVersion> versions(UUID kb) {
         return jdbc.query(
-                VERSIONS + " ORDER BY s.asset_key,m.version_number DESC LIMIT 500", versionMap, kb);
+                VERSIONS.replace(
+                                "m.*",
+                                "m.version_id,m.document_id,m.version_number,m.mime_type,m.source_file_id,m.source_uri,m.publication_status,m.published_at,(m.locator_metadata - 'extractionSnapshot') AS locator_metadata")
+                        + " ORDER BY s.asset_key,m.version_number DESC LIMIT 500",
+                versionMap,
+                kb);
     }
 
     public AssetVersion version(UUID kb, String key, long id, boolean lock) {
