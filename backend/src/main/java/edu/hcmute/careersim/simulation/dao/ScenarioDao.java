@@ -25,12 +25,18 @@ public class ScenarioDao {
     }
 
     public record Root(
-            long id, long enterprise, String slug, String status, long revision, Long current) {}
+            long id,
+            long enterprise,
+            String slug,
+            String status,
+            String industryCode,
+            long revision,
+            Long current) {}
 
     public Root root(long id, boolean lock) {
         return jdbc
                 .query(
-                        "SELECT id,enterprise_id,slug,availability_status,row_version,current_version_id FROM public.scenario WHERE id=?"
+                        "SELECT id,enterprise_id,slug,availability_status,industry_code,row_version,current_version_id FROM public.scenario WHERE id=?"
                                 + (lock ? " FOR UPDATE" : ""),
                         (r, n) ->
                                 new Root(
@@ -38,8 +44,9 @@ public class ScenarioDao {
                                         r.getLong(2),
                                         r.getString(3),
                                         r.getString(4),
-                                        r.getLong(5),
-                                        r.getObject(6, Long.class)),
+                                        r.getString(5),
+                                        r.getLong(6),
+                                        r.getObject(7, Long.class)),
                         id)
                 .stream()
                 .findFirst()
@@ -360,10 +367,29 @@ public class ScenarioDao {
                 scenario);
     }
 
+    public void classification(long scenario, String industryCode) {
+        jdbc.update(
+                "UPDATE public.scenario SET industry_code=?,row_version=row_version+1,updated_at=CURRENT_TIMESTAMP WHERE id=?",
+                industryCode,
+                scenario);
+    }
+
     public List<Summary> catalog(Long after, int limit) {
+        return catalog(after, limit, "");
+    }
+
+    public List<Summary> catalog(Long after, int limit, String industry) {
+        var args = new ArrayList<Object>();
+        args.add(after == null ? 0 : after);
+        if (!industry.isEmpty()) args.add(industry);
+        args.add(limit);
+        String sql =
+                "SELECT s.id,s.slug,v.id AS version_id,s.enterprise_id,e.name,s.industry_code FROM public.scenario s JOIN public.scenario_version v ON v.id=s.current_version_id JOIN public.enterprise e ON e.id=s.enterprise_id WHERE s.availability_status='AVAILABLE' AND v.status='PUBLISHED' AND s.id>?";
+        if (!industry.isEmpty()) sql += " AND s.industry_code=?";
+        sql += " ORDER BY s.id LIMIT ?";
         return jdbc
                 .query(
-                        "SELECT s.id,s.slug,v.id AS version_id,s.enterprise_id,e.name FROM public.scenario s JOIN public.scenario_version v ON v.id=s.current_version_id JOIN public.enterprise e ON e.id=s.enterprise_id WHERE s.availability_status='AVAILABLE' AND v.status='PUBLISHED' AND s.id>? ORDER BY s.id LIMIT ?",
+                        sql,
                         (r, n) ->
                                 new Summary(
                                         Long.toString(r.getLong(1)),
@@ -371,9 +397,9 @@ public class ScenarioDao {
                                         Long.toString(r.getLong(3)),
                                         Long.toString(r.getLong(4)),
                                         r.getString(5),
+                                        r.getString(6),
                                         null),
-                        after == null ? 0 : after,
-                        limit)
+                        args.toArray())
                 .stream()
                 .map(
                         s ->
@@ -383,6 +409,7 @@ public class ScenarioDao {
                                         s.scenarioVersionId(),
                                         s.enterpriseId(),
                                         s.enterpriseName(),
+                                        s.industryCode(),
                                         publicMetadata(
                                                 version(CoreValues.id(s.scenarioVersionId()), false)
                                                         .metadata())))

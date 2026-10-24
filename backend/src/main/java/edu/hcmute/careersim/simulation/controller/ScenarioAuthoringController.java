@@ -81,6 +81,26 @@ public class ScenarioAuthoringController {
         return ApiResponse.success(true);
     }
 
+    @GetMapping("/enterprise/scenarios/{id}/classification")
+    public ApiResponse<?> classification(Principal p, @PathVariable String id) {
+        return ApiResponse.success(
+                service.classification(actors.require(p).id(), CoreValues.id(id)));
+    }
+
+    @PutMapping("/enterprise/scenarios/{id}/classification")
+    public ApiResponse<?> classify(
+            Principal p,
+            @PathVariable String id,
+            @RequestHeader(value = "If-Match", required = false) String rev,
+            @Valid @RequestBody ClassificationRequest request) {
+        return ApiResponse.success(
+                service.classify(
+                        actors.require(p).id(),
+                        CoreValues.id(id),
+                        CoreValues.revision(rev),
+                        request.industryCode()));
+    }
+
     @GetMapping("/career-skills")
     public ApiResponse<?> skills(Principal p) {
         return ApiResponse.success(service.skills(actors.require(p).id()));

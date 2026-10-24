@@ -19,6 +19,7 @@ public class ScenarioReadDao {
         String text = q.q() == null ? "" : q.q().strip().toLowerCase(Locale.ROOT);
         String track = q.careerTrack() == null ? "" : q.careerTrack().strip();
         String difficulty = q.difficulty() == null ? "" : q.difficulty();
+        String industry = q.industry();
         String sort = q.sort() == null ? "ID_ASC" : q.sort();
         if (text.length() > 200
                 || track.length() > 60
@@ -27,7 +28,10 @@ public class ScenarioReadDao {
                 || !Set.of("ID_ASC", "TITLE_ASC", "DURATION_ASC", "NEWEST").contains(sort))
             CoreValues.invalid("Invalid catalogue query.");
         int limit = Math.max(1, Math.min(q.limit(), 100));
-        String fingerprint = CoreValues.hash(List.of(text, track, difficulty, sort));
+        String fingerprint =
+                industry.isEmpty()
+                        ? CoreValues.hash(List.of(text, track, difficulty, sort))
+                        : CoreValues.hash(List.of(text, track, difficulty, sort, industry));
         String key = "";
         long lastId = 0;
         if (q.cursor() != null && !q.cursor().isBlank()) {
@@ -80,6 +84,10 @@ public class ScenarioReadDao {
         if (!difficulty.isEmpty()) {
             sql += " AND v.difficulty=?";
             args.add(difficulty);
+        }
+        if (!industry.isEmpty()) {
+            sql += " AND s.industry_code=?";
+            args.add(industry);
         }
         if (lastId != 0) {
             sql +=

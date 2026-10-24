@@ -7,7 +7,7 @@ public interface ScenarioCatalogAccess {
     edu.hcmute.careersim.simulation.dto.ScenarioContracts.CatalogPage search(
             edu.hcmute.careersim.simulation.dto.ScenarioContracts.CatalogQuery query);
 
-    List<Summary> list(Long after, int limit);
+    List<Summary> list(Long after, int limit, String industry);
 
     Summary find(String slug);
 }

@@ -17,8 +17,8 @@ public class VersionedCatalogServiceImpl implements VersionedCatalogService {
         return scenarios.search(query);
     }
 
-    public List<Summary> list(Long after, int limit) {
-        return scenarios.list(after, limit);
+    public List<Summary> list(Long after, int limit, String industry) {
+        return scenarios.list(after, limit, industry);
     }
 
     public Summary find(String slug) {

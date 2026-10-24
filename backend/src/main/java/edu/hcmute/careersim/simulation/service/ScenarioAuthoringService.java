@@ -22,6 +22,10 @@ public interface ScenarioAuthoringService {
 
     void availability(long actor, long scenario, long revision, String state);
 
+    Classification classification(long actor, long scenario);
+
+    Classification classify(long actor, long scenario, long revision, String industryCode);
+
     List<Skill> skills(long actor);
 
     String skill(long actor, SkillRequest request);

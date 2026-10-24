@@ -200,6 +200,37 @@ public class ScenarioAuthoringServiceImpl
     }
 
     @Transactional(readOnly = true)
+    public Classification classification(long actor, long scenario) {
+        ActorAccess.requireRole(actors.requireId(actor), "ENTERPRISE");
+        var root = dao.root(scenario, false);
+        enterprise.requireMember(actor, root.enterprise());
+        return new Classification(
+                Long.toString(root.id()), root.industryCode(), root.revision());
+    }
+
+    @Transactional
+    public Classification classify(
+            long actor, long scenario, long revision, String industryCode) {
+        ActorAccess.requireRole(actors.lock(actor), "ENTERPRISE");
+        var root = dao.root(scenario, false);
+        enterprise.requireMember(actor, root.enterprise());
+        if (industryCode != null && !"IT".equals(industryCode))
+            CoreValues.invalid("Invalid industry classification.");
+        root = dao.root(scenario, true);
+        CoreValues.match(revision, root.revision());
+        dao.classification(scenario, industryCode);
+        audit.record(
+                actor,
+                "SCENARIO_CLASSIFICATION_CHANGED",
+                "scenario",
+                scenario,
+                industryCode == null ? Map.of() : Map.of("industryCode", industryCode));
+        var updated = dao.root(scenario, false);
+        return new Classification(
+                Long.toString(updated.id()), updated.industryCode(), updated.revision());
+    }
+
+    @Transactional(readOnly = true)
     public List<Skill> skills(long actor) {
         actors.requireId(actor);
         return dao.skills();
@@ -359,7 +390,15 @@ public class ScenarioAuthoringServiceImpl
 
     @Transactional(readOnly = true)
     public CatalogPage search(CatalogQuery query) {
-        return readDao.search(query);
+        return readDao.search(
+                new CatalogQuery(
+                        query.q(),
+                        query.careerTrack(),
+                        query.difficulty(),
+                        query.sort(),
+                        query.cursor(),
+                        query.limit(),
+                        industry(query.industry())));
     }
 
     @Transactional(readOnly = true)
@@ -376,8 +415,16 @@ public class ScenarioAuthoringServiceImpl
     }
 
     @Transactional(readOnly = true)
-    public List<Summary> list(Long after, int limit) {
-        return dao.catalog(after, Math.max(1, Math.min(limit, 100)));
+    public List<Summary> list(Long after, int limit, String industry) {
+        return dao.catalog(
+                after, Math.max(1, Math.min(limit, 100)), industry(industry));
+    }
+
+    private String industry(String value) {
+        String industry = value == null ? "" : value.strip();
+        if (!industry.isEmpty() && !"IT".equals(industry))
+            CoreValues.invalid("Invalid industry classification.");
+        return industry;
     }
 
     @Transactional(readOnly = true)
@@ -397,6 +444,7 @@ public class ScenarioAuthoringServiceImpl
                 s.scenarioVersionId(),
                 s.enterpriseId(),
                 s.enterpriseName(),
+                s.industryCode(),
                 s.metadata(),
                 version.tasks().stream()
                         .map(

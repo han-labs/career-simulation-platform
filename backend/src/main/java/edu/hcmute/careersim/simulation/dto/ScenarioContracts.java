@@ -96,6 +96,12 @@ public final class ScenarioContracts {
 
     public record Availability(@NotBlank String status) {}
 
+    public record ClassificationRequest(
+            @Pattern(regexp = "IT") String industryCode) {}
+
+    public record Classification(
+            String scenarioId, String industryCode, long revision) {}
+
     public record Version(
             String id,
             String scenarioId,
@@ -115,7 +121,18 @@ public final class ScenarioContracts {
             String difficulty,
             String sort,
             String cursor,
-            int limit) {}
+            int limit,
+            String industry) {
+        public CatalogQuery(
+                String q,
+                String careerTrack,
+                String difficulty,
+                String sort,
+                String cursor,
+                int limit) {
+            this(q, careerTrack, difficulty, sort, cursor, limit, null);
+        }
+    }
 
     public record CatalogPage(List<Summary> items, String nextCursor) {}
 
@@ -137,6 +154,7 @@ public final class ScenarioContracts {
             String scenarioVersionId,
             String enterpriseId,
             String enterpriseName,
+            String industryCode,
             Metadata metadata,
             List<TaskOutline> taskOutline) {
         public Summary(
@@ -146,7 +164,34 @@ public final class ScenarioContracts {
                 String enterpriseId,
                 String enterpriseName,
                 Metadata metadata) {
-            this(id, slug, scenarioVersionId, enterpriseId, enterpriseName, metadata, List.of());
+            this(
+                    id,
+                    slug,
+                    scenarioVersionId,
+                    enterpriseId,
+                    enterpriseName,
+                    null,
+                    metadata,
+                    List.of());
+        }
+
+        public Summary(
+                String id,
+                String slug,
+                String scenarioVersionId,
+                String enterpriseId,
+                String enterpriseName,
+                String industryCode,
+                Metadata metadata) {
+            this(
+                    id,
+                    slug,
+                    scenarioVersionId,
+                    enterpriseId,
+                    enterpriseName,
+                    industryCode,
+                    metadata,
+                    List.of());
         }
     }
 
