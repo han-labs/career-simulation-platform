@@ -6,6 +6,8 @@ import java.util.*;
 public interface VersionedAssessmentService {
     List<Type> catalog();
 
+    List<AttemptSummary> history(long actor);
+
     Attempt start(long actor, long version, UUID request);
 
     Attempt get(long actor, long id);
