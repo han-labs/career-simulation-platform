@@ -1,4 +1,6 @@
 export const identityMessages = {
+  'Home': 'Trang chủ',
+  'Guidance': 'Hướng dẫn',
   'Display name': 'Tên hiển thị',
   'Sign out': 'Đăng xuất',
   'Continue with Google': 'Tiếp tục với Google',

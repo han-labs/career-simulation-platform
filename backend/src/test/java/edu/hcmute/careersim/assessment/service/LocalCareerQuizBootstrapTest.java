@@ -8,7 +8,6 @@ import edu.hcmute.careersim.assessment.dto.VersionedAssessmentContracts.*;
 import edu.hcmute.careersim.common.value.CoreValues;
 import edu.hcmute.careersim.identity.dao.IdentityDao;
 import edu.hcmute.careersim.identity.dto.IdentityContracts.*;
-import edu.hcmute.careersim.identity.service.IdentityService;
 import java.nio.file.*;
 import java.util.*;
 import org.junit.jupiter.api.Test;
@@ -26,6 +25,7 @@ import org.springframework.transaction.support.TransactionTemplate;
             "app.legacy-write-enabled=false",
             "app.ai.provider=disabled",
             "app.syn.cleanup-enabled=false",
+            "spring.flyway.enabled=false",
             "app.auth.jwt.allow-ephemeral-key=true"
         })
 @ActiveProfiles("local-us03")
@@ -37,7 +37,8 @@ class LocalCareerQuizBootstrapTest {
         LocalQuizBootstrapGuard.require(
                 url,
                 System.getenv("LOCAL_US03_PROFILE"),
-                System.getenv("RUN_LOCAL_US03_BOOTSTRAP"));
+                System.getenv("RUN_LOCAL_US03_BOOTSTRAP"),
+                System.getenv("LOCAL_US03_DB_NAME"));
         r.add("spring.datasource.url", () -> url);
         r.add("spring.datasource.username", () -> System.getenv("LOCAL_US03_DB_USER"));
         r.add("spring.datasource.password", () -> System.getenv("LOCAL_US03_DB_PASSWORD"));
@@ -49,7 +50,6 @@ class LocalCareerQuizBootstrapTest {
     @Autowired RiasecQuestionRepository riasec;
     @Autowired CareerQuizQuestionRepository profiles;
     @Autowired IdentityDao identities;
-    @Autowired IdentityService identity;
     @Autowired TransactionTemplate transaction;
     @Autowired JdbcTemplate jdbc;
 
@@ -60,15 +60,20 @@ class LocalCareerQuizBootstrapTest {
                         .readValue(
                                 Files.readString(Path.of(System.getenv("LOCAL_US03_TRANSLATIONS"))),
                                 new TypeReference<>() {});
-        String password = System.getenv("LOCAL_US03_STUDENT_PASSWORD");
-        if (password == null || password.length() < 20)
-            throw new IllegalStateException("Generated local Student password required.");
+        String expectedServer = System.getenv("LOCAL_US03_SYSTEM_IDENTIFIER");
+        if (expectedServer == null
+                || !expectedServer.matches("[0-9]+")
+                || !expectedServer.equals(
+                        jdbc.queryForObject(
+                                "SELECT system_identifier::text FROM pg_control_system()",
+                                String.class)))
+            throw new IllegalStateException(
+                    "Canonical Compose PostgreSQL identity does not match.");
         transaction.executeWithoutResult(
                 status -> {
                     jdbc.execute(
                             "SELECT pg_advisory_xact_lock(hashtext('careersim-local-us03-bootstrap'))");
-                    String adminEmail = "us03-bootstrap@local.example.test",
-                            studentEmail = "us03-student@local.example.test";
+                    String adminEmail = "us03-bootstrap@local.example.test";
                     var admin =
                             identities
                                     .credential(adminEmail)
@@ -91,29 +96,6 @@ class LocalCareerQuizBootstrapTest {
                             || admin.hash() != null)
                         throw new IllegalStateException(
                                 "Synthetic publisher identity collision; no account changed.");
-                    if (identities.credential(studentEmail).isEmpty())
-                        identity.register(
-                                new Registration(
-                                        studentEmail,
-                                        password,
-                                        "Local US-03 Student",
-                                        "STUDENT",
-                                        null));
-                    var student = identity.authenticate(new Login(studentEmail, password));
-                    if (!"STUDENT".equals(identities.credential(studentEmail).orElseThrow().role()))
-                        throw new IllegalStateException("Student identity collision.");
-                    String otherEmail = "us03-other@local.example.test";
-                    if (identities.credential(otherEmail).isEmpty())
-                        identity.register(
-                                new Registration(
-                                        otherEmail,
-                                        password,
-                                        "Local US-03 ownership fixture",
-                                        "STUDENT",
-                                        null));
-                    identity.authenticate(new Login(otherEmail, password));
-                    if (!"STUDENT".equals(identities.credential(otherEmail).orElseThrow().role()))
-                        throw new IllegalStateException("Ownership fixture identity collision.");
                     for (String code :
                             List.of("RIASEC", "INTERESTS", "ABILITIES", "WORK_ACTIVITIES")) {
                         var questions = new ArrayList<QuestionDraft>();
@@ -226,7 +208,7 @@ class LocalCareerQuizBootstrapTest {
                                             + code);
                     }
                     System.out.println(
-                            "Local US-03 bootstrap validated four published versions and synthetic Student; no credentials logged.");
+                            "Local assessment bootstrap validated four published versions; no Student accounts or credentials created.");
                 });
     }
 
