@@ -1259,7 +1259,10 @@ class CorePackageAIntegrationTest {
                             restored.queryForObject(
                                     "SELECT max(version::integer) FROM public.flyway_schema_history WHERE success",
                                     Integer.class))
-                    .isEqualTo(22);
+                    .isEqualTo(
+                            jdbc.queryForObject(
+                                    "SELECT max(version::integer) FROM public.flyway_schema_history WHERE success",
+                                    Integer.class));
             assertThat(
                             restored.queryForObject(
                                     "SELECT resume_snippet_text FROM public.simulation_completion WHERE id=?",
@@ -1340,46 +1343,153 @@ class CorePackageAIntegrationTest {
     @Test
     void fileHttpUploadFinalAnswerReviewAndNext() throws Exception {
         var original = orderedQuizScenario();
-        var draft = scenarios.cloneVersion(representative, Long.parseLong(original.scenarioId()), Long.parseLong(original.id()));
+        var draft =
+                scenarios.cloneVersion(
+                        representative,
+                        Long.parseLong(original.scenarioId()),
+                        Long.parseLong(original.id()));
         var first = draft.tasks().get(0);
-        var fileDefinition = new Definition(null, 1, "Own test file", "FILE", true,
-                CoreValues.tree(Map.of("schemaVersion", 1, "maxBytes", 10485760,
-                        "allowedMimeTypes", List.of("text/plain"))));
-        var fileTask = new Task(first.id(), first.position(), first.title(), first.workplaceContext(),
-                first.instructions(), true, first.translations(), List.of(fileDefinition),
-                first.resources(), first.skillIds(), first.modelAnswer());
-        draft = scenarios.update(representative, Long.parseLong(draft.id()), draft.revision(),
-                new Draft(draft.metadata(), List.of(fileTask, draft.tasks().get(1))));
-        var version = scenarios.publish(representative, Long.parseLong(draft.id()), draft.revision());
+        var fileDefinition =
+                new Definition(
+                        null,
+                        1,
+                        "Own test file",
+                        "FILE",
+                        true,
+                        CoreValues.tree(
+                                Map.of(
+                                        "schemaVersion",
+                                        1,
+                                        "maxBytes",
+                                        10485760,
+                                        "allowedMimeTypes",
+                                        List.of("text/plain"))));
+        var fileTask =
+                new Task(
+                        first.id(),
+                        first.position(),
+                        first.title(),
+                        first.workplaceContext(),
+                        first.instructions(),
+                        true,
+                        first.translations(),
+                        List.of(fileDefinition),
+                        first.resources(),
+                        first.skillIds(),
+                        first.modelAnswer());
+        draft =
+                scenarios.update(
+                        representative,
+                        Long.parseLong(draft.id()),
+                        draft.revision(),
+                        new Draft(draft.metadata(), List.of(fileTask, draft.tasks().get(1))));
+        var version =
+                scenarios.publish(representative, Long.parseLong(draft.id()), draft.revision());
         var cookies = new java.net.CookieManager(null, java.net.CookiePolicy.ACCEPT_ALL);
         var http = java.net.http.HttpClient.newBuilder().cookieHandler(cookies).build();
         String base = "http://localhost:" + port + "/api";
-        gatewayRequest(http, base, "POST", "/v2/auth/login", new IdentityContracts.Login(email, PASSWORD), null);
-        var enrollment = gatewayRequest(http, base, "POST", "/v2/scenario-versions/" + version.id() + "/enrollments", Map.of(), null);
+        gatewayRequest(
+                http,
+                base,
+                "POST",
+                "/v2/auth/login",
+                new IdentityContracts.Login(email, PASSWORD),
+                null);
+        var enrollment =
+                gatewayRequest(
+                        http,
+                        base,
+                        "POST",
+                        "/v2/scenario-versions/" + version.id() + "/enrollments",
+                        Map.of(),
+                        null);
         String eid = enrollment.path("id").asText();
         var task = version.tasks().get(0);
         String route = "/v2/enrollments/" + eid + "/tasks/" + task.id();
-        var before = http.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(base + route + "/model-answer")).build(), java.net.http.HttpResponse.BodyHandlers.ofString());
+        var before =
+                http.send(
+                        java.net.http.HttpRequest.newBuilder(
+                                        java.net.URI.create(base + route + "/model-answer"))
+                                .build(),
+                        java.net.http.HttpResponse.BodyHandlers.ofString());
         assertThat(before.statusCode()).isEqualTo(403);
-        var token = gatewayRequest(http, base, "GET", "/v2/auth/csrf", null, null).path("token").asText();
+        var token =
+                gatewayRequest(http, base, "GET", "/v2/auth/csrf", null, null)
+                        .path("token")
+                        .asText();
         String boundary = "Uc05Boundary";
-        String multipart = "--" + boundary + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"own-test.txt\"\r\nContent-Type: text/plain\r\n\r\nMy synthetic test work\r\n--" + boundary + "--\r\n";
-        var upload = http.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(base + "/v2/files"))
-                .header("X-CSRF-TOKEN", token).header("Content-Type", "multipart/form-data; boundary=" + boundary)
-                .POST(java.net.http.HttpRequest.BodyPublishers.ofString(multipart)).build(), java.net.http.HttpResponse.BodyHandlers.ofString());
+        String multipart =
+                "--"
+                        + boundary
+                        + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"own-test.txt\"\r\nContent-Type: text/plain\r\n\r\nMy synthetic test work\r\n--"
+                        + boundary
+                        + "--\r\n";
+        var upload =
+                http.send(
+                        java.net.http.HttpRequest.newBuilder(
+                                        java.net.URI.create(base + "/v2/files"))
+                                .header("X-CSRF-TOKEN", token)
+                                .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                                .POST(java.net.http.HttpRequest.BodyPublishers.ofString(multipart))
+                                .build(),
+                        java.net.http.HttpResponse.BodyHandlers.ofString());
         assertThat(upload.statusCode()).as("multipart FILE upload").isEqualTo(200);
         var asset = json.readTree(upload.body()).path("data");
-        var items = List.of(new Item(task.definitions().get(0).id(), null, null, asset.path("id").asText(), null));
+        var items =
+                List.of(
+                        new Item(
+                                task.definitions().get(0).id(),
+                                null,
+                                null,
+                                asset.path("id").asText(),
+                                null));
         var saved = gatewayRequest(http, base, "PUT", route + "/submission", new Items(items), 0L);
-        assertThat(gatewayRequest(http, base, "GET", route + "/submission", null, null).path("items").get(0).path("fileAssetId").asText()).isEqualTo(asset.path("id").asText());
+        assertThat(
+                        gatewayRequest(http, base, "GET", route + "/submission", null, null)
+                                .path("items")
+                                .get(0)
+                                .path("fileAssetId")
+                                .asText())
+                .isEqualTo(asset.path("id").asText());
         var request = new Finalize(UUID.randomUUID(), items);
-        var finalized = gatewayRequest(http, base, "POST", route + "/submission/finalize", request, saved.path("revision").asLong());
+        var finalized =
+                gatewayRequest(
+                        http,
+                        base,
+                        "POST",
+                        route + "/submission/finalize",
+                        request,
+                        saved.path("revision").asLong());
         assertThat(finalized.path("status").asText()).isEqualTo("FINAL");
-        assertThat(gatewayRequest(http, base, "POST", route + "/submission/finalize", request, saved.path("revision").asLong())).isEqualTo(finalized);
-        assertThat(gatewayRequest(http, base, "GET", route + "/model-answer", null, null).path("answer").isObject()).isTrue();
-        assertThat(gatewayRequest(http, base, "GET", "/v2/enrollments/" + eid, null, null).path("progression").get(1).path("accessible").asBoolean()).isFalse();
+        assertThat(
+                        gatewayRequest(
+                                http,
+                                base,
+                                "POST",
+                                route + "/submission/finalize",
+                                request,
+                                saved.path("revision").asLong()))
+                .isEqualTo(finalized);
+        assertThat(
+                        gatewayRequest(http, base, "GET", route + "/model-answer", null, null)
+                                .path("answer")
+                                .isObject())
+                .isTrue();
+        assertThat(
+                        gatewayRequest(http, base, "GET", "/v2/enrollments/" + eid, null, null)
+                                .path("progression")
+                                .get(1)
+                                .path("accessible")
+                                .asBoolean())
+                .isFalse();
         gatewayRequest(http, base, "POST", route + "/self-review", Map.of(), null);
-        assertThat(gatewayRequest(http, base, "GET", "/v2/enrollments/" + eid, null, null).path("progression").get(1).path("accessible").asBoolean()).isTrue();
+        assertThat(
+                        gatewayRequest(http, base, "GET", "/v2/enrollments/" + eid, null, null)
+                                .path("progression")
+                                .get(1)
+                                .path("accessible")
+                                .asBoolean())
+                .isTrue();
     }
 
     @Test
@@ -1619,32 +1729,21 @@ class CorePackageAIntegrationTest {
                         + function
                         + "()");
         try {
-            assertThatThrownBy(
-                            () ->
-                                    submissions.finalizeTask(
-                                            student,
-                                            eid,
-                                            tid,
-                                            0,
-                                            new Finalize(UUID.randomUUID(), items(task))))
+            var finalized =
+                    submissions.finalizeTask(
+                            student, eid, tid, 0, new Finalize(UUID.randomUUID(), items(task)));
+            assertThatThrownBy(() -> submissions.selfReview(student, eid, tid))
                     .isInstanceOf(org.springframework.dao.DataAccessException.class);
-            assertThat(submissions.read(student, eid, tid).submissionId()).isNull();
-            assertThat(enrollments.read(student, eid).status()).isEqualTo("ENROLLED");
+            assertThat(submissions.read(student, eid, tid).submissionId())
+                    .isEqualTo(finalized.submissionId());
+            assertThat(submissions.read(student, eid, tid).reviewedAt()).isNull();
+            assertThat(enrollments.read(student, eid).status()).isEqualTo("IN_PROGRESS");
             assertThat(enrollments.read(student, eid).completionId()).isNull();
         } finally {
             jdbc.execute("DROP TRIGGER " + function + " ON public.simulation_completion");
             jdbc.execute("DROP FUNCTION public." + function + "()");
         }
-        assertThat(
-                        submissions
-                                .finalizeTask(
-                                        student,
-                                        eid,
-                                        tid,
-                                        0,
-                                        new Finalize(UUID.randomUUID(), items(task)))
-                                .status())
-                .isEqualTo("FINAL");
+        assertThat(submissions.selfReview(student, eid, tid).reviewedAt()).isNotNull();
     }
 
     @Test

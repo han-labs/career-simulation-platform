@@ -37,10 +37,8 @@ class Uc05FilePolicyMigrationIntegrationTest {
                                     "application/vnd.openxmlformats-officedocument.presentationml.presentation",
                                     3,
                                     "application/vnd.openxmlformats-officedocument.presentationml.presentation"),
-                    "datacom-software-development",
-                            Map.of(2, "application/zip"),
-                    "datacom-introduction-to-cloud",
-                            Map.of(1, "application/pdf"),
+                    "datacom-software-development", Map.of(2, "application/zip"),
+                    "datacom-introduction-to-cloud", Map.of(1, "application/pdf"),
                     "datacom-automation-ai-accelerator",
                             Map.of(2, "application/pdf", -2, "image/png"),
                     "datacom-cyber-security-operations",
@@ -53,7 +51,8 @@ class Uc05FilePolicyMigrationIntegrationTest {
                                     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"));
 
     @Test
-    void freshDatabaseStartsWithoutThirdPartyContentAndExistingVersionsAreClonedOnce() throws Exception {
+    void freshDatabaseStartsWithoutThirdPartyContentAndExistingVersionsAreClonedOnce()
+            throws Exception {
         Flyway fresh = flyway(PG.getJdbcUrl(), "28");
         assertThat(fresh.migrate().migrationsExecuted).isEqualTo(28);
         var clean = jdbc(PG.getJdbcUrl());
@@ -67,8 +66,7 @@ class Uc05FilePolicyMigrationIntegrationTest {
                 .isZero();
         fresh.validate();
 
-        PG.execInContainer(
-                "createdb", "-U", PG.getUsername(), "uc05_upgrade");
+        PG.execInContainer("createdb", "-U", PG.getUsername(), "uc05_upgrade");
         String upgradeUrl =
                 "jdbc:postgresql://"
                         + PG.getHost()
@@ -83,7 +81,8 @@ class Uc05FilePolicyMigrationIntegrationTest {
                         Long.class);
         Map<String, Long> oldVersions = new LinkedHashMap<>();
         for (var entry : POLICIES.entrySet())
-            oldVersions.put(entry.getKey(), scenario(db, enterprise, entry.getKey(), entry.getValue()));
+            oldVersions.put(
+                    entry.getKey(), scenario(db, enterprise, entry.getKey(), entry.getValue()));
 
         long pinnedVersion = oldVersions.get("hpe-software-engineering");
         long enrollment =
@@ -150,7 +149,11 @@ class Uc05FilePolicyMigrationIntegrationTest {
                                 enrollment))
                 .isOne();
 
-        assertPolicy(db, "datacom-automation-ai-accelerator", 2, List.of("application/pdf", "image/png"));
+        assertPolicy(
+                db,
+                "datacom-automation-ai-accelerator",
+                2,
+                List.of("application/pdf", "image/png"));
         assertPolicy(
                 db,
                 "datacom-cyber-security-operations",
@@ -192,9 +195,7 @@ class Uc05FilePolicyMigrationIntegrationTest {
                     "INSERT INTO task_deliverable_definition(task_id,position,name,format,required,validation_config) VALUES (?,1,'Synthetic response',?,true,?::jsonb)",
                     task,
                     file ? "FILE" : "TEXT",
-                    file
-                            ? "{}"
-                            : "{\"schemaVersion\":1,\"minLength\":1,\"maxLength\":100}");
+                    file ? "{}" : "{\"schemaVersion\":1,\"minLength\":1,\"maxLength\":100}");
             db.update(
                     "INSERT INTO model_answer(task_id,content) VALUES (?,'Synthetic example answer')",
                     task);
@@ -229,7 +230,8 @@ class Uc05FilePolicyMigrationIntegrationTest {
     }
 
     private JdbcTemplate jdbc(String url) {
-        return new JdbcTemplate(new DriverManagerDataSource(url, PG.getUsername(), PG.getPassword()));
+        return new JdbcTemplate(
+                new DriverManagerDataSource(url, PG.getUsername(), PG.getPassword()));
     }
 
     private String placeholders(int count) {

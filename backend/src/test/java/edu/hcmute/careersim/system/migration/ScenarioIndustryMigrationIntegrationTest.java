@@ -118,8 +118,7 @@ class ScenarioIndustryMigrationIntegrationTest {
 
         var dao = new ScenarioDao(jdbc, new LearningPolicyDao(jdbc));
         var reads = new ScenarioReadDao(jdbc, dao);
-        var unfiltered =
-                reads.search(new CatalogQuery(null, null, null, "ID_ASC", null, 1, ""));
+        var unfiltered = reads.search(new CatalogQuery(null, null, null, "ID_ASC", null, 1, ""));
         assertThat(unfiltered.items()).hasSize(1);
         assertThat(unfiltered.nextCursor()).isNotBlank();
         assertThat(
@@ -138,12 +137,10 @@ class ScenarioIndustryMigrationIntegrationTest {
         var filtered = reads.search(new CatalogQuery(null, null, null, "ID_ASC", null, 10, "IT"));
         assertThat(filtered.items())
                 .extracting(s -> List.of(s.slug(), s.industryCode()))
-                .containsExactly(
-                        List.of("legacy-null", "IT"), List.of("second-it", "IT"));
+                .containsExactly(List.of("legacy-null", "IT"), List.of("second-it", "IT"));
         assertThat(dao.catalog(null, 10, "IT"))
                 .extracting(s -> List.of(s.slug(), s.industryCode()))
-                .containsExactly(
-                        List.of("legacy-null", "IT"), List.of("second-it", "IT"));
+                .containsExactly(List.of("legacy-null", "IT"), List.of("second-it", "IT"));
         assertThatThrownBy(
                         () ->
                                 reads.search(

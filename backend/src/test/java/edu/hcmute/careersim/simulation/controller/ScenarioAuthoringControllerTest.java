@@ -30,8 +30,10 @@ class ScenarioAuthoringControllerTest {
     @Autowired private MockMvc mockMvc;
     @MockitoBean private ScenarioAuthoringService service;
     @MockitoBean private ActorAccess actors;
+
     @MockitoBean
     private edu.hcmute.careersim.identity.service.BrowserAuthentication browserAuthentication;
+
     @MockitoBean
     private edu.hcmute.careersim.common.config.BrowserCredentialCookies browserCredentialCookies;
 
