@@ -135,7 +135,7 @@ Start free simulation ⇢ Bắt đầu mô phỏng miễn phí
 Starting… ⇢ Đang bắt đầu…
 Sign in is required to save your progress. ⇢ Cần đăng nhập để lưu tiến độ.
 Overview ⇢ Tổng quan
-Video ⇢ Video
+Video ⇢ Video tổng quan
 Tasks ⇢ Nhiệm vụ
 Simulation information ⇢ Thông tin mô phỏng
 Simulation overview video ⇢ Video tổng quan mô phỏng
