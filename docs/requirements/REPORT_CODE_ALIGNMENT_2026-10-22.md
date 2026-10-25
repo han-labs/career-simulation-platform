@@ -31,7 +31,35 @@ Checked 2026-10-22. This register records documentation provenance, verified sou
 - Report DOCX/ZIP binaries were not copied into the repository. Source paths here are repo-relative; no credentials, contact details or personal local paths are reproduced.
 - [Frozen Baseline v1/DR1–DR2](CareerSim_Requirements_Baseline_v1_Chat2_Handoff.md), Target v1.2 sources, all historical reports and V1–V22 SQL remain unchanged. Existing dirty Nginx changes, nine user-deleted historical design files and untracked evidence are preserved.
 
-## Confirmed allocation
+## Current ownership and cleanup follow-up — 2026-10-25
+
+Team Lead supersedes the dated allocation below: Person 1 UC-01/02/03; Person 2
+UC-04/05/06; Person 3 UC-07/08/09. Current metadata follows TEAM_ASSIGNMENTS;
+older allocation/evidence statements remain historical. In particular D04's
+UC-06 decision now belongs to Person 2 with the lead/BA, without changing the
+business issue or source-hash contract. This branch still implements UC-07 only.
+
+## Historical confirmed allocation — 2026-10-22
+
+### UC-07 follow-up on `62bbe10` — 2026-10-23
+
+Approved C1–C5 work is on `feat/uc07-admin-knowledge-base`, preserving the Owner's
+20 staged reference/documentation changes and untracked approved plan. The older
+Git/working-tree statements above remain dated provenance, not current status.
+
+- D07 remains **explicit publication after READY**, with review-revision safety.
+  Approved Reindex option A reuses an identical valid input/profile index as
+  unchanged; no new version or claimed rebuild and no resurrection after retirement.
+- Extraction now has generation-fenced attempt snapshots before embedding and
+  immutable version snapshots at staging, using existing V21 JSONB only.
+  Historical missing snapshots remain unavailable rather than reconstructed.
+- Report body/current selected **US-08 / UC-07** remains the selected catalogue;
+  historical report TOC/overview numbering is not silently adopted or renumbered.
+- No change to UC-06 plan-editing decision, UC-08 configuration/runtime contracts,
+  objective results, retained migrations, parser profile or vector dimension.
+- Fresh deterministic evidence and pending browser/human/live gates are recorded
+  in `.agent/reports/UC-07-completion.vi.md`; this follow-up does not revive missing
+  historical completion reports or claim a paid model evaluation.
 
 | Official person slot | Selected UC | Selected report US |
 |---|---|---|

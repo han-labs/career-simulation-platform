@@ -1,4 +1,6 @@
 export const identityMessages = {
+  'Display name': 'Tên hiển thị',
+  'Sign out': 'Đăng xuất',
   'Continue with Google': 'Tiếp tục với Google',
   'Connecting to Google…': 'Đang kết nối với Google…',
   'Opening Google securely. If navigation is blocked, try again.': 'Đang mở Google an toàn. Nếu trình duyệt chặn chuyển trang, vui lòng thử lại.',

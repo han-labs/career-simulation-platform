@@ -107,6 +107,305 @@ class AgentPlatformIntegrationTest {
                 text.getBytes(java.nio.charset.StandardCharsets.UTF_8));
     }
 
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+    edu.hcmute.careersim.guidance.knowledge.dao.KnowledgeStudioDao studioDao;
+
+    @Autowired org.springframework.transaction.PlatformTransactionManager transactionManager;
+    @Autowired AgentUsageQuery agentUsage;
+
+    @Test
+    void kbTestUsageCountsExecutionsNotIngestionOrReloadAndPreservesUnknownMetrics() {
+        var from = java.time.Instant.now().minusSeconds(3600);
+        var to = java.time.Instant.now().plusSeconds(300);
+        long before = usageCount(agentUsage.query(admin, from, to, "KB_TEST"));
+        UUID kb = publishedKb();
+        UUID request = UUID.randomUUID();
+        clearInvocations(model);
+        var retrieval = terminal(executions.test(admin, kb, query(request, true)));
+        assertThat(retrieval.costStatus()).isEqualTo("NOT_APPLICABLE");
+        assertThat(retrieval.inputTokens()).isNull();
+        assertThat(retrieval.outputTokens()).isNull();
+        verify(model, never())
+                .decide(anyString(), anyString(), anyString(), anyList(), anyBoolean());
+        assertThat(executions.test(admin, kb, query(request, true)).id()).isEqualTo(retrieval.id());
+        executions.read(admin, UUID.fromString(retrieval.id()));
+        assertThatThrownBy(
+                        () ->
+                                executions.test(
+                                        admin,
+                                        kb,
+                                        new edu.hcmute.careersim.guidance.knowledge.dto
+                                                .KnowledgeContracts.Test(
+                                                request, "Conflicting input", true, 5, null, null)))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        when(model.decide(anyString(), anyString(), anyString(), anyList(), anyBoolean()))
+                .thenThrow(
+                        new SynGuidanceProvider.ProviderException(
+                                SynGuidanceProvider.FailureKind.MALFORMED_OUTPUT));
+        var failed = terminal(executions.test(admin, kb, query(UUID.randomUUID(), false)));
+        assertThat(failed.status()).isEqualTo("FAILED");
+        assertThat(failed.estimatedCost()).isNull();
+        assertThat(failed.toolStepsAndSources().toString()).contains(FACT);
+        var ingestion = upload(kb, UUID.randomUUID(), "Synthetic unrelated ingestion");
+        knowledge.retry(admin, kb, UUID.fromString(ingestion.id()));
+        var summary = agentUsage.query(admin, from, to, "KB_TEST");
+        assertThat(usageCount(summary)).isEqualTo(before + 2);
+        assertThat(summary.toString())
+                .contains(
+                        "KB_TEST",
+                        "FAILED",
+                        "SUCCEEDED",
+                        "latency_samples",
+                        "not_applicable_executions")
+                .doesNotContain(
+                        FACT,
+                        "extractionSnapshot",
+                        "Synthetic unrelated ingestion",
+                        "inputSnapshot",
+                        "citations");
+    }
+
+    private long usageCount(Map<String, Object> summary) {
+        return ((List<?>) summary.get("groups"))
+                .stream()
+                        .mapToLong(
+                                row -> ((Number) ((Map<?, ?>) row).get("executions")).longValue())
+                        .sum();
+    }
+
+    @Test
+    void extractionSurvivesEmbeddingFailureReloadAndRetryWithoutLeakingIntoLists() {
+        UUID kb = UUID.fromString(knowledge.create(admin, new BaseInput("Snapshot KB", null)).id());
+        var job = upload(kb, UUID.randomUUID(), "Khám phá 🔎\n\n" + FACT);
+        when(embedding.embed(anyString(), anyBoolean()))
+                .thenAnswer(
+                        call -> {
+                            var saved = knowledge.job(admin, kb, UUID.fromString(job.id()));
+                            assertThat(
+                                            saved.attempts()
+                                                    .get(0)
+                                                    .path("extractionSnapshot")
+                                                    .path("blocks")
+                                                    .size())
+                                    .isEqualTo(2);
+                            throw new SynGuidanceProvider.ProviderException(
+                                    SynGuidanceProvider.FailureKind.PROVIDER_UNAVAILABLE);
+                        });
+        var failed = knowledge.retry(admin, kb, UUID.fromString(job.id()));
+        assertThat(failed.state()).isEqualTo("FAILED");
+        assertThat(failed.attempts()).hasSize(1);
+        assertThat(failed.attempts().get(0).path("stage").asText()).isEqualTo("EMBEDDING");
+        var extraction = failed.attempts().get(0).path("extractionSnapshot");
+        assertThat(extraction.path("blocks").get(0).path("text").asText()).isEqualTo("Khám phá 🔎");
+        assertThat(knowledge.jobs(admin, kb).get(0).attempts().toString())
+                .doesNotContain("extractionSnapshot", FACT);
+        reset(embedding);
+        when(embedding.available()).thenReturn(true);
+        when(embedding.profile()).thenReturn("synthetic:768:v1");
+        var vector = new double[768];
+        vector[0] = 1;
+        when(embedding.embed(anyString(), anyBoolean())).thenReturn(vector);
+        var ready = knowledge.retry(admin, kb, UUID.fromString(job.id()));
+        assertThat(ready.state()).isEqualTo("READY");
+        assertThat(ready.attempts()).hasSize(2);
+        assertThat(ready.attempts().get(0).path("extractionSnapshot")).isEqualTo(extraction);
+        assertThat(ready.attempts().get(1).path("stage").asText()).isEqualTo("COMPLETE");
+        var version =
+                knowledge.version(admin, kb, "guide", Long.parseLong(ready.producedVersionId()));
+        assertThat(version.provenance().path("extractionSnapshot"))
+                .isEqualTo(ready.attempts().get(1).path("extractionSnapshot"));
+        assertThat(knowledge.versions(admin, kb).get(0).provenance().has("extractionSnapshot"))
+                .isFalse();
+        assertThatThrownBy(
+                        () ->
+                                jdbc.update(
+                                        "UPDATE knowledge_asset_metadata SET locator_metadata=jsonb_set(locator_metadata,'{extractionSnapshot,representationVersion}','2') WHERE version_id=?",
+                                        Long.parseLong(version.id())))
+                .isInstanceOf(org.springframework.dao.DataAccessException.class);
+    }
+
+    @Test
+    void snapshotStorageFailureStopsBeforeEmbeddingAndReportsItsStage() {
+        UUID kb =
+                UUID.fromString(knowledge.create(admin, new BaseInput("Storage fault", null)).id());
+        var job = upload(kb, UUID.randomUUID(), FACT);
+        doThrow(
+                        new org.springframework.dao.DataAccessResourceFailureException(
+                                "synthetic storage failure"))
+                .when(studioDao)
+                .snapshot(eq(kb), eq(UUID.fromString(job.id())), anyLong(), any());
+        clearInvocations(embedding);
+        var failed = knowledge.retry(admin, kb, UUID.fromString(job.id()));
+        assertThat(failed.state()).isEqualTo("FAILED");
+        assertThat(failed.attempts().get(0).path("stage").asText()).isEqualTo("SNAPSHOT_STORAGE");
+        assertThat(failed.attempts().get(0).has("extractionSnapshot")).isFalse();
+        verify(embedding, never()).embed(anyString(), anyBoolean());
+        assertThat(knowledge.versions(admin, kb)).isEmpty();
+    }
+
+    @Test
+    void attemptSnapshotsAreImmutableFencedAndMergeLateUsageIntoTheirOwnGeneration() {
+        UUID kb =
+                UUID.fromString(
+                        knowledge.create(admin, new BaseInput("Generation guards", null)).id());
+        var job = upload(kb, UUID.randomUUID(), FACT);
+        UUID id = UUID.fromString(job.id());
+        var tx =
+                new org.springframework.transaction.support.TransactionTemplate(transactionManager);
+        long gen =
+                tx.execute(
+                        t -> {
+                            studioDao.claim(id);
+                            return studioDao.job(kb, id, false).revision();
+                        });
+        var snapshot = CoreValues.tree(Map.of("representationVersion", 1, "blocks", List.of(FACT)));
+        tx.executeWithoutResult(
+                t -> assertThat(studioDao.snapshot(kb, id, gen, snapshot)).isTrue());
+        assertThatThrownBy(
+                        () ->
+                                tx.executeWithoutResult(
+                                        t ->
+                                                studioDao.snapshot(
+                                                        kb,
+                                                        id,
+                                                        gen,
+                                                        CoreValues.tree(
+                                                                Map.of("different", true)))))
+                .isInstanceOf(org.springframework.dao.InvalidDataAccessApiUsageException.class)
+                .hasMessageContaining("Attempt extraction is immutable");
+        knowledge.cancel(admin, kb, id);
+        long next =
+                tx.execute(
+                        t -> {
+                            studioDao.claim(id);
+                            return studioDao.job(kb, id, false).revision();
+                        });
+        tx.executeWithoutResult(
+                t -> {
+                    assertThat(studioDao.snapshot(kb, id, gen, snapshot)).isFalse();
+                    studioDao.recordAttempt(id, gen, Map.of("generation", gen, "actualUsage", 7));
+                    assertThat(studioDao.snapshot(kb, id, next, snapshot)).isTrue();
+                });
+        var history = knowledge.job(admin, kb, id).attempts();
+        assertThat(history).hasSize(2);
+        assertThat(history.get(0).path("actualUsage").asInt()).isEqualTo(7);
+        assertThat(history.get(0).path("extractionSnapshot")).isEqualTo(snapshot);
+        assertThat(history.get(1).has("actualUsage")).isFalse();
+    }
+
+    @Test
+    void reindexAIsUnchangedWithoutEmbeddingAndRetiredVersionsCannotResurrect() {
+        UUID kb = UUID.fromString(knowledge.create(admin, new BaseInput("Reindex A", null)).id());
+        var first = upload(kb, UUID.randomUUID(), FACT);
+        var ready = knowledge.retry(admin, kb, UUID.fromString(first.id()));
+        knowledge.publish(
+                admin,
+                kb,
+                "guide",
+                Long.parseLong(ready.producedVersionId()),
+                knowledge.get(admin, kb).revision(),
+                true);
+        clearInvocations(embedding);
+        var duplicate = upload(kb, UUID.randomUUID(), FACT);
+        var unchanged = knowledge.retry(admin, kb, UUID.fromString(duplicate.id()));
+        assertThat(unchanged.producedVersionId()).isEqualTo(ready.producedVersionId());
+        assertThat(unchanged.attempts().get(0).path("outcome").asText()).isEqualTo("UNCHANGED");
+        assertThat(knowledge.versions(admin, kb)).hasSize(1);
+        verify(embedding, never()).embed(anyString(), anyBoolean());
+        knowledge.retire(admin, kb, "guide", Long.parseLong(ready.producedVersionId()));
+        assertThat(knowledge.search(admin, null, Set.of(kb), FACT, 5, false)).isEmpty();
+        long retiredChunk =
+                Long.parseLong(
+                        knowledge
+                                .version(
+                                        admin,
+                                        kb,
+                                        "guide",
+                                        Long.parseLong(ready.producedVersionId()))
+                                .chunks()
+                                .get(0)
+                                .chunkId());
+        assertThatThrownBy(() -> knowledge.source(admin, kb, retiredChunk))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.NotFoundException.class);
+        assertThatThrownBy(() -> knowledge.retry(admin, kb, UUID.fromString(duplicate.id())))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        var replacement = upload(kb, UUID.randomUUID(), FACT);
+        assertThat(knowledge.retry(admin, kb, UUID.fromString(replacement.id())).state())
+                .isEqualTo("FAILED");
+        assertThat(knowledge.versions(admin, kb))
+                .allSatisfy(v -> assertThat(v.status()).isEqualTo("RETIRED"));
+    }
+
+    @Test
+    void stagingAndPublicationFaultsRollBackWithoutReplacingOldSourcesOrExtraction() {
+        UUID kb = publishedKb();
+        var original = knowledge.versions(admin, kb).get(0);
+        var job = upload(kb, UUID.randomUUID(), "A changed synthetic source.");
+        doAnswer(
+                        call -> {
+                            call.callRealMethod();
+                            throw new org.springframework.dao.DataIntegrityViolationException(
+                                    "synthetic stage rollback");
+                        })
+                .when(studioDao)
+                .stage(any(), anyString(), anyString(), anyList(), anyList(), any());
+        var failed = knowledge.retry(admin, kb, UUID.fromString(job.id()));
+        assertThat(failed.state()).isEqualTo("FAILED");
+        assertThat(failed.attempts().get(0).path("stage").asText()).isEqualTo("STAGING_STORAGE");
+        assertThat(failed.attempts().get(0).has("extractionSnapshot")).isTrue();
+        assertThat(knowledge.versions(admin, kb)).hasSize(1);
+        doCallRealMethod()
+                .when(studioDao)
+                .stage(any(), anyString(), anyString(), anyList(), anyList(), any());
+        var ready = knowledge.retry(admin, kb, UUID.fromString(job.id()));
+        long revision = knowledge.get(admin, kb).revision();
+        knowledge.update(admin, kb, revision, new BaseInput("Other admin revision", "ACTIVE"));
+        assertThatThrownBy(
+                        () ->
+                                knowledge.publish(
+                                        admin,
+                                        kb,
+                                        "guide",
+                                        Long.parseLong(ready.producedVersionId()),
+                                        revision,
+                                        true))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        doAnswer(
+                        call -> {
+                            call.callRealMethod();
+                            throw new org.springframework.dao.DataIntegrityViolationException(
+                                    "synthetic publication rollback");
+                        })
+                .when(studioDao)
+                .publish(any());
+        assertThatThrownBy(
+                        () ->
+                                knowledge.publish(
+                                        admin,
+                                        kb,
+                                        "guide",
+                                        Long.parseLong(ready.producedVersionId()),
+                                        knowledge.get(admin, kb).revision(),
+                                        true))
+                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+        assertThat(
+                        knowledge.versions(admin, kb).stream()
+                                .filter(v -> v.status().equals("PUBLISHED"))
+                                .findFirst()
+                                .orElseThrow()
+                                .id())
+                .isEqualTo(original.id());
+        assertThat(
+                        knowledge
+                                .version(
+                                        admin,
+                                        kb,
+                                        "guide",
+                                        Long.parseLong(ready.producedVersionId()))
+                                .status())
+                .isEqualTo("READY");
+    }
+
     @BeforeEach
     void fixture() {
         String suffix = UUID.randomUUID().toString();
@@ -1277,7 +1576,9 @@ class AgentPlatformIntegrationTest {
         }
         var stored = knowledge.job(admin, kb, UUID.fromString(job.id()));
         assertThat(stored.attempts()).hasSize(1);
-        assertThat(stored.attempts().toString()).contains("inputTokens", "11");
+        assertThat(stored.attempts().toString())
+                .contains(
+                        "inputTokens", "11", "extractionSnapshot", "Replacement synthetic source");
         assertThat(knowledge.versions(admin, kb)).hasSize(1);
     }
 

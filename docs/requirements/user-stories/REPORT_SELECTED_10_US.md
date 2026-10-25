@@ -13,10 +13,13 @@
 | US-04 | Explore simulations | UC-04 | Người 2 |
 | US-05 | Complete simulation | UC-05 | Người 2 |
 | US-06 | View simulation results | UC-05 | Người 2 |
-| US-07 | Consult career agent | UC-06 | Người 3 |
+| US-07 | Consult career agent | UC-06 | Người 2 |
 | US-08 | Manage knowledge base | UC-07 | Người 3 |
 | US-09 | Create AI agent | UC-08 | Người 3 |
-| US-10 | View AI usage dashboard | UC-09 | Người 2 |
+| US-10 | View AI usage dashboard | UC-09 | Người 3 |
+
+Ownership metadata follows the Team Lead's 2026-10-25 allocation in TEAM_ASSIGNMENTS;
+the report story text and acceptance criteria below remain unchanged.
 
 ## Detailed descriptions and acceptance criteria
 

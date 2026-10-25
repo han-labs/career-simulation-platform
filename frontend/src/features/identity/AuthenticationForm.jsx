@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { command } from '../../shared/api/coreApi.js'
 import { useI18n } from '../../shared/i18n/useI18n.js'
@@ -23,7 +23,7 @@ export default function AuthenticationForm({ google, providerError = false, onRe
   const [fields, setFields] = useState({})
   const registering = mode === 'register'
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (busy) return
     const first = Object.keys(fields)[0] ?? (notice ? 'email' : null)
     if (first) formRef.current?.elements.namedItem(first)?.focus()

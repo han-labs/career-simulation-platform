@@ -47,12 +47,7 @@ public class SecurityConfig {
             edu.hcmute.careersim.identity.service.BrowserAuthentication browserAuth,
             BrowserCredentialCookies cookies,
             edu.hcmute.careersim.identity.access.ActorAccess actors,
-            org.springframework.beans.factory.ObjectProvider<ClientRegistrationRepository> clients,
-            org.springframework.beans.factory.ObjectProvider<
-                            edu.hcmute.careersim.identity.access.StudentAccountAccess>
-                    accounts,
-            @Value("${app.security.local-demo-mode:false}") boolean localDemo,
-            @Value("${app.security.local-demo-email:student@demo.com}") String email)
+            org.springframework.beans.factory.ObjectProvider<ClientRegistrationRepository> clients)
             throws Exception {
         http.csrf(
                         c ->
@@ -159,11 +154,15 @@ public class SecurityConfig {
                                                 GoogleOAuthFlow.failure(res, error);
                                             }));
         }
-        if (localDemo && env.acceptsProfiles(Profiles.of("local-demo")))
+        if (localAdminEnabled(env))
             http.addFilterBefore(
-                    new LocalDemoAuthenticationFilter(email, accounts.getObject()),
-                    AnonymousAuthenticationFilter.class);
+                    new LocalDemoAuthenticationFilter(actors), AnonymousAuthenticationFilter.class);
         return http.build();
+    }
+
+    static boolean localAdminEnabled(Environment env) {
+        return env.acceptsProfiles(Profiles.of("local"))
+                && !env.acceptsProfiles(Profiles.of("prod", "production"));
     }
 
     @Bean

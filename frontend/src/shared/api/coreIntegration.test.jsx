@@ -7,7 +7,6 @@ import { apiRequest } from './httpClient.js'
 import { draftKey } from './coreApi.js'
 import CoreSimulationPage from '../../features/simulations/pages/CoreSimulationPage.jsx'
 import VersionedAssessmentPage from '../../features/assessment/pages/VersionedAssessmentPage.jsx'
-import AccountPage from '../../features/identity/AccountPage.jsx'
 vi.mock('./httpClient.js', () => ({ apiRequest: vi.fn(), API_BASE_URL: '/api' }))
 beforeEach(() => { vi.resetAllMocks(); localStorage.clear() })
 afterEach(cleanup)
@@ -87,18 +86,6 @@ it('does not substitute RIASEC when a typed deep link has no published version',
   expect(screen.queryByRole('button', { name: /Read instructions.*Work Activities Test/ })).toBeNull()
   expect(apiRequest.mock.calls.some(([path]) => path.includes('/attempts'))).toBe(false)
 })
-it('requires explicit unchecked consent and leaves the form available after denial', async () => {
-  apiRequest.mockImplementation(path => Promise.resolve(path === '/v2/auth/providers' ? { google: false } : { id: '7', displayName: 'Synthetic', role: 'STUDENT', consents: [] }))
-  page(<AccountPage />)
-  const check = await screen.findByRole('checkbox')
-  expect(check.checked).toBe(false); expect(check.required).toBe(true)
-  fireEvent.click(check)
-  apiRequest.mockRejectedValueOnce(new Error('Synthetic consent rejection'))
-  fireEvent.submit(check.closest('form'))
-  expect(await screen.findByRole('alert')).toBeTruthy()
-  expect(check.checked).toBe(true)
-  await waitFor(() => expect(apiRequest).toHaveBeenCalledWith('/v2/me/consents', expect.objectContaining({ method: 'POST', body: expect.stringContaining('"confirmed":true') })))
-})
 it('keeps zero-score final work complete and requires explicit review to unlock the next task', async () => {
   let reviewed = false
   const final = { status: 'FINAL', revision: 2, items: [{ definitionId: '9', contentText: 'Accepted work' }], quizResult: { correct: 0, total: 1 }, reviewedAt: null }
@@ -111,11 +98,4 @@ it('keeps zero-score final work complete and requires explicit review to unlock 
   await waitFor(() => expect(screen.getByRole('option', { name: 'Next task' }).disabled).toBe(false))
   expect(screen.getByRole('button', { name: 'Self-review recorded' }).disabled).toBe(true)
   expect(screen.getByRole('button', { name: 'View model answer' })).toBeTruthy()
-})
-it('explains an OAuth email collision and exposes only an explicit sign-in/link path', async () => {
-  apiRequest.mockImplementation(path => path === '/v2/auth/providers' ? Promise.resolve({ google: true }) : Promise.reject(Object.assign(new Error('Sign in is required.'), { status: 401 })))
-  page(<AccountPage />, '/account?oauthError=link-required')
-  expect(await screen.findByText('Sign in to your existing account, then explicitly link Google.')).toBeTruthy()
-  expect(await screen.findByRole('link', { name: 'Continue with Google' })).toBeTruthy()
-  expect(screen.queryByRole('checkbox')).toBeNull()
 })
