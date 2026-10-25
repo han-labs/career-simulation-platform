@@ -84,7 +84,7 @@ function HeroSection({ status, result }) {
         <div className="hero-board__item">
           <span className="hero-board__step-number">3</span>
           <div className="hero-board__item-content">
-            <strong>{t("Dashboard & Syn")}</strong>
+            <strong>{t("Dashboard")}</strong>
             <small>{t("Reflect on results and plan your next step")}</small>
           </div>
           <BrainCircuit size={22} className="hero-board__icon" aria-hidden="true" />

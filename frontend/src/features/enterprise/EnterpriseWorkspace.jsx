@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { apiRequest } from '../../shared/api/httpClient.js'
 import { command, draftKey, readDraft, writeDraft } from '../../shared/api/coreApi.js'
 import { useI18n } from '../../shared/i18n/useI18n.js'
@@ -37,7 +36,7 @@ export default function EnterpriseWorkspace() {
   }
   const field = (name, label, multiline = false) => <label key={name}>{t(label)}{multiline ? <textarea required value={draft.metadata[name]} onChange={e => edit({ ...draft, metadata: { ...draft.metadata, [name]: e.target.value } })} /> : <input required value={draft.metadata[name]} onChange={e => edit({ ...draft, metadata: { ...draft.metadata, [name]: e.target.value } })} />}</label>
   function taskField(index, values) { edit({ ...draft, tasks: draft.tasks.map((task, i) => i === index ? { ...task, ...values } : task) }) }
-  return <section className="section-shell core-flow"><h1>{t('Enterprise workspace')}</h1><Link to="/account">{t('Account and privacy')}</Link>{error && <p role="alert">{t(error)}</p>}
+  return <section className="section-shell core-flow"><h1>{t('Enterprise workspace')}</h1>{error && <p role="alert">{t(error)}</p>}
     {membership && <><p>{membership.name} · {membership.verificationStatus} · {membership.publishingStatus}</p><p>{t('Publishing permission is separate from enterprise registration.')}</p>
       <label>{t('Scenario version')}<select value={version?.id ?? ''} onChange={e => { if (e.target.value) select(versions.find(v => v.id === e.target.value)); else { setVersion(null); setDraft(readDraft(draftKey(me.id, 'enterprise-scenario', 'new')) || { metadata: blankMetadata, tasks: [] }); setPreview(false); setDirty(true) } }}><option value="">{t('New scenario draft')}</option>{versions.map(v => <option key={v.id} value={v.id}>{v.metadata.title} · V{v.versionNumber} · {v.status}</option>)}</select></label>
       <button disabled={busy || !version} onClick={() => action('clone')}>{t('Clone as new draft')}</button>

@@ -15,12 +15,6 @@ import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getExplorationDashboard } from '../api/guidanceApi.js'
 
-function openSyn(message, actionType = 'FREE_TEXT', context = null) {
-  window.dispatchEvent(new CustomEvent('careersim:syn-open', {
-    detail: { message, actionType, context },
-  }))
-}
-
 function completedLabel(result, locale = 'en') {
   if (!result.completedAt) return result.completedLabel
   return new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : 'en', {
@@ -189,16 +183,6 @@ function GuidancePage() {
                   <strong className="simulation-history__score">
                     {t(result.score)}<small>/100</small>
                   </strong>
-                  <button
-                    className="text-button"
-                    type="button"
-                    onClick={() => openSyn(
-                      t(`Review my ${result.title} result`),
-                      'REVIEW_RESULT',
-                      { attemptId: result.id },
-                    )}
-                  > {t("View with Syn")} <ArrowRight size={15} />
-                  </button>
                 </article>
               ))}
               {dashboard.recentResults.length > 3 && (
@@ -223,13 +207,7 @@ function GuidancePage() {
             <div className="current-plan">
               <strong>{t(dashboard.plan.title)}</strong><p>{t(dashboard.plan.nextStep)}</p>
             </div>
-          ) : <EmptyState>{t("Ask Syn to draft a small, editable exploration plan.")}</EmptyState>}
-          <button
-            className="text-button"
-            type="button"
-            onClick={() => openSyn(t('Draft an exploration plan'), 'DRAFT_PLAN')}
-          > {t("Draft with Syn")} <ArrowRight size={15} />
-          </button>
+          ) : <EmptyState>{t('No exploration plan has been saved.')}</EmptyState>}
         </article>
       </div>
     </section>

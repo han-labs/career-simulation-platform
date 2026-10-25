@@ -75,6 +75,10 @@ public class KnowledgeParserContractTest {
         assertThat(parsed)
                 .isEqualTo(parser.parse("fixture." + format, mime(format), bytes, "Synthetic"));
         assertThat(parsed.chunks()).hasSize(1);
+        assertThat(parsed.blocks()).hasSize(1);
+        assertThat(parsed.snapshot("synthetic-input").path("blocks").get(0).path("text").asText())
+                .contains(FACT);
+        assertThat(parsed.profile()).isEqualTo(KnowledgeParser.PROFILE);
         assertThat(parsed.chunks().get(0).text()).contains(FACT);
         assertThat(parsed.chunks().get(0).locator().path("format").asText()).isEqualTo(format);
         assertThat(parsed.chunks().get(0).locator().toString())
@@ -195,6 +199,8 @@ public class KnowledgeParserContractTest {
                         text.getBytes(StandardCharsets.UTF_8),
                         "Synthetic");
         assertThat(parsed.chunks()).hasSize(3);
+        assertThat(parsed.blocks()).hasSize(1);
+        assertThat(parsed.blocks().get(0).text()).isEqualTo(text);
         assertThat(
                         parsed.chunks().stream()
                                 .map(KnowledgeParser.Chunk::text)

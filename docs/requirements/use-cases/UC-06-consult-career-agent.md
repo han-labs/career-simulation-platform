@@ -4,7 +4,7 @@
 > **Actor:** Student
 > **Report-selected User Story mapping:** US-07
 > **Specification source:** Current 2026-10-22 report §1.5
-> **Module owner:** Người 3
+> **Module owner:** Người 2 (Team Lead allocation, 2026-10-25)
 
 ## Trigger
 The actor opens an assigned career agent to request guidance or continue a previous conversation.

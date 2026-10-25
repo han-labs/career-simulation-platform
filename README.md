@@ -14,7 +14,7 @@ Career Simulation System for student IT-career exploration. React/Vite JavaScrip
 
 Checked `origin/main@5486f9f` contains P1–P6 and V1–V22. Registration/JWT/Google integration, versioned Core, KB Studio, Builder, assigned Student Agent, reports/plans and safe usage are existing code. Their automated/mock evidence does not establish real Google, live-model quality or deployed UAT. No reimplementation is requested.
 
-**Person 1:** UC-01/02/03 → US-01/02/03. **Person 2:** UC-04/05/09 → US-04/05/06/10. **Person 3 (lead):** UC-06/07/08 → US-07/08/09. Names/Git aliases/reviewer rota need separate sign-off. UC-10–16 are supplementary, UC-14 is deferred.
+**Allocation updated 2026-10-25:** **Person 1:** UC-01/02/03 → US-01/02/03. **Person 2:** UC-04/05/06 → US-04/05/06/07. **Person 3 (lead):** UC-07/08/09 → US-08/09/10. This branch implements UC-07 only. Names/Git aliases/reviewer rota need separate sign-off. UC-10–16 are supplementary, UC-14 is deferred.
 
 ## Development entry point
 
@@ -72,125 +72,45 @@ See `docs/architecture/README.md` for the system diagram and module boundaries.
 - Docker Desktop with Docker Compose, or
 - Java 17 and Node.js 22 for local application development.
 
-## Run the complete stack
+## Run the local Admin Studio
 
-No secret or local `.env` file is required for the demo foundation.
+The standard Compose file is the local Docker development environment. It selects
+Spring profile `local` and binds application ports to 127.0.0.1. No Account page,
+password/token, manual Admin ID or authentication overlay is required.
 
-```powershell
-docker compose up --build
-```
-
-### Enable Syn's optional Gemini or OpenAI provider
-
-Standard guidance works without an API key. To enable AI for eligible free-text
-questions, create an ignored local environment file and edit it without sharing the
-key:
+From the repository root:
 
 ```powershell
-Copy-Item .env.example .env
+docker compose -p careersimfresh build backend frontend
+docker compose -p careersimfresh stop
+docker compose -p careersimfresh up -d --no-build --pull never
 ```
 
-For a Gemini key created in Google AI Studio, set these values in `.env`:
+Open **http://localhost:8080/admin** (redirects to Knowledge Bases). The only Admin
+product areas are Knowledge Bases, AI Agents and AI Usage. Removed Account and
+Assessment Administration URLs display not-found; Student/backend domains remain.
 
-```dotenv
-AI_PROVIDER=gemini
-GEMINI_API_KEY=replace-with-your-own-ai-studio-key
-GEMINI_MODEL=gemini-3.1-flash-lite
-GEMINI_BASE_URL=https://generativelanguage.googleapis.com/v1beta
-AI_GEMINI_TOOL_PLANNING_ENABLED=false
-AI_TIMEOUT_SECONDS=8
-AI_MAX_OUTPUT_TOKENS=300
-```
+LocalDemoAuthenticationFilter selects the oldest existing ACTIVE Administrator
+from this local database and revalidates on each request. It never creates users,
+changes roles or issues credentials. If none exists, access fails closed; account
+provisioning belongs to the identity owner. Existing JWT actors take precedence.
+CSRF, scope checks, services, persistence and publication guards remain active.
 
-Until the full login UI is implemented, a local browser can exercise the protected
-guidance flow with the seeded synthetic student. This mode is opt-in and accepts
-guidance requests only when the request hostname is a loopback host:
+The local principal is absent without profile `local` and cannot activate when
+`prod` or `production` is active, even together with `local`. Deployed environments
+must explicitly select a production profile and configure secure cookies/normal
+JWT/OAuth integration; this Compose file is for local development only.
 
-```dotenv
-LOCAL_DEMO_MODE=true
-LOCAL_DEMO_EMAIL=student@demo.com
-```
+Keep existing secrets in ignored `.env`. For real KB embeddings the existing Gemini
+adapter requires server-side GEMINI_API_KEY; the local profile enables embedding.
+A missing/invalid key produces an honest processing failure. Model answer generation
+is separate. Never put provider keys in VITE variables or print them in logs.
 
-Flyway V8 prepares this synthetic profile for an immediate end-to-end demo. It adds
-a completed 42-question RIASEC baseline, one evaluated Backend Developer result,
-AI consent for this demo identity, and three original multiple-choice tasks for each
-published simulation. New assessment and simulation attempts are still persisted and
-become the latest evidence shown on Dashboard and used by Syn.
-
-Apply the migration and rebuild the application:
-
-```powershell
-docker compose up -d --build
-Invoke-RestMethod http://localhost:8080/api/health
-```
-
-Keep `LOCAL_DEMO_MODE=false` in every shared or deployed environment. The mode is
-only a temporary localhost integration aid and does not replace production login.
-
-Alternatively, configure OpenAI:
-
-```dotenv
-AI_PROVIDER=openai
-OPENAI_API_KEY=replace-with-your-own-project-key
-AI_MODEL=gpt-5.6-luna
-AI_TIMEOUT_SECONDS=8
-AI_MAX_OUTPUT_TOKENS=300
-```
-
-Then rebuild only the affected services:
-
-```powershell
-docker compose up -d --build backend frontend gateway
-```
-
-The key is read only by the backend container. Never rename it with a `VITE_`
-prefix, paste it into React, commit `.env`, print it in screenshots, or put it in a
-Git command. Quick actions remain deterministic and do not call the provider. An
-AI call is attempted only for a safe free-text message from a consenting student;
-all other cases return Standard guidance.
-
-To test both adapters without sending real data or depending on unfinished runtime
-authentication, run the mocked tests:
-
-```powershell
-cd backend
-.\mvnw.cmd "-Dtest=GeminiSynGuidanceProviderTest,OpenAiSynGuidanceProviderTest" test
-```
-
-An optional live smoke spends a small amount of API usage and sends synthetic
-evidence only:
-
-```powershell
-$env:RUN_LIVE_GEMINI_TEST="true"
-$env:GEMINI_API_KEY="replace-with-your-own-ai-studio-key"
-$env:GEMINI_MODEL="gemini-3.1-flash-lite"
-.\mvnw.cmd "-Dtest=GeminiSynGuidanceLiveTest" test
-Remove-Item Env:RUN_LIVE_GEMINI_TEST,Env:GEMINI_API_KEY,Env:GEMINI_MODEL
-```
-
-That command checks the default one-generation-call path. To evaluate the optional
-native planning path as well, set `RUN_LIVE_GEMINI_TOOL_TEST=true`; treat it as a
-model-compatibility test, not a prerequisite for the reliable default.
-
-Runtime browser calls normally require the planned identity/login foundation and
-recorded `consented_to_ai_at`. During local development only, the explicit demo mode
-above supplies the V8 synthetic principal while preserving the service's account,
-status, role, and consent checks. Quick actions always use Standard guidance; enter a
-safe free-text question such as `What should I explore next based on my results?` to
-exercise the configured Gemini adapter.
-
-The reliable default is server-planned generation: `SynAgentPolicy` selects the
-approved read tools, the backend executes them, and Gemini receives one bounded
-generation request with those results. Native Gemini tool planning is retained as an
-experimental two-request path; enable it only after the selected model passes the
-live tool-calling test by setting `AI_GEMINI_TOOL_PLANNING_ENABLED=true`.
-
-Open:
-
-- Application through Nginx: `http://localhost:8080`
-- Frontend container directly: `http://localhost:3000`
-- Backend health endpoint: `http://localhost:8081/api/health`
-- PostgreSQL: `localhost:5433`
+The two named volumes retain PostgreSQL and uploaded private source files across
+stop/start/rebuild. Do not delete volumes or repair Flyway history for this workflow.
+Runtime readiness: `Invoke-RestMethod http://localhost:8080/api/health`; then open
+the KB list through the gateway. Frontend/backend source edits require rebuilding
+the corresponding image; there are no source hot-reload mounts in Compose.
 
 Stop the stack without deleting database data:
 

@@ -1,0 +1,85 @@
+@import './ui-tokens.css';
+
+.cs-ui [hidden] { display: none !important; }
+.cs-ui :where(h1,h2,h3,h4,p) { margin: 0; overflow-wrap: anywhere; }
+.cs-ui :where(h1,h2,h3,h4) { color: var(--cs-text); font-family: inherit; line-height: 1.3; letter-spacing: -.02em; }
+.cs-ui h1 { font-size: clamp(1.75rem, 2.6vw, 2rem); }
+.cs-ui h2 { font-size: 1.375rem; }
+.cs-ui h3 { font-size: 1.125rem; }
+.cs-ui h4 { font-size: 1rem; }
+.cs-ui:focus-visible,.cs-ui :focus-visible { outline: 3px solid var(--cs-primary); outline-offset: 3px; }
+.cs-ui .cs-page-header,.cs-ui .cs-section-header { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--cs-space-4); flex-wrap: wrap; }
+.cs-ui .cs-page-header { margin-bottom: var(--cs-space-8); }
+.cs-ui .cs-page-header > div:first-child { flex: 1 1 26rem; min-width: 0; }
+.cs-ui .cs-page-header p { color: var(--cs-text-secondary); max-width: 72ch; margin-top: var(--cs-space-2); }
+.cs-ui .cs-section-header { margin-bottom: var(--cs-space-5); }
+.cs-ui .cs-surface { min-width: 0; background: var(--cs-surface); border: 1px solid var(--cs-border); border-radius: var(--cs-radius-panel); padding: var(--cs-space-6); }
+.cs-ui .cs-stack { display: grid; gap: var(--cs-space-6); min-width: 0; }
+.cs-ui .cs-actions { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cs-space-3); }
+.cs-ui .cs-button { display: inline-flex; justify-content: center; align-items: center; gap: var(--cs-space-2); min-height: 44px; min-width: 44px; max-width: 100%; padding: 10px 16px; font: inherit; font-size: .9375rem; line-height: 1.4; font-weight: 600; border: 1px solid var(--cs-control-border); border-radius: var(--cs-radius-control); background: var(--cs-surface); color: var(--cs-text-secondary); cursor: pointer; text-align: center; white-space: normal; overflow-wrap: anywhere; text-decoration: none; }
+.cs-ui .cs-button:hover:not(:disabled) { background: var(--cs-surface-muted); }
+.cs-ui .cs-button--primary { color: white; background: var(--cs-primary); border-color: var(--cs-primary); }
+.cs-ui .cs-button--primary:hover:not(:disabled) { background: var(--cs-primary-hover); }
+.cs-ui .cs-button--quiet { color: var(--cs-primary); border-color: transparent; background: transparent; }
+.cs-ui .cs-button--danger { color: var(--cs-danger); border-color: var(--cs-danger); background: var(--cs-surface); }
+.cs-ui .cs-button--danger:hover:not(:disabled) { background: var(--cs-danger-bg); }
+.cs-ui .cs-button:disabled { color: var(--cs-muted); background: var(--cs-surface-muted); border-color: var(--cs-border); cursor: not-allowed; }
+.cs-ui .cs-button-icon { display: inline-flex; flex: 0 0 auto; }
+.cs-ui .cs-button-icon + span:empty { display: none; }
+.cs-ui .cs-field { display: grid; gap: var(--cs-space-2); min-width: 0; }
+.cs-ui .cs-field-label { display: flex; gap: 4px; font-size: 1rem; font-weight: 600; color: var(--cs-text); }
+.cs-ui .cs-field-hint,.cs-ui .cs-caption { font-size: .875rem; color: var(--cs-text-secondary); }
+.cs-ui .cs-field-error { color: var(--cs-danger); font-size: .875rem; }
+.cs-ui .cs-control { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid var(--cs-control-border); border-radius: var(--cs-radius-control); color: var(--cs-text); background: var(--cs-surface); font: inherit; }
+.cs-ui textarea.cs-control { resize: vertical; min-height: 112px; }
+.cs-ui .cs-control[aria-invalid="true"] { border-color: var(--cs-danger); }
+.cs-ui .cs-control:disabled { background: var(--cs-surface-muted); color: var(--cs-muted); }
+.cs-ui input[type="file"].cs-control { overflow: hidden; }
+.cs-ui input[type="checkbox"],.cs-ui input[type="radio"] { accent-color: var(--cs-primary); width: 20px; height: 20px; flex: 0 0 20px; }
+.cs-ui .cs-choice { display: flex; align-items: flex-start; gap: var(--cs-space-3); padding: var(--cs-space-3) 0; min-height: 44px; cursor: pointer; }
+.cs-ui .cs-choice input { margin-top: 3px; }
+.cs-ui .cs-fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--cs-space-5); }
+.cs-ui fieldset.cs-fieldset { padding: 0; margin: 0; border: 0; min-width: 0; }
+.cs-ui .cs-fieldset > legend { margin-bottom: var(--cs-space-2); font-weight: 600; padding: 0; }
+.cs-ui .cs-badge { display: inline-flex; align-items: center; width: fit-content; max-width: 100%; padding: 4px 10px; border-radius: var(--cs-radius-control); background: var(--cs-surface-muted); color: var(--cs-text-secondary); font-size: .875rem; font-weight: 600; line-height: 1.5; overflow-wrap: anywhere; }
+.cs-ui .cs-badge--success { color: var(--cs-success); background: var(--cs-success-bg); }
+.cs-ui .cs-badge--info { color: var(--cs-info); background: var(--cs-info-bg); }
+.cs-ui .cs-badge--warning { color: var(--cs-warning); background: var(--cs-warning-bg); }
+.cs-ui .cs-badge--danger { color: var(--cs-danger); background: var(--cs-danger-bg); }
+.cs-ui .cs-feedback { padding: var(--cs-space-5); border: 1px solid var(--cs-border); border-radius: var(--cs-radius-panel); background: var(--cs-surface-muted); display: grid; gap: var(--cs-space-2); min-width: 0; overflow-wrap: anywhere; }
+.cs-ui .cs-feedback--error { background: var(--cs-danger-bg); color: var(--cs-danger); border-color: var(--cs-danger); }
+.cs-ui .cs-feedback--warning { background: var(--cs-warning-bg); color: var(--cs-warning); }
+.cs-ui .cs-feedback--success { background: var(--cs-success-bg); color: var(--cs-success); }
+.cs-ui .cs-feedback--info,.cs-ui .cs-feedback--loading { background: var(--cs-info-bg); color: var(--cs-info); }
+.cs-ui .cs-feedback h3 { font-size: 1rem; color: inherit; }
+.cs-ui .cs-tablist { display: flex; gap: var(--cs-space-2); border-bottom: 1px solid var(--cs-border); padding-bottom: var(--cs-space-2); margin-bottom: var(--cs-space-6); flex-wrap: wrap; }
+.cs-ui .cs-tablist > button { border: 1px solid transparent; border-radius: var(--cs-radius-control); padding: 10px 16px; min-height: 44px; background: transparent; color: var(--cs-text-secondary); font: inherit; font-weight: 600; cursor: pointer; }
+.cs-ui .cs-tablist > button[aria-selected="true"] { color: var(--cs-primary); background: var(--cs-selected-bg); border-color: var(--cs-primary); }
+.cs-ui .cs-tabpanel { min-width: 0; }
+.cs-ui.cs-dialog { width: min(560px,calc(100vw - 48px)); max-width: none; max-height: calc(100dvh - 48px); padding: 0; border: 1px solid var(--cs-border); border-radius: var(--cs-radius-dialog); background: var(--cs-surface); box-shadow: var(--cs-shadow-dialog); overflow: auto; }
+.cs-ui.cs-dialog--wide { width: min(960px,calc(100vw - 48px)); }
+.cs-ui.cs-dialog::backdrop { background: rgb(15 23 42 / 45%); }
+.cs-ui .cs-dialog-header { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--cs-space-4); padding: var(--cs-space-6); border-bottom: 1px solid var(--cs-border); }
+.cs-ui .cs-dialog-header > div { min-width: 0; }
+.cs-ui .cs-dialog-header p { color: var(--cs-text-secondary); font-size: .875rem; margin-top: var(--cs-space-2); }
+.cs-ui .cs-dialog-header > button { flex: 0 0 44px; padding-inline: 10px; }
+.cs-ui .cs-dialog-body { padding: var(--cs-space-6); min-width: 0; }
+.cs-ui .cs-dialog-footer { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: var(--cs-space-3); padding: var(--cs-space-5) var(--cs-space-6); border-top: 1px solid var(--cs-border); }
+.cs-ui .cs-disclosure { border-top: 1px solid var(--cs-border); padding-top: var(--cs-space-4); }
+.cs-ui .cs-disclosure > summary { cursor: pointer; min-height: 44px; padding-block: 10px; font-weight: 600; overflow-wrap: anywhere; }
+.cs-ui .cs-disclosure[open] > summary { margin-bottom: var(--cs-space-3); }
+.cs-ui .cs-prose { max-width: 75ch; line-height: 1.7; white-space: pre-wrap; overflow-wrap: anywhere; }
+.cs-ui .cs-prose p { margin-bottom: var(--cs-space-4); }
+.cs-ui code,.cs-ui pre { overflow-wrap: anywhere; white-space: pre-wrap; font-size: .8125rem; }
+.cs-ui pre { max-height: 320px; overflow: auto; padding: var(--cs-space-4); background: var(--cs-surface-muted); border-radius: var(--cs-radius-control); }
+.cs-ui .cs-metadata { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: var(--cs-space-4); margin: 0; }
+.cs-ui .cs-metadata dt { font-size: .875rem; color: var(--cs-text-secondary); }
+.cs-ui .cs-metadata dd { margin: 4px 0 0; overflow-wrap: anywhere; }
+@media(max-width:980px) { .cs-ui .cs-page-header > div:first-child { flex-basis: 100%; } }
+@media(max-width:560px) {
+  .cs-ui .cs-fields,.cs-ui .cs-metadata { grid-template-columns: minmax(0,1fr); }
+  .cs-ui .cs-surface { padding: var(--cs-space-4); }
+  .cs-ui.cs-dialog { width: 100%; max-height: 100dvh; height: 100dvh; margin: 0; border-radius: 0; }
+  .cs-ui .cs-dialog-header,.cs-ui .cs-dialog-body,.cs-ui .cs-dialog-footer { padding: var(--cs-space-4); }
+  .cs-ui .cs-dialog-footer > .cs-button { flex: 1 1 100%; }
+}

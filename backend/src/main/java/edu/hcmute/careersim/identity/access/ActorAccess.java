@@ -9,6 +9,9 @@ public interface ActorAccess {
 
     Actor lock(long id);
 
+    /** Read-only selection for the isolated local development principal. Never provisions users. */
+    java.util.Optional<Actor> findActiveAdministrator();
+
     default Actor student(Principal p) {
         Actor a = require(p);
         requireRole(a, "STUDENT");
