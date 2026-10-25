@@ -11,6 +11,87 @@ import org.junit.jupiter.api.Test;
 
 class CorePoliciesTest {
     @Test
+    void filePoliciesAcceptOnlySupportedCanonicalMimeTypesWithinTenMib() {
+        var validator =
+                new edu.hcmute.careersim.simulation.domain.DeliverableValidator(
+                        org.mockito.Mockito.mock(
+                                edu.hcmute.careersim.common.storage.FileAssetService.class));
+        var supported =
+                List.of(
+                        "text/plain",
+                        "application/pdf",
+                        "image/png",
+                        "image/jpeg",
+                        "application/zip",
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        "application/vnd.openxmlformats-officedocument.presentationml.presentation");
+
+        for (String mime : supported)
+            assertThatCode(
+                            () ->
+                                    validator.definition(
+                                            fileDefinition(List.of(mime), 10L * 1024 * 1024)))
+                    .doesNotThrowAnyException();
+
+        assertThatThrownBy(
+                        () ->
+                                validator.definition(
+                                        fileDefinition(
+                                                List.of("application/octet-stream"),
+                                                10L * 1024 * 1024)))
+                .isInstanceOf(ApiException.class);
+        assertThatThrownBy(
+                        () ->
+                                validator.definition(
+                                        fileDefinition(
+                                                List.of("application/zip"), 10L * 1024 * 1024 + 1)))
+                .isInstanceOf(ApiException.class);
+    }
+
+    private static edu.hcmute.careersim.simulation.dto.ScenarioContracts.Definition fileDefinition(
+            List<String> mimeTypes, long maxBytes) {
+        return new edu.hcmute.careersim.simulation.dto.ScenarioContracts.Definition(
+                null,
+                1,
+                "Task file",
+                "FILE",
+                true,
+                CoreValues.tree(
+                        Map.of(
+                                "schemaVersion", 1,
+                                "maxBytes", maxBytes,
+                                "allowedMimeTypes", mimeTypes)));
+    }
+
+    @Test
+    void textDeliverableWithoutOptionalBoundsAcceptsNonBlankWork() {
+        var validator =
+                new edu.hcmute.careersim.simulation.domain.DeliverableValidator(
+                        org.mockito.Mockito.mock(
+                                edu.hcmute.careersim.common.storage.FileAssetService.class));
+        var definition =
+                new edu.hcmute.careersim.simulation.dto.ScenarioContracts.Definition(
+                        "9", 1, "Task response", "TEXT", true, CoreValues.tree(Map.of()));
+        var item =
+                new edu.hcmute.careersim.simulation.dto.ScenarioContracts.Item(
+                        "9", "A specific response", null, null, null);
+
+        assertThat(validator.validate(7, List.of(definition), List.of(item), true))
+                .containsExactly(item);
+        assertThatThrownBy(
+                        () ->
+                                validator.validate(
+                                        7,
+                                        List.of(definition),
+                                        List.of(
+                                                new edu.hcmute.careersim.simulation.dto
+                                                        .ScenarioContracts.Item(
+                                                        "9", "   ", null, null, null)),
+                                        true))
+                .isInstanceOf(ApiException.class);
+    }
+
+    @Test
     void deliverableSchemaRejectsRemoteRefUnboundedItemsAndOpenProperties() {
         var validator =
                 new edu.hcmute.careersim.simulation.domain.DeliverableValidator(
