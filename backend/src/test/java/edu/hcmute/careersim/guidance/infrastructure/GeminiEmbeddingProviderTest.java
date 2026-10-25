@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.*;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.net.httpserver.HttpServer;
 import java.net.InetSocketAddress;
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.junit.jupiter.api.Test;
@@ -81,6 +82,45 @@ class GeminiEmbeddingProviderTest {
                             Map.of("embedding", Map.of("values", new double[768]))));
             assertThatThrownBy(() -> provider.embed("fixture", true))
                     .isInstanceOf(IllegalStateException.class);
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @Test
+    void classifiesProviderRejectionWithoutExposingItsBodyOrCredentials() throws Exception {
+        var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext(
+                "/models/gemini-embedding-001:embedContent",
+                exchange -> {
+                    exchange.getRequestBody().readAllBytes();
+                    byte[] body =
+                            "sensitive-provider-detail-must-not-escape"
+                                    .getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                    exchange.sendResponseHeaders(403, body.length);
+                    try {
+                        exchange.getResponseBody().write(body);
+                    } finally {
+                        exchange.close();
+                    }
+                });
+        server.start();
+        try (var scope =
+                edu.hcmute.careersim.guidance.service.SynExecutionScope.open(
+                        Duration.ofSeconds(10), () -> true)) {
+            var provider =
+                    new GeminiEmbeddingProvider(
+                            RestClient.builder(),
+                            true,
+                            "synthetic-secret",
+                            "http://127.0.0.1:" + server.getAddress().getPort(),
+                            5);
+            assertThatThrownBy(() -> provider.embed("Synthetic text", false))
+                    .isInstanceOf(
+                            edu.hcmute.careersim.guidance.service.SynGuidanceProvider
+                                    .ProviderException.class)
+                    .hasMessage("PROVIDER_REJECTED")
+                    .hasNoCause();
         } finally {
             server.stop(0);
         }

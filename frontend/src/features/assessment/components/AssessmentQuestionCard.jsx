@@ -20,6 +20,7 @@ function AssessmentQuestionCard({ question, index, answer, setAnswer, isMissing,
         role="radiogroup"
         aria-label={`${index + 1}. ${question.prompt || question.text}`}
         aria-invalid={isMissing || undefined}
+        aria-required={question.required !== false}
         aria-describedby={isMissing ? `question-error-${question.id}` : undefined}
         style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}
       >
@@ -58,7 +59,7 @@ function AssessmentQuestionCard({ question, index, answer, setAnswer, isMissing,
       </div>
       {isMissing && (
         <p id={`question-error-${question.id}`} className="assessment-question__error">
-          Choose one response before submitting.
+          {t('Choose one response before submitting.')}
         </p>
       )}
     </div>

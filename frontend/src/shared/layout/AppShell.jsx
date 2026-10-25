@@ -1,7 +1,7 @@
 import { useI18n } from '../i18n/useI18n.js'
 import { Menu, X, ArrowRight, Compass, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import BrandMark from '../ui/BrandMark.jsx'
 import LanguageSwitcher from '../i18n/LanguageSwitcher.jsx'
 
@@ -9,13 +9,15 @@ const navigation = [
   { label: 'How It Works', href: '/#how-it-works' },
   { label: 'IT Career Tracks', to: '/simulations' },
   { label: 'Career Assessments', to: '/assessment' },
-  { label: 'Dashboard & Syn', to: '/dashboard' },
+  { label: 'Dashboard', to: '/dashboard' },
 ]
 
 function AppShell() {
   const { t } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
   const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const adminStudio = /^\/admin(?:\/|$)/.test(pathname) || pathname === '/account'
 
   const handleStartExploring = () => {
     setMenuOpen(false)
@@ -29,19 +31,19 @@ function AppShell() {
         <div className="institutional-bar__inner">
           <span className="institutional-bar__badge">
             <Compass size={14} aria-hidden="true" /> {t("Ho Chi Minh City University of Technology and Engineering (HCM-UTE) · Career Simulation Platform")} </span>
-          <span className="institutional-bar__tagline"> {t("Empowering students to explore tech careers and shape their future")} </span>
+          {!adminStudio && <span className="institutional-bar__tagline"> {t("Empowering students to explore tech careers and shape their future")} </span>}
         </div>
       </div>
 
       <header className="site-header">
         <div className="site-header__inner">
-          <Link className="brand-link" to="/" aria-label={t("HCM-UTE Career Simulation Platform Home")}>
+          <Link className="brand-link" to={adminStudio ? "/admin" : "/"} aria-label={t("HCM-UTE Career Simulation Platform Home")}>
             <BrandMark />
           </Link>
 
           <LanguageSwitcher />
 
-          <button
+          {!adminStudio && <button
             className="menu-button"
             type="button"
             aria-label={t(menuOpen ? 'Close menu' : 'Open menu')}
@@ -49,11 +51,11 @@ function AppShell() {
             onClick={() => setMenuOpen((current) => !current)}
           >
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          </button>}
 
-          <nav className={`site-nav ${menuOpen ? 'site-nav--open' : ''}`}>
-            <NavLink to="/account" onClick={() => setMenuOpen(false)}>{t('Account and privacy')}</NavLink>
-            {navigation.map((item) =>
+          {!adminStudio && <nav className={`site-nav ${menuOpen ? 'site-nav--open' : ''}`}>
+            <NavLink to="/admin" onClick={() => setMenuOpen(false)}>{t('Admin Studio')}</NavLink>
+            {!adminStudio && navigation.map((item) =>
               item.to ? (
                 <NavLink
                   key={item.label}
@@ -72,21 +74,21 @@ function AppShell() {
                 </a>
               ),
             )}
-            <button
+            {!adminStudio && <button
               className="button button--small button--cta-header"
               type="button"
               onClick={handleStartExploring}
             > {t("Career Assessment")} <ArrowRight size={15} aria-hidden="true" />
-            </button>
-          </nav>
+            </button>}
+          </nav>}
         </div>
       </header>
 
-      <main id="main-content">
+      <main id="main-content" tabIndex={-1}>
         <Outlet />
       </main>
 
-      <footer className="site-footer">
+      {!adminStudio && <footer className="site-footer">
         <div className="site-footer__inner">
           <div className="site-footer__brand">
             <BrandMark compact />
@@ -107,7 +109,6 @@ function AppShell() {
             <div>
               <strong>{t("Learning Journey")}</strong>
               <Link to="/dashboard">{t("Progress Dashboard")}</Link>
-              <Link to="/dashboard">{t("Syn Guidance Assistant")}</Link>
               <a href="/#how-it-works">{t("3-Step Process")}</a>
             </div>
           </nav>
@@ -119,7 +120,7 @@ function AppShell() {
             <span className="site-footer__disclaimer"> {t("Explore your options. Your career decisions remain yours.")} </span>
           </div>
         </div>
-      </footer>
+      </footer>}
     </div>
   )
 }

@@ -11,10 +11,10 @@ Use [the requirements index](README.md), [selected report stories](user-stories/
 | US-04 Explore simulations | UC-04 | 2 | US-06 |
 | US-05 Complete simulation | UC-05 | 2 | US-07 |
 | US-06 View simulation results | UC-05 | 2 | US-08 |
-| US-07 Consult career agent | UC-06 | 3 | US-11/12/13/14; Agent/KB access prerequisites remain |
+| US-07 Consult career agent | UC-06 | 2 | US-11/12/13/14; Agent/KB access prerequisites remain |
 | US-08 Manage knowledge base | UC-07 | 3 | US-09 |
 | US-09 Create AI agent | UC-08 | 3 | US-10 |
-| US-10 View AI usage dashboard | UC-09 | 2 | US-15 |
+| US-10 View AI usage dashboard | UC-09 | 3 | US-15 |
 
 Baseline profile/dashboard US-02 is documented by supplementary UC-10/11; Enterprise US-05 by UC-12/13; Admin assessment US-03 by UC-16; account administration also supports UC-15. These are supporting relationships, not new selected stories or person assignments. UC-14 is deferred. The exact prior-report UC renumbering comes from the supplied [UC index](use-cases/README.md#historical-uc-renumbering-2026-10-21--current).
 
@@ -34,6 +34,24 @@ For each selected UC, the imported spec now links production source/tests and di
 Feature report: `.agent/reports/us-04-uc-04-browse-simulations-verification.vi.md`. PO-reported UAT 2026-10-25: 14 PASS / 1 PARTIAL / 1 BLOCKED / 0 FAIL; TC-04-04A passed all 8 checks. Codex did not observe the full PO session. Final commit SHA, redistribution/published-content integrity decision and integration review remain pending. Pre-enrollment survey is a UC-05 requirements-review item (D10), not a UC-04 defect.
 
 ## Historical initial matrix
+
+### UC-07 / selected US-08 implementation evidence — 2026-10-23
+
+Approved plan: `.agent/plans/UC-07-manage-knowledge-base.md`; baseline `62bbe10`.
+This supplements the existing mapping to **Baseline US-09**, without renumbering.
+
+| Selected US-08 AC | Implementation / executable evidence |
+|---|---|
+| AC1 create/manage | `KnowledgeBaseDialog.jsx`, `KnowledgeStudioPage.jsx`; `knowledgeStudio.test.jsx` covers pinned revisions, preserved conflict drafts, late KB reads and write-success/list-failure. |
+| AC2 five formats/status | Existing parser/chunker/profile retained; `KnowledgeParserContractTest` checks extraction blocks plus unchanged chunks/locators across all formats; `AgentPlatformIntegrationTest` checks pre-embedding snapshots, storage failure and retry. |
+| AC3 publication/provenance | `KnowledgeDocumentInspector.jsx`; exact version/attempt detail, Unicode, missing historical snapshots and rapid-selection tests; full text omitted from lists. |
+| AC4 independent retrieval/answer | `KnowledgeBaseTestPanel.jsx`; separate modes, accepted-query snapshot and revalidation; existing ExecutionService remains authority. |
+| AC5 invalid/no-evidence/errors | Parser invalid-file tests; platform no-evidence/provider-failure tests; visible failure stage and snapshot availability. |
+| AC6 failed replacement preservation | Platform tests inject staging/publication rollback, cancellation and stale revision; Reindex A verifies unchanged version and zero new embedding calls, with no retired resurrection. |
+| UC-06/08/09 compatibility | Student/Builder regressions; `kbTestUsageCountsExecutionsNotIngestionOrReloadAndPreservesUnknownMetrics` verifies KB_TEST producer/aggregate contract without a dashboard expansion. |
+
+See `.agent/reports/UC-07-completion.vi.md` for commands actually executed and
+browser/live/human limitations. Source/test presence alone is not Human PASS.
 
 The original 3-US matrix follows unchanged; it does not define today's selected IDs.
 

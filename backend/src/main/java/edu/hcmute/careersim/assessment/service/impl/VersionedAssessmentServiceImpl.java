@@ -52,6 +52,21 @@ public class VersionedAssessmentServiceImpl
         return dao.catalog();
     }
 
+    @Transactional(readOnly = true)
+    public List<AttemptSummary> history(long actor) {
+        student(actor);
+        return dao.history(actor);
+    }
+
+    private Version available(long version) {
+        var v = dao.version(version, false);
+        dao.lockType(CoreValues.id(v.typeId()));
+        if (!"PUBLISHED".equals(v.status()) || !dao.typeActive(CoreValues.id(v.typeId())))
+            throw new NotFoundException(
+                    "This career quiz is temporarily unavailable. Please select another quiz.");
+        return v;
+    }
+
     @Transactional
     public String createType(long actor, TypeRequest r) {
         ActorAccess.requireRole(actors.lock(actor), "ADMIN");
@@ -130,9 +145,7 @@ public class VersionedAssessmentServiceImpl
                         ErrorCode.CONFLICT, "Request UUID belongs to another version.");
             return dao.view(actor, existing.get().id());
         }
-        var v = dao.version(version, false);
-        if (!"PUBLISHED".equals(v.status()) || !dao.typeActive(CoreValues.id(v.typeId())))
-            throw new NotFoundException("Published assessment unavailable.");
+        available(version);
         long id = dao.start(actor, version, request);
         audit.record(actor, "ASSESSMENT_STARTED", "assessment_attempt", id, Map.of());
         return dao.view(actor, id);
@@ -151,6 +164,7 @@ public class VersionedAssessmentServiceImpl
         if (!"IN_PROGRESS".equals(a.status()))
             throw new ApiException(ErrorCode.CONFLICT, "Submitted work is immutable.");
         CoreValues.match(revision, a.revision());
+        available(a.version());
         dao.responses(a, evaluator.validate(dao.questions(a.version()), r.items(), false));
         return dao.view(actor, id);
     }
@@ -167,7 +181,7 @@ public class VersionedAssessmentServiceImpl
             return dao.result(actor, id);
         }
         CoreValues.match(revision, a.revision());
-        var v = dao.version(a.version(), false);
+        var v = available(a.version());
         var result = evaluator.evaluate(v, dao.typeCode(CoreValues.id(v.typeId())), items);
         dao.responses(a, items);
         dao.result(a, v, hash, result);

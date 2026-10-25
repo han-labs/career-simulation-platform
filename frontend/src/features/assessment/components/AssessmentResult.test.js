@@ -56,4 +56,16 @@ describe('RIASEC results', () => {
     expect(html).toContain('take the assessment again')
     expect(html).not.toContain('NaN')
   })
+
+  it('uses the pinned ranges for uneven question counts without assuming 35', () => {
+    const html = renderResult({ scores: result.scores.map((s, i) => ({ ...s, score: i + 1, min: 1, max: i + 5 })) })
+    expect(html).toContain('aria-valuemax="5"')
+    expect(html).toContain('aria-valuemax="10"')
+    expect(html).toContain('1 / 5')
+    expect(html).not.toContain(' / 35')
+  })
+
+  it('does not display out-of-range scores as a valid result', () => {
+    expect(renderResult({ scores: result.scores.map(s => ({ ...s, min: 1, max: 5 })) })).toContain('Your results are unavailable')
+  })
 })

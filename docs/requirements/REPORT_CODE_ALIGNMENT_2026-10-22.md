@@ -1,5 +1,25 @@
 # Current report and repository alignment
 
+## 2026-10-24 US-01/02 Google follow-up
+
+The explicit attached task authorizes Google form/state and session-landing completion
+within Person 1. Reuse P1/P2 OIDC, issuer/subject uniqueness, verified email, explicit
+linking and JWT/CSRF; no approved HCMUTE-only identity restriction exists. The
+[setup and sequence](../testing/google-identity.md) distinguishes local signed-provider
+fixtures from unverified external Google UAT. Current HCM-UTE blue/white styling is
+retained per explicit user instruction, qualifying the historical DESIGN palette.
+No business-rule/catalogue/ownership/scoring/schema change is inferred. Safe callback
+codes now distinguish UC-02 cancellation, provider unavailability and locked account;
+successful current-account restoration precedes role landing.
+
+## 2026-10-23 US-01 / UC-01 follow-up
+
+The explicit registration task authorizes completing Person 1 identity UI/API integration while preserving US-03. Existing P1 provides local registration and configured Google OIDC; the current UC-01 cancellation/field feedback/duplicate message needed UI reconciliation. The [registration contract](../api/registration-uc01.md) and [dated evidence](../../.agent/reports/us01-registration-2026-10-23.md) record the focused implementation and actual test status. No catalogue, frozen business rule, role, consent, scoring or migration change is inferred. Combined-feature acceptance and real Google/human UAT remain distinct gates.
+
+The UC-01 required-field summary is proposed wording. This UI uses “Please check the highlighted fields.” with associated “This field is required.” or invalid-value guidance; duplicate-email and unavailable-registration messages follow the UC proposal. This is a presentation choice, not a validation or eligibility-rule change. The remaining full-suite Student Agent failure is recorded in the dated evidence instead of being hidden by the successful registration/assessment slice.
+
+2026-10-24 baseline check: `StudentAgentIntegrationTest.deletedSourceDuringCallCannotResurrectDerivedContent` fails its line-545 fixture latch on unchanged main `62bbe10` as well as the combined tree. This separate Person 3/project-lead test investigation remains open; no Student Agent rule/test or US-03 logic is changed by the registration work. Global DoD is not reported green.
+
 Checked 2026-10-22. This register records documentation provenance, verified source behavior and unresolved wording; it does not approve new business rules or claim new runtime acceptance.
 
 ## Source and repository baseline
@@ -11,7 +31,35 @@ Checked 2026-10-22. This register records documentation provenance, verified sou
 - Report DOCX/ZIP binaries were not copied into the repository. Source paths here are repo-relative; no credentials, contact details or personal local paths are reproduced.
 - [Frozen Baseline v1/DR1–DR2](CareerSim_Requirements_Baseline_v1_Chat2_Handoff.md), Target v1.2 sources, all historical reports and V1–V22 SQL remain unchanged. Existing dirty Nginx changes, nine user-deleted historical design files and untracked evidence are preserved.
 
-## Confirmed allocation
+## Current ownership and cleanup follow-up — 2026-10-25
+
+Team Lead supersedes the dated allocation below: Person 1 UC-01/02/03; Person 2
+UC-04/05/06; Person 3 UC-07/08/09. Current metadata follows TEAM_ASSIGNMENTS;
+older allocation/evidence statements remain historical. In particular D04's
+UC-06 decision now belongs to Person 2 with the lead/BA, without changing the
+business issue or source-hash contract. This branch still implements UC-07 only.
+
+## Historical confirmed allocation — 2026-10-22
+
+### UC-07 follow-up on `62bbe10` — 2026-10-23
+
+Approved C1–C5 work is on `feat/uc07-admin-knowledge-base`, preserving the Owner's
+20 staged reference/documentation changes and untracked approved plan. The older
+Git/working-tree statements above remain dated provenance, not current status.
+
+- D07 remains **explicit publication after READY**, with review-revision safety.
+  Approved Reindex option A reuses an identical valid input/profile index as
+  unchanged; no new version or claimed rebuild and no resurrection after retirement.
+- Extraction now has generation-fenced attempt snapshots before embedding and
+  immutable version snapshots at staging, using existing V21 JSONB only.
+  Historical missing snapshots remain unavailable rather than reconstructed.
+- Report body/current selected **US-08 / UC-07** remains the selected catalogue;
+  historical report TOC/overview numbering is not silently adopted or renumbered.
+- No change to UC-06 plan-editing decision, UC-08 configuration/runtime contracts,
+  objective results, retained migrations, parser profile or vector dimension.
+- Fresh deterministic evidence and pending browser/human/live gates are recorded
+  in `.agent/reports/UC-07-completion.vi.md`; this follow-up does not revive missing
+  historical completion reports or claim a paid model evaluation.
 
 | Official person slot | Selected UC | Selected report US |
 |---|---|---|
@@ -41,6 +89,32 @@ Paths in this table are relative to repository root. Existing tests are evidence
 Other source conditions, proposed English UI messages and supplementary flows are not automatically exact accepted UI strings or complete endpoint coverage. UC-10–13/15–16 retain historical supplementary review status; UC-14 is not implemented/assigned by this import.
 
 ## Source/test traceability and acceptance limits
+
+### UC-03 scoped follow-up — 2026-10-23
+
+Later explicit user authorization permits a **controlled local** bootstrap of all
+four existing project quizzes. Local publication and real browser/API AC1–AC5 are
+now verified in [local demo evidence](../../.agent/reports/us-03-local-acceptance-2026-10-23.vi.md).
+The content-gap notes below describe the earlier checkpoint. This is not automatic
+production publication, psychometric validation or human report sign-off. V1–V22
+and frozen business rules remain unchanged.
+
+Current selected US-03 (Person 1) was rechecked at local HEAD `62bbe1012e9e5c03dad1719b84cd40fff5fce499`.
+No prior `.agent/plans/US-03-career-quiz-alignment.md` existed. The v2 page used a
+fixed legacy 35-point display, had no assessment-owned history view, and merged
+local drafts without a revision decision. These are addressed in the scoped
+[plan](../../.agent/plans/US-03-career-quiz-alignment.md) and
+[verification](../../.agent/reports/us-03-career-quiz-alignment.vi.md).
+An additive owner-only attempt-summary API reuses existing persistence; archived
+content blocks unfinished writes while preserving historical reads/idempotent retries.
+Frozen evaluator semantics and V1–V22 remain unchanged.
+
+**Content gap remains:** migrations do not seed reviewed published v2 questionnaires.
+Four available legacy quizzes do not prove four approved v2 versions. No automatic
+conversion/publication or historical result rewrite is authorized or implemented.
+Human publication/UAT and integrated evidence remain separately recorded gates;
+unit/component checks do not establish these. Other discrepancy dispositions above
+are unchanged.
 
 Each selected UC links its matching production controller/component and existing tests in its Verification tracking section. [Traceability](traceability-matrix.md) maps functional Baseline coverage without equating catalogues. Legacy three-story and former thirteen-story materials are labelled historical rather than rewritten or deleted.
 

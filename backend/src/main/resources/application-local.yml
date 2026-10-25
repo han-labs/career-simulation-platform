@@ -1,0 +1,11 @@
+# Local Docker development only. SecurityConfig rejects this principal if any
+# prod/production profile is active, even together with local.
+app:
+  knowledge:
+    embedding-enabled: true
+
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false

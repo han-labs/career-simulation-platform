@@ -11,7 +11,9 @@ import java.util.HexFormat;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.*;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.client.*;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -25,6 +27,22 @@ import org.springframework.security.web.csrf.CsrfTokenRepository;
 @Configuration
 @ConditionalOnProperty(name = "app.auth.google.enabled", havingValue = "true")
 public class GoogleOAuthFlow {
+    static void failure(HttpServletResponse res, AuthenticationException error)
+            throws java.io.IOException {
+        String reason = "denied";
+        if (error instanceof OAuth2AuthenticationException oauth) {
+            reason =
+                    switch (oauth.getError().getErrorCode()) {
+                        case "access_denied" -> "cancelled";
+                        case "server_error", "temporarily_unavailable", "invalid_token_response" ->
+                                "provider-unavailable";
+                        default -> "denied";
+                    };
+        } else if (error instanceof AuthenticationServiceException) reason = "provider-unavailable";
+        SecurityContextHolder.clearContext();
+        res.sendRedirect("/account?oauthError=" + reason);
+    }
+
     @Bean
     ClientRegistrationRepository googleClients(
             @Value("${app.auth.google.client-id}") String id,
@@ -163,9 +181,12 @@ public class GoogleOAuthFlow {
         } catch (ApiException e) {
             res.sendRedirect(
                     "/account?oauthError="
-                            + (e.getErrorCode() == ErrorCode.CONFLICT
-                                    ? "link-required"
-                                    : "denied"));
+                            + switch (e.getErrorCode()) {
+                                case CONFLICT -> "link-required";
+                                case FORBIDDEN -> "account-disabled";
+                                case SERVICE_UNAVAILABLE -> "provider-unavailable";
+                                default -> "denied";
+                            });
         } finally {
             SecurityContextHolder.clearContext();
         }

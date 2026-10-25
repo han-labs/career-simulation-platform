@@ -42,6 +42,23 @@ A valid attempt and assessment-specific result are saved; the actor may still br
 
 ## Current repository comparison (2026-10-22)
 
+Scoped follow-up (2026-10-23): [API contract](../../api/assessment-uc03.md),
+[five-AC/flow plan](../../../.agent/plans/US-03-career-quiz-alignment.md) and
+[executed verification/limitations](../../../.agent/reports/us-03-career-quiz-alignment.vi.md).
+Source flow wording above is unchanged. Published-content review and human sign-off
+remain separate from synthetic tests.
+
+Subsequent authorized local-demo execution: four published quizzes, real browser
+completion/refresh, real HTTP negative/ownership checks and PostgreSQL restart
+persistence are recorded in [local acceptance evidence](../../../.agent/reports/us-03-local-acceptance-2026-10-23.vi.md).
+[Setup/UAT steps](../../testing/us03-local-demo.vi.md) use an opt-in local fixture;
+no production auth bypass or automatic production publication is introduced.
+
+UI/scroll follow-up (2026-10-23): [four-quiz UI, EN/VI, responsive matrix and
+SCROLL-01–10 evidence](../../../.agent/reports/us-03-ui-scroll.vi.md).
+Business flow and scoring/persistence contracts remain unchanged; human sign-off
+is still pending.
+
 Independent versioned assessment attempts/results are implemented; this is not a simulation quiz task. Published content/human UAT are separate from synthetic regression.
 
 Checked main `5486f9f` and matching application source; source flows above are retained. See [alignment/provenance](../REPORT_CODE_ALIGNMENT_2026-10-22.md), [current catalogue](README.md) and [official allocation](../../TEAM_ASSIGNMENTS.md). Supplementary and deferred scope is not expanded by this comparison.

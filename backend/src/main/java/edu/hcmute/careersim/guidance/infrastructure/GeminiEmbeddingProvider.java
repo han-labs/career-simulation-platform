@@ -2,30 +2,42 @@ package edu.hcmute.careersim.guidance.infrastructure;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import edu.hcmute.careersim.guidance.service.EmbeddingProvider;
+import edu.hcmute.careersim.guidance.service.SynGuidanceProvider;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 
 @Component
 public class GeminiEmbeddingProvider implements EmbeddingProvider {
+    private static final org.slf4j.Logger LOG =
+            org.slf4j.LoggerFactory.getLogger(GeminiEmbeddingProvider.class);
     private final RestClient client;
     private final String key;
     private final boolean enabled;
 
     public GeminiEmbeddingProvider(
+            RestClient.Builder builder, boolean enabled, String key, String base) {
+        this(builder, enabled, key, base, 8);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public GeminiEmbeddingProvider(
             RestClient.Builder builder,
             @Value("${app.knowledge.embedding-enabled:false}") boolean enabled,
             @Value("${app.ai.gemini.api-key:}") String key,
             @Value("${app.ai.gemini.base-url:https://generativelanguage.googleapis.com/v1beta}")
-                    String base) {
+                    String base,
+            @Value("${app.ai.timeout-seconds:8}") int timeoutSeconds) {
         this.enabled = enabled;
         this.key = key;
         client =
                 builder.clone()
                         .baseUrl(base)
-                        .requestFactory(SynHttpRequests.deadlineAware(3, "gemini"))
+                        .requestFactory(SynHttpRequests.deadlineAware(timeoutSeconds, "gemini"))
                         .build();
     }
 
@@ -45,22 +57,42 @@ public class GeminiEmbeddingProvider implements EmbeddingProvider {
     }
 
     private double[] requestEmbedding(String text, boolean query) {
-        JsonNode response =
-                client.post()
-                        .uri("/models/gemini-embedding-001:embedContent")
-                        .header("x-goog-api-key", key)
-                        .body(
-                                Map.of(
-                                        "model",
-                                        "models/gemini-embedding-001",
-                                        "content",
-                                        Map.of("parts", List.of(Map.of("text", text))),
-                                        "taskType",
-                                        query ? "RETRIEVAL_QUERY" : "RETRIEVAL_DOCUMENT",
-                                        "outputDimensionality",
-                                        768))
-                        .retrieve()
-                        .body(JsonNode.class);
+        JsonNode response;
+        try {
+            response =
+                    client.post()
+                            .uri("/models/gemini-embedding-001:embedContent")
+                            .header("x-goog-api-key", key)
+                            .body(
+                                    Map.of(
+                                            "model",
+                                            "models/gemini-embedding-001",
+                                            "content",
+                                            Map.of("parts", List.of(Map.of("text", text))),
+                                            "taskType",
+                                            query ? "RETRIEVAL_QUERY" : "RETRIEVAL_DOCUMENT",
+                                            "outputDimensionality",
+                                            768))
+                            .retrieve()
+                            .body(JsonNode.class);
+        } catch (RestClientResponseException failure) {
+            int status = failure.getStatusCode().value();
+            LOG.warn(
+                    "Knowledge embedding provider=gemini model=gemini-embedding-001 httpStatus={}",
+                    status);
+            throw new SynGuidanceProvider.ProviderException(
+                    status == 429
+                            ? SynGuidanceProvider.FailureKind.PROVIDER_RATE_LIMITED
+                            : status >= 500
+                                    ? SynGuidanceProvider.FailureKind.PROVIDER_UNAVAILABLE
+                                    : SynGuidanceProvider.FailureKind.PROVIDER_REJECTED);
+        } catch (RestClientException failure) {
+            LOG.warn(
+                    "Knowledge embedding provider=gemini model=gemini-embedding-001 transportCause={}",
+                    failure.getMostSpecificCause().getClass().getSimpleName());
+            throw new SynGuidanceProvider.ProviderException(
+                    SynGuidanceProvider.FailureKind.TIMEOUT_OR_TRANSPORT);
+        }
         if (response != null)
             edu.hcmute.careersim.guidance.service.SynExecutionScope.recordUsage(
                     "gemini",

@@ -63,5 +63,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - name: Validate Docker Compose
-        run: docker compose config --quiet
+        shell: bash
+        run: |
+          export JWT_SIGNING_KEY="$(openssl rand -base64 32)"
+          docker compose config --quiet

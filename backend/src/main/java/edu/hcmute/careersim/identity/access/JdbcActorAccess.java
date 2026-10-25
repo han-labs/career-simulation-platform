@@ -29,6 +29,16 @@ class JdbcActorAccess implements ActorAccess {
         return read(id, true);
     }
 
+    public java.util.Optional<Actor> findActiveAdministrator() {
+        return jdbc
+                .query(
+                        "SELECT id FROM public.app_users WHERE role='ADMINISTRATOR' AND status='ACTIVE' ORDER BY id LIMIT 1",
+                        (r, n) -> r.getLong(1))
+                .stream()
+                .findFirst()
+                .map(this::requireId);
+    }
+
     private Actor read(long id, boolean lock) {
         var rows =
                 jdbc.query(

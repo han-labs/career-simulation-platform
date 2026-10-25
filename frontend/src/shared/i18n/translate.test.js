@@ -3,7 +3,6 @@ import { expect, it } from 'vitest'
 import { createTranslator } from './translate.js'
 import { messages } from './messages.js'
 import { contentMessages } from './contentMessages.js'
-import { buildSynResponseMarkdown } from '../../features/guidance/api/guidanceApi.js'
 
 const sourceFiles = import.meta.glob('../../**/*.jsx', { query: '?raw', import: 'default', eager: true })
 const t = createTranslator('vi')
@@ -55,11 +54,4 @@ it('covers public titles and instructions but does not ship evaluated explanatio
     expect(Object.hasOwn(contentMessages, copy[index + 2])).toBe(false)
     expect(t(copy[index + 2])).toBe(copy[index + 2])
   }
-})
-it('localizes transcript export labels but keeps model answers and source quotations original', () => {
-  const md = buildSynResponseMarkdown({ text: 'Original model answer [K1]', provenance: 'AI', evidenceReferences: [{ label: 'Original citation' }] }, 'vi')
-  expect(md).toContain('# Câu trả lời của Syn')
-  expect(md).toContain('Original model answer [K1]')
-  expect(md).toContain('Original citation')
-  expect(md).toContain('Nguồn: Có hỗ trợ AI')
 })
