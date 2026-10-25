@@ -37,16 +37,18 @@ The actor views the available simulation catalogue or the details of a selected 
 - 4.2. Simulation details cannot be loaded; the system displays “Simulation details could not be loaded. Please try again later.” and returns to Main Flow Step 3.
 
 ## Source alignment / implementation notes
-- **Review point — recommendations:** source mentions highlighted recommendations (alternative flow). Treat as desired behavior until route/UI/test evidence confirms implementation.
+- **PO-approved Feature 1 decision:** catalogue/detail are public, authentication starts at Start, and recommendations are excluded. See alignment **D09**, with D03 pointing to the same decision. Imported source flows above are preserved for provenance.
+- Career Track is a native dropdown populated from public API data across pages; Industry is fixed to IT. Filtering remains server-side.
 
 ## Verification tracking
 - API/component: [VersionedCatalogController.java](../../../backend/src/main/java/edu/hcmute/careersim/catalog/controller/VersionedCatalogController.java); [CoreCatalogPage.jsx](../../../frontend/src/features/simulations/pages/CoreCatalogPage.jsx).
-- Automated tests: [CorePackageAIntegrationTest.java](../../../backend/src/test/java/edu/hcmute/careersim/system/migration/CorePackageAIntegrationTest.java). Existing dated results are in local P1–P6 completion reports; **not rerun here**, not full UC acceptance.
-- Browser/UAT: **PENDING until observed**
-- Human reviewer/sign-off: **PENDING**
+- Automated tests (2026-10-25): focused frontend **19 PASS**; focused backend **14 PASS**, including public DTO checks, isolated PostgreSQL cursor pagination and migration tests. See evidence for exact commands and coverage limits.
+- Evidence: [US-04 Browse Simulations evidence](../../evidence/US-04/us-04-browse-simulations.md) and `.agent/reports/us-04-uc-04-browse-simulations-verification.vi.md`.
+- Browser/UAT: **PO-reported**, 2026-10-25: **14 PASS / 1 PARTIAL / 1 BLOCKED / 0 FAIL**. TC-04-04A dropdown passed all 8 checks; TC-04-05 next-page navigation was not exercised with nine records; TC-04-12 real Google OAuth remains blocked by local configuration. Codex did not directly observe the PO's full UAT session.
+- Human UAT results received; final integration/redistribution review and Git publication approval remain pending.
 
 ## Current repository comparison (2026-10-22)
 
-Catalogue/filter/sort/pagination source exists. Highlighted/preliminary recommendations in alternatives 2a/2b remain target-only or NOT VERIFIED for this route; see alignment D03.
+Catalogue/filter/sort/pagination and public detail source now exist on `feature/browse-simulations`. The PO explicitly excluded highlighted/preliminary recommendations in alternatives 2a/2b from Feature 1; see alignment D09 (D03 is resolved by that decision). The PO also approved public catalogue/detail access, which supersedes this UC's authenticated precondition for this feature; authentication begins at Start.
 
 Checked main `5486f9f` and matching application source; source flows above are retained. See [alignment/provenance](../REPORT_CODE_ALIGNMENT_2026-10-22.md), [current catalogue](README.md) and [official allocation](../../TEAM_ASSIGNMENTS.md). Supplementary and deferred scope is not expanded by this comparison.

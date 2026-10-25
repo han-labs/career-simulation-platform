@@ -220,6 +220,13 @@ public class EnrollmentDao {
                 .findFirst();
     }
 
+    public List<String> practicedSkills(long enrollment) {
+        return jdbc.query(
+                "SELECT DISTINCT ts.skill_name_snapshot FROM public.task_submission s JOIN public.task_skill ts ON ts.task_id=s.task_id WHERE s.enrollment_id=? AND s.status='FINAL' ORDER BY ts.skill_name_snapshot",
+                (r, n) -> r.getString(1),
+                enrollment);
+    }
+
     public List<Participation> participation(long owner, int limit) {
         return jdbc.query(
                 "SELECT s.id::text,s.task_id::text,s.scenario_version_id::text,k.code,ts.skill_name_snapshot,s.submitted_at FROM public.task_submission s JOIN public.simulation_enrollment e ON e.id=s.enrollment_id JOIN public.task_skill ts ON ts.task_id=s.task_id JOIN public.career_skill k ON k.id=ts.skill_id WHERE e.student_id=? AND s.status='FINAL' AND EXISTS(SELECT 1 FROM public.scenario_version v JOIN public.scenario c ON c.id=v.scenario_id WHERE v.id=s.scenario_version_id AND c.availability_status<>'SUSPENDED') ORDER BY s.submitted_at DESC,s.id,ts.skill_id LIMIT ?",

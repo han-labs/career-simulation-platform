@@ -10,7 +10,7 @@ const focusableSelector = [
   'textarea:not([disabled])',
 ].join(',')
 
-function SubmissionConfirmationDialog({ open, onConfirm, onCancel, title = 'Submit simulation?', message = 'After submitting, you cannot change your answers. Your result will be shown immediately.' }) {
+function SubmissionConfirmationDialog({ open, onConfirm, onCancel, title = 'Submit simulation?', message = 'After submitting, you cannot change your answers. Your result will be shown immediately.', confirmLabel = 'Confirm submit' }) {
   const { t } = useI18n()
   const dialogRef = useRef(null)
   const cancelButtonRef = useRef(null)
@@ -73,7 +73,7 @@ function SubmissionConfirmationDialog({ open, onConfirm, onCancel, title = 'Subm
         <p>{t(message)}</p>
         <div className="confirmation-dialog__actions">
           <button className="button button--secondary" type="button" ref={cancelButtonRef} onClick={onCancel}> {t("Cancel")} </button>
-          <button className="button" type="button" onClick={onConfirm}> {t("Confirm submit")} </button>
+          <button className="button" type="button" onClick={onConfirm}> {t(confirmLabel)} </button>
         </div>
       </section>
     </div>

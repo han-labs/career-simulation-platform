@@ -12,8 +12,22 @@ const oauthMessages = {
   'account-disabled': 'You do not have permission to access this account.',
 }
 
+const PENDING_SIMULATION_PATH = 'careersim_pending_simulation_path'
+
+function consumePendingSimulation() {
+  let pending
+  try { pending = sessionStorage.getItem(PENDING_SIMULATION_PATH); sessionStorage.removeItem(PENDING_SIMULATION_PATH) } catch { return }
+  const match = typeof pending === 'string' && pending.match(/^\/simulations\/([^/?#]+)$/)
+  if (!match) return
+  try {
+    const slug = decodeURIComponent(match[1])
+    if (slug && encodeURIComponent(slug) === match[1]) return pending
+  } catch { /* Invalid encoded destinations are cleared and ignored. */ }
+}
+
 export default function AccountPage() {
   const { t } = useI18n()
+  const [pendingDestination, setPendingDestination] = useState(null)
   const [search] = useSearchParams()
   const oauthSuccess = search.get('oauth') === 'success'
   const oauthError = search.has('oauthError') ? (oauthMessages[search.get('oauthError')] ?? 'Your sign-in could not be verified. Please sign in again.') : ''
@@ -33,7 +47,7 @@ export default function AccountPage() {
   }, [providerRetry])
   useEffect(() => {
     let active = true
-    apiRequest('/v2/me').then(value => { if (active) setAccount(value) }).catch(e => {
+    apiRequest('/v2/me').then(value => { if (active) { if (value.role === 'STUDENT') setPendingDestination(consumePendingSimulation()); setAccount(value) } }).catch(e => {
       if (active && (e.status !== 401 || oauthSuccess)) setLoadError(e.status === 401 ? 'Your sign-in could not be verified. Please sign in again.' : e.status === 403 ? 'You do not have permission to access this account.' : 'The platform is not reachable. Please try again shortly.')
     }).finally(() => { if (active) setLoading(false) })
     return () => { active = false }
@@ -46,14 +60,14 @@ export default function AccountPage() {
     finally { setBusy(false) }
   }
   // The authenticated server account is the only source for role routing.
-  const destination = account && (account.role === 'STUDENT' ? '/assessment'
+  const destination = account && (account.role === 'STUDENT' ? (pendingDestination || '/assessment')
     : account.role === 'ENTERPRISE' && coreEnabled ? '/enterprise'
       : account.role === 'ADMIN' ? '/admin' : null)
   if (destination) return <Navigate to={destination} replace />
   return <section className="feature-page section-shell core-flow"><h1>{t('Account access')}</h1>
     {error && <p role="alert">{t(error)}</p>}
     {oauthError && <p role="alert">{t(oauthError)}</p>}
-    {loading ? <p role="status">{t(oauthSuccess ? 'Restoring your Google sign-in session…' : 'Checking your session…')}</p> : loadError ? <><p role="alert">{t(loadError)}</p><button onClick={() => { setLoadError(''); setLoading(true); setRetry(value => value + 1) }}>{t('Try again')}</button>{oauthSuccess && <Link to="/account" onClick={() => setLoadError('')}>{t('Sign in')}</Link>}</> : !account ? <AuthenticationForm google={google} providerError={providerError} onRetryProvider={() => { setGoogle(null); setProviderError(false); setProviderRetry(value => value + 1) }} onAuthenticated={setAccount} /> : <>
+    {loading ? <p role="status">{t(oauthSuccess ? 'Restoring your Google sign-in session…' : 'Checking your session…')}</p> : loadError ? <><p role="alert">{t(loadError)}</p><button onClick={() => { setLoadError(''); setLoading(true); setRetry(value => value + 1) }}>{t('Try again')}</button>{oauthSuccess && <Link to="/account" onClick={() => setLoadError('')}>{t('Sign in')}</Link>}</> : !account ? <AuthenticationForm google={google} providerError={providerError} onRetryProvider={() => { setGoogle(null); setProviderError(false); setProviderRetry(value => value + 1) }} onAuthenticated={value => { if (value.role === 'STUDENT') setPendingDestination(consumePendingSimulation()); setAccount(value) }} /> : <>
       <p>{account.displayName} · {account.role}</p>
       {account.role !== 'ENTERPRISE' && <p role="alert">{t('You do not have permission to access this account.')}</p>}
       <button disabled={busy} onClick={logout}>{t('Sign out')}</button>

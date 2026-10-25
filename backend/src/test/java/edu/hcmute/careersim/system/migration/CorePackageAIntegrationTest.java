@@ -111,9 +111,13 @@ class CorePackageAIntegrationTest {
                         student, eid, next, 0, new Finalize(UUID.randomUUID(), items(unlocked)));
         assertThat(finalPractical.quizResult()).isNull();
         assertThat(finalPractical.reviewedAt()).isNull();
-        assertThat(enrollments.read(student, eid).status()).isEqualTo("COMPLETED");
-        var completion = completions.read(student, Long.parseLong(finalPractical.completionId()));
+        assertThat(enrollments.read(student, eid).status()).isNotEqualTo("COMPLETED");
+        assertThat(finalPractical.completionId()).isNull();
         submissions.selfReview(student, eid, next);
+        var completion =
+                completions.read(
+                        student, Long.parseLong(enrollments.read(student, eid).completionId()));
+        assertThat(enrollments.read(student, eid).status()).isEqualTo("COMPLETED");
         assertThat(completions.read(student, Long.parseLong(completion.id())))
                 .isEqualTo(completion);
         assertThatThrownBy(
@@ -131,6 +135,108 @@ class CorePackageAIntegrationTest {
                                         "DELETE FROM scenario_learning_policy WHERE scenario_version_id=?",
                                         Long.parseLong(published.id())))
                 .isInstanceOf(org.springframework.dao.DataAccessException.class);
+    }
+
+    @Test
+    void resultsHttpIsOwnerOnlyMinimizedAndUsesFinalTaskEvidence() throws Exception {
+        var published = orderedQuizScenario();
+        var draft =
+                scenarios.cloneVersion(
+                        representative,
+                        Long.parseLong(published.scenarioId()),
+                        Long.parseLong(published.id()));
+        String skill =
+                scenarios.skill(
+                        admin,
+                        new SkillRequest("RESULTS_FIXTURE_" + UUID.randomUUID(), "API testing"));
+        var first = draft.tasks().get(0);
+        var skilled =
+                new Task(
+                        first.id(),
+                        first.position(),
+                        first.title(),
+                        first.workplaceContext(),
+                        first.instructions(),
+                        first.required(),
+                        first.translations(),
+                        first.definitions(),
+                        first.resources(),
+                        List.of(skill),
+                        first.modelAnswer(),
+                        first.taskType(),
+                        first.rubric());
+        draft =
+                scenarios.update(
+                        representative,
+                        Long.parseLong(draft.id()),
+                        draft.revision(),
+                        new Draft(draft.metadata(), List.of(skilled, draft.tasks().get(1))));
+        var version =
+                scenarios.publish(representative, Long.parseLong(draft.id()), draft.revision());
+        var enrollment = enrollments.enroll(student, Long.parseLong(version.id()));
+        long enrollmentId = Long.parseLong(enrollment.id());
+        var quiz = enrollment.tasks().get(0);
+        var quizPayload =
+                List.of(
+                        new Item(
+                                quiz.definitions().get(0).id(),
+                                null,
+                                null,
+                                null,
+                                CoreValues.tree(Map.of("choice", "B"))));
+        submissions.finalizeTask(
+                student,
+                enrollmentId,
+                Long.parseLong(quiz.id()),
+                0,
+                new Finalize(UUID.randomUUID(), quizPayload));
+        submissions.selfReview(student, enrollmentId, Long.parseLong(quiz.id()));
+        var practical = enrollments.read(student, enrollmentId).tasks().get(1);
+        submissions.finalizeTask(
+                student,
+                enrollmentId,
+                Long.parseLong(practical.id()),
+                0,
+                new Finalize(UUID.randomUUID(), items(practical)));
+        submissions.selfReview(student, enrollmentId, Long.parseLong(practical.id()));
+
+        String route = "/v2/enrollments/" + enrollment.id() + "/results";
+        var owner =
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                        new AccountPrincipal(student, email), null, List.of());
+        var foreign =
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
+                        new AccountPrincipal(other, "ignored@example.test"), null, List.of());
+        mvc.perform(get(route)).andExpect(status().isUnauthorized());
+        mvc.perform(
+                        get(route)
+                                .with(
+                                        org.springframework.security.test.web.servlet.request
+                                                .SecurityMockMvcRequestPostProcessors
+                                                .authentication(foreign)))
+                .andExpect(status().isNotFound());
+        var response =
+                mvc.perform(
+                                get(route)
+                                        .with(
+                                                org.springframework.security.test.web.servlet
+                                                        .request
+                                                        .SecurityMockMvcRequestPostProcessors
+                                                        .authentication(owner)))
+                        .andExpect(status().isOk())
+                        .andExpect(jsonPath("$.data.enrollmentId").value(enrollment.id()))
+                        .andExpect(jsonPath("$.data.tasks[0].status").value("FINAL"))
+                        .andExpect(jsonPath("$.data.tasks[0].quizResult.percentage").value(0))
+                        .andExpect(jsonPath("$.data.tasks[1].quizResult").doesNotExist())
+                        .andExpect(jsonPath("$.data.practicedSkills[0]").value("API testing"))
+                        .andExpect(
+                                jsonPath("$.data.completion.enrollmentId").value(enrollment.id()))
+                        .andReturn();
+        assertThat(response.getResponse().getContentAsString())
+                .doesNotContain("Actual synthetic work")
+                .doesNotContain("Reviewed model answer")
+                .doesNotContain("definitionId")
+                .doesNotContain("items");
     }
 
     private Version orderedQuizScenario() {
@@ -397,8 +503,15 @@ class CorePackageAIntegrationTest {
                                 ? "missing"
                                 : scenarios.slug(representative, Long.parseLong(template.id())));
         assertThat(detail.taskOutline()).hasSize(1);
+        assertThat(detail.taskOutline().get(0).description()).isEqualTo("Synthetic workplace");
         assertThat(json.writeValueAsString(detail))
-                .doesNotContain("modelAnswer", "quizScoringConfig", "Reviewed model answer");
+                .doesNotContain(
+                        "instructions",
+                        "resources",
+                        "modelAnswer",
+                        "rubric",
+                        "quizScoringConfig",
+                        "Reviewed model answer");
         enrollments.enroll(student, Long.parseLong(template.id()));
         enrollments.enroll(other, Long.parseLong(template.id()));
         var summary =
@@ -1071,7 +1184,11 @@ class CorePackageAIntegrationTest {
                                     finalRequest,
                                     0L))
                     .isEqualTo(practicalFinal);
-            String cid = practicalFinal.path("completionId").asText();
+            assertThat(practicalFinal.path("completionId").isNull()).isTrue();
+            var practicalReviewed =
+                    gatewayRequest(
+                            http, base, "POST", practicalBase + "/self-review", Map.of(), null);
+            String cid = practicalReviewed.path("completionId").asText();
             var completion =
                     gatewayRequest(http, base, "GET", "/v2/completions/" + cid, null, null);
             assertThat(completion.path("resumeSnippetText").asText())
@@ -1142,7 +1259,10 @@ class CorePackageAIntegrationTest {
                             restored.queryForObject(
                                     "SELECT max(version::integer) FROM public.flyway_schema_history WHERE success",
                                     Integer.class))
-                    .isEqualTo(22);
+                    .isEqualTo(
+                            jdbc.queryForObject(
+                                    "SELECT max(version::integer) FROM public.flyway_schema_history WHERE success",
+                                    Integer.class));
             assertThat(
                             restored.queryForObject(
                                     "SELECT resume_snippet_text FROM public.simulation_completion WHERE id=?",
@@ -1219,6 +1339,158 @@ class CorePackageAIntegrationTest {
     @Autowired PrivacyAdmission admission;
     @Autowired MigrationPreflightService imports;
     @Autowired MigrationRecordDao importRecords;
+
+    @Test
+    void fileHttpUploadFinalAnswerReviewAndNext() throws Exception {
+        var original = orderedQuizScenario();
+        var draft =
+                scenarios.cloneVersion(
+                        representative,
+                        Long.parseLong(original.scenarioId()),
+                        Long.parseLong(original.id()));
+        var first = draft.tasks().get(0);
+        var fileDefinition =
+                new Definition(
+                        null,
+                        1,
+                        "Own test file",
+                        "FILE",
+                        true,
+                        CoreValues.tree(
+                                Map.of(
+                                        "schemaVersion",
+                                        1,
+                                        "maxBytes",
+                                        10485760,
+                                        "allowedMimeTypes",
+                                        List.of("text/plain"))));
+        var fileTask =
+                new Task(
+                        first.id(),
+                        first.position(),
+                        first.title(),
+                        first.workplaceContext(),
+                        first.instructions(),
+                        true,
+                        first.translations(),
+                        List.of(fileDefinition),
+                        first.resources(),
+                        first.skillIds(),
+                        first.modelAnswer());
+        draft =
+                scenarios.update(
+                        representative,
+                        Long.parseLong(draft.id()),
+                        draft.revision(),
+                        new Draft(draft.metadata(), List.of(fileTask, draft.tasks().get(1))));
+        var version =
+                scenarios.publish(representative, Long.parseLong(draft.id()), draft.revision());
+        var cookies = new java.net.CookieManager(null, java.net.CookiePolicy.ACCEPT_ALL);
+        var http = java.net.http.HttpClient.newBuilder().cookieHandler(cookies).build();
+        String base = "http://localhost:" + port + "/api";
+        gatewayRequest(
+                http,
+                base,
+                "POST",
+                "/v2/auth/login",
+                new IdentityContracts.Login(email, PASSWORD),
+                null);
+        var enrollment =
+                gatewayRequest(
+                        http,
+                        base,
+                        "POST",
+                        "/v2/scenario-versions/" + version.id() + "/enrollments",
+                        Map.of(),
+                        null);
+        String eid = enrollment.path("id").asText();
+        var task = version.tasks().get(0);
+        String route = "/v2/enrollments/" + eid + "/tasks/" + task.id();
+        var before =
+                http.send(
+                        java.net.http.HttpRequest.newBuilder(
+                                        java.net.URI.create(base + route + "/model-answer"))
+                                .build(),
+                        java.net.http.HttpResponse.BodyHandlers.ofString());
+        assertThat(before.statusCode()).isEqualTo(403);
+        var token =
+                gatewayRequest(http, base, "GET", "/v2/auth/csrf", null, null)
+                        .path("token")
+                        .asText();
+        String boundary = "Uc05Boundary";
+        String multipart =
+                "--"
+                        + boundary
+                        + "\r\nContent-Disposition: form-data; name=\"file\"; filename=\"own-test.txt\"\r\nContent-Type: text/plain\r\n\r\nMy synthetic test work\r\n--"
+                        + boundary
+                        + "--\r\n";
+        var upload =
+                http.send(
+                        java.net.http.HttpRequest.newBuilder(
+                                        java.net.URI.create(base + "/v2/files"))
+                                .header("X-CSRF-TOKEN", token)
+                                .header("Content-Type", "multipart/form-data; boundary=" + boundary)
+                                .POST(java.net.http.HttpRequest.BodyPublishers.ofString(multipart))
+                                .build(),
+                        java.net.http.HttpResponse.BodyHandlers.ofString());
+        assertThat(upload.statusCode()).as("multipart FILE upload").isEqualTo(200);
+        var asset = json.readTree(upload.body()).path("data");
+        var items =
+                List.of(
+                        new Item(
+                                task.definitions().get(0).id(),
+                                null,
+                                null,
+                                asset.path("id").asText(),
+                                null));
+        var saved = gatewayRequest(http, base, "PUT", route + "/submission", new Items(items), 0L);
+        assertThat(
+                        gatewayRequest(http, base, "GET", route + "/submission", null, null)
+                                .path("items")
+                                .get(0)
+                                .path("fileAssetId")
+                                .asText())
+                .isEqualTo(asset.path("id").asText());
+        var request = new Finalize(UUID.randomUUID(), items);
+        var finalized =
+                gatewayRequest(
+                        http,
+                        base,
+                        "POST",
+                        route + "/submission/finalize",
+                        request,
+                        saved.path("revision").asLong());
+        assertThat(finalized.path("status").asText()).isEqualTo("FINAL");
+        assertThat(
+                        gatewayRequest(
+                                http,
+                                base,
+                                "POST",
+                                route + "/submission/finalize",
+                                request,
+                                saved.path("revision").asLong()))
+                .isEqualTo(finalized);
+        assertThat(
+                        gatewayRequest(http, base, "GET", route + "/model-answer", null, null)
+                                .path("answer")
+                                .isObject())
+                .isTrue();
+        assertThat(
+                        gatewayRequest(http, base, "GET", "/v2/enrollments/" + eid, null, null)
+                                .path("progression")
+                                .get(1)
+                                .path("accessible")
+                                .asBoolean())
+                .isFalse();
+        gatewayRequest(http, base, "POST", route + "/self-review", Map.of(), null);
+        assertThat(
+                        gatewayRequest(http, base, "GET", "/v2/enrollments/" + eid, null, null)
+                                .path("progression")
+                                .get(1)
+                                .path("accessible")
+                                .asBoolean())
+                .isTrue();
+    }
 
     @Test
     void everyDeliverableFormatAndPracticedEvidenceIsFinalOnly() {
@@ -1457,32 +1729,21 @@ class CorePackageAIntegrationTest {
                         + function
                         + "()");
         try {
-            assertThatThrownBy(
-                            () ->
-                                    submissions.finalizeTask(
-                                            student,
-                                            eid,
-                                            tid,
-                                            0,
-                                            new Finalize(UUID.randomUUID(), items(task))))
+            var finalized =
+                    submissions.finalizeTask(
+                            student, eid, tid, 0, new Finalize(UUID.randomUUID(), items(task)));
+            assertThatThrownBy(() -> submissions.selfReview(student, eid, tid))
                     .isInstanceOf(org.springframework.dao.DataAccessException.class);
-            assertThat(submissions.read(student, eid, tid).submissionId()).isNull();
-            assertThat(enrollments.read(student, eid).status()).isEqualTo("ENROLLED");
+            assertThat(submissions.read(student, eid, tid).submissionId())
+                    .isEqualTo(finalized.submissionId());
+            assertThat(submissions.read(student, eid, tid).reviewedAt()).isNull();
+            assertThat(enrollments.read(student, eid).status()).isEqualTo("IN_PROGRESS");
             assertThat(enrollments.read(student, eid).completionId()).isNull();
         } finally {
             jdbc.execute("DROP TRIGGER " + function + " ON public.simulation_completion");
             jdbc.execute("DROP FUNCTION public." + function + "()");
         }
-        assertThat(
-                        submissions
-                                .finalizeTask(
-                                        student,
-                                        eid,
-                                        tid,
-                                        0,
-                                        new Finalize(UUID.randomUUID(), items(task)))
-                                .status())
-                .isEqualTo("FINAL");
+        assertThat(submissions.selfReview(student, eid, tid).reviewedAt()).isNotNull();
     }
 
     @Test
@@ -2388,12 +2649,85 @@ class CorePackageAIntegrationTest {
                 .isInstanceOf(ApiException.class);
         assertThatThrownBy(
                         () ->
+                                files.upload(
+                                        student,
+                                        "too-large.txt",
+                                        "text/plain",
+                                        new byte[10 * 1024 * 1024 + 1]))
+                .isInstanceOf(ApiException.class);
+        assertThatThrownBy(
+                        () ->
                                 files.download(
                                         student,
                                         Long.parseLong(file.id()),
                                         "TASK_RESOURCE",
                                         999999))
                 .isInstanceOf(ApiException.class);
+
+        var archive =
+                files.upload(
+                        student,
+                        "solution.zip",
+                        "application/x-zip-compressed",
+                        zip("src/Solution.java", "class Solution {}"));
+        assertThat(archive.mimeType()).isEqualTo("application/zip");
+
+        var python =
+                files.upload(
+                        student,
+                        "solution.py",
+                        "text/x-python",
+                        "print('ok')\n".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        assertThat(python.mimeType()).isEqualTo("text/plain");
+
+        var workbook =
+                files.upload(
+                        student,
+                        "workbook.xlsx",
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                        zipEntries("[Content_Types].xml", "xl/workbook.xml"));
+        assertThat(workbook.mimeType())
+                .isEqualTo("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+
+        var slides =
+                files.upload(
+                        student,
+                        "slides.pptx",
+                        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                        zipEntries("[Content_Types].xml", "ppt/presentation.xml"));
+        assertThat(slides.mimeType())
+                .isEqualTo(
+                        "application/vnd.openxmlformats-officedocument.presentationml.presentation");
+    }
+
+    private static byte[] zip(String name, String content) {
+        try {
+            var output = new java.io.ByteArrayOutputStream();
+            try (var zip = new java.util.zip.ZipOutputStream(output)) {
+                zip.putNextEntry(new java.util.zip.ZipEntry(name));
+                zip.write(content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                zip.closeEntry();
+            }
+            return output.toByteArray();
+        } catch (java.io.IOException e) {
+            throw new AssertionError(e);
+        }
+    }
+
+    private static byte[] zipEntries(String... names) {
+        try {
+            var output = new java.io.ByteArrayOutputStream();
+            try (var zip = new java.util.zip.ZipOutputStream(output)) {
+                for (String name : names) {
+                    zip.putNextEntry(new java.util.zip.ZipEntry(name));
+                    zip.write("fixture".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    zip.closeEntry();
+                }
+            }
+            return output.toByteArray();
+        } catch (java.io.IOException e) {
+            throw new AssertionError(e);
+        }
     }
 
     @Test

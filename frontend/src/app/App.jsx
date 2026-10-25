@@ -1,4 +1,4 @@
-import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Link, Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import { useEffect, useSyncExternalStore } from 'react'
 import { getAccountGeneration, subscribeAccount } from '../shared/api/httpClient.js'
 import AppShell from '../shared/layout/AppShell.jsx'
@@ -11,6 +11,7 @@ import SimulationDetailPage from '../features/simulations/pages/SimulationDetail
 import { coreEnabled } from '../shared/api/coreApi.js'
 import VersionedAssessmentPage from '../features/assessment/pages/VersionedAssessmentPage.jsx'
 import CoreSimulationPage from '../features/simulations/pages/CoreSimulationPage.jsx'
+import CoreSimulationResultsPage from '../features/simulations/pages/CoreSimulationResultsPage.jsx'
 import CoreDashboardPage from '../features/guidance/pages/CoreDashboardPage.jsx'
 import CoreCatalogPage from '../features/simulations/pages/CoreCatalogPage.jsx'
 import EnterpriseWorkspace from '../features/enterprise/EnterpriseWorkspace.jsx'
@@ -53,6 +54,13 @@ function ApplicationLayout() {
   )
 }
 
+export function LegacySimulationRedirect({ detail = false }) {
+  const { slug } = useParams()
+  const { search } = useLocation()
+  const path = detail ? `/simulations/${encodeURIComponent(slug)}` : '/simulations'
+  return <Navigate to={`${path}${search}`} replace />
+}
+
 function NotFoundPage() {
   const { t } = useI18n()
   return <section className="section-shell core-flow"><h1>{t('Page not found')}</h1><Link to="/admin">{t('Open Admin Studio')}</Link></section>
@@ -76,8 +84,11 @@ function App() {
         <Route path="assessment" element={coreEnabled ? <VersionedAssessmentPage /> : <AssessmentPage />} />
         <Route path="assessment/:assessmentType" element={coreEnabled ? <VersionedAssessmentPage /> : <AssessmentPage />} />
         <Route path="simulations" element={coreEnabled ? <CoreCatalogPage /> : <SimulationCatalogPage />} />
+        <Route path="simulation" element={<LegacySimulationRedirect />} />
+        <Route path="simulation/:slug" element={<LegacySimulationRedirect detail />} />
         {coreEnabled && <Route path="enterprise" element={<EnterpriseWorkspace />} />}
         <Route path="simulations/:slug" element={coreEnabled ? <CoreSimulationPage /> : <SimulationDetailPage />} />
+        {coreEnabled && <Route path="simulations/:slug/results" element={<CoreSimulationResultsPage />} />}
         <Route
           path="simulations/:slug/attempt"
           element={coreEnabled ? <CoreSimulationPage /> : <SimulationAttemptPage />}

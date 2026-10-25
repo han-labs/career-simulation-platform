@@ -96,6 +96,10 @@ public final class ScenarioContracts {
 
     public record Availability(@NotBlank String status) {}
 
+    public record ClassificationRequest(@Pattern(regexp = "IT") String industryCode) {}
+
+    public record Classification(String scenarioId, String industryCode, long revision) {}
+
     public record Version(
             String id,
             String scenarioId,
@@ -115,12 +119,34 @@ public final class ScenarioContracts {
             String difficulty,
             String sort,
             String cursor,
-            int limit) {}
+            int limit,
+            String industry) {
+        public CatalogQuery(
+                String q,
+                String careerTrack,
+                String difficulty,
+                String sort,
+                String cursor,
+                int limit) {
+            this(q, careerTrack, difficulty, sort, cursor, limit, null);
+        }
+    }
 
     public record CatalogPage(List<Summary> items, String nextCursor) {}
 
+    public record PublicMedia(
+            String cardImageUrl,
+            String heroImageUrl,
+            String companyLogoUrl,
+            String overviewVideoUrl) {}
+
     public record TaskOutline(
-            String id, int position, String title, boolean required, String taskType) {}
+            String id,
+            int position,
+            String title,
+            String description,
+            boolean required,
+            String taskType) {}
 
     public record ParticipationSummary(
             String scenarioVersionId,
@@ -137,8 +163,11 @@ public final class ScenarioContracts {
             String scenarioVersionId,
             String enterpriseId,
             String enterpriseName,
+            String industryCode,
             Metadata metadata,
-            List<TaskOutline> taskOutline) {
+            PublicMedia media,
+            List<TaskOutline> taskOutline,
+            List<String> skills) {
         public Summary(
                 String id,
                 String slug,
@@ -146,7 +175,60 @@ public final class ScenarioContracts {
                 String enterpriseId,
                 String enterpriseName,
                 Metadata metadata) {
-            this(id, slug, scenarioVersionId, enterpriseId, enterpriseName, metadata, List.of());
+            this(
+                    id,
+                    slug,
+                    scenarioVersionId,
+                    enterpriseId,
+                    enterpriseName,
+                    null,
+                    metadata,
+                    null,
+                    List.of(),
+                    List.of());
+        }
+
+        public Summary(
+                String id,
+                String slug,
+                String scenarioVersionId,
+                String enterpriseId,
+                String enterpriseName,
+                String industryCode,
+                Metadata metadata) {
+            this(
+                    id,
+                    slug,
+                    scenarioVersionId,
+                    enterpriseId,
+                    enterpriseName,
+                    industryCode,
+                    metadata,
+                    null,
+                    List.of(),
+                    List.of());
+        }
+
+        public Summary(
+                String id,
+                String slug,
+                String scenarioVersionId,
+                String enterpriseId,
+                String enterpriseName,
+                String industryCode,
+                Metadata metadata,
+                PublicMedia media) {
+            this(
+                    id,
+                    slug,
+                    scenarioVersionId,
+                    enterpriseId,
+                    enterpriseName,
+                    industryCode,
+                    metadata,
+                    media,
+                    List.of(),
+                    List.of());
         }
     }
 
@@ -233,6 +315,19 @@ public final class ScenarioContracts {
             String certificateCode,
             JsonNode certificateSnapshot,
             Instant certificateIssuedAt) {}
+
+    public record TaskResult(
+            String taskId,
+            String status,
+            Instant submittedAt,
+            JsonNode quizResult,
+            Instant reviewedAt) {}
+
+    public record Results(
+            String enrollmentId,
+            List<TaskResult> tasks,
+            List<String> practicedSkills,
+            Completion completion) {}
 
     public record Participation(
             String submissionId,
