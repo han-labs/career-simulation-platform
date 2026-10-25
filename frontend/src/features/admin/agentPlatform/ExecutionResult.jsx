@@ -5,7 +5,7 @@ import SourcePassages from './SourcePassages.jsx'
 import Button from '../../../shared/ui/Button.jsx'
 import FeedbackPanel from '../../../shared/ui/FeedbackPanel.jsx'
 import StatusBadge from '../../../shared/ui/StatusBadge.jsx'
-export default function ExecutionResult({ id, execution, error, reload, presentation = 'legacy' }) {
+export default function ExecutionResult({ id, execution, error, reload, presentation = 'legacy', detailsLabel }) {
   const { t } = useI18n()
   const [cancelError, setCancelError] = useState('')
   if (!id) return null
@@ -32,7 +32,7 @@ export default function ExecutionResult({ id, execution, error, reload, presenta
           <ul>{execution.outputSnapshot.citations?.map(citation => <li key={citation.referenceId}>[{citation.referenceId}] <q>{citation.quote}</q></li>)}</ul>
         </section>)}
       <SourcePassages key={id} presentation="studio" passages={passages} onUnavailable={reload} />
-      <details className="cs-disclosure"><summary>{t(builder ? 'Safe run details' : 'Execution diagnostics')}</summary>{builder && <p className="cs-caption">{t('Observable execution metadata only. Private model reasoning and provider protocol are never displayed.')}</p>}<dl className="cs-metadata">
+      <details className="cs-disclosure"><summary>{t(detailsLabel ?? (builder ? 'Safe run details' : 'Execution diagnostics'))}</summary>{builder && <p className="cs-caption">{t('Observable execution metadata only. Private model reasoning and provider protocol are never displayed.')}</p>}<dl className="cs-metadata">
         <div><dt>{t('Execution ID')}</dt><dd><code>{id}</code></dd></div><div><dt>{t('Execution mode')}</dt><dd>{execution.executionMode} · {execution.status}</dd></div>
         <div><dt>{t('Exact configuration hash')}</dt><dd><code>{execution.configurationHash ?? t('Not applicable')}</code></dd></div>
         {builder && <div><dt>{t('Saved configuration ID')}</dt><dd><code>{execution.configurationId ?? t('Not applicable')}</code></dd></div>}

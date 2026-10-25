@@ -72,7 +72,7 @@ it.each([
 it.each([
   ['/admin', 'Knowledge bases', 'Knowledge Bases', '/admin/knowledge'],
   ['/admin/knowledge', 'Knowledge bases', 'Knowledge Bases', '/admin/knowledge'],
-  ['/admin/agents', 'Agent Builder', 'AI Agents', '/admin/agents'],
+  ['/admin/agents', 'Agent Studio', 'AI Agents', '/admin/agents'],
   ['/admin/usage', 'AI Usage Dashboard', 'AI Usage', '/admin/usage'],
 ])('uses one focused Admin shell at %s', async (path, heading, active, canonical) => {
   const view = page(path)

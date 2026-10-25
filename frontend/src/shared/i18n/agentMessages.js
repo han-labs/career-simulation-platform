@@ -1,5 +1,43 @@
 // Presentation only: original documents, quoted evidence and model replies remain unchanged.
 export const agentMessages = Object.fromEntries(`
+Enter an Agent name. ⇢ Nhập tên Agent.
+Enter an Agent purpose. ⇢ Nhập mục đích của Agent.
+PREVIEW · SAVED CONFIGURATION ⇢ XEM TRƯỚC · CẤU HÌNH ĐÃ LƯU
+Chat Preview ⇢ Hội thoại xem trước
+Saved configuration ⇢ Cấu hình đã lưu
+Unsaved changes are not used in Preview. Save the configuration to test the new settings. ⇢ Thay đổi chưa lưu không được dùng khi xem trước. Hãy lưu cấu hình để thử các thiết lập mới.
+Agent workspace view ⇢ Chế độ xem Agent
+Agent configuration ⇢ Cấu hình Agent
+Configuration ⇢ Cấu hình
+Knowledge search ⇢ Tìm kiếm tri thức
+Assessment evidence ⇢ Minh chứng đánh giá
+Simulation catalogue ⇢ Danh mục mô phỏng
+My simulation evidence ⇢ Minh chứng mô phỏng của tôi
+View run details ⇢ Xem chi tiết lượt chạy
+Preview ⇢ Xem trước
+Sending Preview... ⇢ Đang gửi yêu cầu xem trước...
+Send ⇢ Gửi
+Save changes ⇢ Lưu thay đổi
+Agent Studio ⇢ Studio Agent
++ Create Agent ⇢ + Tạo Agent
+Description / purpose ⇢ Mô tả / mục đích
+Admin Preview chat ⇢ Hội thoại xem trước của quản trị viên
+Admin Preview ⇢ Xem trước dành cho quản trị viên
+Each Preview is an independent run of the selected saved version. No Student session or personal Student evidence is used. ⇢ Mỗi lần xem trước là một lượt chạy độc lập của phiên bản đã lưu đang chọn. Không sử dụng phiên sinh viên hay minh chứng cá nhân của sinh viên.
+Save a configuration in Brain before opening a Preview. ⇢ Lưu cấu hình trong tab Bộ não trước khi xem trước.
+Preview messages ⇢ Tin nhắn xem trước
+Try your saved Agent ⇢ Thử Agent đã lưu
+Ask a question to test its instructions, granted knowledge and authorized tools. ⇢ Đặt câu hỏi để thử chỉ dẫn, tri thức và công cụ đã được cấp quyền.
+Admin message ⇢ Tin nhắn quản trị viên
+You ⇢ Bạn
+Agent response ⇢ Phản hồi của Agent
+Publication and assignments ⇢ Công bố và phân công
+Agent configuration workspace ⇢ Không gian cấu hình Agent
+Brain ⇢ Bộ não
+Chat ⇢ Hội thoại
+Integrations ⇢ Tích hợp
+Advanced ⇢ Nâng cao
+Agent name and purpose are required. ⇢ Cần nhập tên và mục đích của Agent.
 Configure a career exploration Agent, save an immutable version and preview exactly what you saved. ⇢ Cấu hình Agent khám phá nghề nghiệp, lưu phiên bản bất biến rồi xem trước đúng phiên bản đã lưu.
 Loading Agent Builder... ⇢ Đang tải trình cấu hình Agent...
 No Agents yet. Create one to configure its first version. ⇢ Chưa có Agent. Tạo Agent để cấu hình phiên bản đầu tiên.
