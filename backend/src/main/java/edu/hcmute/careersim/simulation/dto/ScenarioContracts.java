@@ -96,11 +96,9 @@ public final class ScenarioContracts {
 
     public record Availability(@NotBlank String status) {}
 
-    public record ClassificationRequest(
-            @Pattern(regexp = "IT") String industryCode) {}
+    public record ClassificationRequest(@Pattern(regexp = "IT") String industryCode) {}
 
-    public record Classification(
-            String scenarioId, String industryCode, long revision) {}
+    public record Classification(String scenarioId, String industryCode, long revision) {}
 
     public record Version(
             String id,
@@ -317,6 +315,19 @@ public final class ScenarioContracts {
             String certificateCode,
             JsonNode certificateSnapshot,
             Instant certificateIssuedAt) {}
+
+    public record TaskResult(
+            String taskId,
+            String status,
+            Instant submittedAt,
+            JsonNode quizResult,
+            Instant reviewedAt) {}
+
+    public record Results(
+            String enrollmentId,
+            List<TaskResult> tasks,
+            List<String> practicedSkills,
+            Completion completion) {}
 
     public record Participation(
             String submissionId,

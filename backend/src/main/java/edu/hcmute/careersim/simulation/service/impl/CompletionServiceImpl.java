@@ -21,6 +21,7 @@ public class CompletionServiceImpl implements CompletionService {
     private final EnrollmentDao enrollments;
     private final CompletionDao dao;
     private final ScenarioDao scenarios;
+    private final LearningPolicyDao learning;
     private final ActorAccess actors;
     private final EnterpriseDirectoryAccess enterprises;
     private final AuditWriter audit;
@@ -31,8 +32,22 @@ public class CompletionServiceImpl implements CompletionService {
         if (enrollments.completionId(enrollment).isPresent()) return;
         int required = enrollments.required(e.version());
         if (required == 0 || enrollments.finalRequired(enrollment, e.version()) != required) return;
-        var a = actors.requireId(actor);
         var v = scenarios.version(e.version(), false);
+        if (learning.ordered(e.version())) {
+            var requiredIds =
+                    v.tasks().stream().filter(t -> t.required()).map(t -> t.id()).toList();
+            var progress = learning.progress(enrollment, e.version());
+            if (requiredIds.stream()
+                    .anyMatch(
+                            id ->
+                                    progress.stream()
+                                            .noneMatch(
+                                                    p ->
+                                                            id.equals(p.taskId())
+                                                                    && p.finalized()
+                                                                    && p.reviewed()))) return;
+        }
+        var a = actors.requireId(actor);
         Instant now = Instant.now();
         var snapshot = new LinkedHashMap<String, Object>();
         snapshot.put("schemaVersion", 1);

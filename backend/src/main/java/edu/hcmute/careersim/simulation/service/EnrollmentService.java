@@ -8,5 +8,7 @@ public interface EnrollmentService {
 
     Enrollment read(long actor, long id);
 
+    edu.hcmute.careersim.simulation.dto.ScenarioContracts.Results results(long actor, long id);
+
     List<Enrollment> list(long actor, long after, int limit);
 }
