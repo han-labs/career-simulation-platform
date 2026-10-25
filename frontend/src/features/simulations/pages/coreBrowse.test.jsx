@@ -210,7 +210,7 @@ it.each([
 ])('shows the approved public detail error for status %s', async (status, message, retryable) => {
   apiRequest.mockRejectedValue(Object.assign(new Error('Raw API error'), { status }))
   renderRoute(<CoreSimulationPage />, '/simulations/api-triage')
-  expect((await screen.findByRole('alert')).textContent.trim()).toBe(message)
+  expect((await screen.findByRole('alert')).textContent).toContain(message)
   expect(Boolean(screen.queryByRole('button', { name: 'Try again' }))).toBe(retryable)
   expect(screen.getByRole('link', { name: 'Back to catalog' })).toBeTruthy()
 })

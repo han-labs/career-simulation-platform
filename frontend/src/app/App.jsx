@@ -13,6 +13,7 @@ import { coreEnabled } from '../shared/api/coreApi.js'
 import AccountPage from '../features/identity/AccountPage.jsx'
 import VersionedAssessmentPage from '../features/assessment/pages/VersionedAssessmentPage.jsx'
 import CoreSimulationPage from '../features/simulations/pages/CoreSimulationPage.jsx'
+import CoreSimulationResultsPage from '../features/simulations/pages/CoreSimulationResultsPage.jsx'
 import CoreDashboardPage from '../features/guidance/pages/CoreDashboardPage.jsx'
 import CoreCatalogPage from '../features/simulations/pages/CoreCatalogPage.jsx'
 import EnterpriseWorkspace from '../features/enterprise/EnterpriseWorkspace.jsx'
@@ -75,6 +76,7 @@ function App() {
         {coreEnabled && <Route path="enterprise" element={<EnterpriseWorkspace />} />}
         {coreEnabled && <Route path="admin/assessments" element={<AssessmentAdministration />} />}
         <Route path="simulations/:slug" element={coreEnabled ? <CoreSimulationPage /> : <SimulationDetailPage />} />
+        {coreEnabled && <Route path="simulations/:slug/results" element={<CoreSimulationResultsPage />} />}
         <Route
           path="simulations/:slug/attempt"
           element={coreEnabled ? <CoreSimulationPage /> : <SimulationAttemptPage />}
