@@ -81,6 +81,30 @@ public class NativeAgentModelProvider implements AgentModelProvider {
                 false);
     }
 
+    // Gemini's parameters dialect cannot express additionalProperties. Project a copy;
+    // canonical schemas and backend argument validation remain authoritative and strict.
+    private JsonNode geminiParameters(Object parameters) {
+        JsonNode projected = json.valueToTree(parameters);
+        projected = projected.deepCopy();
+        normalizeGeminiSchema(projected);
+        return projected;
+    }
+
+    private void normalizeGeminiSchema(JsonNode schema) {
+        if (schema.isObject()) {
+            ((com.fasterxml.jackson.databind.node.ObjectNode) schema)
+                    .remove("additionalProperties");
+            schema.fields()
+                    .forEachRemaining(
+                            field -> {
+                                if (field.getKey().equals("properties"))
+                                    // Property names are not schema keywords.
+                                    field.getValue().forEach(this::normalizeGeminiSchema);
+                                else normalizeGeminiSchema(field.getValue());
+                            });
+        } else if (schema.isArray()) schema.forEach(this::normalizeGeminiSchema);
+    }
+
     public Decision decide(
             String key,
             String instructions,
@@ -155,7 +179,7 @@ public class NativeAgentModelProvider implements AgentModelProvider {
                                                     "description",
                                                     "Retrieve passages from explicitly granted published knowledge bases. No answer generation or writes.",
                                                     "parameters",
-                                                    parameters())))));
+                                                    geminiParameters(parameters()))))));
         if (definitions != null) {
             body.remove("tools");
             if (!definitions.isEmpty())
@@ -173,7 +197,8 @@ public class NativeAgentModelProvider implements AgentModelProvider {
                                                                         "description",
                                                                         t.description(),
                                                                         "parameters",
-                                                                        t.parameters()))
+                                                                        geminiParameters(
+                                                                                t.parameters())))
                                                 .toList())));
         }
         bounded(body);

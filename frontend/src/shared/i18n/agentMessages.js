@@ -1,5 +1,75 @@
 // Presentation only: original documents, quoted evidence and model replies remain unchanged.
 export const agentMessages = Object.fromEntries(`
+Configure a career exploration Agent, save an immutable version and preview exactly what you saved. ⇢ Cấu hình Agent khám phá nghề nghiệp, lưu phiên bản bất biến rồi xem trước đúng phiên bản đã lưu.
+Loading Agent Builder... ⇢ Đang tải trình cấu hình Agent...
+No Agents yet. Create one to configure its first version. ⇢ Chưa có Agent. Tạo Agent để cấu hình phiên bản đầu tiên.
+Selected saved version ⇢ Phiên bản đã lưu đang chọn
+Published version ⇢ Phiên bản đang công bố
+None selected ⇢ Chưa chọn
+Not published ⇢ Chưa công bố
+Unsaved changes — Save a new version before Preview. ⇢ Có thay đổi chưa lưu — hãy lưu phiên bản mới trước khi xem trước.
+Reload latest Agent ⇢ Tải lại Agent mới nhất
+Discard unsaved changes ⇢ Bỏ thay đổi chưa lưu
+Identity ⇢ Thông tin Agent
+Agent description / purpose ⇢ Mô tả / mục đích của Agent
+No saved version yet. Complete the settings below and Save. ⇢ Chưa có phiên bản đã lưu. Hoàn tất cấu hình bên dưới rồi lưu.
+Supported model ⇢ Mô hình được hỗ trợ
+Choose a supported model. ⇢ Chọn một mô hình được hỗ trợ.
+Models come from server configuration. Availability does not guarantee a successful provider call. ⇢ Danh sách mô hình lấy từ cấu hình máy chủ. Trạng thái khả dụng không bảo đảm lời gọi nhà cung cấp thành công.
+This model can be saved, but Preview may fail while the provider is unavailable. ⇢ Có thể lưu mô hình này, nhưng xem trước có thể thất bại khi nhà cung cấp chưa khả dụng.
+Instructions ⇢ Chỉ dẫn
+Describe career exploration, when to use tools, reply language, evidence handling and safe refusals. Your text is versioned and is never replaced automatically. ⇢ Mô tả cách khám phá nghề nghiệp, khi nào dùng công cụ, ngôn ngữ trả lời, xử lý minh chứng và từ chối an toàn. Chỉ dẫn của bạn được lưu theo phiên bản và không bị tự động thay thế.
+Policies ⇢ Chính sách thực thi
+Model rounds ⇢ Số vòng mô hình
+Maximum tool calls ⇢ Số lượt gọi công cụ tối đa
+Execution timeout (seconds) ⇢ Giới hạn thời gian thực thi (giây)
+Maximum answer characters ⇢ Số ký tự trả lời tối đa
+Grounding policy ⇢ Chính sách minh chứng
+Require knowledge base evidence ⇢ Yêu cầu minh chứng từ kho tri thức
+Allow general exploration guidance ⇢ Cho phép hướng dẫn khám phá tổng quát
+General guidance does not turn missing evidence into a grounded answer. Citations must always match evidence from the current run. ⇢ Hướng dẫn tổng quát không biến câu trả lời thiếu minh chứng thành câu trả lời có căn cứ. Trích dẫn luôn phải khớp minh chứng của lượt chạy hiện tại.
+One model round is reserved for the final answer. With rounds set to 1, tools cannot run; increase rounds to allow tool use. ⇢ Một vòng mô hình được dành cho câu trả lời cuối. Khi đặt 1 vòng, công cụ không thể chạy; hãy tăng số vòng để cho phép dùng công cụ.
+Selected knowledge bases define this Agent’s knowledge scope. Only authorized, published content can be retrieved; empty evidence is not successful grounding. ⇢ Các kho được chọn xác định phạm vi tri thức của Agent. Chỉ truy xuất nội dung đã công bố và được cấp quyền; không có minh chứng không phải là trả lời có căn cứ thành công.
+Unavailable knowledge base ⇢ Kho tri thức không khả dụng
+No authorized knowledge bases are available. ⇢ Chưa có kho tri thức được cấp quyền khả dụng.
+Domain tool grants ⇢ Quyền sử dụng công cụ nghiệp vụ
+Search published passages from explicitly granted knowledge bases. ⇢ Tìm đoạn tài liệu đã công bố trong các kho tri thức được cấp quyền rõ ràng.
+Interpret the Student’s own authorized assessment results. Private evidence is unavailable in Admin Preview. ⇢ Diễn giải kết quả đánh giá của chính sinh viên trong phạm vi được cấp quyền. Minh chứng riêng tư không khả dụng khi quản trị viên xem trước.
+Explore the public simulation catalogue without changing enrollment or results. ⇢ Khám phá danh mục mô phỏng công khai mà không thay đổi việc tham gia hoặc kết quả.
+Read the Student’s own authorized simulation progress and results. Unavailable in Admin Preview. ⇢ Đọc tiến độ và kết quả mô phỏng của chính sinh viên trong phạm vi được cấp quyền. Không khả dụng khi quản trị viên xem trước.
+Conversation and bounded context ⇢ Hội thoại và ngữ cảnh có giới hạn
+Enable bounded Student context ⇢ Bật ngữ cảnh sinh viên có giới hạn
+Uses supported, scoped Student history/context in Student runtime. This is not training, autonomous learning or unlimited permanent memory. Admin Preview has no Student history. ⇢ Sử dụng lịch sử/ngữ cảnh sinh viên trong phạm vi và giới hạn được hỗ trợ ở luồng sinh viên. Đây không phải huấn luyện, tự học hay trí nhớ vĩnh viễn không giới hạn. Xem trước của quản trị viên không có lịch sử sinh viên.
+Safety ⇢ An toàn
+The backend enforces current identity, permissions, read-only tools, execution limits and citation validation. Safety cannot be disabled here. ⇢ Backend kiểm tra danh tính hiện tại, quyền truy cập, công cụ chỉ đọc, giới hạn thực thi và trích dẫn. Không thể tắt các bảo vệ tại đây.
+Authorized Students may interpret their own assessment and simulation evidence. Admin Preview never impersonates a Student or reads personal Student evidence. ⇢ Sinh viên được cấp quyền có thể diễn giải minh chứng đánh giá và mô phỏng của chính mình. Xem trước của quản trị viên không giả danh sinh viên hoặc đọc minh chứng cá nhân.
+Save creates a version only. It does not publish, assign Students or call the AI provider. ⇢ Lưu chỉ tạo phiên bản. Không công bố, không gán sinh viên và không gọi nhà cung cấp AI.
+Save your revised configuration before running Preview. Any displayed result belongs to the previously saved version. ⇢ Lưu cấu hình đã sửa trước khi xem trước. Kết quả đang hiển thị thuộc phiên bản đã lưu trước đó.
+Executed preview question ⇢ Câu hỏi đã dùng để xem trước
+Retry preview ⇢ Thử xem trước lại
+This execution belongs to another saved configuration. Select its version to inspect it. ⇢ Lượt chạy này thuộc cấu hình đã lưu khác. Chọn phiên bản tương ứng để kiểm tra.
+Discard unsaved configuration changes? ⇢ Bỏ các thay đổi cấu hình chưa lưu?
+The selected saved configuration is unchanged. Discarding restores saved settings. ⇢ Cấu hình đã lưu đang chọn không bị thay đổi. Bỏ thay đổi sẽ khôi phục các thiết lập đã lưu.
+Keep editing ⇢ Tiếp tục chỉnh sửa
+Discard and restore ⇢ Bỏ thay đổi và khôi phục
+Preview result ⇢ Kết quả xem trước
+Actual tool calls ⇢ Số lượt gọi công cụ thực tế
+Evidence events ⇢ Sự kiện có minh chứng
+Safe run details ⇢ Chi tiết thực thi an toàn
+Saved configuration ID ⇢ Mã cấu hình đã lưu
+Observable execution metadata only. Private model reasoning and provider protocol are never displayed. ⇢ Chỉ hiển thị metadata thực thi quan sát được. Không hiển thị suy luận riêng của mô hình hoặc giao thức nội bộ nhà cung cấp.
+Your preserved local draft has been restored. Save before Preview. ⇢ Bản nháp trên máy đã được khôi phục. Hãy lưu trước khi xem trước.
+A new immutable version was saved. Nothing was published or assigned; no provider was called. ⇢ Đã lưu phiên bản bất biến mới. Không công bố hoặc gán sinh viên; không gọi nhà cung cấp.
+Latest Agent revision loaded. Your unsaved input is preserved. ⇢ Đã tải revision Agent mới nhất. Nội dung chưa lưu của bạn được giữ nguyên.
+This Agent has changed. Reload the latest Agent before saving. Your draft is preserved. ⇢ Agent này đã thay đổi. Tải Agent mới nhất trước khi lưu. Bản nháp của bạn được giữ nguyên.
+Complete the required agent settings before saving. ⇢ Hoàn tất các thiết lập Agent bắt buộc trước khi lưu.
+Enter instructions between 1 and 12000 characters. ⇢ Nhập chỉ dẫn từ 1 đến 12000 ký tự.
+Enter a whole number within the displayed bounds. ⇢ Nhập số nguyên trong giới hạn được hiển thị.
+Select only supported domain tools. ⇢ Chỉ chọn công cụ nghiệp vụ được hỗ trợ.
+Enabled tools require a positive tool-call budget. ⇢ Công cụ đã bật yêu cầu ngân sách gọi công cụ lớn hơn 0.
+Choose a supported grounding policy. ⇢ Chọn chính sách minh chứng được hỗ trợ.
+Choose whether bounded Student context is enabled. ⇢ Chọn có bật ngữ cảnh sinh viên có giới hạn hay không.
+Choose at most ten distinct authorized active knowledge bases. ⇢ Chọn tối đa mười kho tri thức hoạt động, được cấp quyền và không trùng nhau.
 Other ⇢ Khác
 Source usage rights ⇢ Quyền sử dụng nguồn
 Choose source usage rights ⇢ Chọn quyền sử dụng nguồn

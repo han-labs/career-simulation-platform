@@ -189,6 +189,26 @@ class StudentEvidenceToolsTest {
     }
 
     @Test
+    void canonicalToolSchemasAndBackendValidationRemainClosedForEveryTool() {
+        for (var definition : StudentEvidenceTools.definitions(StudentEvidenceTools.NAMES)) {
+            assertThat(definition.parameters().path("additionalProperties").isBoolean()).isTrue();
+            assertThat(definition.parameters().path("additionalProperties").asBoolean()).isFalse();
+            var args = CoreValues.tree(Map.of("query", "practice", "unexpected", "not permitted"));
+            assertThatThrownBy(() -> StudentEvidenceTools.arguments(definition.name(), args))
+                    .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class)
+                    .hasMessage("Unknown tool argument.");
+        }
+        assertThatThrownBy(
+                        () ->
+                                tools.preview(
+                                        "simulation.explore",
+                                        CoreValues.tree(Map.of("unexpected", "not permitted"))))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class)
+                .hasMessage("Unknown tool argument.");
+        verifyNoInteractions(assessments, catalogue, scenarios, evidence, enrollments, submissions);
+    }
+
+    @Test
     void finalizedEvidenceAuthorityIsRecheckedBeforeReuse() {
         var source =
                 new DomainEvidence(

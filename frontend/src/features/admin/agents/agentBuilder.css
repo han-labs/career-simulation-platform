@@ -1,0 +1,12 @@
+@import '../../../shared/ui/ui.css';
+.agent-builder { min-width:0; }
+.agent-builder-grid { display:grid; grid-template-columns:minmax(190px,250px) minmax(0,1fr); gap:24px; align-items:start; }
+.agent-builder-fields { border:0; margin:0; padding:0; min-width:0; }
+.agent-builder .cs-surface > legend { padding-inline:8px; font-size:1.125rem; font-weight:600; }
+.agent-builder-choice { display:flex; align-items:center; gap:12px; min-height:44px; overflow-wrap:anywhere; }
+.agent-builder-choice input { flex:0 0 auto; }
+.agent-builder .platform-list button { min-height:44px; padding:10px; border:1px solid var(--cs-border); border-radius:8px; background:var(--cs-surface); color:var(--cs-text); overflow-wrap:anywhere; }
+.agent-builder .platform-list button[aria-pressed="true"] { border-color:var(--cs-primary); background:var(--cs-primary-soft); }
+.agent-builder select,.agent-builder textarea { max-width:100%; }
+.agent-builder pre,.agent-builder code { overflow-wrap:anywhere; }
+@media(max-width:860px) { .agent-builder-grid { grid-template-columns:minmax(0,1fr); } }

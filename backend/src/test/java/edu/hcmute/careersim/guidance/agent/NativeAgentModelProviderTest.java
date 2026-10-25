@@ -169,6 +169,20 @@ class NativeAgentModelProviderTest {
             assertThat(second.output().path("text").asText()).isEqualTo("No evidence.");
             assertThat(second.output().toString()).doesNotContain("private", "Signature");
             assertThat(requests.get(0).toString()).contains("kb_search");
+            var parameters =
+                    provider.equals("gemini")
+                            ? requests.get(0).at("/tools/0/functionDeclarations/0/parameters")
+                            : requests.get(0).at("/tools/0/function/parameters");
+            assertThat(parameters.path("type").asText()).isEqualTo("object");
+            assertThat(parameters.path("properties").size()).isEqualTo(2);
+            assertThat(parameters.at("/properties/query/type").asText()).isEqualTo("string");
+            assertThat(parameters.at("/properties/topK/type").asText()).isEqualTo("integer");
+            assertThat(parameters.path("required")).isEqualTo(json.valueToTree(List.of("query")));
+            if (provider.equals("gemini"))
+                assertThat(parameters.has("additionalProperties")).isFalse();
+            else assertThat(parameters.path("additionalProperties").isBoolean()).isTrue();
+            if (provider.equals("openai"))
+                assertThat(parameters.path("additionalProperties").asBoolean()).isFalse();
             assertThat(requests.get(1).toString()).contains("call-one");
             assertThat(requests.get(1).has("tools")).isFalse();
             if (provider.equals("gemini"))
@@ -178,6 +192,109 @@ class NativeAgentModelProviderTest {
             assertThat(SynExecutionScope.trace().toString())
                     .contains("inputTokens=12", "outputTokens=5")
                     .doesNotContain("synthetic-private-signature");
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"gemini", "openai"})
+    void nestedToolSchemaProjectionIsProviderSpecificAndNeverMutatesCanonicalSchema(String provider)
+            throws Exception {
+        var canonical =
+                json.readTree(
+                        """
+                        {"type":"object","additionalProperties":false,"required":["query","filters"],
+                         "properties":{
+                           "query":{"type":"string"},
+                           "filters":{"type":"object","additionalProperties":false,
+                             "required":["items"],"properties":{
+                               "items":{"type":"array","items":{"type":"object",
+                                 "additionalProperties":false,"required":["track"],
+                                 "properties":{"track":{"type":"string","enum":["BACKEND"]}}}},
+                               "additionalProperties":{"type":"string","description":"A property name, not a keyword"}
+                             }}
+                         }}
+                        """);
+        JsonNode original = canonical.deepCopy();
+        var captured = new AtomicReference<JsonNode>();
+        var server =
+                HttpServer.create(new InetSocketAddress(InetAddress.getLoopbackAddress(), 0), 0);
+        server.createContext(
+                "/",
+                exchange -> {
+                    try {
+                        captured.set(json.readTree(exchange.getRequestBody()));
+                        String text =
+                                "{\"schemaVersion\":1,\"outcome\":\"REFUSED\",\"text\":\"No evidence.\",\"citations\":[],\"suggestions\":[]}";
+                        Object event =
+                                provider.equals("gemini")
+                                        ? Map.of(
+                                                "candidates",
+                                                List.of(
+                                                        Map.of(
+                                                                "content",
+                                                                Map.of(
+                                                                        "parts",
+                                                                        List.of(
+                                                                                Map.of(
+                                                                                        "text",
+                                                                                        text))))))
+                                        : Map.of(
+                                                "choices",
+                                                List.of(Map.of("delta", Map.of("content", text))));
+                        byte[] response =
+                                ("data: " + json.writeValueAsString(event) + "\n\ndata: [DONE]\n\n")
+                                        .getBytes(java.nio.charset.StandardCharsets.UTF_8);
+                        exchange.getResponseHeaders().add("Content-Type", "text/event-stream");
+                        exchange.sendResponseHeaders(200, response.length);
+                        exchange.getResponseBody().write(response);
+                    } finally {
+                        exchange.close();
+                    }
+                });
+        server.start();
+        try (var scope = SynExecutionScope.open(Duration.ofSeconds(10), () -> true)) {
+            String base = "http://localhost:" + server.getAddress().getPort();
+            var adapter =
+                    new NativeAgentModelProvider(
+                            json,
+                            RestClient.builder(),
+                            provider,
+                            "synthetic-only",
+                            "synthetic-only",
+                            "synthetic",
+                            "synthetic",
+                            base,
+                            base);
+            var decision =
+                    adapter.stream(
+                            provider + "/synthetic",
+                            "Synthetic instructions",
+                            "Synthetic query",
+                            List.of(),
+                            List.of(
+                                    new AgentModelProvider.Tool(
+                                            "kb.search", "Synthetic tool", canonical)),
+                            delta -> {});
+            assertThat(decision.output().path("text").asText()).isEqualTo("No evidence.");
+            var transported =
+                    provider.equals("gemini")
+                            ? captured.get().at("/tools/0/functionDeclarations/0/parameters")
+                            : captured.get().at("/tools/0/function/parameters");
+            JsonNode expected = original.deepCopy();
+            if (provider.equals("gemini")) {
+                ((com.fasterxml.jackson.databind.node.ObjectNode) expected)
+                        .remove("additionalProperties");
+                ((com.fasterxml.jackson.databind.node.ObjectNode)
+                                expected.at("/properties/filters"))
+                        .remove("additionalProperties");
+                ((com.fasterxml.jackson.databind.node.ObjectNode)
+                                expected.at("/properties/filters/properties/items/items"))
+                        .remove("additionalProperties");
+            }
+            assertThat(transported).isEqualTo(expected);
+            assertThat(canonical).isEqualTo(original);
         } finally {
             server.stop(0);
         }
