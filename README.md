@@ -18,6 +18,10 @@ Checked `origin/main@5486f9f` contains P1–P6 and V1–V22. Registration/JWT/Go
 
 ## Development entry point
 
+For current PowerShell/Docker startup, use [the local Compose runbook](docs/deployment/local-compose.md).
+Initialize a private stable JWT key before `docker compose config --quiet`, build
+and startup; Google credentials do not replace the required signing key.
+
 Read [AGENTS](AGENTS.md) before changes, then use [.agent/TASKS](.agent/TASKS.md) for the current queue. Existing plans and legacy US identifiers are historical unless a current task explicitly references them.
 
 For code verification use the gates in [.agent/rules/testing-and-quality-gates.md](.agent/rules/testing-and-quality-gates.md). Documentation-only synchronization checks links/IDs/source consistency and preservation; no full suite, DB startup or paid provider is required.

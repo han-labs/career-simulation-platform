@@ -151,9 +151,7 @@ public class SecurityConfig {
                                                             csrf))
                                     .failureHandler(
                                             (req, res, error) -> {
-                                                org.springframework.security.core.context
-                                                        .SecurityContextHolder.clearContext();
-                                                res.sendRedirect("/account?oauthError=denied");
+                                                GoogleOAuthFlow.failure(res, error);
                                             }));
         }
         if (localAdminEnabled(env))

@@ -1,5 +1,11 @@
 # System architecture
 
+US-01/02 Google identity presentation and the existing backend OIDC sequence are
+mapped in [Google setup and callback/session flow](../testing/google-identity.md).
+This follow-up preserves the P1/P2 JWT/CSRF boundary and deployment topology.
+
+US-01 / UC-01 browser registration and the unchanged identity-to-assessment handoff are mapped in the [registration sequence](../api/registration-uc01.md). The 2026-10-23 follow-up adds UI/error handling and regression evidence without changing deployment topology or migrations.
+
 The MVP is a modular monolith deployed as separate frontend, backend, database, and reverse-proxy containers. The external LLM is an optional provider behind a backend-owned interface. PostgreSQL remains the only source of application data, and the LLM never receives direct database access.
 
 Current approved Security/Auth and Core increment (2026-10-19):

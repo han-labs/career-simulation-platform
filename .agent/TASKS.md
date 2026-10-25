@@ -15,6 +15,23 @@ Exact people/Git identities and reviewer rotation remain pending group sign-off.
 
 ## Current work queue
 
+2026-10-24 urgent local Docker startup maintenance is authorized in the US-01/US-03
+integration worktree. [Plan](plans/UC-01-02-03-compose-startup.md),
+[current startup runbook](../docs/deployment/local-compose.md) and
+[executed evidence](reports/compose-startup-2026-10-24.md) cover JWT setup and
+Compose readiness. Original US-03 and parent checkouts are preserved; no automatic
+commit, push or main merge. Live Google login is a separate observed-UAT claim.
+
+2026-10-24 Person 1 Google sign up/sign in follow-up is authorized on the existing
+US-01 worktree. [Plan](plans/US-01-UC-02-google-identity.md) and
+[Google configuration](../docs/testing/google-identity.md) preserve P1/P2 and US-03.
+External Google UAT remains pending real credentials; [final local evidence](reports/google-identity-2026-10-24.md)
+records combined frontend 158 passed, identity 23 and assessment 29 passed, actual
+browser persistence/re-login, and the recurring unrelated Student Agent full-suite
+failure (339 passed, 1 failed, 6 skipped). No release/integration-ready claim is made.
+
+2026-10-23 explicit Person 1 follow-up: US-01 / UC-01 registration implementation is isolated on `feature/us01-register-account`; protected US-03 remains on its original branch. API/browser registration-to-assessment evidence, complete test outcomes (including any failure/rerun), exact commits and live Google/security/UAT limits are in [the dated registration report](reports/us01-registration-2026-10-23.md). This does not change ownership or authorize a main merge or supplementary implementation.
+
 | Work | Owner / dependency | Status / completion condition |
 |---|---|---|
 | Import CORRECTED catalogue and synchronize navigation | Documentation task authorized by project lead | Documentation updated; static verification in [alignment register](../docs/requirements/REPORT_CODE_ALIGNMENT_2026-10-22.md); no runtime acceptance claimed |

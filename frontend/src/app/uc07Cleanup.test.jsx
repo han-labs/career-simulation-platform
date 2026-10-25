@@ -104,7 +104,7 @@ it('keeps Usage loading explicit and preserves its existing backend endpoint thr
   expect(apiRequest.mock.calls.filter(([path]) => path.startsWith('/v2/admin/agent-usage?'))).toHaveLength(1)
 })
 
-it.each(['/account?oauthError=denied', '/admin/assessments'])('returns not-found for removed product route %s without identity or authoring APIs', async path => {
+it.each(['/admin/assessments'])('returns not-found for removed product route %s without identity or authoring APIs', async path => {
   const view = page(path)
   await screen.findByRole('heading', { name: 'Page not found' })
   expect(screen.getByRole('link', { name: 'Open Admin Studio' }).getAttribute('href')).toBe('/admin')
@@ -113,6 +113,18 @@ it.each(['/account?oauthError=denied', '/admin/assessments'])('returns not-found
   expect(screen.queryByRole('button', { name: 'Sign out' })).toBeNull()
   expect(view.container.querySelector('.site-nav, .site-footer, .syn-widget, .syn-launcher')).toBeNull()
   expect(apiRequest).not.toHaveBeenCalled()
+})
+
+it('keeps the auth-only account route reachable without restoring the Account/Privacy product surface', async () => {
+  apiRequest.mockImplementation(path => path === '/v2/auth/providers' ? Promise.resolve({ google: false }) : Promise.reject(Object.assign(new Error('Sign in is required.'), { status: 401 })))
+  const view = page('/account')
+  await screen.findByRole('button', { name: 'Register', exact: true })
+  expect(screen.getByRole('heading', { name: 'Account access' })).toBeTruthy()
+  expect(screen.getByLabelText('Current route').textContent).toBe('/account')
+  expect(screen.queryByText('Account and privacy')).toBeNull()
+  expect(screen.queryByText('Purpose-specific consent')).toBeNull()
+  expect(view.container.querySelector('a[href="/admin/assessments"], a[href="/admin/knowledge"], .syn-widget, .syn-launcher')).toBeNull()
+  expect(apiRequest.mock.calls.every(([path]) => ['/v2/me', '/v2/auth/providers'].includes(path))).toBe(true)
 })
 
 it('preserves a denied KB response and does not enable writes or manufacture consent', async () => {

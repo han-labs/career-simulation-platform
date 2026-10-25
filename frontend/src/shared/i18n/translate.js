@@ -2,9 +2,10 @@ import { messages } from './messages.js'
 import { contentMessages } from './contentMessages.js'
 import { coreMessages } from './coreMessages.js'
 import { agentMessages } from './agentMessages.js'
+import { identityMessages } from './identityMessages.js'
 import { assessmentMessages } from './assessmentMessages.js'
 
-const dictionary = { ...messages, ...contentMessages, ...coreMessages, ...agentMessages, ...assessmentMessages }
+const dictionary = { ...messages, ...contentMessages, ...coreMessages, ...agentMessages, ...assessmentMessages, ...identityMessages }
 // Templates are presentation-only. Numbers, IDs and API payloads never change.
 const templates = [
   [/^(\d+) minutes$/, (m) => `${m[1]} phút`],

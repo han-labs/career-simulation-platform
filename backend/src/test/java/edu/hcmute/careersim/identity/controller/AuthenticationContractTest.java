@@ -61,6 +61,10 @@ class AuthenticationContractTest {
     static volatile String nonce;
     static volatile String subject = "synthetic-google-subject";
     static volatile String email;
+    static volatile boolean verified = true;
+    static volatile String audience = "synthetic-client";
+    static volatile int expirationSeconds = 120;
+    static volatile boolean providerUnavailable;
     static final AtomicInteger calls = new AtomicInteger();
 
     static {
@@ -85,18 +89,24 @@ class AuthenticationContractTest {
                     "/token",
                     exchange -> {
                         calls.incrementAndGet();
+                        if (providerUnavailable) {
+                            exchange.sendResponseHeaders(503, -1);
+                            exchange.close();
+                            return;
+                        }
                         try {
                             var now = Instant.now();
                             var claims =
                                     new JWTClaimsSet.Builder()
                                             .issuer("https://accounts.google.com")
                                             .subject(subject)
-                                            .audience("synthetic-client")
-                                            .issueTime(Date.from(now))
-                                            .expirationTime(Date.from(now.plusSeconds(120)))
+                                            .audience(audience)
+                                            .issueTime(Date.from(now.minusSeconds(300)))
+                                            .expirationTime(
+                                                    Date.from(now.plusSeconds(expirationSeconds)))
                                             .claim("nonce", nonce)
                                             .claim("email", email)
-                                            .claim("email_verified", true)
+                                            .claim("email_verified", verified)
                                             .claim("name", "Synthetic Google Student")
                                             .build();
                             var jwt =
@@ -211,6 +221,10 @@ class AuthenticationContractTest {
         email = "google-" + UUID.randomUUID() + "@example.test";
         subject = "subject-" + UUID.randomUUID();
         nonce = null;
+        verified = true;
+        audience = "synthetic-client";
+        expirationSeconds = 120;
+        providerUnavailable = false;
     }
 
     Cookie credential(long user) {
@@ -472,6 +486,256 @@ class AuthenticationContractTest {
                                 null,
                                 null))
                 .isEqualTo(student);
+    }
+
+    @Test
+    void newOidcStudentCanSubmitAndReloadCareerQuizWithIssuedCookie() throws Exception {
+        var session = new MockHttpSession();
+        var values = authorization(session, null);
+        var callback =
+                mvc.perform(
+                                get("/login/oauth2/code/google")
+                                        .session(session)
+                                        .param("state", values.get("state"))
+                                        .param("code", "synthetic"))
+                        .andExpect(redirectedUrl("/account?oauth=success"))
+                        .andReturn();
+        var cookie = callback.getResponse().getCookie(BrowserCredentialCookies.NAME);
+        assertThat(cookie).isNotNull();
+        long user = auth.verify(cookie.getValue()).id();
+        assertThat(user).isNotIn(student, other, enterprise);
+        mvc.perform(get("/v2/me").cookie(cookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.role").value("STUDENT"));
+        var csrfResponse =
+                mvc.perform(get("/v2/auth/csrf").session(session).cookie(cookie))
+                        .andExpect(status().isOk())
+                        .andReturn();
+        String token =
+                json.readTree(csrfResponse.getResponse().getContentAsString())
+                        .path("data")
+                        .path("token")
+                        .asText();
+        var started =
+                mvc.perform(
+                                post("/v1/assessments/quizzes/WORK_ACTIVITIES/attempts")
+                                        .session(session)
+                                        .cookie(cookie)
+                                        .header("X-CSRF-TOKEN", token))
+                        .andExpect(status().isOk())
+                        .andReturn();
+        String id =
+                json.readTree(started.getResponse().getContentAsString())
+                        .path("data")
+                        .path("id")
+                        .asText();
+        var questions =
+                mvc.perform(get("/v1/assessments/quizzes/WORK_ACTIVITIES/questions").cookie(cookie))
+                        .andExpect(status().isOk())
+                        .andReturn();
+        var answers = new ArrayList<Map<String, Object>>();
+        json.readTree(questions.getResponse().getContentAsString())
+                .path("data")
+                .forEach(q -> answers.add(Map.of("questionId", q.path("id").asLong(), "score", 3)));
+        mvc.perform(
+                        post("/v1/assessments/quizzes/attempts/" + id + "/submit")
+                                .session(session)
+                                .cookie(cookie)
+                                .header("X-CSRF-TOKEN", token)
+                                .contentType("application/json")
+                                .content(json.writeValueAsString(Map.of("answers", answers))))
+                .andExpect(status().isOk());
+        mvc.perform(get("/v1/assessments/quizzes/attempts/" + id + "/result").cookie(cookie))
+                .andExpect(status().isOk());
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT student_id FROM assessment_attempts WHERE id=?",
+                                Long.class,
+                                Long.parseLong(id)))
+                .isEqualTo(user);
+    }
+
+    @Test
+    void cancelledAuthorizationAndProviderFailureDoNotCreateAccountOrCookie() throws Exception {
+        var session = new MockHttpSession();
+        var values = authorization(session, null);
+        int before = calls.get();
+        mvc.perform(
+                        get("/login/oauth2/code/google")
+                                .session(session)
+                                .param("state", values.get("state"))
+                                .param("error", "access_denied"))
+                .andExpect(redirectedUrl("/account?oauthError=cancelled"))
+                .andExpect(cookie().doesNotExist(BrowserCredentialCookies.NAME));
+        assertThat(calls.get()).isEqualTo(before);
+        values = authorization(session, null);
+        providerUnavailable = true;
+        mvc.perform(
+                        get("/login/oauth2/code/google")
+                                .session(session)
+                                .param("state", values.get("state"))
+                                .param("code", "synthetic"))
+                .andExpect(redirectedUrl("/account?oauthError=provider-unavailable"))
+                .andExpect(cookie().doesNotExist(BrowserCredentialCookies.NAME));
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT count(*) FROM external_identity WHERE subject=?",
+                                Integer.class,
+                                subject))
+                .isZero();
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT count(*) FROM app_users WHERE email=?",
+                                Integer.class,
+                                email))
+                .isZero();
+    }
+
+    @Test
+    void unverifiedEmailWrongAudienceAndExpiredIdentityNeverProvisionStudent() throws Exception {
+        for (int invalid = 0; invalid < 3; invalid++) {
+            verified = invalid != 0;
+            audience = invalid == 1 ? "another-client" : "synthetic-client";
+            expirationSeconds = invalid == 2 ? -120 : 120;
+            var session = new MockHttpSession();
+            var values = authorization(session, null);
+            mvc.perform(
+                            get("/login/oauth2/code/google")
+                                    .session(session)
+                                    .param("state", values.get("state"))
+                                    .param("code", "synthetic"))
+                    .andExpect(redirectedUrl("/account?oauthError=denied"))
+                    .andExpect(cookie().doesNotExist(BrowserCredentialCookies.NAME));
+        }
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT count(*) FROM app_users WHERE email=?",
+                                Integer.class,
+                                email))
+                .isZero();
+    }
+
+    @Test
+    void repeatOidcLoginKeepsOneAccountAndDisabledLinkedAccountIsDenied() throws Exception {
+        Long user = null;
+        for (int login = 0; login < 2; login++) {
+            var session = new MockHttpSession();
+            var values = authorization(session, null);
+            var result =
+                    mvc.perform(
+                                    get("/login/oauth2/code/google")
+                                            .session(session)
+                                            .param("state", values.get("state"))
+                                            .param("code", "synthetic"))
+                            .andExpect(redirectedUrl("/account?oauth=success"))
+                            .andReturn();
+            var cookie = result.getResponse().getCookie(BrowserCredentialCookies.NAME);
+            assertThat(cookie).isNotNull();
+            assertThat(cookie.isHttpOnly()).isTrue();
+            assertThat(cookie.getSecure()).isTrue();
+            assertThat(cookie.getAttribute("SameSite")).isEqualTo("Lax");
+            long current = auth.verify(cookie.getValue()).id();
+            if (user != null) assertThat(current).isEqualTo(user);
+            user = current;
+            mvc.perform(get("/v2/me").cookie(cookie))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.data.role").value("STUDENT"));
+            assertThat(session.getAttribute("SPRING_SECURITY_CONTEXT")).isNull();
+        }
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT count(*) FROM app_users WHERE email=?",
+                                Integer.class,
+                                email))
+                .isEqualTo(1);
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT count(*) FROM student_profiles WHERE user_id=?",
+                                Integer.class,
+                                user))
+                .isEqualTo(1);
+        jdbc.update("UPDATE app_users SET status='LOCKED' WHERE id=?", user);
+        var session = new MockHttpSession();
+        var values = authorization(session, null);
+        mvc.perform(
+                        get("/login/oauth2/code/google")
+                                .session(session)
+                                .param("state", values.get("state"))
+                                .param("code", "synthetic"))
+                .andExpect(redirectedUrl("/account?oauthError=account-disabled"))
+                .andExpect(cookie().doesNotExist(BrowserCredentialCookies.NAME));
+    }
+
+    @Test
+    void collidingEmailReturnsLinkRequiredWithoutCreatingDuplicate() throws Exception {
+        email = localEmail;
+        var session = new MockHttpSession();
+        var values = authorization(session, null);
+        mvc.perform(
+                        get("/login/oauth2/code/google")
+                                .session(session)
+                                .param("state", values.get("state"))
+                                .param("code", "synthetic"))
+                .andExpect(redirectedUrl("/account?oauthError=link-required"))
+                .andExpect(cookie().doesNotExist(BrowserCredentialCookies.NAME));
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT count(*) FROM app_users WHERE email=?",
+                                Integer.class,
+                                email))
+                .isEqualTo(1);
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT count(*) FROM external_identity WHERE subject=?",
+                                Integer.class,
+                                subject))
+                .isZero();
+    }
+
+    @Test
+    void linkedEnterpriseAndAdministratorKeepTheirRoleOnGoogleSignIn() throws Exception {
+        long admin =
+                jdbc.queryForObject(
+                        "INSERT INTO app_users(email,display_name,role,status) VALUES (?, 'Synthetic Admin','ADMINISTRATOR','ACTIVE') RETURNING id",
+                        Long.class,
+                        "admin-google-" + UUID.randomUUID() + "@example.test");
+        for (long owner : List.of(enterprise, admin)) {
+            subject = "privileged-subject-" + UUID.randomUUID();
+            authenticationLinkFixture(owner);
+            var session = new MockHttpSession();
+            var values = authorization(session, null);
+            var result =
+                    mvc.perform(
+                                    get("/login/oauth2/code/google")
+                                            .session(session)
+                                            .param("state", values.get("state"))
+                                            .param("code", "synthetic"))
+                            .andExpect(redirectedUrl("/account?oauth=success"))
+                            .andReturn();
+            var cookie = result.getResponse().getCookie(BrowserCredentialCookies.NAME);
+            mvc.perform(get("/v2/me").cookie(cookie))
+                    .andExpect(status().isOk())
+                    .andExpect(
+                            jsonPath("$.data.role")
+                                    .value(owner == enterprise ? "ENTERPRISE" : "ADMIN"));
+            mvc.perform(get("/v1/assessments/quizzes/WORK_ACTIVITIES/questions").cookie(cookie))
+                    .andExpect(status().isForbidden());
+            assertThat(auth.verify(cookie.getValue()).id()).isEqualTo(owner);
+        }
+    }
+
+    private void authenticationLinkFixture(long owner) {
+        // Establish an existing explicit identity link; its browser/CSRF ceremony has
+        // independent coverage in linkingRequiresCsrfAndSameLiveBrowserCredential.
+        assertThat(
+                        auth.externalIdentity(
+                                "https://accounts.google.com",
+                                subject,
+                                email,
+                                "Existing role",
+                                owner,
+                                auth.version(owner)))
+                .isEqualTo(owner);
     }
 
     @Test
