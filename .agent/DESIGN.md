@@ -3,6 +3,10 @@
 >
 > Dated technical/verification checkpoints below are preserved historical notes, not a second architecture or progress authority. [TASKS](TASKS.md) owns current progress. The Forage reference is inspiration only, not CareerSim's binding palette or licensed task content. Do not infer completion, plan-editing support or live AI acceptance from UI presentation; see [alignment](../docs/requirements/REPORT_CODE_ALIGNMENT_2026-10-22.md).
 
+## HCM-UTE main-derived frontend rebuild — 2026-10-26
+
+The current explicit request retains the supplied approved visual appearance while rejecting the prior implementation. Apply university blue/navy, pale-blue campus-photo gradients, sans-serif landing hierarchy and four steps, with moderate responsive spacing. Functional authority is latest main: preserve existing account/logout/state, Home/Guidance/feature destinations and shared cards; do not copy the rejected branch's functional code or account menu. See [flow audit](reports/hcmute-main-functional-audit.md) and [plan](plans/foundation-hcmute-frontend-flow-alignment.md). This scoped visual approval qualifies the older no-gradient/warm/serif/three-step guidance; business/security/ownership/accessibility rules remain.
+
 <!-- preserved-content-start -->
 # Career Simulation Platform UI Design System
 

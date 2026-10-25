@@ -76,3 +76,17 @@ Create a sequence-to-code trace from `.agent/templates/sequence-to-code-trace.md
 <!-- preserved-content-end -->
 
 </details>
+
+## 2026-10-26 main-derived frontend foundation trace
+
+This presentation/integration task adds no US/UC and does not change acceptance or owner assignments. [Audit](../../.agent/reports/hcmute-main-functional-audit.md) traces actual actors/routes/components/state/APIs/failures/tests before UI changes; [verification](../../.agent/reports/hcmute-main-rebuild-verification.md) maps every modified source and distinguishes clean-main, mocked and real gateway evidence.
+
+| Existing selected scope | Foundation integration and evidence boundary |
+|---|---|
+| US-01/02, UC-01/02 (Person 1) | One guest account link, existing register/login/role routing and direct logout retained. Real password/roles verified; pending simulation return is baseline D13, external Google remains pending. |
+| US-03, UC-03 (Person 1) | Existing optional published version selection/validation/backend scoring/history reused; real 42-question draft/result persistence and VI/EN checked. |
+| US-04/05/06, UC-04/05/06 (Person 2) | Existing published adapter/card/detail and task/draft/final/review/completion unchanged; landing compact view and truthful failure states. Real direct-slug completion passed; classification 500 and Dashboard alias results are baseline D12/D14. |
+| US-07, supporting Dashboard/Agent (Person 2) | Existing routes and backend-owned evidence/consent/plan/fallback remain. Real assigned-Agent empty state/Guidance only; provider/stream/plan UAT is not implied. |
+| US-08/09/10, UC-07/08/09 (Person 3) | Existing protected Admin KB/Builder/Usage retained; real authorized navigation/aggregate usage and separate wrong-role API denials. No new business acceptance claim. |
+
+Full current catalogue stays 10 selected US/16 UC. Supplementary UC-10–16 and deferred UC-14 remain unchanged. See alignment D11–D14 for approval and source/behavior discrepancies.
