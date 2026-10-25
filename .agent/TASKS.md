@@ -1,7 +1,7 @@
 <!-- documentation-sync-2026-10-22 -->
 # CareerSim current tasks
 
-Ownership updated 2026-10-25 by Team Lead; other progress checkpoints retain their dates. This file owns **current progress**; [TEAM_ASSIGNMENTS](../docs/TEAM_ASSIGNMENTS.md) owns the confirmed person/UC allocation. Current catalogue is [10 selected US / 16 UC](../docs/requirements/README.md), not legacy 3 US or frozen Baseline 15 US. Current branch scope remains UC-07 only; Phase 1 cleanup precedes any separately authorized Phase 2 redesign.
+Ownership updated 2026-10-25 by Team Lead; other progress checkpoints retain their dates. This file owns **current progress**; [TEAM_ASSIGNMENTS](../docs/TEAM_ASSIGNMENTS.md) owns the confirmed person/UC allocation. Current catalogue is [10 selected US / 16 UC](../docs/requirements/README.md), not legacy 3 US or frozen Baseline 15 US. Current branch scope remains UC-07: Phase 1 is committed at `77bace7`; Phase 2 and the minimal common Admin shell are authorized for finalization, with human UAT pending. UC-08/09 behavior remains outside this branch.
 
 ## Official allocation and current state
 

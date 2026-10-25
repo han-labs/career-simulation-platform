@@ -1,7 +1,7 @@
 import { useI18n } from '../i18n/useI18n.js'
 import { Menu, X, ArrowRight, Compass, ShieldCheck } from 'lucide-react'
 import { useState } from 'react'
-import { Link, NavLink, Outlet, useMatch, useNavigate } from 'react-router-dom'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import BrandMark from '../ui/BrandMark.jsx'
 import LanguageSwitcher from '../i18n/LanguageSwitcher.jsx'
 
@@ -16,7 +16,8 @@ function AppShell() {
   const { t } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
   const navigate = useNavigate()
-  const knowledgeWorkspace = useMatch('/admin/knowledge') !== null
+  const { pathname } = useLocation()
+  const adminStudio = ['/admin', '/admin/knowledge', '/admin/agents', '/admin/usage', '/admin/ai-usage'].includes(pathname.replace(/\/$/, ''))
 
   const handleStartExploring = () => {
     setMenuOpen(false)
@@ -30,7 +31,7 @@ function AppShell() {
         <div className="institutional-bar__inner">
           <span className="institutional-bar__badge">
             <Compass size={14} aria-hidden="true" /> {t("Ho Chi Minh City University of Technology and Engineering (HCM-UTE) · Career Simulation Platform")} </span>
-          {!knowledgeWorkspace && <span className="institutional-bar__tagline"> {t("Empowering students to explore tech careers and shape their future")} </span>}
+          {!adminStudio && <span className="institutional-bar__tagline"> {t("Empowering students to explore tech careers and shape their future")} </span>}
         </div>
       </div>
 
@@ -42,7 +43,7 @@ function AppShell() {
 
           <LanguageSwitcher />
 
-          <button
+          {!adminStudio && <button
             className="menu-button"
             type="button"
             aria-label={t(menuOpen ? 'Close menu' : 'Open menu')}
@@ -50,11 +51,11 @@ function AppShell() {
             onClick={() => setMenuOpen((current) => !current)}
           >
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          </button>}
 
-          <nav className={`site-nav ${menuOpen ? 'site-nav--open' : ''}`}>
-            <NavLink to="/account" onClick={() => setMenuOpen(false)}>{t(knowledgeWorkspace ? 'Account' : 'Account and privacy')}</NavLink>
-            {!knowledgeWorkspace && navigation.map((item) =>
+          {!adminStudio && <nav className={`site-nav ${menuOpen ? 'site-nav--open' : ''}`}>
+            <NavLink to="/account" onClick={() => setMenuOpen(false)}>{t('Account and privacy')}</NavLink>
+            {!adminStudio && navigation.map((item) =>
               item.to ? (
                 <NavLink
                   key={item.label}
@@ -73,13 +74,13 @@ function AppShell() {
                 </a>
               ),
             )}
-            {!knowledgeWorkspace && <button
+            {!adminStudio && <button
               className="button button--small button--cta-header"
               type="button"
               onClick={handleStartExploring}
             > {t("Career Assessment")} <ArrowRight size={15} aria-hidden="true" />
             </button>}
-          </nav>
+          </nav>}
         </div>
       </header>
 
@@ -87,7 +88,7 @@ function AppShell() {
         <Outlet />
       </main>
 
-      {!knowledgeWorkspace && <footer className="site-footer">
+      {!adminStudio && <footer className="site-footer">
         <div className="site-footer__inner">
           <div className="site-footer__brand">
             <BrandMark compact />

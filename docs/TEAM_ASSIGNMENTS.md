@@ -1,6 +1,6 @@
 # TEAM_ASSIGNMENTS — Current allocation (2026-10-25)
 
-> **Status:** **OFFICIAL UC/person and selected-US allocation**, updated directly by the Team Lead on 2026-10-25, superseding the 2026-10-22 allocation. Exact name/Git identity mapping and the proposed reviewer rotation still require group sign-off. This allocation covers integration/UAT work on **already merged P1–P6**, not permission to rewrite Core/AI modules. The current `feat/uc07-admin-knowledge-base` branch implements **UC-07 / US-08 only**; its approved Phase 1 cleanup does not authorize UC-08/09 implementation or Phase 2 redesign.
+> **Status:** **OFFICIAL UC/person and selected-US allocation**, updated directly by the Team Lead on 2026-10-25, superseding the 2026-10-22 allocation. Exact name/Git identity mapping and the proposed reviewer rotation still require group sign-off. This allocation covers integration/UAT work on **already merged P1–P6**, not permission to rewrite Core/AI modules. The current `feat/uc07-admin-knowledge-base` branch implements **UC-07 / US-08 only**. The Team Lead has authorized Phase 2 finalization and a minimal common Admin Studio shell exposing UC-07/08/09 routes; this does not authorize UC-08/09 feature implementation.
 >
 > **Source of truth:** current `docs/requirements/use-cases/README.md` and `docs/requirements/user-stories/REPORT_SELECTED_10_US.md`, supported by the frozen Baseline v1 + DR1–DR2.
 

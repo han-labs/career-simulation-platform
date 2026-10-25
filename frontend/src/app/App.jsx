@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useEffect, useSyncExternalStore } from 'react'
 import { getAccountGeneration, subscribeAccount } from '../shared/api/httpClient.js'
 import AppShell from '../shared/layout/AppShell.jsx'
@@ -22,6 +22,12 @@ import AgentBuilderPage from '../features/admin/agents/AgentBuilderPage.jsx'
 import AssignedAgentsPage from '../features/agents/AssignedAgentsPage.jsx'
 import StudentAgentPage from '../features/agents/StudentAgentPage.jsx'
 import AgentUsagePage from '../features/admin/agentPlatform/AgentUsagePage.jsx'
+import AdminStudioLayout from '../features/admin/agentPlatform/AdminStudioLayout.jsx'
+
+function LegacyUsageRedirect() {
+  const { search, hash } = useLocation()
+  return <Navigate to={{ pathname: '/admin/usage', search, hash }} replace />
+}
 
 function ScrollToTop() {
   const { pathname, hash } = useLocation();
@@ -53,11 +59,15 @@ function App() {
       <Route element={<ApplicationLayout />}>
         <Route index element={<LandingPage />} />
         <Route path="account" element={<AccountPage />} />
-        {agentPlatformEnabled && <Route path="admin/knowledge" element={<KnowledgeStudioPage />} />}
-        {agentPlatformEnabled && <Route path="admin/agents" element={<AgentBuilderPage />} />}
+        {agentPlatformEnabled && <Route path="admin" element={<AdminStudioLayout />}>
+          <Route index element={<Navigate to="/admin/knowledge" replace />} />
+          <Route path="knowledge" element={<KnowledgeStudioPage />} />
+          <Route path="agents" element={<AgentBuilderPage />} />
+          <Route path="usage" element={<AgentUsagePage />} />
+          <Route path="ai-usage" element={<LegacyUsageRedirect />} />
+        </Route>}
         {agentPlatformEnabled && <Route path="agents" element={<AssignedAgentsPage />} />}
         {agentPlatformEnabled && <Route path="agents/:agentId" element={<StudentAgentPage />} />}
-        {agentPlatformEnabled && <Route path="admin/ai-usage" element={<AgentUsagePage />} />}
         <Route path="assessment" element={coreEnabled ? <VersionedAssessmentPage /> : <AssessmentPage />} />
         <Route path="assessment/:assessmentType" element={coreEnabled ? <VersionedAssessmentPage /> : <AssessmentPage />} />
         <Route path="simulations" element={coreEnabled ? <CoreCatalogPage /> : <SimulationCatalogPage />} />

@@ -1,5 +1,87 @@
 // Presentation only: original documents, quoted evidence and model replies remain unchanged.
 export const agentMessages = Object.fromEntries(`
+Choose one file per upload. ⇢ Mỗi lần chỉ chọn một tệp để tải lên.
+Choose a TXT, MD, PDF, DOCX or XLSX file. ⇢ Chọn tệp TXT, MD, PDF, DOCX hoặc XLSX.
+Choose a non-empty file up to 8 MiB (8,388,608 bytes). ⇢ Chọn tệp có nội dung, tối đa 8 MiB (8.388.608 byte).
+Complete the required document information and source authorization confirmation. ⇢ Điền đầy đủ thông tin tài liệu bắt buộc và xác nhận quyền sử dụng nguồn.
+Upload saved. Processing the document... ⇢ Đã lưu tệp tải lên. Đang xử lý tài liệu...
+Processing failed. Your uploaded file is saved. Retry processing from the document list. ⇢ Xử lý thất bại. Tệp tải lên đã được lưu. Hãy thử xử lý lại từ danh sách tài liệu.
+The processing request could not finish. Your uploaded file is saved. Refresh or retry from the document list. ⇢ Chưa thể hoàn tất yêu cầu xử lý. Tệp tải lên đã được lưu. Hãy tải lại hoặc thử xử lý lại từ danh sách tài liệu.
+Document ready. Review it before publishing. ⇢ Tài liệu đã sẵn sàng. Hãy rà soát trước khi xuất bản.
+This document is already published. ⇢ Tài liệu này đã được xuất bản.
+The document is waiting or processing. Its status will update here. ⇢ Tài liệu đang chờ hoặc đang được xử lý. Trạng thái sẽ được cập nhật tại đây.
+Choose the replacement file above. Published content stays in use until you review and publish a new version. ⇢ Chọn tệp thay thế ở phía trên. Nội dung đã xuất bản vẫn được sử dụng cho đến khi bạn rà soát và xuất bản phiên bản mới.
+Waiting to process ⇢ Đang chờ xử lý
+Processing ⇢ Đang xử lý
+Upload a document, then review it before publishing. Existing published content stays available during processing. ⇢ Tải tài liệu lên rồi rà soát trước khi xuất bản. Nội dung đã xuất bản vẫn được giữ trong quá trình xử lý.
+Drop a document here ⇢ Kéo và thả tài liệu vào đây
+TXT, MD, PDF, DOCX or XLSX. One file per upload, up to 8 MiB (8,388,608 bytes). ⇢ TXT, MD, PDF, DOCX hoặc XLSX. Mỗi lần một tệp, tối đa 8 MiB (8.388.608 byte).
+Choose another file ⇢ Chọn tệp khác
+Browse files ⇢ Chọn tệp
+Processing document... ⇢ Đang xử lý tài liệu...
+Uploading document... ⇢ Đang tải tài liệu lên...
+Replacing an existing document. Its published version remains available until a new version is explicitly published. ⇢ Đang thay thế tài liệu hiện có. Phiên bản đã xuất bản vẫn được giữ cho đến khi phiên bản mới được xác nhận xuất bản.
+bytes ⇢ byte
+Clear file selection ⇢ Bỏ chọn tệp
+This file is already uploaded. Use the document list to retry processing. ⇢ Tệp này đã được tải lên. Dùng danh sách tài liệu để thử xử lý lại.
+Document title ⇢ Tên tài liệu
+Career area ⇢ Lĩnh vực nghề nghiệp
+For example: BACKEND or DATA. Enter the career area covered by this document. ⇢ Ví dụ: BACKEND hoặc DATA. Nhập lĩnh vực nghề nghiệp của tài liệu.
+Usage rights or license ⇢ Quyền sử dụng hoặc giấy phép
+State the license or permission that allows this content to be used. No permission is assumed. ⇢ Ghi giấy phép hoặc sự cho phép sử dụng nội dung. Hệ thống không tự giả định quyền sử dụng.
+Document language ⇢ Ngôn ngữ tài liệu
+Choose the language of the document. It is not detected automatically. ⇢ Chọn ngôn ngữ của tài liệu. Hệ thống không tự nhận diện ngôn ngữ.
+Choose a language ⇢ Chọn ngôn ngữ
+Additional information (optional) ⇢ Thông tin bổ sung (không bắt buộc)
+Upload and process ⇢ Tải lên và xử lý
+Document list ⇢ Danh sách tài liệu
+Your documents ⇢ Tài liệu của bạn
+No documents yet. Upload a file to begin. ⇢ Chưa có tài liệu. Tải một tệp lên để bắt đầu.
+Document ⇢ Tài liệu
+Published version ⇢ Phiên bản đã xuất bản
+Replacement did not complete. The published version is still in use. ⇢ Thay thế chưa hoàn tất. Phiên bản đã xuất bản vẫn đang được sử dụng.
+Process document ⇢ Xử lý tài liệu
+Retry processing ⇢ Thử xử lý lại
+Review and publish ⇢ Rà soát và xuất bản
+View document ⇢ Xem tài liệu
+Document options ⇢ Tùy chọn tài liệu
+Inspect another version ⇢ Kiểm tra phiên bản khác
+Choose a version ⇢ Chọn phiên bản
+Replace document ⇢ Thay thế tài liệu
+Inspect processing details ⇢ Kiểm tra chi tiết xử lý
+Publish document ⇢ Xuất bản tài liệu
+Administrator ⇢ Quản trị viên
+Refused ⇢ Đã từ chối
+All knowledge bases ⇢ Tất cả cơ sở tri thức
+Your knowledge bases ⇢ Cơ sở tri thức của bạn
+Knowledge base ⇢ Cơ sở tri thức
+Knowledge workspace ⇢ Không gian tri thức
+Admin Studio ⇢ Không gian quản trị
+Admin Studio navigation ⇢ Điều hướng quản trị
+Knowledge Bases ⇢ Cơ sở tri thức
+AI Agents ⇢ Agent AI
+AI Usage ⇢ Sử dụng AI
+Expand Admin navigation ⇢ Mở rộng điều hướng quản trị
+Collapse Admin navigation ⇢ Thu gọn điều hướng quản trị
+Open Admin navigation ⇢ Mở điều hướng quản trị
+Close Admin navigation ⇢ Đóng điều hướng quản trị
+Knowledge base navigation ⇢ Điều hướng cơ sở tri thức
+Expand knowledge navigation ⇢ Mở rộng điều hướng tri thức
+Collapse knowledge navigation ⇢ Thu gọn điều hướng tri thức
+Open knowledge navigation ⇢ Mở điều hướng tri thức
+Close knowledge navigation ⇢ Đóng điều hướng tri thức
+Knowledge base created. ⇢ Đã tạo cơ sở tri thức.
+Knowledge base updated. ⇢ Đã cập nhật cơ sở tri thức.
+Choose a clear name for this collection of reviewed sources. ⇢ Đặt tên rõ ràng cho bộ sưu tập nguồn đã rà soát này.
+Hiding or archiving this knowledge base can revoke access to its sources. ⇢ Ẩn hoặc lưu trữ cơ sở tri thức có thể thu hồi quyền truy cập các nguồn.
+Document workflow ⇢ Quy trình tài liệu
+Run ingestion ⇢ Chạy xử lý tài liệu
+Inspect and publish ⇢ Kiểm tra và xuất bản
+Choose a document to upload ⇢ Chọn tài liệu để tải lên
+Supported formats: TXT, MD, PDF, DOCX and XLSX. ⇢ Định dạng hỗ trợ: TXT, MD, PDF, DOCX và XLSX.
+Use lowercase letters, numbers and hyphens. Reuse this key when replacing a source. ⇢ Dùng chữ thường, số và dấu gạch ngang. Dùng lại mã này khi thay thế nguồn.
+Ask a question about the published sources in this knowledge base. ⇢ Đặt câu hỏi về các nguồn đã xuất bản trong cơ sở tri thức này.
+Submitting test... ⇢ Đang gửi yêu cầu kiểm thử...
 Actual tool trace and resource usage ⇢ Lịch sử công cụ thực tế và mức sử dụng tài nguyên
 Advanced validated policies ⇢ Chính sách nâng cao có kiểm tra hợp lệ
 Agent Builder ⇢ Trình cấu hình Agent
@@ -230,4 +312,66 @@ Answer with sources ⇢ Trả lời kèm nguồn
 Submitted test request ⇢ Yêu cầu kiểm thử đã gửi
 Saved request details are unavailable for this historical execution. ⇢ Không có chi tiết yêu cầu đã lưu cho lượt thực thi lịch sử này.
 Knowledge base unavailable. ⇢ Kho tri thức không còn khả dụng.
+Back to knowledge bases ⇢ Trở về danh sách kho tri thức
+Open knowledge base ⇢ Mở kho tri thức
+A place for reviewed knowledge ⇢ Nơi lưu tri thức đã được rà soát
+Reviewed platform knowledge ⇢ Tri thức nền tảng đã rà soát
+Enter a knowledge base name. ⇢ Vui lòng nhập tên kho tri thức.
+Close dialog ⇢ Đóng hộp thoại
+Close inspector ⇢ Đóng trình xem chi tiết
+Saving... ⇢ Đang lưu...
+Confirm visibility change ⇢ Xác nhận thay đổi trạng thái hiển thị
+Changing availability can revoke access to current sources and results. ⇢ Thay đổi trạng thái có thể thu hồi quyền truy cập nguồn và kết quả hiện tại.
+Upload document ⇢ Tải lên tài liệu
+Review sources before publishing. Uploads and retries do not replace published knowledge. ⇢ Rà soát nguồn trước khi công bố. Tải lên và thử lại không thay thế tri thức đang công bố.
+Published content and the latest ingestion attempt are shown separately. ⇢ Nội dung đang công bố và lần xử lý mới nhất được hiển thị riêng.
+No published or staged source versions yet. ⇢ Chưa có phiên bản nguồn đã công bố hoặc đang chuẩn bị.
+This version is not published. ⇢ Phiên bản này chưa được công bố.
+More document actions ⇢ Thao tác khác với tài liệu
+Attempts retain their extraction and diagnostics, including failed replacements. ⇢ Các lần xử lý giữ bản trích xuất và thông tin chẩn đoán, kể cả lần thay thế thất bại.
+Attempt details ⇢ Chi tiết lần xử lý
+Queued ⇢ Đang chờ
+Parsing ⇢ Đang trích xuất
+Embedding ⇢ Đang tạo vector
+Ready for review ⇢ Sẵn sàng rà soát
+Published ⇢ Đã công bố
+Failed ⇢ Thất bại
+Cancelled ⇢ Đã hủy
+Retired ⇢ Đã ngừng sử dụng
+Unchanged ⇢ Không thay đổi
+Accepted ⇢ Đã tiếp nhận
+Running ⇢ Đang thực thi
+Succeeded ⇢ Thành công
+Publishing replaces the currently published content only after this reviewed version is accepted. ⇢ Nội dung đang công bố chỉ được thay thế sau khi phiên bản đã rà soát này được chấp nhận.
+Cancellation preserves the current publication and stops this attempt. ⇢ Hủy sẽ dừng lần xử lý này và giữ nguyên nội dung đang công bố.
+No extraction warnings recorded. ⇢ Không ghi nhận lưu ý trích xuất.
+Parser profile ⇢ Hồ sơ trích xuất
+Text unit ⇢ Đơn vị văn bản
+Embedding profile ⇢ Hồ sơ tạo vector
+Technical details ⇢ Chi tiết kỹ thuật
+Retrieval method ⇢ Phương thức truy xuất
+Generated answer ⇢ Câu trả lời được tạo
+Test results ⇢ Kết quả kiểm thử
+This request could not be completed. ⇢ Không thể hoàn tất yêu cầu này.
+Execution diagnostics ⇢ Chẩn đoán lượt thực thi
+Retrieve ranked evidence without generating an answer. ⇢ Truy xuất căn cứ theo thứ hạng, không tạo câu trả lời.
+Generate an answer grounded in the retrieved passages. ⇢ Tạo câu trả lời dựa trên các đoạn nguồn đã truy xuất.
+Inspect evidence, then evaluate the answer. ⇢ Kiểm tra căn cứ trước khi đánh giá câu trả lời.
+Submit a question to see ranked passages and a separate answer when requested. ⇢ Gửi câu hỏi để xem các đoạn nguồn theo thứ hạng và câu trả lời riêng khi được yêu cầu.
+format ⇢ Định dạng
+lineStart ⇢ Dòng bắt đầu
+lineEnd ⇢ Dòng kết thúc
+page ⇢ Trang
+pageStart ⇢ Trang bắt đầu
+pageEnd ⇢ Trang kết thúc
+paragraph ⇢ Đoạn văn
+paragraphStart ⇢ Đoạn văn bắt đầu
+paragraphEnd ⇢ Đoạn văn kết thúc
+sheet ⇢ Trang tính
+sheetName ⇢ Tên trang tính
+rowStart ⇢ Hàng bắt đầu
+rowEnd ⇢ Hàng kết thúc
+heading ⇢ Tiêu đề
+section ⇢ Mục
+
 `.trim().split('\n').map(line => line.split(' ⇢ ')))
