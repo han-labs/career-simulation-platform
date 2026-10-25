@@ -89,6 +89,7 @@ class VersionedCatalogControllerTest {
                         "API debugging",
                         "Incident triage");
         assertThat(json)
-                .doesNotContain("instructions", "resources", "deliverables", "modelAnswer", "rubric");
+                .doesNotContain(
+                        "instructions", "resources", "deliverables", "modelAnswer", "rubric");
     }
 }

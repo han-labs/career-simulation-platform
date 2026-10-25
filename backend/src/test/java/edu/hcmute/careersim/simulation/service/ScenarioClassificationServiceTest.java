@@ -47,8 +47,7 @@ class ScenarioClassificationServiceTest {
                         new ScenarioDao.Root(11, 3, "api-triage", "AVAILABLE", null, 4, 22L),
                         new ScenarioDao.Root(11, 3, "api-triage", "AVAILABLE", "IT", 5, 22L));
         when(dao.root(11, true))
-                .thenReturn(
-                        new ScenarioDao.Root(11, 3, "api-triage", "AVAILABLE", null, 4, 22L));
+                .thenReturn(new ScenarioDao.Root(11, 3, "api-triage", "AVAILABLE", null, 4, 22L));
 
         var before = service.classification(7, 11);
         var updated = service.classify(7, 11, 4, "IT");
@@ -58,20 +57,23 @@ class ScenarioClassificationServiceTest {
         assertThat(updated.revision()).isEqualTo(5);
         verify(enterprise, times(2)).requireMember(7, 3);
         verify(dao).classification(11, "IT");
-        verify(audit).record(eq(7L), eq("SCENARIO_CLASSIFICATION_CHANGED"), eq("scenario"), eq(11L), any());
+        verify(audit)
+                .record(
+                        eq(7L),
+                        eq("SCENARIO_CLASSIFICATION_CHANGED"),
+                        eq("scenario"),
+                        eq(11L),
+                        any());
     }
 
     @Test
     void staleRevisionAndUnsupportedIndustryNeverWrite() {
         when(dao.root(11, false))
-                .thenReturn(
-                        new ScenarioDao.Root(11, 3, "api-triage", "AVAILABLE", null, 4, 22L));
+                .thenReturn(new ScenarioDao.Root(11, 3, "api-triage", "AVAILABLE", null, 4, 22L));
         when(dao.root(11, true))
-                .thenReturn(
-                        new ScenarioDao.Root(11, 3, "api-triage", "AVAILABLE", null, 4, 22L));
+                .thenReturn(new ScenarioDao.Root(11, 3, "api-triage", "AVAILABLE", null, 4, 22L));
 
-        assertThatThrownBy(() -> service.classify(7, 11, 3, "IT"))
-                .isInstanceOf(ApiException.class);
+        assertThatThrownBy(() -> service.classify(7, 11, 3, "IT")).isInstanceOf(ApiException.class);
         assertThatThrownBy(() -> service.classify(7, 11, 4, "FINANCE"))
                 .isInstanceOf(ApiException.class);
         verify(dao, never()).classification(anyLong(), any());
@@ -84,8 +86,7 @@ class ScenarioClassificationServiceTest {
                         new ScenarioDao.Root(11, 3, "api-triage", "AVAILABLE", "IT", 5, 22L),
                         new ScenarioDao.Root(11, 3, "api-triage", "AVAILABLE", null, 6, 22L));
         when(dao.root(11, true))
-                .thenReturn(
-                        new ScenarioDao.Root(11, 3, "api-triage", "AVAILABLE", "IT", 5, 22L));
+                .thenReturn(new ScenarioDao.Root(11, 3, "api-triage", "AVAILABLE", "IT", 5, 22L));
 
         assertThat(service.classify(7, 11, 5, null).industryCode()).isNull();
         verify(dao).classification(11, null);
@@ -94,20 +95,19 @@ class ScenarioClassificationServiceTest {
     @Test
     void wrongTenantCannotReadOrWriteClassification() {
         when(dao.root(11, false))
-                .thenReturn(
-                        new ScenarioDao.Root(11, 3, "foreign", "AVAILABLE", "IT", 5, 22L));
+                .thenReturn(new ScenarioDao.Root(11, 3, "foreign", "AVAILABLE", "IT", 5, 22L));
         doThrow(new ApiException(ErrorCode.FORBIDDEN)).when(enterprise).requireMember(7, 3);
 
         assertThatThrownBy(() -> service.classification(7, 11)).isInstanceOf(ApiException.class);
-        assertThatThrownBy(() -> service.classify(7, 11, 5, null))
-                .isInstanceOf(ApiException.class);
+        assertThatThrownBy(() -> service.classify(7, 11, 5, null)).isInstanceOf(ApiException.class);
         verify(dao, never()).classification(anyLong(), any());
     }
 
     @Test
     void catalogueIndustryValidationIsSharedByPagedAndUnpagedReads() {
-        service.search(new edu.hcmute.careersim.simulation.dto.ScenarioContracts.CatalogQuery(
-                null, null, null, "ID_ASC", null, 20, " "));
+        service.search(
+                new edu.hcmute.careersim.simulation.dto.ScenarioContracts.CatalogQuery(
+                        null, null, null, "ID_ASC", null, 20, " "));
         service.list(null, 20, " ");
 
         var query =
@@ -121,13 +121,7 @@ class ScenarioClassificationServiceTest {
                                 service.search(
                                         new edu.hcmute.careersim.simulation.dto.ScenarioContracts
                                                 .CatalogQuery(
-                                                null,
-                                                null,
-                                                null,
-                                                "ID_ASC",
-                                                null,
-                                                20,
-                                                "FINANCE")))
+                                                null, null, null, "ID_ASC", null, 20, "FINANCE")))
                 .isInstanceOf(ApiException.class);
         assertThatThrownBy(() -> service.list(null, 20, "FINANCE"))
                 .isInstanceOf(ApiException.class);

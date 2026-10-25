@@ -204,13 +204,11 @@ public class ScenarioAuthoringServiceImpl
         ActorAccess.requireRole(actors.requireId(actor), "ENTERPRISE");
         var root = dao.root(scenario, false);
         enterprise.requireMember(actor, root.enterprise());
-        return new Classification(
-                Long.toString(root.id()), root.industryCode(), root.revision());
+        return new Classification(Long.toString(root.id()), root.industryCode(), root.revision());
     }
 
     @Transactional
-    public Classification classify(
-            long actor, long scenario, long revision, String industryCode) {
+    public Classification classify(long actor, long scenario, long revision, String industryCode) {
         ActorAccess.requireRole(actors.lock(actor), "ENTERPRISE");
         var root = dao.root(scenario, false);
         enterprise.requireMember(actor, root.enterprise());
@@ -416,8 +414,7 @@ public class ScenarioAuthoringServiceImpl
 
     @Transactional(readOnly = true)
     public List<Summary> list(Long after, int limit, String industry) {
-        return dao.catalog(
-                after, Math.max(1, Math.min(limit, 100)), industry(industry));
+        return dao.catalog(after, Math.max(1, Math.min(limit, 100)), industry(industry));
     }
 
     private String industry(String value) {

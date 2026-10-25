@@ -35,8 +35,7 @@ public class VersionedCatalogController {
             @RequestParam(required = false) String industry,
             @RequestParam(defaultValue = "20") int limit) {
         return ApiResponse.success(
-                service.list(
-                        cursor == null ? null : CoreValues.id(cursor), limit, industry));
+                service.list(cursor == null ? null : CoreValues.id(cursor), limit, industry));
     }
 
     @GetMapping("/{slug}")

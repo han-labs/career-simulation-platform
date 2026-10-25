@@ -96,11 +96,9 @@ public final class ScenarioContracts {
 
     public record Availability(@NotBlank String status) {}
 
-    public record ClassificationRequest(
-            @Pattern(regexp = "IT") String industryCode) {}
+    public record ClassificationRequest(@Pattern(regexp = "IT") String industryCode) {}
 
-    public record Classification(
-            String scenarioId, String industryCode, long revision) {}
+    public record Classification(String scenarioId, String industryCode, long revision) {}
 
     public record Version(
             String id,
