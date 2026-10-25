@@ -3,13 +3,14 @@ import { useI18n } from '../../../shared/i18n/useI18n.js'
 import { riasecDescriptions } from '../data/mockQuestions.js'
 
 const dimensionOrder = ['R', 'I', 'A', 'S', 'E', 'C']
-const maximumDimensionScore = 35
 
-function AssessmentResult({ result, onRestart }) {
+function AssessmentResult({ result, onRestart, titleAs: Title = 'h1', disabled = false }) {
   const { t } = useI18n()
   const scores = Array.isArray(result?.scores) ? result.scores : []
-  const validScores = scores.filter(
-    ({ dimension, score }) => riasecDescriptions[dimension] && Number.isFinite(score),
+  // Legacy questionnaires have seven items per dimension; v2 supplies pinned ranges.
+  const validScores = scores.map(s => ({ ...s, min: s.min ?? 7, max: s.max ?? 35 })).filter(
+    ({ dimension, score, min, max }) => riasecDescriptions[dimension] &&
+      [score, min, max].every(Number.isFinite) && max > min && score >= min && score <= max,
   )
   const hasSixUniqueDimensions =
     validScores.length === dimensionOrder.length &&
@@ -18,9 +19,9 @@ function AssessmentResult({ result, onRestart }) {
   if (!hasSixUniqueDimensions) {
     return (
       <section className="assessment-result assessment-result--empty" aria-labelledby="assessment-result-title">
-        <h1 id="assessment-result-title">{t('Your results are unavailable')}</h1>
+        <Title id="assessment-result-title">{t('Your results are unavailable')}</Title>
         <p>{t('The result is incomplete. You can return and take the assessment again.')}</p>
-        <button className="button button--secondary" type="button" onClick={onRestart}>{t('Retake assessment')}</button>
+        <button className="button button--secondary" type="button" disabled={disabled} onClick={onRestart}>{t('Retake assessment')}</button>
       </section>
     )
   }
@@ -38,9 +39,9 @@ function AssessmentResult({ result, onRestart }) {
     <section className="assessment-result" aria-labelledby="assessment-result-title">
       <div className="assessment-result__summary">
         <span className="eyebrow">{t('RIASEC results')}</span>
-        <h1 id="assessment-result-title">
+        <Title id="assessment-result-title" className="assessment-profile__title">
           {t(strongestDimensions.length > 1 ? 'Your strongest interest signals' : 'Your strongest interest signal')}
-        </h1>
+        </Title>
         <div className="assessment-result__strongest" aria-label={t('Highest-scoring interest dimensions')}>
           {strongestDimensions.map(({ dimension }) => {
             const info = riasecDescriptions[dimension]
@@ -63,21 +64,21 @@ function AssessmentResult({ result, onRestart }) {
         <div className="assessment-result__scores-heading">
           <div>
             <h2>{t('Your six interest dimensions')}</h2>
-            <p>{t('Each score is the sum of your answers in that dimension, from 7 to 35.')}</p>
+            <p>{t('Each score is the sum of your answers. Ranges depend on the questions in this version.')}</p>
           </div>
           <Link className="button button--secondary" to="/simulations">{t('Explore IT simulations')}</Link>
         </div>
         <ul className="assessment-score-list">
-          {orderedScores.map(({ dimension, score }) => {
+          {orderedScores.map(({ dimension, score, min, max }) => {
             const info = riasecDescriptions[dimension]
-            const percentage = Math.max(0, Math.min(100, (score / maximumDimensionScore) * 100))
+            const percentage = ((score - min) / (max - min)) * 100
             return (
               <li className="assessment-score" key={dimension}>
                 <div className="assessment-score__label">
                   <span>{t(info.name)}</span>
-                  <strong>{score} / {maximumDimensionScore}</strong>
+                  <strong>{score} / {max} <small>({min}–{max})</small></strong>
                 </div>
-                <div className="assessment-score__track" role="progressbar" aria-label={`${t(info.name)}: ${score} out of ${maximumDimensionScore}`} aria-valuemin={0} aria-valuemax={maximumDimensionScore} aria-valuenow={score}>
+                <div className="assessment-score__track" role="progressbar" aria-label={t(info.name)} aria-valuemin={min} aria-valuemax={max} aria-valuenow={score}>
                   <span style={{ width: `${percentage}%`, backgroundColor: info.color }} />
                 </div>
               </li>
@@ -92,7 +93,7 @@ function AssessmentResult({ result, onRestart }) {
       </div>
 
       <div className="assessment-result__actions">
-        <button className="button button--primary" type="button" onClick={onRestart}>{t('Retake assessment')}</button>
+        <button className="button button--primary" type="button" disabled={disabled} onClick={onRestart}>{t('Retake assessment')}</button>
       </div>
     </section>
   )

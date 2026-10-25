@@ -1,19 +1,36 @@
 <!-- documentation-sync-2026-10-22 -->
 # CareerSim current tasks
 
-Updated 2026-10-22. This file owns **current progress**; [TEAM_ASSIGNMENTS](../docs/TEAM_ASSIGNMENTS.md) owns the confirmed person/UC allocation. Current catalogue is [10 selected US / 16 UC](../docs/requirements/README.md), not legacy 3 US or frozen Baseline 15 US.
+Ownership updated 2026-10-25 by Team Lead; other progress checkpoints retain their dates. This file owns **current progress**; [TEAM_ASSIGNMENTS](../docs/TEAM_ASSIGNMENTS.md) owns the confirmed person/UC allocation. Current catalogue is [10 selected US / 16 UC](../docs/requirements/README.md), not legacy 3 US or frozen Baseline 15 US. Current branch scope remains UC-07: Phase 1 is committed at `77bace7`; Phase 2 and the minimal common Admin shell are authorized for finalization, with human UAT pending. UC-08/09 behavior remains outside this branch.
 
 ## Official allocation and current state
 
 | Person | Assigned UC | Selected report US | Current state |
 |---|---|---|---|
 | Person 1 | UC-01, UC-02, UC-03 | US-01, US-02, US-03 | Existing P1/P2; reconcile API/UI/tests and complete owned UAT; live Google remains pending |
-| Person 2 | UC-04, UC-05, UC-09 | US-04, US-05, US-06, US-10 | Existing catalogue/simulation/usage; resolve completion/recommendation wording before affected code |
-| Person 3 (project lead) | UC-06, UC-07, UC-08 | US-07, US-08, US-09 | Existing Student Agent/KB/Builder; coordinate integration, source-hash plan semantics and live AI evidence |
+| Person 2 | UC-04, UC-05, UC-06 | US-04, US-05, US-06, US-07 | Existing catalogue/simulation/Student Agent; resolve completion/recommendation wording and source-hash plan semantics before affected code |
+| Person 3 (project lead) | UC-07, UC-08, UC-09 | US-08, US-09, US-10 | Existing KB/Builder/usage; coordinate integration, release and live AI evidence with Person 2 |
 
 Exact people/Git identities and reviewer rotation remain pending group sign-off. Cross-cutting security/schema/proxy work needs a named task owner and project-lead review. Supplementary UC maintenance owners are not inferred; UC-14 is deferred.
 
 ## Current work queue
+
+2026-10-24 urgent local Docker startup maintenance is authorized in the US-01/US-03
+integration worktree. [Plan](plans/UC-01-02-03-compose-startup.md),
+[current startup runbook](../docs/deployment/local-compose.md) and
+[executed evidence](reports/compose-startup-2026-10-24.md) cover JWT setup and
+Compose readiness. Original US-03 and parent checkouts are preserved; no automatic
+commit, push or main merge. Live Google login is a separate observed-UAT claim.
+
+2026-10-24 Person 1 Google sign up/sign in follow-up is authorized on the existing
+US-01 worktree. [Plan](plans/US-01-UC-02-google-identity.md) and
+[Google configuration](../docs/testing/google-identity.md) preserve P1/P2 and US-03.
+External Google UAT remains pending real credentials; [final local evidence](reports/google-identity-2026-10-24.md)
+records combined frontend 158 passed, identity 23 and assessment 29 passed, actual
+browser persistence/re-login, and the recurring unrelated Student Agent full-suite
+failure (339 passed, 1 failed, 6 skipped). No release/integration-ready claim is made.
+
+2026-10-23 explicit Person 1 follow-up: US-01 / UC-01 registration implementation is isolated on `feature/us01-register-account`; protected US-03 remains on its original branch. API/browser registration-to-assessment evidence, complete test outcomes (including any failure/rerun), exact commits and live Google/security/UAT limits are in [the dated registration report](reports/us01-registration-2026-10-23.md). This does not change ownership or authorize a main merge or supplementary implementation.
 
 | Work | Owner / dependency | Status / completion condition |
 |---|---|---|

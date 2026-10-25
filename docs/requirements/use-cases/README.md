@@ -16,10 +16,10 @@
 | [UC-03 — Complete career quiz](UC-03-complete-career-quiz.md) | Student | US-03 | Người 1 | **Selected** |
 | [UC-04 — Browse simulations](UC-04-browse-simulations.md) | Student | US-04 | Người 2 | **Selected** |
 | [UC-05 — Complete simulation](UC-05-complete-simulation.md) | Student | US-05, US-06 | Người 2 | **Selected** |
-| [UC-06 — Consult career agent](UC-06-consult-career-agent.md) | Student | US-07 | Người 3 | **Selected** |
+| [UC-06 — Consult career agent](UC-06-consult-career-agent.md) | Student | US-07 | Người 2 | **Selected** |
 | [UC-07 — Manage knowledge base](UC-07-manage-knowledge-base.md) | Administrator | US-08 | Người 3 | **Selected** |
 | [UC-08 — Create AI agent](UC-08-create-ai-agent.md) | Administrator | US-09 | Người 3 | **Selected** |
-| [UC-09 — View AI usage dashboard](UC-09-view-ai-usage-dashboard.md) | Administrator | US-10 | Người 2 | **Selected** |
+| [UC-09 — View AI usage dashboard](UC-09-view-ai-usage-dashboard.md) | Administrator | US-10 | Người 3 | **Selected** |
 | [UC-10 — View dashboard](UC-10-view-dashboard.md) | Student | None directly in report-selected 10 US | Unassigned | Supplementary |
 | [UC-11 — Manage profile](UC-11-manage-profile.md) | Student | None directly in report-selected 10 US | Unassigned | Supplementary |
 | [UC-12 — Manage scenario](UC-12-manage-scenario.md) | Enterprise Representative | Prerequisite/support for US-04/US-05 (not a dedicated selected US) | Unassigned | Supplementary |

@@ -23,7 +23,27 @@ public class KnowledgeParser {
     public record Chunk(
             String section, String text, com.fasterxml.jackson.databind.JsonNode locator) {}
 
-    public record Parsed(String profile, List<Chunk> chunks) {}
+    public record Block(
+            String section, String text, com.fasterxml.jackson.databind.JsonNode locator) {}
+
+    public record Parsed(String profile, List<Chunk> chunks, List<Block> blocks) {
+        public com.fasterxml.jackson.databind.JsonNode snapshot(String inputHash) {
+            return CoreValues.tree(
+                    Map.of(
+                            "representationVersion",
+                            1,
+                            "inputHash",
+                            inputHash,
+                            "parserProfile",
+                            profile,
+                            "textUnit",
+                            "UTF-16",
+                            "blocks",
+                            blocks,
+                            "warnings",
+                            List.of()));
+        }
+    }
 
     public static final class ParseFailure extends RuntimeException {
         public ParseFailure(String code) {
@@ -71,6 +91,7 @@ public class KnowledgeParser {
     public Parsed parse(String name, String mime, byte[] bytes, String title) {
         String ext = validateType(name, mime, bytes);
         var out = new ArrayList<Chunk>();
+        var blocks = new ArrayList<Block>();
         try {
             switch (ext) {
                 case "txt", "md" -> {
@@ -84,6 +105,7 @@ public class KnowledgeParser {
                         if (lines[i].isBlank() && !fenced) {
                             add(
                                     out,
+                                    blocks,
                                     title,
                                     block.toString(),
                                     Map.of("format", ext, "lineStart", start, "lineEnd", i));
@@ -94,6 +116,7 @@ public class KnowledgeParser {
                     if (fenced) throw new ParseFailure("UNCLOSED_CODE_FENCE");
                     add(
                             out,
+                            blocks,
                             title,
                             block.toString(),
                             Map.of("format", ext, "lineStart", start, "lineEnd", lines.length));
@@ -108,6 +131,7 @@ public class KnowledgeParser {
                             stripper.setEndPage(page);
                             add(
                                     out,
+                                    blocks,
                                     "Page " + page,
                                     boundedPage(stripper, doc),
                                     Map.of("format", "pdf", "page", page));
@@ -122,6 +146,7 @@ public class KnowledgeParser {
                             if (element instanceof XWPFParagraph p)
                                 add(
                                         out,
+                                        blocks,
                                         title,
                                         p.getText(),
                                         Map.of("format", "docx", "paragraph", ++paragraph));
@@ -131,6 +156,7 @@ public class KnowledgeParser {
                                 for (var r : t.getRows())
                                     add(
                                             out,
+                                            blocks,
                                             title,
                                             r.getTableCells().stream()
                                                     .map(XWPFTableCell::getText)
@@ -174,6 +200,7 @@ public class KnowledgeParser {
                                 }
                                 add(
                                         out,
+                                        blocks,
                                         sheet.getSheetName(),
                                         String.join(" | ", values),
                                         Map.of(
@@ -197,13 +224,22 @@ public class KnowledgeParser {
             throw new ParseFailure("SOURCE_PARSE_FAILED");
         }
         if (out.isEmpty()) throw new ParseFailure("NO_EXTRACTABLE_TEXT");
-        return new Parsed(PROFILE, List.copyOf(out));
+        return new Parsed(PROFILE, List.copyOf(out), List.copyOf(blocks));
     }
 
-    private void add(List<Chunk> out, String title, String content, Map<String, Object> locator) {
+    private void add(
+            List<Chunk> out,
+            List<Block> blocks,
+            String title,
+            String content,
+            Map<String, Object> locator) {
         if (content.isBlank()) return;
         if (content.indexOf('\0') >= 0 || content.length() > MAX_TEXT)
             throw new ParseFailure("TEXT_LIMIT_OR_INVALID_TEXT");
+        String normalized = content.replace("\r\n", "\n").replace('\r', '\n').strip();
+        if (blocks.stream().mapToInt(b -> b.text().length()).sum() + normalized.length() > MAX_TEXT)
+            throw new ParseFailure("SOURCE_TEXT_OR_CHUNK_LIMIT");
+        blocks.add(new Block(title, normalized, CoreValues.tree(locator)));
         try {
             int part = 0;
             // A PDF page or spreadsheet row is a locator unit, not an editorial paragraph.

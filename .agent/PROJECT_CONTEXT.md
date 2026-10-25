@@ -19,7 +19,7 @@ Assessment is optional. Results stay separate and versioned. Enrollment pins a S
 
 Assigned Student Agents use pinned configurations, current consent, scoped KB/read-only tools, durable history/SSE, validated explicit InsightReports and exact-source/hash plan confirmation. Admin Preview and KB Test have no fake Student session. Admin usage aggregates exclude private transcripts/reports. Core remains usable without AI.
 
-**Selected ownership:** Person 1 UC-01–03 / US-01–03; Person 2 UC-04/05/09 / US-04/05/06/10; Person 3 (project lead) UC-06/07/08 / US-07/08/09. Supplementary UC-10–16 are not new work assignments; UC-14 recruitment invitations remain deferred. Do not infer real names/Git aliases from old ownership or commit counts.
+**Selected ownership, updated by Team Lead 2026-10-25:** Person 1 UC-01–03 / US-01–03; Person 2 UC-04/05/06 / US-04/05/06/07; Person 3 (project lead) UC-07/08/09 / US-08/09/10. The current branch implements UC-07 only. Supplementary UC-10–16 are not new work assignments; UC-14 recruitment invitations remain deferred. Do not infer real names/Git aliases from old ownership or commit counts.
 
 Keep UC-05 completion/evaluation, UC-04 recommendations, UC-06 plan editing and UC-08 naming discrepancies visible. AC-A09/full AC-A17, real Google OAuth, human/live quality review, deployment/NFR/UAT and backup-retention decisions remain separately evidenced gates. Never invent a 30/90-day Student Agent retention policy.
 

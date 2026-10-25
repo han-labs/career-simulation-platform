@@ -1,5 +1,5 @@
 import { useI18n } from '../../../shared/i18n/useI18n.js'
-import { useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import { Loader2 } from 'lucide-react'
 import AssessmentProgressBar from './AssessmentProgressBar.jsx'
 import AssessmentDemoControls from './AssessmentDemoControls.jsx'
@@ -23,29 +23,27 @@ function AssessmentForm({
 }) {
   const { t } = useI18n()
   const [error, setError] = useState(null)
-  const answeredCount = questions.filter((question) => answers[question.id] !== undefined).length
+  const options = customScaleOptions || scaleOptions
+  const valid = q => options.some(option => option.value === answers[q.id])
+  const answeredCount = questions.filter(valid).length
   const totalCount = questions.length
   const progressPercent = totalCount > 0 ? (answeredCount / totalCount) * 100 : 0
 
   const [errorIds, setErrorIds] = useState([])
-  const options = customScaleOptions || scaleOptions
+  useLayoutEffect(() => {
+    if (!errorIds.length) return
+    const element = document.getElementById(`question-container-${errorIds[0]}`)
+    element?.querySelector('input')?.focus({ preventScroll: true })
+    element?.scrollIntoView({ behavior: 'instant', block: 'center' })
+  }, [errorIds])
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (answeredCount < totalCount) {
-      const missing = questions.filter(q => answers[q.id] === undefined).map(q => q.id)
+    const missing = questions.filter(q => q.required !== false && !valid(q)).map(q => q.id)
+    if (missing.length) {
       setErrorIds(missing)
-      setError(`Please answer all questions before submitting. (${totalCount - answeredCount} left)`)
+      setError('Please answer all required questions before submitting your career quiz.')
       
-      // Find first unanswered question and scroll to it
-      if (missing.length > 0) {
-        setTimeout(() => {
-          const element = document.getElementById(`question-container-${missing[0]}`)
-          if (element) {
-            element.scrollIntoView({ behavior: window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth', block: 'center' })
-          }
-        }, 100)
-      }
       return
     }
     setErrorIds([])
@@ -75,7 +73,7 @@ function AssessmentForm({
             index={index}
             answer={answers[q.id]}
             setAnswer={setAnswer}
-            isMissing={errorIds.includes(q.id)}
+            isMissing={errorIds.includes(q.id) && !valid(q)}
             scaleOptions={options}
           />
         ))}
@@ -92,7 +90,7 @@ function AssessmentForm({
           type="submit" 
           disabled={isLoading}
           style={{ 
-            background: 'var(--ink)', 
+            background: 'var(--assessment-submit, var(--ink))',
             color: 'white', 
             padding: '16px 40px', 
             borderRadius: '12px', 

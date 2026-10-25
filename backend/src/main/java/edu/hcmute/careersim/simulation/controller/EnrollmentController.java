@@ -44,6 +44,11 @@ public class EnrollmentController {
         return ApiResponse.success(enrollments.read(actors.student(p).id(), CoreValues.id(id)));
     }
 
+    @GetMapping("/enrollments/{id}/results")
+    public ApiResponse<?> results(Principal p, @PathVariable String id) {
+        return ApiResponse.success(enrollments.results(actors.student(p).id(), CoreValues.id(id)));
+    }
+
     @GetMapping("/enrollments/{eid}/tasks/{tid}/submission")
     public ApiResponse<?> submission(
             Principal p, @PathVariable String eid, @PathVariable String tid) {

@@ -142,6 +142,7 @@ public class TaskSubmissionServiceImpl implements TaskSubmissionService, ModelAn
                                                 ErrorCode.CONFLICT,
                                                 "Finalize this task before self-review."));
         learning.review(s.id(), actor);
+        completion.completeIfEligible(actor, enrollment);
         audit.record(actor, "TASK_SELF_REVIEWED", "task_submission", s.id(), Map.of());
         return view(s);
     }

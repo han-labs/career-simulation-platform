@@ -6,6 +6,11 @@
 <!-- preserved-content-start -->
 # Career Simulation Platform UI Design System
 
+Visual direction approved by Team Lead on 2026-10-24: institutional HCM-UTE
+identity, neutral workspace surfaces and blue functional actions. The shared
+system is opt-in; UC-07 is the complete canonical pilot. Historical technical
+checkpoints below retain their original scope and do not claim new UAT.
+
 Public product shorthand: **CareerSim**.
 
 ## 1 Product mood
@@ -61,6 +66,12 @@ Use a 4/8 px base scale: `4, 8, 12, 16, 24, 32, 48, 64, 96`.
 - Card radius: 16-18 px; hero/large panels up to 28 px.
 - Prefer borders and whitespace over heavy shadows.
 - Responsive layouts must work at 320 px without horizontal scroll.
+- Retain AppShell's minimal institutional header. Team Lead's finalization
+  approval (2026-10-25) reuses the Phase 2 left sidebar in one Admin Studio shell:
+  Knowledge Bases, AI Agents and AI Usage only. Expanded/collapsible on desktop,
+  modal drawer at <=980px with Escape/focus restoration. Authentication controls
+  and unrelated modules stay outside this shell; UC-08/09 behavior is unchanged.
+  Selected workspace retains Back link, query/history and Documents/Test KB tabs.
 
 ## 5 Components
 

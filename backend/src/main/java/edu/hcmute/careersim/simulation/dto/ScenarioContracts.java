@@ -316,6 +316,19 @@ public final class ScenarioContracts {
             JsonNode certificateSnapshot,
             Instant certificateIssuedAt) {}
 
+    public record TaskResult(
+            String taskId,
+            String status,
+            Instant submittedAt,
+            JsonNode quizResult,
+            Instant reviewedAt) {}
+
+    public record Results(
+            String enrollmentId,
+            List<TaskResult> tasks,
+            List<String> practicedSkills,
+            Completion completion) {}
+
     public record Participation(
             String submissionId,
             String taskId,

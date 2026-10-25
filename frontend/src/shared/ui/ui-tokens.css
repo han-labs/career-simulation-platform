@@ -1,0 +1,31 @@
+/* Opt-in aliases. Do not recolor the host or import reference global CSS. */
+.cs-ui {
+  --cs-bg: var(--page-bg, #f8fafc);
+  --cs-surface: var(--card, #fff);
+  --cs-surface-muted: var(--surface-muted, #f1f5f9);
+  --cs-text: var(--ink, #0f172a);
+  --cs-text-secondary: var(--ink-secondary, #334155);
+  --cs-muted: var(--muted, #64748b);
+  --cs-border: var(--line, #e2e8f0);
+  --cs-control-border: var(--muted, #64748b);
+  --cs-primary: var(--hcmute-blue, #1a3b8b);
+  --cs-primary-hover: var(--hcmute-blue-hover, #153072);
+  --cs-selected-bg: var(--hcmute-blue-soft, #eef3fd);
+  --cs-success: var(--sage-ink, #1e5a38);
+  --cs-success-bg: var(--sage, #e2f0e8);
+  --cs-info: var(--blue-ink, #1a3b8b);
+  --cs-info-bg: var(--blue, #eef3fd);
+  --cs-warning: var(--gold-ink, #856404);
+  --cs-warning-bg: var(--gold, #fdf5d8);
+  --cs-danger: #991b1b;
+  --cs-danger-bg: #fef2f2;
+  --cs-space-1: 4px; --cs-space-2: 8px; --cs-space-3: 12px;
+  --cs-space-4: 16px; --cs-space-5: 20px; --cs-space-6: 24px;
+  --cs-space-8: 32px; --cs-space-12: 48px;
+  --cs-radius-control: var(--radius-sm, 8px);
+  --cs-radius-panel: var(--radius-md, 14px);
+  --cs-radius-dialog: var(--radius-lg, 20px);
+  --cs-shadow-dialog: var(--shadow-lg, 0 20px 40px -8px rgb(26 59 139 / 12%));
+  color: var(--cs-text); font-family: Inter, Aptos, "Segoe UI", system-ui, sans-serif;
+  font-size: 16px; line-height: 1.6;
+}

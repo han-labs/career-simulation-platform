@@ -141,3 +141,43 @@ Parser dependency sources checked during implementation:
 [Apache PDFBox 3.0.8](https://pdfbox.apache.org/download.html),
 [Apache POI 5.5.1](https://poi.apache.org/download.cgi),
 [POI security guidance](https://poi.apache.org/security.html).
+
+## UC-07 completion — 2026-10-23
+
+Additive Admin inspection behavior on the existing routes; no migration, parser or
+embedding-profile change. UC-06/08 source passages and UC-09 aggregates do not gain
+extraction text.
+
+- Ingestion detail (`GET .../ingestions/{job}`, processing responses) retains one
+  merged `attempts` entry per `generation`. `stage`, safe `errorCode` and
+  `outcome: STAGED|UNCHANGED` describe the actual attempt. Late resource usage is
+  merged into its own generation, preserving its immutable extraction.
+- Successful parsing saves `extractionSnapshot` **before embedding** in existing
+  attempt-history JSONB. Representation v1 contains `inputHash`, `parserProfile`,
+  `textUnit: UTF-16`, ordered `blocks[{section,text,locator}]`, and `warnings`.
+  Blocks are normalized parser units before chunking, not reconstructed chunks;
+  there are no invented offsets/highlights. Existing extraction limits apply.
+- Successful atomic staging copies that snapshot to
+  `AssetVersion.provenance.extractionSnapshot` in version detail. Existing version
+  metadata remains immutable. Job and asset **lists omit full snapshots**.
+  Legacy attempts/versions without snapshots remain readable and explicitly lack
+  extraction; no backfill/reconstruction is performed.
+- Snapshot-storage failure stops before embedding. Parsing, source storage,
+  snapshot storage, embedding and staging storage diagnostics are distinct.
+  Failed/cancelled replacements preserve the prior publication and saved extraction.
+- **Reindex A:** upload the source again through the existing multipart route.
+  Same input/parser/embedding fingerprint with a valid stored index reuses its
+  version and reports `UNCHANGED`; no new embedding, version or claimed rebuild.
+  READY/PUBLISHED retry is a state read/check, not rebuilding. Retired or mismatched
+  indexes cannot be reused or resurrected. No new reindex route is introduced.
+- Metadata dialogs preserve their draft revision. Publication uses the revision
+  captured when the exact version was inspected, even after refresh; conflict
+  requires review again. Lifecycle actions remain explicit.
+- Test KB offers **Retrieve passages** and **Answer with sources**, binding displayed
+  results to the accepted request's saved input. Changing a draft does not relabel
+  old results. Focus/reload/local lifecycle actions revalidate current execution
+  authority; revoked sources are removed instead of displayed as current evidence.
+  Retrieval-only still has no answer call; embedding accounting stays separate.
+
+Implementation evidence and remaining browser/human gates:
+[`UC-07-completion.vi.md`](../../.agent/reports/UC-07-completion.vi.md).

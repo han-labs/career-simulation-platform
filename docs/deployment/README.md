@@ -1,6 +1,9 @@
 <!-- documentation-sync-2026-10-22 -->
 # Current deployment documentation boundary
 
+Current local startup commands, safe .env initialization and troubleshooting:
+[Local Docker Compose](local-compose.md). This supersedes the historical commands below.
+
 See [P1/P2 auth/runtime contract](../architecture/p1-p2-security-core.md), [current API index](../api/README.md) and [report/code alignment](../requirements/REPORT_CODE_ALIGNMENT_2026-10-22.md) before preparing an isolated or real deployment.
 
 The merged source contains real identity/JWT/CSRF/Google integration; “login not implemented” in the historical guide is obsolete. Google/provider availability still needs separately authorized live verification. Keys stay backend-only in ignored local configuration/secret storage; never copy keys, JWTs or private transcripts into Git.

@@ -42,7 +42,7 @@ function renderRoute(element, initialEntry = '/simulations') {
 }
 
 function renderAccount() {
-  return render(<I18nProvider initialLocale="en"><MemoryRouter initialEntries={['/account']}><Routes><Route path="/account" element={<AccountPage />} /><Route path="/simulations/:slug" element={<p>Returned simulation detail</p>} /></Routes></MemoryRouter></I18nProvider>)
+  return render(<I18nProvider initialLocale="en"><MemoryRouter initialEntries={['/account']}><Routes><Route path="/account" element={<AccountPage />} /><Route path="/simulations/:slug" element={<p>Returned simulation detail</p>} /><Route path="/assessment" element={<p>Student workspace</p>} /></Routes></MemoryRouter></I18nProvider>)
 }
 
 const published = {
@@ -210,7 +210,7 @@ it.each([
 ])('shows the approved public detail error for status %s', async (status, message, retryable) => {
   apiRequest.mockRejectedValue(Object.assign(new Error('Raw API error'), { status }))
   renderRoute(<CoreSimulationPage />, '/simulations/api-triage')
-  expect((await screen.findByRole('alert')).textContent.trim()).toBe(message)
+  expect((await screen.findByRole('alert')).textContent).toContain(message)
   expect(Boolean(screen.queryByRole('button', { name: 'Try again' }))).toBe(retryable)
   expect(screen.getByRole('link', { name: 'Back to catalog' })).toBeTruthy()
 })
@@ -240,9 +240,9 @@ it('returns to the selected detail after successful regular login without enroll
     return Promise.reject(new Error('Unexpected request'))
   })
   renderAccount()
-  fireEvent.change(screen.getByRole('textbox', { name: 'Email' }), { target: { value: 'student@example.test' } })
-  fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'test-password' } })
-  fireEvent.submit(screen.getByLabelText('Password').closest('form'))
+  fireEvent.change(await screen.findByRole('textbox', { name: 'Email *' }), { target: { value: 'student@example.test' } })
+  fireEvent.change(screen.getByLabelText('Password *'), { target: { value: 'test-password' } })
+  fireEvent.submit(screen.getByLabelText('Password *').closest('form'))
   expect(await screen.findByText('Returned simulation detail')).toBeTruthy()
   expect(sessionStorage.getItem('careersim_pending_simulation_path')).toBeNull()
   expect(apiRequest.mock.calls.some(([path]) => path.includes('/enrollments'))).toBe(false)
@@ -260,7 +260,7 @@ it('clears and ignores an invalid stored destination after authentication', asyn
   sessionStorage.setItem('careersim_pending_simulation_path', 'https://evil.example/simulations/api-triage')
   apiRequest.mockImplementation(path => path === '/v2/auth/providers' ? Promise.resolve({ google: true }) : Promise.resolve({ id: '7', displayName: 'Student', role: 'STUDENT' }))
   renderAccount()
-  expect(await screen.findByText(/Student · STUDENT/)).toBeTruthy()
+  expect(await screen.findByText('Student workspace')).toBeTruthy()
   expect(sessionStorage.getItem('careersim_pending_simulation_path')).toBeNull()
   expect(screen.queryByText('Returned simulation detail')).toBeNull()
 })

@@ -1,6 +1,16 @@
 // Reviewed presentation copy for the current MVP. Source English is the lookup key.
 // Unknown future content stays in its original language; no translation service is used.
-export const messages = Object.fromEntries(`
+export const messages = Object.fromEntries(`Draft an exploration plan ⇢ Phác thảo kế hoạch khám phá
+Build one more piece of evidence ⇢ Bổ sung một trải nghiệm thực hành
+Source ⇢ Nguồn
+Copy ⇢ Sao chép
+Download ⇢ Tải xuống
+Confirm and save ⇢ Xác nhận và lưu
+Compare backend and frontend ⇢ So sánh Backend và Frontend
+Find evidence gaps ⇢ Tìm phần còn thiếu dữ liệu thực hành
+You are not allowed to perform this action. ⇢ Bạn không được phép thực hiện thao tác này.
+Reviewed resources ⇢ Tài liệu đã rà soát
+Draft plan ⇢ Bản nháp kế hoạch
 Website language ⇢ Ngôn ngữ website
 Career Simulation Platform ⇢ Nền tảng mô phỏng nghề nghiệp
 Ho Chi Minh City University of Technology and Engineering (HCM-UTE) · Career Simulation Platform ⇢ Đại học Công nghệ Kỹ thuật TP. HCM · Nền tảng mô phỏng nghề nghiệp
@@ -13,7 +23,6 @@ How It Works ⇢ Cách hoạt động
 IT Career Tracks ⇢ Hướng nghề công nghệ
 Career Assessment ⇢ Đánh giá hướng nghiệp
 Career Assessments ⇢ Đánh giá hướng nghiệp
-Dashboard & Syn ⇢ Tiến độ & Syn
 Open menu ⇢ Mở menu
 Close menu ⇢ Đóng menu
 Footer navigation links ⇢ Liên kết ở cuối trang
@@ -23,7 +32,6 @@ IT Career Simulations ⇢ Mô phỏng nghề công nghệ
 Starter Projects ⇢ Dự án khởi đầu
 Learning Journey ⇢ Hành trình học tập
 Progress Dashboard ⇢ Bảng theo dõi tiến độ
-Syn Guidance Assistant ⇢ Trợ lý hướng nghiệp Syn
 3-Step Process ⇢ Quy trình 3 bước
 Explore your options. Your career decisions remain yours. ⇢ Khám phá các lựa chọn. Quyết định nghề nghiệp luôn thuộc về bạn.
 Practical Career Exploration ⇢ Khám phá nghề qua trải nghiệm
@@ -31,7 +39,6 @@ Designed for high school students: Explore your interests, complete authentic te
 Explore career assessments ⇢ Khám phá các bài đánh giá hướng nghiệp
 Experience IT careers before choosing your ⇢ Trải nghiệm nghề công nghệ trước khi chọn
 direction. ⇢ hướng đi.
-Discover your interests, try practical tech tasks and explore your next steps with Syn. ⇢ Hiểu sở thích, thử nhiệm vụ công nghệ thực tế và khám phá bước tiếp theo cùng Syn.
 View Career Assessment Results ⇢ Xem kết quả đánh giá hướng nghiệp
 Browse IT simulations ⇢ Xem mô phỏng công nghệ
 Career exploration roadmap ⇢ Lộ trình khám phá nghề nghiệp
@@ -55,11 +62,8 @@ Try a focused task in Frontend, Backend, Data, QA or Cybersecurity. ⇢ Thử nh
 Short, focused workplace scenarios ⇢ Tình huống công việc ngắn, có trọng tâm
 Objective task results and feedback ⇢ Kết quả nhiệm vụ và phản hồi khách quan
 Browse IT Career Roles ⇢ Xem các vai trò công nghệ
-Syn Assistant & Exploration Dashboard ⇢ Trợ lý Syn & Bảng theo dõi hành trình
-Bring your results together and explore next steps with Syn. ⇢ Kết nối kết quả và khám phá bước tiếp theo cùng Syn.
 Reflect on interests and practised skills ⇢ Nhìn lại sở thích và kỹ năng đã thực hành
 Standard guidance when AI is unavailable ⇢ Hướng dẫn tiêu chuẩn khi AI không khả dụng
-Open Dashboard & Syn ⇢ Mở bảng tiến độ & Syn
 Objective & Transparent ⇢ Khách quan & Minh bạch
 Scores follow fixed rules. AI does not change them. ⇢ Điểm số được tính theo quy tắc cố định. AI không thay đổi điểm.
 Your choices stay yours ⇢ Bạn luôn chủ động lựa chọn
@@ -76,7 +80,6 @@ Experience Authentic IT Tasks ⇢ Trải nghiệm nhiệm vụ công nghệ th�
 Experience how tech roles approach everyday workplace tasks. ⇢ Trải nghiệm cách các vai trò công nghệ xử lý công việc hằng ngày.
 Explore IT Simulations ⇢ Khám phá mô phỏng công nghệ
 Analyze Evidence & Plan Next Steps ⇢ Phân tích kết quả & Lên kế hoạch tiếp theo
-Review your results with Syn and choose a next step to explore. ⇢ Cùng Syn xem lại kết quả và chọn bước tiếp theo để khám phá.
 Open Dashboard ⇢ Mở bảng tiến độ
 Diverse Specializations ⇢ Đa dạng chuyên ngành
 Explore five tech pathways ⇢ Khám phá năm hướng nghề công nghệ
@@ -298,89 +301,16 @@ Simulation history ⇢ Lịch sử mô phỏng
 Latest ⇢ Mới nhất
 Completed simulation ⇢ Mô phỏng đã hoàn thành
 Latest simulation ⇢ Mô phỏng gần nhất
-View with Syn ⇢ Xem cùng Syn
 Show less ⇢ Thu gọn
 Your completed simulations will appear here. ⇢ Các mô phỏng đã hoàn thành sẽ xuất hiện tại đây.
 Current plan ⇢ Kế hoạch hiện tại
-Ask Syn to draft a small, editable exploration plan. ⇢ Nhờ Syn phác thảo kế hoạch khám phá ngắn gọn, có thể chỉnh sửa.
-Draft with Syn ⇢ Phác thảo cùng Syn
-Draft an exploration plan ⇢ Phác thảo kế hoạch khám phá
-Build one more piece of evidence ⇢ Bổ sung một trải nghiệm thực hành
 Explore backend problem solving ⇢ Khám phá cách giải quyết vấn đề Backend
 Try one more debugging-focused simulation and reflect on the evidence. ⇢ Thử thêm một mô phỏng tập trung vào gỡ lỗi và nhìn lại kết quả.
 API response analysis ⇢ Phân tích phản hồi API
 Backend error diagnosis ⇢ Chẩn đoán lỗi Backend
 SQL querying ⇢ Truy vấn SQL
-Open Syn assistant ⇢ Mở trợ lý Syn
-Syn exploration assistant ⇢ Trợ lý khám phá Syn
-Explore your evidence ⇢ Khám phá kết quả thực hành
-Clear Syn conversation memory ⇢ Xóa bộ nhớ cuộc trò chuyện với Syn
-Use compact Syn window ⇢ Thu nhỏ cửa sổ Syn
-Expand Syn window ⇢ Mở rộng cửa sổ Syn
-Collapse Syn to a circle ⇢ Thu gọn Syn thành biểu tượng
-AI-assisted ⇢ Có hỗ trợ AI
-Standard guidance ⇢ Hướng dẫn tiêu chuẩn
-Syn never changes objective scores. ⇢ Syn không thay đổi điểm số khách quan.
-View supporting results ⇢ Xem kết quả làm căn cứ
-View comparison evidence ⇢ Xem dữ liệu đối chiếu
-Reviewed learning resources ⇢ Tài liệu học tập đã được rà soát
-Web learning sources ⇢ Nguồn học tập từ web
-Sources from the web ⇢ Nguồn từ web
-Not internally reviewed. ⇢ Chưa được rà soát nội bộ.
-Google Search suggestions ⇢ Gợi ý tìm kiếm Google
-Simulations to try ⇢ Mô phỏng để thử
-Evidence used ⇢ Dữ liệu làm căn cứ
-Source ⇢ Nguồn
-Open source ⇢ Mở nguồn tham khảo
-What Syn checked ⇢ Syn đã kiểm tra gì
-Draft—not saved ⇢ Bản nháp — chưa lưu
-Review before saving ⇢ Xem lại trước khi lưu
-Suggested follow-up questions ⇢ Câu hỏi tiếp theo được gợi ý
-Response actions ⇢ Thao tác với câu trả lời
-Copied ⇢ Đã sao chép
-Copy ⇢ Sao chép
-Download ⇢ Tải xuống
-Preview · Standard ⇢ Xem trước · Tiêu chuẩn
-Memory on ⇢ Đang dùng bộ nhớ
-Evidence ready ⇢ Dữ liệu đã sẵn sàng
-Syn reply language ⇢ Ngôn ngữ trả lời của Syn
 Auto ⇢ Theo ngôn ngữ website
-Use website language ⇢ Theo ngôn ngữ website
-Syn could not load your exploration data. ⇢ Syn không tải được dữ liệu khám phá của bạn.
-Loading your evidence… ⇢ Đang tải dữ liệu thực hành…
-Syn is connecting your context… ⇢ Syn đang kết nối ngữ cảnh…
-Jump to latest ⇢ Đến tin nhắn mới nhất
-Retry this message ⇢ Gửi lại tin nhắn này
-Confirm exploration plan ⇢ Xác nhận kế hoạch khám phá
-Save this draft plan? ⇢ Lưu bản nháp kế hoạch này?
-Saving never changes an assessment or simulation result. ⇢ Lưu kế hoạch không thay đổi kết quả đánh giá hoặc mô phỏng.
-Keep editing ⇢ Tiếp tục chỉnh sửa
-Saving… ⇢ Đang lưu…
-Confirm and save ⇢ Xác nhận và lưu
-Quick actions ⇢ Thao tác nhanh
-Ask Syn ⇢ Hỏi Syn
-Ask about your results or next step… ⇢ Hỏi về kết quả hoặc bước tiếp theo…
 Send message ⇢ Gửi tin nhắn
-Understand my interests ⇢ Hiểu sở thích của tôi
-Compare backend and frontend ⇢ So sánh Backend và Frontend
-Find evidence gaps ⇢ Tìm phần còn thiếu dữ liệu thực hành
-Suggest a learning resource ⇢ Gợi ý tài liệu học tập
-Help me get started ⇢ Giúp tôi bắt đầu
-Understand RIASEC ⇢ Tìm hiểu RIASEC
-Show a learning resource ⇢ Xem tài liệu học tập
-Hi, I'm Syn. I connect your interests and practice evidence so you can decide what to explore next. ⇢ Chào bạn, mình là Syn. Mình kết nối sở thích và kết quả thực hành để bạn tự chọn hướng khám phá tiếp theo.
-I could not process that safely. Your existing results have not changed. ⇢ Mình chưa thể xử lý yêu cầu này một cách an toàn. Các kết quả hiện có của bạn không thay đổi.
-Memory could not be cleared. Your conversation is still here. Please retry. ⇢ Chưa xóa được bộ nhớ. Cuộc trò chuyện vẫn được giữ lại. Vui lòng thử lại.
-Your exploration plan has been saved. You can revise it as you gather evidence. ⇢ Kế hoạch khám phá đã được lưu. Bạn có thể điều chỉnh khi có thêm trải nghiệm thực hành.
-Could not confirm the save. Your draft is kept here; please retry. ⇢ Chưa xác nhận được việc lưu. Bản nháp vẫn được giữ ở đây; vui lòng thử lại.
-Saving needs a signed-in account. Your draft is still available here. ⇢ Bạn cần đăng nhập để lưu. Bản nháp vẫn còn ở đây.
-AI explanation was unavailable; these are the available standard results. You can retry your question. ⇢ Phần giải thích AI chưa khả dụng; đây là kết quả tiêu chuẩn hiện có. Bạn có thể gửi lại câu hỏi.
-Web search requires your AI consent. ⇢ Tìm web cần sự đồng ý xử lý AI của bạn.
-Web search is not enabled in this deployment. ⇢ Tìm web chưa được bật trong cấu hình hiện tại.
-Name a career path or skill to search. ⇢ Hãy nêu hướng nghề hoặc kỹ năng cần tìm.
-The search provider denied access with the current configuration. ⇢ Nhà cung cấp từ chối truy cập tìm kiếm với cấu hình hiện tại.
-Live search was rate/quota limited. Local catalog links are not new web search results. ⇢ Tìm web đang bị giới hạn lượt hoặc quota. Liên kết nội bộ không phải kết quả tìm web mới.
-Live search did not return citable sources. General explanations are not verified web results. ⇢ Tìm web chưa trả về nguồn có thể dẫn chứng. Giải thích tổng quát không phải kết quả web đã xác minh.
 Understand your interests ⇢ Hiểu sở thích của bạn
 The API returned an unsuccessful response. ⇢ API trả về phản hồi không thành công.
 The platform is not reachable. Please try again shortly. ⇢ Không kết nối được nền tảng. Vui lòng thử lại sau ít phút.
@@ -388,16 +318,8 @@ The request conflicts with the current state. ⇢ Yêu cầu không phù hợp v
 Please try again later. ⇢ Vui lòng thử lại sau.
 The service is temporarily unavailable. ⇢ Dịch vụ tạm thời không khả dụng.
 The request is invalid. ⇢ Yêu cầu không hợp lệ.
-You are not allowed to perform this action. ⇢ Bạn không được phép thực hiện thao tác này.
 One or more fields are invalid. ⇢ Một hoặc nhiều trường dữ liệu không hợp lệ.
 Published simulation was not found. ⇢ Không tìm thấy mô phỏng đã được công bố.
 Answers must not be empty. ⇢ Câu trả lời không được để trống.
 Simulation evaluation data is invalid. ⇢ Dữ liệu chấm mô phỏng không hợp lệ.
-Simulation result could not be saved. ⇢ Không lưu được kết quả mô phỏng.
-AI processing requires your consent; this is standard guidance. ⇢ Chưa có sự đồng ý xử lý AI của bạn; đây là hướng dẫn tiêu chuẩn.
-Syn response ⇢ Câu trả lời của Syn
-Objective evidence ⇢ Kết quả khách quan làm căn cứ
-Reviewed resources ⇢ Tài liệu đã rà soát
-Draft plan ⇢ Bản nháp kế hoạch
-CareerSim guidance supports exploration and is not a final career decision. ⇢ Hướng dẫn hỗ trợ khám phá, không quyết định nghề nghiệp cuối cùng.
-`.trim().split('\n').map(line => line.split(' ⇢ ')))
+Simulation result could not be saved. ⇢ Không lưu được kết quả mô phỏng.`.trim().split('\n').map(line => line.split(' ⇢ ')))

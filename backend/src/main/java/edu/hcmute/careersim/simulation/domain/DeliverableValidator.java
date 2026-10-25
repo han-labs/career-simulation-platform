@@ -56,7 +56,10 @@ public class DeliverableValidator {
                                                     "text/plain",
                                                     "application/pdf",
                                                     "image/png",
-                                                    "image/jpeg")
+                                                    "image/jpeg",
+                                                    "application/zip",
+                                                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                                                    "application/vnd.openxmlformats-officedocument.presentationml.presentation")
                                             .contains(m.asText()))
                                         CoreValues.invalid("Unsupported MIME type.");
                                 });
@@ -184,7 +187,7 @@ public class DeliverableValidator {
             switch (d.format()) {
                 case "TEXT" -> {
                     if (text == null) CoreValues.invalid("Text payload required.");
-                    text = CoreValues.text(text, c.path("maxLength").asInt());
+                    text = CoreValues.text(text, c.path("maxLength").asInt(10000));
                     if (text.strip().length() < c.path("minLength").asInt())
                         CoreValues.invalid("Text is too short.");
                 }

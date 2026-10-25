@@ -55,7 +55,7 @@ describe('Landing Page components & institutional identity', () => {
     expect(html).toContain('Holland RIASEC Interest Assessment')
     expect(html).toContain('calculated deterministically')
     expect(html).toContain('Authentic IT Job Simulations')
-    expect(html).toContain('Syn Assistant &amp; Exploration Dashboard')
+    expect(html).toContain('Exploration Dashboard')
     expect(html).toContain('Objective &amp; Transparent')
     expect(html).toContain('AI does not change them.')
   })

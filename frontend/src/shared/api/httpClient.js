@@ -3,12 +3,13 @@ export const API_BASE_URL = (
 ).replace(/\/$/, '')
 
 export class ApiError extends Error {
-  constructor(message, { status = 0, code = 'NETWORK_ERROR', payload = null } = {}) {
+  constructor(message, { status = 0, code = 'NETWORK_ERROR', payload = null, retryAfterMs = 0 } = {}) {
     super(message)
     this.name = 'ApiError'
     this.status = status
     this.code = code
     this.payload = payload
+    this.retryAfterMs = retryAfterMs
   }
 }
 
@@ -16,6 +17,15 @@ let csrfToken = null
 let csrfLoading = null
 let accountGeneration = 0
 let invalidated = false
+let rateLimitedUntil = 0
+export function retryAfterMs(value, now = Date.now()) {
+  if (value && /^\d+(\.\d+)?$/.test(value.trim())) return Math.max(1000, Number(value) * 1000)
+  const date = value ? Date.parse(value) : NaN
+  return Number.isFinite(date) ? Math.max(1000, date - now) : 10000
+}
+function rateLimitGuard() {
+  if (Date.now() < rateLimitedUntil) throw new ApiError('Too many requests. Wait before trying again.', { status: 429, code: 'RATE_LIMITED', retryAfterMs: rateLimitedUntil - Date.now() })
+}
 const listeners = new Set()
 export const getAccountGeneration = () => accountGeneration
 export function subscribeAccount(listener) { listeners.add(listener); return () => listeners.delete(listener) }
@@ -28,6 +38,7 @@ if (typeof window !== 'undefined') window.addEventListener('storage', event => {
   if (event.key === 'careersim_auth_epoch') { invalidated = true; invalidateAccount() }
 })
 export async function refreshCsrf() {
+  rateLimitGuard()
   const generation = accountGeneration
   csrfToken = null
   if (!csrfLoading) csrfLoading = fetch(`${API_BASE_URL}/v2/auth/csrf`, { credentials: 'same-origin', headers: { Accept: 'application/json' } })
@@ -42,6 +53,7 @@ export async function refreshCsrf() {
 }
 
 export async function apiRequest(path, options = {}) {
+  rateLimitGuard()
   const generation = accountGeneration
   let response
   const unsafe = !['GET', 'HEAD', 'OPTIONS'].includes((options.method ?? 'GET').toUpperCase())
@@ -70,14 +82,17 @@ export async function apiRequest(path, options = {}) {
   if (generation !== accountGeneration) throw new ApiError('The account changed. Reload your saved work.', { code: 'STALE_ACCOUNT' })
 
   if (!response.ok || payload?.success === false) {
+    const retryDelay = response.status === 429 ? retryAfterMs(response.headers.get('retry-after')) : 0
+    if (retryDelay) rateLimitedUntil = Math.max(rateLimitedUntil, Date.now() + retryDelay)
     if (response.status === 401 || response.status === 403) csrfToken = null
     if (response.status === 401 && !invalidated && path !== '/v2/auth/login') { invalidated = true; invalidateAccount() }
     throw new ApiError(
-      payload?.message ?? `Request failed with status ${response.status}.`,
+      response.status === 429 ? 'Too many requests. Wait before trying again.' : payload?.message ?? `Request failed with status ${response.status}.`,
       {
         status: response.status,
         code: payload?.code ?? 'REQUEST_FAILED',
         payload,
+        retryAfterMs: retryDelay,
       },
     )
   }

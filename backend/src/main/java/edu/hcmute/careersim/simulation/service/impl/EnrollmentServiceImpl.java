@@ -113,6 +113,50 @@ public class EnrollmentServiceImpl implements EnrollmentService, ParticipationEv
                 progress);
     }
 
+    @Transactional(readOnly = true)
+    public Results results(long actor, long id) {
+        var enrollment =
+                read(actor, id); // Reuse current actor, ownership and suspended-version checks.
+        var tasks =
+                enrollment.tasks().stream()
+                        .map(
+                                t -> {
+                                    var submission =
+                                            dao.submission(id, CoreValues.id(t.id()), false);
+                                    return submission
+                                            .map(
+                                                    s ->
+                                                            new TaskResult(
+                                                                    t.id(),
+                                                                    s.status(),
+                                                                    s.submitted(),
+                                                                    "FINAL".equals(s.status())
+                                                                                    && "QUIZ"
+                                                                                            .equals(
+                                                                                                    t
+                                                                                                            .taskType())
+                                                                            ? learning.score(s.id())
+                                                                            : null,
+                                                                    learning.reviewed(s.id())))
+                                            .orElseGet(
+                                                    () ->
+                                                            new TaskResult(
+                                                                    t.id(),
+                                                                    "NOT_STARTED",
+                                                                    null,
+                                                                    null,
+                                                                    null));
+                                })
+                        .toList();
+        return new Results(
+                enrollment.id(),
+                tasks,
+                dao.practicedSkills(id),
+                enrollment.completionId() == null
+                        ? null
+                        : completions.read(actor, CoreValues.id(enrollment.completionId())));
+    }
+
     private com.fasterxml.jackson.databind.JsonNode titleTranslations(
             com.fasterxml.jackson.databind.JsonNode translations) {
         var safe = com.fasterxml.jackson.databind.node.JsonNodeFactory.instance.objectNode();

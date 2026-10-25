@@ -27,6 +27,13 @@ PO approved career-track dropdown after observing exact-match text input failure
 
 ## 2. Main AI-assisted work — team review required
 
+2026-10-24 Docker startup repair (Codex; responsible human/reviewer to confirm):
+diagnosed the observed empty-JWT-key constructor failure separately from Google,
+preserved private configuration/data, added Compose readiness and safe local setup
+with startup regression tests. Evidence and remaining live-Google limits are in
+[the startup report](.agent/reports/compose-startup-2026-10-24.md). No automatic
+commit, push, merge or human-acceptance claim.
+
 | ID    | Responsible contributor / tool                                                       | Key prompt or instruction _(summary; verify actual transcript)_                                                                                                                                                                                                                                                                                                                                                                                                                                          | Main AI-assisted output                                                                                                                                                   | Human verification / changes and evidence                                                                                                                                                                                                                                                                                                                                                                                                                                       | Status                                                                |
 | ----- | ------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------- |
 | AI-01 | **Owner: confirm**; ChatGPT (requirements/design assistant) and AI-assisted planning | Align frozen Requirements Baseline v1/DR1–DR2 to Target Design v1.2, preserve accepted rules, identify safe P1–P6 implementation sequence.                                                                                                                                                                                                                                                                                                                                                               | Core/Agent/ERD design notes, architecture contracts and implementation-plan support.                                                                                      | Team must confirm diagram/cardinality and requirements review. See `docs/requirements/CareerSim_Requirements_Baseline_v1_Chat2_Handoff.md`, `docs/architecture/data-model/`, architecture documentation.                                                                                                                                                                                                                                                                        | Human reviewer and precise prompt: **TO CONFIRM**                     |
@@ -105,3 +112,41 @@ These are **documented defects from the AI-assisted P3/P4 implementation**. Befo
 - [ ] No credential, private data, personal path, raw execution log or invented claim in `AI_USAGE.md`.
 - [ ] Final `AI_USAGE.md` merged to `main` by PR before final submission.
 - [ ] Do not imply the M2 log existed in Git before it was actually added.
+
+## 7. UC-07 completion — 2026-10-23, human review pending
+
+- **Scope/authorization:** Person 3, implementation assigned to Codex Dev2 (Sol).
+  Team Lead approved `.agent/plans/UC-07-manage-knowledge-base.md`, C1–C5 and
+  Reindex A. Human acceptance/reviewer sign-off has **not** occurred in this run.
+- **Tool:** Codex coding assistant, repository shell/patch tools, deterministic
+  Vitest/JUnit/Testcontainers. No live model, paid API, Owner database operation,
+  Compose startup, Git publication or delegation.
+- **Actual prompt excerpt:** “hoàn thiện TOÀN BỘ UC-07, không dừng ở checkpoint C1”;
+  preserve the Owner's 20 staged changes and plan, use existing JSONB, retain
+  profiles/contracts, run isolated regression tests, report real browser limits.
+- **AI-produced areas:** KB dialogs/revision-safe drafts; attempt/version extraction
+  snapshots and diagnostics; version/attempt inspector; explicit publication and
+  unchanged-index behavior; independent Test KB modes and request snapshots;
+  source revalidation, focused tests, Vietnamese labels and scoped API/traceability
+  documentation. File list and actual commands: `.agent/reports/UC-07-completion.vi.md`.
+- **Checks performed by the agent:** source/guard self-review, mocked-provider
+  tests against disposable PostgreSQL/pgvector, frontend tests/lint/build, Compose
+  validation and preservation comparison. These are not human review or AI quality
+  evaluation. Chrome was unavailable to the browser tool; the existing gateway
+  refused connection. No browser PASS or human PASS is claimed.
+
+### Actual mistakes detected and corrected in this task
+
+These are **AI-generated test/presentation defects**, not fabricated production
+incidents or claims that the human reviewer has accepted the fixes.
+
+| Case | Observed failure and correction | Verification boundary |
+|---|---|---|
+| UC07-FIX-01 | A generated immutability test expected raw `IllegalStateException`; the real Spring Repository boundary translates it to `InvalidDataAccessApiUsageException`. The test failed against PostgreSQL. Corrected the expected boundary type and retained the immutable-snapshot error/message assertion; did not weaken the guard. | `AgentPlatformIntegrationTest.attemptSnapshotsAreImmutableFencedAndMergeLateUsageIntoTheirOwnGeneration`; C2/C4 rerun passed. |
+| UC07-FIX-02 | Generated UI added `Knowledge base unavailable.` without its VI dictionary entry. Full frontend check failed: 1 failure / 105 passes. Added the missing translation; did not exclude the string or disable translation coverage. | `translate.test.js` and subsequent full `npm run check` passed with 106 tests. |
+| UC07-FIX-03 | A generated KB_TEST aggregate test used `Instant.EPOCH`, violating the existing maximum 366-day report range. The real service rejected the request. Corrected the fixture window to one hour, preserving the production range/privacy contract. | `kbTestUsageCountsExecutionsNotIngestionOrReloadAndPreservesUnknownMetrics`; final outcome recorded in completion report. |
+
+**Human action still required:** review the implementation and these actual
+corrections, perform the Chrome checklist after the Owner builds the stack, and
+sign off with their real name/date. Earlier draft contributor records and the
+project's live-model evaluation gates remain pending.
