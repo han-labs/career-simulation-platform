@@ -397,8 +397,15 @@ class CorePackageAIntegrationTest {
                                 ? "missing"
                                 : scenarios.slug(representative, Long.parseLong(template.id())));
         assertThat(detail.taskOutline()).hasSize(1);
+        assertThat(detail.taskOutline().get(0).description()).isEqualTo("Synthetic workplace");
         assertThat(json.writeValueAsString(detail))
-                .doesNotContain("modelAnswer", "quizScoringConfig", "Reviewed model answer");
+                .doesNotContain(
+                        "instructions",
+                        "resources",
+                        "modelAnswer",
+                        "rubric",
+                        "quizScoringConfig",
+                        "Reviewed model answer");
         enrollments.enroll(student, Long.parseLong(template.id()));
         enrollments.enroll(other, Long.parseLong(template.id()));
         var summary =

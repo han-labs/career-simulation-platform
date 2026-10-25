@@ -22,7 +22,7 @@ class ScenarioIndustryMigrationIntegrationTest {
                             .asCompatibleSubstituteFor("postgres"));
 
     @Test
-    void v23PreservesRowsConstrainsClassificationAndFiltersBeforePagination() {
+    void v23ThroughV25PreserveRowsConstrainPublicFieldsAndMapPersistedSlugs() {
         var inspection = PG.getDockerClient().inspectContainerCmd(PG.getContainerId()).exec();
         System.out.printf(
                 "ISOLATED_TESTCONTAINER id=%s name=%s mounts=%s preservation=synthetic-disposable-no-backup%n",
@@ -43,10 +43,24 @@ class ScenarioIndustryMigrationIntegrationTest {
                         "INSERT INTO enterprise(name) VALUES ('Synthetic catalogue owner') RETURNING id",
                         Long.class);
         long legacy = scenario(jdbc, enterprise, "legacy-null", "Legacy null", "AVAILABLE");
+        long hpe =
+                scenario(
+                        jdbc,
+                        enterprise,
+                        "hpe-software-engineering",
+                        "Software Engineering",
+                        "AVAILABLE");
+        long cloud =
+                scenario(
+                        jdbc,
+                        enterprise,
+                        "datacom-intro-cloud",
+                        "Introduction to Cloud",
+                        "AVAILABLE");
         Flyway.configure()
                 .dataSource(PG.getJdbcUrl(), PG.getUsername(), PG.getPassword())
                 .locations("classpath:db/migration")
-                .target("23")
+                .target("25")
                 .load()
                 .migrate();
 
@@ -56,6 +70,39 @@ class ScenarioIndustryMigrationIntegrationTest {
                                 String.class,
                                 legacy))
                 .isNull();
+        assertThat(
+                        jdbc.queryForMap(
+                                "SELECT card_image_url,hero_image_url,company_logo_url,overview_video_url FROM scenario_version WHERE scenario_id=?",
+                                hpe))
+                .containsEntry(
+                        "card_image_url",
+                        "https://cdn.theforage.com/vinternships/companyassets/fgHAi6dLhpRsGKyyN/t4qyCvg9x8dHJ5sEh/1785195855445/3.png")
+                .containsEntry(
+                        "hero_image_url",
+                        "https://cdn.theforage.com/vinternships/companyassets/fgHAi6dLhpRsGKyyN/t4qyCvg9x8dHJ5sEh/1785195855445/3.png")
+                .containsEntry(
+                        "company_logo_url",
+                        "https://cdn.theforage.com/vinternships/companyassets/fgHAi6dLhpRsGKyyN/t4qyCvg9x8dHJ5sEh/1780727875756/HPE_logo_full-clr_pos_rgb[33] (1).png")
+                .containsEntry(
+                        "overview_video_url", "https://fast.wistia.net/embed/iframe/fz7z4ag7zx");
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT overview_video_url FROM scenario_version WHERE scenario_id=?",
+                                String.class,
+                                cloud))
+                .isNull();
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT card_image_url FROM scenario_version WHERE scenario_id=?",
+                                String.class,
+                                legacy))
+                .isNull();
+        assertThatThrownBy(
+                        () ->
+                                jdbc.update(
+                                        "INSERT INTO scenario_version(scenario_id,version_number,title,target_role,career_track,summary,introduction,learning_objectives,difficulty,estimated_minutes,provenance,overview_video_url) VALUES (?,2,'Draft','Developer','BACKEND_DEVELOPMENT','Summary','Introduction','Practice','INTRODUCTORY',10,'{}','http://fast.wistia.net/embed/iframe/notsecure')",
+                                        legacy))
+                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
         assertThatThrownBy(
                         () ->
                                 jdbc.update(

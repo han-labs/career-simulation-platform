@@ -15,3 +15,7 @@ Every submitted claim should be reproducible from a repository commit.
 - Ubuntu VM or equivalent Docker Compose deployment evidence.
 
 Use `.agent/rules/report-and-evidence.md` for the required report update format.
+
+## Feature evidence
+
+- [US-04 Browse Simulations](US-04/us-04-browse-simulations.md): 2026-10-25 PO-reported UAT (14 PASS / 1 PARTIAL / 1 BLOCKED / 0 FAIL), focused automated verification, migration/content risks and evidence boundaries for UC-04.

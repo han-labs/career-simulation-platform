@@ -1,5 +1,8 @@
 // Package A presentation strings. Persisted content translations remain version-pinned.
 export const coreMessages = Object.fromEntries(`
+All career tracks ⇢ Tất cả hướng nghề nghiệp
+Loading career tracks… ⇢ Đang tải hướng nghề nghiệp…
+Career tracks could not be loaded. ⇢ Không thể tải danh sách hướng nghề nghiệp.
 Account and privacy ⇢ Tài khoản và quyền riêng tư
 Select an assessment type ⇢ Chọn loại đánh giá
 The requested assessment type has no published version. ⇢ Loại đánh giá được yêu cầu chưa có phiên bản công bố.
@@ -113,6 +116,38 @@ Aggregate participation ⇢ Thống kê tham gia tổng hợp
 Only aggregate counts are shown; private student evidence requires separate consent. ⇢ Chỉ hiển thị số liệu tổng hợp; minh chứng riêng tư của sinh viên cần sự đồng ý riêng.
 Participants ⇢ Người tham gia
 Search simulations ⇢ Tìm mô phỏng
+Explore published IT simulations through representative workplace tasks. ⇢ Khám phá các mô phỏng công nghệ đã công bố qua nhiệm vụ công việc tiêu biểu.
+Search by title, role, or summary ⇢ Tìm theo tiêu đề, vai trò hoặc tóm tắt
+All levels ⇢ Mọi cấp độ
+Clear filters ⇢ Xóa bộ lọc
+Industry ⇢ Lĩnh vực
+Information technology ⇢ Công nghệ thông tin
+Simulation catalogue pages ⇢ Các trang danh sách mô phỏng
+The simulation catalogue could not be loaded. Please try again. ⇢ Không thể tải danh sách mô phỏng. Vui lòng thử lại.
+No simulations are currently available. Please check back later. ⇢ Hiện chưa có mô phỏng nào. Vui lòng quay lại sau.
+No simulations match your search. Try changing the filters. ⇢ Không có mô phỏng phù hợp với tìm kiếm. Hãy thử thay đổi bộ lọc.
+This simulation is unavailable. ⇢ Mô phỏng này hiện không khả dụng.
+Simulation details could not be loaded. Please try again. ⇢ Không thể tải thông tin mô phỏng. Vui lòng thử lại.
+CareerSim partner ⇢ Đối tác CareerSim
+Search and filters ⇢ Tìm kiếm và bộ lọc
+Hide search and filters ⇢ Ẩn tìm kiếm và bộ lọc
+Start free simulation ⇢ Bắt đầu mô phỏng miễn phí
+Starting… ⇢ Đang bắt đầu…
+Sign in is required to save your progress. ⇢ Cần đăng nhập để lưu tiến độ.
+Overview ⇢ Tổng quan
+Video ⇢ Video
+Tasks ⇢ Nhiệm vụ
+Simulation information ⇢ Thông tin mô phỏng
+Simulation overview video ⇢ Video tổng quan mô phỏng
+No overview video is available for this simulation. ⇢ Mô phỏng này không có video tổng quan.
+Simulation tasks ⇢ Các nhiệm vụ mô phỏng
+Why complete this Job Simulation ⇢ Vì sao nên hoàn thành mô phỏng công việc này
+Available Achievements ⇢ Kết quả có thể đạt được
+Complete the simulation to record your participation and the skills you practiced. This does not certify professional competence. ⇢ Hoàn thành mô phỏng để ghi nhận việc tham gia và các kỹ năng bạn đã thực hành. Kết quả này không chứng nhận năng lực chuyên môn.
+How it works ⇢ Cách thức hoạt động
+Work through self-paced tasks in order and save your submissions. Example answers unlock after a valid final submission; self-review advances the ordered progression. ⇢ Thực hiện các nhiệm vụ theo thứ tự với tốc độ phù hợp và lưu bài nộp. Đáp án mẫu chỉ mở sau khi nộp chính thức hợp lệ; tự đối chiếu giúp chuyển sang bước tiếp theo.
+Skills you will learn and practice ⇢ Kỹ năng bạn sẽ học và thực hành
+Skill information is not available for this simulation. ⇢ Chưa có thông tin kỹ năng cho mô phỏng này.
 All ⇢ Tất cả
 Sort simulations ⇢ Sắp xếp mô phỏng
 Publication order ⇢ Thứ tự xuất bản

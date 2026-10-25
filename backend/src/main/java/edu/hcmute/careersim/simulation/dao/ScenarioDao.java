@@ -216,6 +216,13 @@ public class ScenarioDao {
                 task);
     }
 
+    public List<String> publicSkillNames(long version) {
+        return jdbc.query(
+                "SELECT DISTINCT ts.skill_name_snapshot FROM public.simulation_task t JOIN public.task_skill ts ON ts.task_id=t.id WHERE t.scenario_version_id=? ORDER BY ts.skill_name_snapshot",
+                (r, n) -> r.getString(1),
+                version);
+    }
+
     public List<Skill> skills() {
         return jdbc.query(
                 "SELECT id::text,code,name,status,row_version FROM public.career_skill ORDER BY id",
@@ -384,7 +391,7 @@ public class ScenarioDao {
         if (!industry.isEmpty()) args.add(industry);
         args.add(limit);
         String sql =
-                "SELECT s.id,s.slug,v.id AS version_id,s.enterprise_id,e.name,s.industry_code FROM public.scenario s JOIN public.scenario_version v ON v.id=s.current_version_id JOIN public.enterprise e ON e.id=s.enterprise_id WHERE s.availability_status='AVAILABLE' AND v.status='PUBLISHED' AND s.id>?";
+                "SELECT s.id,s.slug,v.id AS version_id,s.enterprise_id,e.name,s.industry_code,v.card_image_url,v.hero_image_url,v.company_logo_url,v.overview_video_url FROM public.scenario s JOIN public.scenario_version v ON v.id=s.current_version_id JOIN public.enterprise e ON e.id=s.enterprise_id WHERE s.availability_status='AVAILABLE' AND v.status='PUBLISHED' AND s.id>?";
         if (!industry.isEmpty()) sql += " AND s.industry_code=?";
         sql += " ORDER BY s.id LIMIT ?";
         return jdbc
@@ -398,7 +405,12 @@ public class ScenarioDao {
                                         Long.toString(r.getLong(4)),
                                         r.getString(5),
                                         r.getString(6),
-                                        null),
+                                        null,
+                                        new PublicMedia(
+                                                r.getString(7),
+                                                r.getString(8),
+                                                r.getString(9),
+                                                r.getString(10))),
                         args.toArray())
                 .stream()
                 .map(
@@ -412,7 +424,10 @@ public class ScenarioDao {
                                         s.industryCode(),
                                         publicMetadata(
                                                 version(CoreValues.id(s.scenarioVersionId()), false)
-                                                        .metadata())))
+                                                        .metadata()),
+                                        s.media(),
+                                        List.of(),
+                                        List.of()))
                 .toList();
     }
 

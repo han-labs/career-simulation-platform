@@ -446,6 +446,7 @@ public class ScenarioAuthoringServiceImpl
                 s.enterpriseName(),
                 s.industryCode(),
                 s.metadata(),
+                s.media(),
                 version.tasks().stream()
                         .map(
                                 t ->
@@ -453,8 +454,10 @@ public class ScenarioAuthoringServiceImpl
                                                 t.id(),
                                                 t.position(),
                                                 t.title(),
+                                                t.workplaceContext(),
                                                 t.required(),
                                                 t.taskType()))
-                        .toList());
+                        .toList(),
+                dao.publicSkillNames(v));
     }
 }

@@ -136,8 +136,19 @@ public final class ScenarioContracts {
 
     public record CatalogPage(List<Summary> items, String nextCursor) {}
 
+    public record PublicMedia(
+            String cardImageUrl,
+            String heroImageUrl,
+            String companyLogoUrl,
+            String overviewVideoUrl) {}
+
     public record TaskOutline(
-            String id, int position, String title, boolean required, String taskType) {}
+            String id,
+            int position,
+            String title,
+            String description,
+            boolean required,
+            String taskType) {}
 
     public record ParticipationSummary(
             String scenarioVersionId,
@@ -156,7 +167,9 @@ public final class ScenarioContracts {
             String enterpriseName,
             String industryCode,
             Metadata metadata,
-            List<TaskOutline> taskOutline) {
+            PublicMedia media,
+            List<TaskOutline> taskOutline,
+            List<String> skills) {
         public Summary(
                 String id,
                 String slug,
@@ -172,6 +185,8 @@ public final class ScenarioContracts {
                     enterpriseName,
                     null,
                     metadata,
+                    null,
+                    List.of(),
                     List.of());
         }
 
@@ -191,6 +206,30 @@ public final class ScenarioContracts {
                     enterpriseName,
                     industryCode,
                     metadata,
+                    null,
+                    List.of(),
+                    List.of());
+        }
+
+        public Summary(
+                String id,
+                String slug,
+                String scenarioVersionId,
+                String enterpriseId,
+                String enterpriseName,
+                String industryCode,
+                Metadata metadata,
+                PublicMedia media) {
+            this(
+                    id,
+                    slug,
+                    scenarioVersionId,
+                    enterpriseId,
+                    enterpriseName,
+                    industryCode,
+                    metadata,
+                    media,
+                    List.of(),
                     List.of());
         }
     }

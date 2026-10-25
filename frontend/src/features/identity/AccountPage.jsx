@@ -2,11 +2,25 @@ import { useEffect, useState } from 'react'
 import { apiRequest } from '../../shared/api/httpClient.js'
 import { command } from '../../shared/api/coreApi.js'
 import { useI18n } from '../../shared/i18n/useI18n.js'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { agentPlatformEnabled } from '../admin/agentPlatform/platformApi.js'
+
+const PENDING_SIMULATION_PATH = 'careersim_pending_simulation_path'
+
+function consumePendingSimulation(navigate) {
+  let pending
+  try { pending = sessionStorage.getItem(PENDING_SIMULATION_PATH); sessionStorage.removeItem(PENDING_SIMULATION_PATH) } catch { return }
+  const match = typeof pending === 'string' && pending.match(/^\/simulations\/([^/?#]+)$/)
+  if (!match) return
+  try {
+    const slug = decodeURIComponent(match[1])
+    if (slug && encodeURIComponent(slug) === match[1]) navigate(pending, { replace: true })
+  } catch { /* Invalid encoded destinations are cleared and ignored. */ }
+}
 
 export default function AccountPage() {
   const { t } = useI18n()
+  const navigate = useNavigate()
   const [search] = useSearchParams()
   const oauthError = search.has('oauthError') ? (search.get('oauthError') === 'link-required' ? 'Sign in to your existing account, then explicitly link Google.' : 'Google sign-in was not completed. Please try again.') : ''
   const [account, setAccount] = useState(null)
@@ -16,7 +30,7 @@ export default function AccountPage() {
   const [busy, setBusy] = useState(false)
   const [google, setGoogle] = useState(false)
   useEffect(() => { let active = true; apiRequest('/v2/auth/providers').then(p => { if (active) setGoogle(p.google) }).catch(() => {}); return () => { active = false } }, [])
-  useEffect(() => { apiRequest('/v2/me').then(setAccount).catch(() => {}) }, [])
+  useEffect(() => { apiRequest('/v2/me').then(current => { setAccount(current); consumePendingSimulation(navigate) }).catch(() => {}) }, [navigate])
   async function submit(event) {
     event.preventDefault(); setBusy(true); setError(''); setNotice('')
     const form = new FormData(event.currentTarget)
@@ -24,7 +38,7 @@ export default function AccountPage() {
       if (mode === 'register') {
         await command('/v2/auth/register', Object.fromEntries(form))
         setMode('login'); setNotice('Account created. Sign in to continue.')
-      } else setAccount(await command('/v2/auth/login', { email: form.get('email'), password: form.get('password') }))
+      } else { setAccount(await command('/v2/auth/login', { email: form.get('email'), password: form.get('password') })); consumePendingSimulation(navigate) }
       event.target.reset()
     } catch (e) { setError(e.message) } finally { setBusy(false) }
   }

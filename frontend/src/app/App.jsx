@@ -1,4 +1,4 @@
-import { Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation, useParams } from 'react-router-dom'
 import { useEffect, useSyncExternalStore } from 'react'
 import { getAccountGeneration, subscribeAccount } from '../shared/api/httpClient.js'
 import AppShell from '../shared/layout/AppShell.jsx'
@@ -49,6 +49,13 @@ function ApplicationLayout() {
   )
 }
 
+export function LegacySimulationRedirect({ detail = false }) {
+  const { slug } = useParams()
+  const { search } = useLocation()
+  const path = detail ? `/simulations/${encodeURIComponent(slug)}` : '/simulations'
+  return <Navigate to={`${path}${search}`} replace />
+}
+
 function App() {
   return (
     <Routes>
@@ -63,6 +70,8 @@ function App() {
         <Route path="assessment" element={coreEnabled ? <VersionedAssessmentPage /> : <AssessmentPage />} />
         <Route path="assessment/:assessmentType" element={coreEnabled ? <VersionedAssessmentPage /> : <AssessmentPage />} />
         <Route path="simulations" element={coreEnabled ? <CoreCatalogPage /> : <SimulationCatalogPage />} />
+        <Route path="simulation" element={<LegacySimulationRedirect />} />
+        <Route path="simulation/:slug" element={<LegacySimulationRedirect detail />} />
         {coreEnabled && <Route path="enterprise" element={<EnterpriseWorkspace />} />}
         {coreEnabled && <Route path="admin/assessments" element={<AssessmentAdministration />} />}
         <Route path="simulations/:slug" element={coreEnabled ? <CoreSimulationPage /> : <SimulationDetailPage />} />

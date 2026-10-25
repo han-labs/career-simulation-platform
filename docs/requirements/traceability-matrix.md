@@ -20,6 +20,19 @@ Baseline profile/dashboard US-02 is documented by supplementary UC-10/11; Enterp
 
 For each selected UC, the imported spec now links production source/tests and distinguishes existing automated evidence from pending UAT. [The alignment register](REPORT_CODE_ALIGNMENT_2026-10-22.md) records unresolved report/code differences; do not mark a full flow accepted from an endpoint or a mock.
 
+## US-04 / UC-04 implementation trace (feature branch)
+
+| Acceptance criterion | API or component | Source files | Test/evidence |
+|---|---|---|---|
+| Browse published simulations without a prior quiz | `GET /v2/scenarios`, `CoreCatalogPage` | `backend/src/main/java/edu/hcmute/careersim/catalog/controller/VersionedCatalogController.java`; `backend/src/main/java/edu/hcmute/careersim/simulation/dao/ScenarioDao.java`; `frontend/src/features/simulations/pages/CoreCatalogPage.jsx` | `VersionedCatalogControllerTest`; `docs/evidence/US-04/us-04-browse-simulations.md` |
+| Search, filter, sort and cursor pagination | Paged v2 catalogue; API-derived Career Track dropdown; fixed IT; URL state | `VersionedCatalogController.java`; `ScenarioDao.java`; `ScenarioReadDao.java`; `CoreCatalogPage.jsx` | Isolated industry and Core cursor tests PASS 2026-10-25; PO browser TC-04-05 PARTIAL (nine items, no next page) |
+| View role, expected tasks, difficulty and supported public metadata | `GET /v2/scenarios/{slug}`, `CoreSimulationPage` | `ScenarioContracts.java`; `ScenarioAuthoringServiceImpl.java`; `CoreSimulationPage.jsx` | Public DTO/Core integration tests PASS; PO-reported UAT recorded separately |
+| Useful empty/no-match/error states | `SimulationCatalog` | `frontend/src/features/simulations/components/SimulationCatalog.jsx`; `CoreCatalogPage.jsx` | `coreBrowse.test.jsx`: focused file 19 PASS on 2026-10-25 outside sandbox |
+| Browse without locked model answers | Public DTO allowlist; protected model-answer endpoint remains separate | `ScenarioContracts.java`; `ScenarioAuthoringServiceImpl.java`; `EnrollmentController.java` | Public DTO serialization and real isolated Core projection negative checks PASS |
+| Start after login and return to selected simulation | Existing account flow with internal pending path | `CoreSimulationPage.jsx`; `frontend/src/features/identity/AccountPage.jsx` | `coreBrowse.test.jsx`; live Google OAuth UAT pending |
+
+Feature report: `.agent/reports/us-04-uc-04-browse-simulations-verification.vi.md`. PO-reported UAT 2026-10-25: 14 PASS / 1 PARTIAL / 1 BLOCKED / 0 FAIL; TC-04-04A passed all 8 checks. Codex did not observe the full PO session. Final commit SHA, redistribution/published-content integrity decision and integration review remain pending. Pre-enrollment survey is a UC-05 requirements-review item (D10), not a UC-04 defect.
+
 ## Historical initial matrix
 
 The original 3-US matrix follows unchanged; it does not define today's selected IDs.
