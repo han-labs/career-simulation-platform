@@ -1,10 +1,17 @@
-import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { apiRequest } from '../../../shared/api/httpClient.js'
-import { command, draftKey, localized, readDraft, writeDraft } from '../../../shared/api/coreApi.js'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { Compass, Heart, Lightbulb, Layers, ArrowRight } from 'lucide-react'
+import { useState } from 'react'
+import { localized } from '../../../shared/api/coreApi.js'
 import { useI18n } from '../../../shared/i18n/useI18n.js'
+import { useVersionedAssessment } from '../hooks/useVersionedAssessment.js'
+import { useAssessmentScroll } from '../hooks/useAssessmentScroll.js'
 import AssessmentForm from '../components/AssessmentForm.jsx'
 import AssessmentResult from '../components/AssessmentResult.jsx'
+import ProfileAssessmentResult from '../components/ProfileAssessmentResult.jsx'
+import { assessmentInstructions, assessmentTitle } from '../data/assessmentInstructions.js'
+import '../assessment.css'
+
+const icons = { RIASEC: Compass, INTERESTS: Heart, ABILITIES: Lightbulb, WORK_ACTIVITIES: Layers }
 
 export default function VersionedAssessmentPage() {
   const { assessmentType } = useParams()
@@ -13,35 +20,118 @@ export default function VersionedAssessmentPage() {
 
 function AssessmentWorkflow({ assessmentType }) {
   const { t, locale } = useI18n()
-  const [owner, setOwner] = useState(null), [types, setTypes] = useState([]), [selected, setSelected] = useState('')
-  const [attempt, setAttempt] = useState(null), [answers, setAnswers] = useState({}), [result, setResult] = useState(null)
-  const [error, setError] = useState(''), [busy, setBusy] = useState(false), [notice, setNotice] = useState('')
-  useEffect(() => { let active = true; Promise.all([apiRequest('/v2/me'), apiRequest('/v2/assessment-types')]).then(([me, list]) => { if (active) { const normalize = value => value.toLowerCase().replaceAll('_', '-'); const type = assessmentType ? list.find(type => normalize(type.code) === normalize(assessmentType)) : list[0]; setOwner(me.id); setTypes(list); setSelected(type?.activeVersionId ?? '') } }).catch(e => { if (active) setError(e.message) }); return () => { active = false } }, [assessmentType])
-  const load = useCallback(async (id, user) => {
-    const a = await apiRequest(`/v2/assessment-attempts/${id}`)
-    const local = readDraft(draftKey(user, 'assessment', id))
-    setAttempt(a); setAnswers({ ...Object.fromEntries(a.responses.map(r => [r.questionId, r.answerData.value])), ...(a.status === 'IN_PROGRESS' ? local?.answers : {}) })
-    if (a.status === 'SUBMITTED') setResult(await apiRequest(`/v2/assessment-attempts/${id}/result`))
-  }, [])
-  async function start() { setBusy(true); setError(''); try {
-    const key = draftKey(owner, 'assessment-start', selected), pending = readDraft(key)
-    const requestId = pending?.requestId ?? crypto.randomUUID(); writeDraft(key, { requestId })
-    const a = await command(`/v2/assessment-versions/${selected}/attempts`, { requestId }); setResult(null); await load(a.id, owner)
-  } catch (e) { setError(e.message) } finally { setBusy(false) } }
-  const update = (next) => { setAnswers(next); if (attempt) writeDraft(draftKey(owner, 'assessment', attempt.id), { answers: next }); setNotice('Local draft. Save to keep it on the server.') }
-  async function save(final) { setBusy(true); setError(''); try {
-    const items = Object.entries(answers).map(([questionId, value]) => ({ questionId, answerData: { schemaVersion: 1, value } }))
-    if (final) { const r = await command(`/v2/assessment-attempts/${attempt.id}/submit`, { items }, attempt.revision); setResult(r); setAttempt({ ...attempt, status: 'SUBMITTED' }); setNotice('Saved on the server.') }
-    else { setAttempt(await command(`/v2/assessment-attempts/${attempt.id}/responses`, { items }, attempt.revision, 'PUT')); setNotice('Saved on the server.') }
-  } catch (e) { setError(e.message); setNotice('Your draft is preserved. Reload the attempt before retrying a conflict.') } finally { setBusy(false) } }
-  function retake() { if (selected) writeDraft(draftKey(owner, 'assessment-start', selected), { requestId: crypto.randomUUID() }); setAttempt(null); setResult(null); setAnswers({}) }
-  const projected = result?.resultData.dimensions && { attemptId: result.attemptId, scores: result.resultData.dimensions.map(d => ({ dimension: d.code, score: d.raw, max: d.max })), topDimensions: result.resultData.topDimensions }
-  return <section className="feature-page section-shell core-flow"><h1>{t('Career Assessment')}</h1>
-    {error && <p role="alert">{t(error)}</p>}{notice && <p role="status">{t(notice)}</p>}
-    {!attempt && <><p>{t('Your older browser draft is preserved separately. New attempts use a fixed content version.')}</p><label>{t('Assessment type')}<select value={selected} onChange={e => setSelected(e.target.value)}><option value="">{t('Select an assessment type')}</option>{types.map(type => <option key={type.id} value={type.activeVersionId}>{type.name}</option>)}</select></label><button className="button" disabled={!owner || !selected || busy} onClick={start}>{t('Start or resume')}</button>{!types.length && <p>{t('No reviewed assessment version is published yet.')}</p>}{types.length > 0 && assessmentType && !selected && <p role="status">{t('The requested assessment type has no published version.')}</p>}</>}
-    {attempt && <><p>{t('Version')} {attempt.assessmentVersionId} · {attempt.status}</p><button disabled={busy} onClick={() => { setBusy(true); load(attempt.id, owner).catch(e => setError(e.message)).finally(() => setBusy(false)) }}>{t('Reload saved work')}</button></>}
-    {attempt?.status === 'IN_PROGRESS' && <><AssessmentForm showDemo={false} questions={attempt.questions.map(q => ({ ...q, prompt: localized(q, locale, 'prompt') }))} answers={answers} setAnswer={(id, value) => update({ ...answers, [id]: value })} setAllAnswers={next => update({ ...answers, ...next })} onSubmit={() => save(true)} isLoading={busy} /><button disabled={busy} onClick={() => save(false)}>{t('Save draft')}</button></>}
-    {projected && <AssessmentResult result={projected} onRestart={retake} />}
-    {result?.resultData.categories && <article><h2>{result.assessmentTypeCode}</h2><p>{t('Self-reported exploration results do not certify proficiency.')}</p><ul>{result.resultData.categories.map(c => <li key={c.code}>{c.code}: {c.raw}/{c.max}</li>)}</ul><button onClick={retake}>{t('Start another attempt')}</button></article>}
+  const [introduction, setIntroduction] = useState(false)
+  const [query, setQuery] = useSearchParams()
+  const requestedId = query.get('attempt')
+  const quiz = useVersionedAssessment(assessmentType, requestedId)
+  const { attempt, answers, result, busy } = quiz
+  const type = quiz.types.find(row => row.activeVersionId === (attempt?.assessmentVersionId ?? quiz.selected))
+  const code = result?.assessmentTypeCode ?? quiz.history.find(row => row.id === attempt?.id)?.assessmentTypeCode ?? type?.code
+  const instructions = assessmentInstructions(code)
+  const pendingView = requestedId && requestedId !== attempt?.id
+  const view = quiz.loading || pendingView ? 'loading' : result ? `result:${result.attemptId}` : attempt ? `questions:${attempt.id}:${attempt.status}` : 'selection'
+  const heading = useAssessmentScroll(view)
+  const projected = result?.resultData.dimensions && {
+    attemptId: result.attemptId,
+    scores: result.resultData.dimensions.map(d => ({ dimension: d.code, score: d.raw, min: d.min, max: d.max })),
+    topDimensions: result.resultData.topDimensions,
+  }
+  function showAttempt(id) {
+    const next = new URLSearchParams(query)
+    next.set('attempt', id)
+    setQuery(next)
+  }
+  async function start() {
+    const id = await quiz.start()
+    if (id) showAttempt(id)
+  }
+  function selection(retake = false) {
+    setIntroduction(false)
+    quiz.selection(retake)
+    const next = new URLSearchParams(query)
+    next.delete('attempt')
+    setQuery(next)
+  }
+  return <section className="feature-page section-shell assessment-workflow" aria-busy={quiz.loading || busy}>
+    <header className="assessment-workflow__header">
+      <span className="eyebrow">CareerSim · {t('Self-exploration')}</span>
+      <h1 ref={heading} tabIndex={-1}>{t(attempt ? assessmentTitle(code) : 'Career Assessments')}</h1>
+      <p>{t('Choose an optional quiz. Your results stay separate for each attempt and content version.')}</p>
+      <Link className="button button--secondary" to="/simulations">{t('Explore IT simulations')}</Link>
+    </header>
+    {quiz.error && <p className="assessment-api-error" role="alert">{t(quiz.error)}</p>}
+    {quiz.storageError && <p role="alert">{t(quiz.storageError)}</p>}
+    {quiz.notice && <p className="assessment-workflow__notice" role="status">{t(quiz.notice)}</p>}
+    {query.has('demo') && <p role="status">{t('Quick demo profiles belong to the legacy quizzes. Published version questions require your own reviewed answers.')}</p>}
+    {quiz.loading || pendingView ? quiz.error && pendingView ? <div className="assessment-workflow__actions">
+      <button disabled={busy} onClick={() => quiz.open(requestedId)}>{t('Try again')}</button>
+      <button disabled={busy} onClick={() => selection()}>{t('Back to assessment selection')}</button>
+    </div> : <p role="status">{t('Loading assessments…')}</p> : <>
+      {quiz.error && !attempt && <button type="button" disabled={busy} onClick={requestedId ? () => quiz.open(requestedId) : quiz.initialize}>{t('Try again')}</button>}
+      {quiz.ready && <>
+      {!attempt && <>
+        <h2>{t('Choose your assessment')}</h2>
+        <div className="assessment-choice-grid">
+          {quiz.types.map(row => {
+            const Icon = icons[row.code] ?? Compass
+            return <article key={row.id} className={`assessment-choice-card assessment-choice-card--available${introduction && row.activeVersionId === quiz.selected ? ' assessment-choice-card--selected' : ''}`}>
+              <div className="assessment-choice-card__topline"><span className="assessment-choice-card__icon"><Icon size={24} aria-hidden="true" /></span><span className="assessment-status assessment-status--available">{t('Available')}</span></div>
+              <h3>{t(assessmentTitle(row.code, row.name))}</h3>
+              <p>{t(assessmentInstructions(row.code).description)}</p>
+              <button className="button button--secondary" disabled={busy} aria-expanded={introduction && row.activeVersionId === quiz.selected} aria-controls="assessment-instructions-panel" onClick={() => { quiz.setSelected(row.activeVersionId); setIntroduction(true) }}>
+                {t('Read instructions')}<ArrowRight size={18} aria-hidden="true" /><span className="sr-only"> · {t(assessmentTitle(row.code, row.name))}</span>
+              </button>
+            </article>
+          })}
+        </div>
+        {introduction && <article id="assessment-instructions-panel" className="assessment-workflow__panel" aria-labelledby="assessment-instructions-title">
+          <h2 id="assessment-instructions-title">{t('Instructions')} · {t(assessmentTitle(code))}</h2>
+          <p>{t(instructions.description)}</p>
+          <p>{t('Read the questions in the fixed version before answering. You can save a draft or postpone without creating a result.')}</p>
+          <button className="button button--primary" disabled={!quiz.selected || busy} onClick={start}>{t(busy ? 'Opening assessment…' : 'Start or resume')}</button>
+          <button className="button button--secondary" disabled={busy} onClick={() => setIntroduction(false)}>{t('Back to assessment selection')}</button>
+        </article>}
+        {!quiz.types.length && <p>{t('No reviewed assessment version is published yet.')}</p>}
+        {quiz.types.length > 0 && assessmentType && !quiz.selected && <p role="status">{t('The requested assessment type has no published version.')}</p>}
+      </>}
+      {attempt && <div className="assessment-workflow__meta">
+        <p><span className="assessment-status">{t(attempt.status === 'SUBMITTED' ? 'Submitted' : 'In progress')}</span> · {t('Version')} {attempt.assessmentVersionId}</p>
+        <button disabled={busy} onClick={() => quiz.open(attempt.id)}>{t('Reload saved work')}</button>
+        <button disabled={busy} onClick={() => selection()}>{t('Back to assessment selection')}</button>
+      </div>}
+      {attempt?.status === 'IN_PROGRESS' && <>
+        <div className="assessment-workflow__instructions"><h2>{t('Instructions')}</h2><p>{t(instructions.description)}</p><p>{t('Choose one response for every required question. You can change your answers before submitting.')}</p></div>
+        {quiz.conflict && <div className="assessment-workflow__panel" role="alert">
+          <p>{t('The server has a different draft revision. Review your answers and choose which draft to keep before saving.')}</p>
+          <div className="assessment-workflow__actions">
+            <button disabled={busy} onClick={() => quiz.resolveConflict(false)}>{t('Use saved server answers')}</button>
+            <button disabled={busy} onClick={() => quiz.resolveConflict(true)}>{t('Keep my local answers')}</button>
+          </div>
+        </div>}
+        <AssessmentForm key={attempt.id} showDemo={false} questions={attempt.questions.map(q => ({ ...q, prompt: localized(q, locale, 'prompt') }))}
+          answers={answers} setAnswer={(id, value) => quiz.update({ ...answers, [id]: value })}
+          onSubmit={() => quiz.save(true)} isLoading={busy || quiz.conflict} scaleOptions={instructions.options} />
+        <div className="assessment-workflow__actions">
+          <button disabled={busy || quiz.conflict} onClick={() => quiz.save(false)}>{t('Save draft')}</button>
+          <button disabled={busy} onClick={() => selection()}>{t('Postpone assessment')}</button>
+        </div>
+      </>}
+      {attempt?.status === 'SUBMITTED' && !result && <p role="status">{t('Your saved result could not be loaded. Use Reload saved work to try again.')}</p>}
+      {result && <p className="assessment-workflow__saved"><span>{t('Saved result')}</span> · <time dateTime={result.calculatedAt}>{new Date(result.calculatedAt).toLocaleString(locale)}</time></p>}
+      {projected && <AssessmentResult result={projected} disabled={busy} titleAs="h2" onRestart={() => selection(true)} />}
+      {result?.resultData.categories && <ProfileAssessmentResult result={result} disabled={busy} onRestart={() => selection(true)} />}
+      <section className="assessment-workflow__history" aria-labelledby="assessment-history-title">
+        <h2 id="assessment-history-title">{t('Assessment history')}</h2>
+        <p>{t('Your latest 100 attempts, including drafts. Results from different types and versions are kept separately.')}</p>
+        {quiz.historyError && <p role="alert">{t(quiz.historyError)}</p>}
+        <button disabled={busy} onClick={quiz.refreshHistory}>{t('Refresh history')}</button>
+        {!quiz.history.length && !quiz.historyError && <p>{t('No assessment attempts yet.')}</p>}
+        <ul>{quiz.history.map(row => <li key={row.id}>
+          <div><strong>{t(assessmentTitle(row.assessmentTypeCode))}</strong><p>{t('Version')} {row.assessmentVersionId} · <time dateTime={row.submittedAt ?? row.startedAt}>{new Date(row.submittedAt ?? row.startedAt).toLocaleString(locale)}</time></p><span className="assessment-status">{t(row.status === 'SUBMITTED' ? 'Submitted' : 'In progress')}</span></div>
+          <button disabled={busy} onClick={() => showAttempt(row.id)}>{t(row.status === 'SUBMITTED' ? 'View saved result' : 'Resume draft')} · #{row.id}</button>
+        </li>)}</ul>
+      </section>
+      </>}
+    </>}
   </section>
 }

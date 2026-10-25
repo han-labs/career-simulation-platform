@@ -1,0 +1,55 @@
+.assessment-workflow { --assessment-submit: var(--tech); max-width: 1160px; padding-bottom: 64px; }
+.assessment-workflow h1, .assessment-workflow h2 { text-align: left; }
+.assessment-workflow__header { margin-bottom: 32px; }
+.assessment-workflow__header p { max-width: 720px; }
+.assessment-workflow__header h1 { margin: 12px 0; font-size: clamp(2rem, 5vw, 3.25rem); line-height: 1.15; }
+.assessment-workflow__header h1:focus { outline: none; }
+.assessment-workflow .assessment-choice-card h3 { margin: 0; font-size: 1.35rem; }
+.assessment-workflow .assessment-choice-card p { flex: 1; color: var(--ink-secondary); }
+.assessment-workflow .assessment-choice-card .button { gap: 8px; }
+.assessment-workflow .assessment-choice-card--selected { border-color: var(--tech); }
+.assessment-workflow__instructions { margin: 24px 0; padding: 24px; background: var(--tech-soft); border-radius: var(--radius-md); }
+.assessment-workflow__instructions h2 { margin-top: 0; }
+.assessment-workflow__instructions p:last-child { margin-bottom: 0; }
+.assessment-workflow__notice, .assessment-workflow__saved { padding: 12px 16px; border-left: 3px solid var(--tech); color: var(--tech-deep); background: var(--tech-soft); }
+.assessment-workflow .assessment-result { max-width: none; margin-inline: 0; }
+.assessment-workflow .assessment-profile__title { margin: 12px 0; font-size: clamp(1.7rem, 4vw, 2.5rem); line-height: 1.2; }
+.assessment-workflow .assessment-result__badge { color: var(--tech-deep); background: var(--tech-soft); }
+.assessment-workflow .assessment-profile__card { min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: var(--radius-md); background: var(--surface-subtle); }
+.assessment-workflow .assessment-profile__card--top { border-color: var(--tech); background: var(--card); }
+.assessment-workflow .assessment-profile__card h3 { margin: 0; font-size: 1.05rem; }
+.assessment-workflow .assessment-profile__card p { color: var(--ink-secondary); margin: 12px 0 16px; }
+.assessment-workflow .assessment-profile__card small { display: block; margin-top: 8px; color: var(--ink-secondary); }
+.assessment-workflow .assessment-profile__signal { color: var(--tech); font-size: .8rem; font-weight: 700; }
+.assessment-workflow .assessment-profile__card .assessment-score__track span { background: var(--tech); }
+.assessment-workflow .assessment-score__label { flex-wrap: wrap; }
+.assessment-workflow .assessment-result__actions { gap: 12px; flex-wrap: wrap; }
+.assessment-workflow .assessment-workflow__panel > .button { margin: 8px 12px 0 0; }
+.assessment-workflow__history li p { margin: 4px 0 8px; color: var(--ink-secondary); font-size: .88rem; }
+.assessment-workflow__history li { background: var(--card); padding: 20px; border: 1px solid var(--line); border-radius: var(--radius-md); margin-top: 12px; }
+.assessment-workflow__history button { flex-shrink: 0; }
+.assessment-workflow .assessment-form button[type="submit"] { background: var(--tech); }
+.assessment-workflow__panel { background: var(--card); border: 1px solid var(--line); border-radius: 18px; padding: 24px; margin: 24px 0; }
+.assessment-workflow label { display: grid; gap: 8px; }
+.assessment-workflow select { max-width: 100%; min-height: 44px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); background: var(--paper); }
+.assessment-workflow button { min-height: 44px; }
+.assessment-workflow button:not(.button) { border: 1px solid var(--line); border-radius: 12px; padding: 10px 16px; background: var(--paper); color: var(--ink); font: inherit; cursor: pointer; }
+.assessment-workflow button:disabled { opacity: .6; cursor: not-allowed; }
+.assessment-workflow__actions, .assessment-workflow__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 16px; margin: 24px 0; }
+.assessment-workflow__history { margin-top: 48px; border-top: 1px solid var(--line); padding-top: 32px; }
+.assessment-workflow__history ul { padding: 0; list-style: none; }
+.assessment-workflow__history li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+.assessment-workflow :focus-visible { outline: 3px solid var(--tech); outline-offset: 3px; }
+.assessment-workflow p, .assessment-workflow span { overflow-wrap: anywhere; }
+@media (max-width: 600px) {
+  .assessment-workflow__panel { padding: 16px; }
+  .assessment-workflow .assessment-options { flex-direction: column; }
+  .assessment-workflow .assessment-result__scores-heading { flex-direction: column; align-items: flex-start; }
+  .assessment-workflow .assessment-options label { justify-content: flex-start !important; }
+  .assessment-workflow__actions > *, .assessment-workflow__meta > button, .assessment-workflow__history li > button { width: 100%; }
+  .assessment-workflow .assessment-result__summary, .assessment-workflow .assessment-result__scores, .assessment-workflow .assessment-result__limitations { padding: 18px; }
+  .assessment-workflow .assessment-profile__card { padding: 16px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .assessment-workflow *, .assessment-workflow *::before, .assessment-workflow *::after { transition: none !important; animation: none !important; }
+}
