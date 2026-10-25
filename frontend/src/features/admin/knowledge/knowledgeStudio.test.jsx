@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
-import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import I18nProvider from '../../../shared/i18n/I18nProvider.jsx'
 import { createTranslator } from '../../../shared/i18n/translate.js'
@@ -67,6 +67,7 @@ it('ignores a late workspace response after selecting another KB', async () => {
     if (path.endsWith('/kb-2')) return { ...initial, id: 'kb-2', name: 'Second KB' }
   })
   page()
+  await waitFor(() => expect(resolveOld).toBeTypeOf('function'))
   fireEvent.click(await screen.findByRole('link', { name: 'Back to knowledge bases' }))
   fireEvent.click(await screen.findByRole('link', { name: 'Open knowledge base: Second KB' }))
   await screen.findByRole('heading', { name: 'Second KB' })
@@ -84,9 +85,10 @@ it('inspects exact extraction with Unicode and keeps a late version from replaci
   })
   page()
   await screen.findByRole('button', { name: 'Review and publish' })
-  fireEvent.click(screen.getByText('Document options'))
-  const chooser = screen.getByLabelText('Inspect another version')
-  fireEvent.change(chooser, { target: { value: '1' } }); fireEvent.change(chooser, { target: { value: '2' } })
+  fireEvent.click(screen.getByRole('button', { name: 'Review and publish' }))
+  fireEvent.click(screen.getByText('Version history'))
+  fireEvent.change(screen.getByLabelText('Document version'), { target: { value: '1' } })
+  fireEvent.change(screen.getByLabelText('Document version'), { target: { value: '2' } })
   await screen.findByText('Khám phá 🔎 — bảng dữ liệu')
   resolveFirst({ ...versions[0], provenance: { extractionSnapshot: { blocks: [{ text: 'Late stale text' }] } } })
   await waitFor(() => expect(screen.queryByText('Late stale text')).toBeNull())
@@ -113,7 +115,7 @@ it('keeps publication bound to the reviewed revision even after refreshing the w
     if (path.endsWith('/publish')) { expect(request.headers['If-Match']).toBe('0'); return Promise.reject(new Error('Publication revision conflict')) }
   })
   page(); fireEvent.click(await screen.findByRole('button', { name: 'Review and publish' }))
-  await screen.findByRole('heading', { name: 'Source version inspection' })
+  await screen.findByRole('heading', { name: 'Inspect document' })
   current = { ...initial, revision: 2 }
   fireEvent.click(screen.getByRole('button', { name: 'Reload knowledge base' }))
   await waitFor(() => expect(apiRequest.mock.calls.filter(([p]) => p.endsWith('/kb-1')).length).toBeGreaterThan(1))
@@ -126,13 +128,22 @@ it('resumes observation of a running job loaded from the server and displays an 
   let job = { id: 'job-1', assetKey: 'guide', state: 'EMBEDDING', revision: 1, attempts: [] }, reads = 0
   fixture(path => {
     if (path.endsWith('/ingestions')) { reads++; return [job] }
+    if (path.endsWith('/ingestions/job-1')) return job
     if (path.endsWith('/retry')) return { ...job, attempts: [{ outcome: 'UNCHANGED' }] }
   })
-  page(); await screen.findByText('Processing', { exact: true })
+  vi.useFakeTimers()
+  page(); await act(async () => {})
+  expect(screen.getByText('Processing', { exact: true })).toBeTruthy()
   job = { ...job, state: 'READY' }
-  await waitFor(() => expect(reads).toBeGreaterThan(1), { timeout: 4000 })
+  await act(() => vi.advanceTimersByTimeAsync(5000))
+  expect(reads).toBeGreaterThan(1)
+  vi.useRealTimers()
   await screen.findByText('Ready for review', { exact: true })
   fireEvent.click(screen.getByText('Document options'))
+  fireEvent.click(screen.getByRole('button', { name: 'Inspect document' }))
+  await screen.findByRole('heading', { name: 'Inspect document' })
+  await screen.findByText('No extraction snapshot was recorded for this version or attempt. Chunk text is not the original extraction snapshot.')
+  fireEvent.click(screen.getAllByText('Technical details').at(-1))
   fireEvent.click(screen.getByRole('button', { name: 'Check existing ingestion' }))
   await screen.findByText('Index unchanged. The existing version was reused; no rebuild or new version was created.')
 })
@@ -162,7 +173,7 @@ it('inspects a failed attempt after reload without inventing indexed chunks', as
   const job = { id: 'job-failed', assetKey: 'guide', state: 'FAILED', errorCode: 'PROVIDER_UNAVAILABLE', revision: 2, attempts: [{ generation: 1, stage: 'EMBEDDING', extractionSnapshot: { blocks: [{ text: 'Saved extraction after failure 🔎' }] } }] }
   fixture(path => path.endsWith('/ingestions') ? [job] : path.endsWith('/ingestions/job-failed') ? job : undefined)
   page(); fireEvent.click(await screen.findByText('Document options'))
-  fireEvent.click(screen.getByRole('button', { name: 'Inspect processing details' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Inspect document' }))
   await screen.findByText('Saved extraction after failure 🔎')
   fireEvent.click(screen.getByRole('tab', { name: 'Chunks' }))
   await screen.findByText('Attempt extraction is not an indexed version. Inspect its produced version for stored chunks.')
@@ -216,7 +227,8 @@ it('requires explicit lifecycle confirmation and focuses the safe action without
   fixture((path, request) => path.endsWith('/assets') ? [version] : path.endsWith('/versions/11') ? version : path.endsWith('/retire') ? (expect(request.method).toBe('POST'), version) : undefined)
   page()
   await screen.findByText('Published guide')
-  fireEvent.click(screen.getByRole('button', { name: 'View document' }))
+  fireEvent.click(screen.getByText('Document options'))
+  fireEvent.click(screen.getByRole('button', { name: 'Inspect document' }))
   fireEvent.click(await screen.findByRole('button', { name: 'Retire source version' }))
   expect(apiRequest.mock.calls.some(([path]) => path.endsWith('/retire'))).toBe(false)
   expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Keep current publication' }))
@@ -232,12 +244,12 @@ it('continues to show the published version while another version is ready and i
   const row = screen.getByText('Reviewed replacement').closest('li')
   expect(within(row).getByText('Published version: 1')).toBeTruthy()
   expect(within(row).getByText('Replacement did not complete. The published version is still in use.')).toBeTruthy()
-  expect(within(row).getByText('Failed')).toBeTruthy()
+  expect(within(row).getByText('Processing failed')).toBeTruthy()
   expect(within(row).queryByRole('button', { name: 'Review and publish' })).toBeNull()
   expect(within(row).getByRole('button', { name: 'Retry processing' })).toBeTruthy()
 })
 
-it('confirms cancellation against the exact attempt and preserves the safe dismissal path', async () => {
+it('confirms deletion against the exact staged document and preserves the safe dismissal path', async () => {
   let job = { id: 'queued-job', assetKey: 'guide', state: 'QUEUED', attempts: [] }
   fixture((path, request) => {
     if (path.endsWith('/ingestions')) return [job]
@@ -245,12 +257,12 @@ it('confirms cancellation against the exact attempt and preserves the safe dismi
   })
   page()
   fireEvent.click(await screen.findByText('Document options'))
-  fireEvent.click(await screen.findByRole('button', { name: 'Cancel ingestion' }))
-  fireEvent.click(screen.getByRole('button', { name: 'Keep current publication' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Delete document' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Keep document' }))
   expect(apiRequest.mock.calls.some(([path]) => path.endsWith('/cancel'))).toBe(false)
-  fireEvent.click(screen.getByRole('button', { name: 'Cancel ingestion' }))
-  fireEvent.click(screen.getByRole('button', { name: 'Confirm source action' }))
-  await screen.findByText('Cancelled')
+  fireEvent.click(screen.getByRole('button', { name: 'Delete document' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Confirm delete document' }))
+  await screen.findByText('No documents yet. Upload a file to begin.')
   expect(apiRequest.mock.calls.filter(([path]) => path.endsWith('/queued-job/cancel'))).toHaveLength(1)
 })
 
@@ -286,4 +298,36 @@ it.each(['en', 'vi'])('shows the real refused/no-evidence contract without a val
   expect(screen.getByText(t('No authorized passage was retrieved.'))).toBeTruthy()
   expect(screen.queryByRole('heading', { name: t('Validated answer') })).toBeNull()
   expect(apiRequest.mock.calls.filter(([path]) => path.endsWith('/tests'))).toHaveLength(1)
+})
+
+
+it('keeps exactly three document options and moves version, processing and technical access inside inspection', async () => {
+  const published = { id: '11', assetKey: 'guide', title: 'Published guide', versionNumber: 1, status: 'PUBLISHED', license: 'Permission granted', contentHash: 'safe-test-hash', provenance: { parserProfile: 'test-parser', extractionSnapshot: { blocks: [{ text: 'Original reviewed source' }] } }, chunks: [{ chunkId: '9', versionId: '11', text: 'Indexed original source' }] }
+  const job = { id: 'job-history', assetKey: 'guide', state: 'PUBLISHED', metadata: { title: 'Published guide' }, attempts: [{ generation: 2, stage: 'COMPLETE', extractionSnapshot: { blocks: [{ text: 'Exact processing snapshot' }] } }] }
+  fixture(path => path.endsWith('/assets') ? [published] : path.endsWith('/ingestions') ? [job] : path.endsWith('/versions/11') ? published : path.endsWith('/ingestions/job-history') ? job : undefined)
+  page(); await screen.findByText('Published guide')
+  const row = screen.getByLabelText('Document: Published guide')
+  fireEvent.click(within(row).getByText('Document options'))
+  expect(within(row).getAllByRole('button').map(button => button.textContent)).toEqual(['Replace document', 'Inspect document', 'Delete document'])
+  expect(within(row).queryByLabelText('Inspect another version')).toBeNull()
+  expect(within(row).queryByText('Technical details')).toBeNull()
+  fireEvent.click(within(row).getByRole('button', { name: 'Inspect document' }))
+  await screen.findByText('Original reviewed source')
+  const inspector = screen.getByRole('dialog')
+  expect(within(inspector).getByText('Version history').closest('details').open).toBe(false)
+  expect(within(inspector).getByText('Processing history').closest('details').open).toBe(false)
+  expect(within(inspector).getByText('Provenance').closest('details').open).toBe(false)
+  const technical = within(inspector).getAllByText('Technical details').at(-1).closest('details')
+  expect(technical.open).toBe(false)
+  fireEvent.click(within(technical).getByText('Technical details'))
+  expect(within(technical).getByText('safe-test-hash')).toBeTruthy()
+  expect(within(technical).getByText('test-parser')).toBeTruthy()
+  fireEvent.click(within(inspector).getByRole('tab', { name: 'Chunks' }))
+  expect(within(inspector).getByText('Indexed original source')).toBeTruthy()
+  fireEvent.click(within(inspector).getByText('Processing history'))
+  fireEvent.change(within(inspector).getByLabelText('Processing record'), { target: { value: 'job-history' } })
+  await screen.findByText('Exact processing snapshot')
+  const processing = screen.getByRole('dialog')
+  fireEvent.click(within(processing).getAllByText('Technical details').at(-1))
+  expect(within(processing).getByLabelText('Attempt generation').value).toBe('2')
 })

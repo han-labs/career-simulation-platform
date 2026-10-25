@@ -1,5 +1,8 @@
 package edu.hcmute.careersim.common.config;
 
+import edu.hcmute.careersim.common.exception.ApiException;
+import edu.hcmute.careersim.identity.access.AccountPrincipal;
+import edu.hcmute.careersim.identity.access.ActorAccess;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,55 +13,66 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.web.context.RequestAttributeSecurityContextRepository;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-/** Supplies the seeded student identity only for explicitly enabled localhost demo requests. */
+/**
+ * Local profile only; reuses an existing ACTIVE Administrator, never credentials or role writes.
+ */
 final class LocalDemoAuthenticationFilter extends OncePerRequestFilter {
+    private final ActorAccess actors;
 
-    private static final String GUIDANCE_PATH = "/v1/guidance";
-    private final String demoEmail;
-    private final edu.hcmute.careersim.identity.access.StudentAccountAccess accounts;
+    LocalDemoAuthenticationFilter(ActorAccess actors) {
+        this.actors = actors;
+    }
 
-    LocalDemoAuthenticationFilter(
-            String demoEmail, edu.hcmute.careersim.identity.access.StudentAccountAccess accounts) {
-        this.demoEmail = demoEmail;
-        this.accounts = accounts;
+    private boolean adminPath(String path) {
+        return path.equals("/v2/me")
+                || path.equals("/v2/admin/agent-platform/options")
+                || path.equals("/v2/admin/agent-usage")
+                || List.of(
+                                "/v2/admin/knowledge-bases",
+                                "/v2/admin/agents",
+                                "/v2/admin/agent-executions")
+                        .stream()
+                        .anyMatch(root -> path.equals(root) || path.startsWith(root + "/"));
     }
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return !request.getServletPath().startsWith(GUIDANCE_PATH)
-                || !isLoopbackHost(request.getServerName());
+        String host = request.getServerName();
+        boolean loopback =
+                "localhost".equalsIgnoreCase(host)
+                        || "127.0.0.1".equals(host)
+                        || "::1".equals(host)
+                        || "0:0:0:0:0:0:0:1".equals(host);
+        return !loopback || !adminPath(request.getServletPath());
     }
 
     @Override
     protected void doFilterInternal(
-            HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            var account =
-                    accounts.findByEmail(demoEmail)
-                            .filter(a -> "STUDENT".equals(a.role()) && "ACTIVE".equals(a.status()));
-            if (account.isEmpty()) {
-                filterChain.doFilter(request, response);
-                return;
+            try {
+                var actor = actors.findActiveAdministrator();
+                if (actor.isPresent() && "ADMIN".equals(actor.get().role())) {
+                    var admin = actor.get();
+                    var authentication =
+                            new UsernamePasswordAuthenticationToken(
+                                    new AccountPrincipal(admin.id(), admin.email()),
+                                    null,
+                                    List.of(new SimpleGrantedAuthority("ROLE_ADMIN")));
+                    authentication.setDetails(
+                            new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                    new RequestAttributeSecurityContextRepository()
+                            .saveContext(SecurityContextHolder.getContext(), request, response);
+                }
+            } catch (ApiException unavailable) {
+                // Deleted/inactive/changed-role identities fail closed. No fallback promotion.
             }
-            var authentication =
-                    new UsernamePasswordAuthenticationToken(
-                            new edu.hcmute.careersim.identity.access.AccountPrincipal(
-                                    account.get().id(), demoEmail),
-                            null,
-                            List.of(new SimpleGrantedAuthority("ROLE_STUDENT")));
-            authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-            SecurityContextHolder.getContext().setAuthentication(authentication);
         }
-        filterChain.doFilter(request, response);
-    }
-
-    private boolean isLoopbackHost(String host) {
-        return "localhost".equalsIgnoreCase(host)
-                || "127.0.0.1".equals(host)
-                || "::1".equals(host)
-                || "0:0:0:0:0:0:0:1".equals(host);
+        chain.doFilter(request, response);
     }
 }

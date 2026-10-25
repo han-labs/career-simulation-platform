@@ -104,28 +104,15 @@ it('keeps Usage loading explicit and preserves its existing backend endpoint thr
   expect(apiRequest.mock.calls.filter(([path]) => path.startsWith('/v2/admin/agent-usage?'))).toHaveLength(1)
 })
 
-it('retains the pre-base Account route and consent UI outside the KB workspace', async () => {
-  const view = page('/account')
-  await screen.findByRole('button', { name: 'Sign out' })
-  expect(screen.getByRole('heading', { name: 'Purpose-specific consent' })).toBeTruthy()
-  expect(view.container.querySelector('.site-footer')).not.toBeNull()
-  expect(view.container.querySelector('.syn-launcher, .syn-widget')).toBeNull()
-})
-
-it('preserves the existing shared logout contract outside UC-07', async () => {
-  page('/account')
-  fireEvent.click(await screen.findByRole('button', { name: 'Sign out' }))
-  await screen.findByLabelText('Password')
-  expect(apiRequest.mock.calls.some(([path, request]) => path === '/v2/auth/logout' && request.method === 'POST' && request.body === '{}')).toBe(true)
-  expect(apiRequest.mock.calls.every(([path]) => !path.includes('/consents'))).toBe(true)
-})
-
-it('keeps the pre-base Assessment Administration route and normal navigation available elsewhere', async () => {
-  const view = page('/admin/assessments')
-  await screen.findByRole('heading', { name: 'Assessment administration' })
-  expect(within(view.container.querySelector('.site-header')).getByRole('link', { name: 'Career Assessments' })).toBeTruthy()
-  expect(view.container.querySelector('.site-footer')).not.toBeNull()
-  expect(view.container.querySelector('.syn-launcher, .syn-widget')).toBeNull()
+it.each(['/account?oauthError=denied', '/admin/assessments'])('returns not-found for removed product route %s without identity or authoring APIs', async path => {
+  const view = page(path)
+  await screen.findByRole('heading', { name: 'Page not found' })
+  expect(screen.getByRole('link', { name: 'Open Admin Studio' }).getAttribute('href')).toBe('/admin')
+  expect(screen.queryByRole('heading', { name: 'Purpose-specific consent' })).toBeNull()
+  expect(screen.queryByRole('heading', { name: 'Assessment administration' })).toBeNull()
+  expect(screen.queryByRole('button', { name: 'Sign out' })).toBeNull()
+  expect(view.container.querySelector('.site-nav, .site-footer, .syn-widget, .syn-launcher')).toBeNull()
+  expect(apiRequest).not.toHaveBeenCalled()
 })
 
 it('preserves a denied KB response and does not enable writes or manufacture consent', async () => {

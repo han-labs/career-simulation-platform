@@ -3,7 +3,9 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import I18nProvider from '../../../shared/i18n/I18nProvider.jsx'
+import { createTranslator } from '../../../shared/i18n/translate.js'
 import { apiRequest } from '../../../shared/api/httpClient.js'
+import { draftKey } from '../../../shared/api/coreApi.js'
 import { groupDocuments, MAX_SOURCE_BYTES, selectSource, sourceFileError, uploadInput } from './knowledgeDocuments.js'
 import KnowledgeStudioPage from './KnowledgeStudioPage.jsx'
 
@@ -26,18 +28,50 @@ function fixture(extra = () => undefined) {
     throw new Error('Unexpected fixture request ' + path)
   })
 }
-function page() { return render(<I18nProvider initialLocale="en"><MemoryRouter initialEntries={['/admin/knowledge?kb=kb-1']}><KnowledgeStudioPage /></MemoryRouter></I18nProvider>) }
+function page(locale = 'en') { return render(<I18nProvider initialLocale={locale}><MemoryRouter initialEntries={['/admin/knowledge?kb=kb-1']}><KnowledgeStudioPage /></MemoryRouter></I18nProvider>) }
 async function selectFile(selected = file()) {
   fireEvent.change(await screen.findByLabelText('Source file'), { target: { files: [selected] } })
 }
 function complete() {
-  fireEvent.change(screen.getByLabelText('Usage rights or license'), { target: { value: 'Original synthetic fixture' } })
-  fireEvent.change(screen.getByLabelText('Career area'), { target: { value: 'BACKEND' } })
+  fireEvent.change(screen.getByLabelText('Source usage rights'), { target: { value: 'other' } })
+  fireEvent.change(screen.getByLabelText('Source usage rights details'), { target: { value: 'Original synthetic fixture' } })
+  fireEvent.change(screen.getByLabelText('Topic / domain'), { target: { value: 'BACKEND' } })
   fireEvent.change(screen.getByLabelText('Document language'), { target: { value: 'VI' } })
   fireEvent.click(screen.getByRole('checkbox'))
   return screen.getByRole('button', { name: 'Upload and process' }).closest('form')
 }
 const writes = suffix => apiRequest.mock.calls.filter(([path, request]) => path.endsWith(suffix) && request?.method === 'POST')
+
+it('deletes a published logical document only after confirmation, safely retires every version and hides it', async () => {
+  let versions = [{ ...version, status: 'PUBLISHED' }, { ...version, id: '52', versionNumber: 2 }]
+  fixture((path, request) => {
+    if (path.endsWith('/assets')) return versions
+    if (path.endsWith('/retire')) { const id = path.split('/').at(-2); versions = versions.map(v => v.id === id ? { ...v, status: 'RETIRED' } : v); return versions.find(v => v.id === id) }
+    if (request.method) throw new Error('Unexpected deletion endpoint')
+  })
+  page(); fireEvent.click(await screen.findByText('Document options'))
+  fireEvent.click(screen.getByRole('button', { name: 'Delete document' }))
+  expect(writes('/retire')).toHaveLength(0)
+  expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Keep document' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Keep document' }))
+  expect(writes('/retire')).toHaveLength(0)
+  fireEvent.click(screen.getByRole('button', { name: 'Delete document' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Confirm delete document' }))
+  await screen.findByText('No documents yet. Upload a file to begin.')
+  expect(writes('/retire')).toHaveLength(2)
+  expect(versions.every(v => v.status === 'RETIRED')).toBe(true)
+  expect(groupDocuments(versions, [], base.id)).toEqual([])
+})
+
+it('does not restore or poll a saved Test execution while Documents is selected', async () => {
+  localStorage.setItem(draftKey('5', 'kb-test-execution', 'kb-1'), JSON.stringify({ id: 'saved-execution' }))
+  fixture()
+  page(); await screen.findByText('No documents yet. Upload a file to begin.')
+  fireEvent(window, new Event('focus'))
+  fireEvent.click(screen.getByRole('button', { name: 'Reload knowledge base' }))
+  await waitFor(() => expect(apiRequest.mock.calls.filter(([path]) => path.endsWith('/assets')).length).toBeGreaterThan(1))
+  expect(apiRequest.mock.calls.some(([path]) => path.includes('/agent-executions/'))).toBe(false)
+})
 
 it('generates valid distinct stable keys, filename titles and no assumed language or rights', () => {
   const first = selectSource(file()), second = selectSource(file())
@@ -81,7 +115,7 @@ it('shows the upload area immediately, reveals metadata only on selection and su
   fixture(); page()
   const drop = (await screen.findByText('Drop a document here')).closest('.kb-dropzone')
   expect(screen.getByRole('button', { name: 'Browse files' })).toBeTruthy()
-  expect(screen.queryByLabelText('Usage rights or license')).toBeNull()
+  expect(screen.queryByLabelText('Source usage rights')).toBeNull()
   fireEvent.drop(drop, { dataTransfer: { files: [file()] } })
   expect(screen.getByLabelText('Document title').value).toBe('Hướng dẫn nghề nghiệp')
   expect(document.activeElement).toBe(screen.getByLabelText('Document title'))
@@ -192,7 +226,8 @@ it('reuses the published document key when replacing and keeps publication separ
   page(); fireEvent.click(await screen.findByText('Document options'))
   fireEvent.click(screen.getByRole('button', { name: 'Replace document' }))
   await selectFile()
-  expect(screen.getByLabelText('Usage rights or license').value).toBe('Original license')
+  expect(screen.getByLabelText('Source usage rights').value).toBe('other')
+  expect(screen.getByLabelText('Source usage rights details').value).toBe('Original license')
   expect(screen.getByRole('checkbox').checked).toBe(false)
   fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.submit(screen.getByRole('button', { name: 'Upload and process' }).closest('form'))
@@ -212,4 +247,103 @@ it('keeps publication disabled until the exact READY version is loaded for revie
   await waitFor(() => expect(resolve).toBeTypeOf('function')); resolve(version)
   await waitFor(() => expect(screen.getByRole('button', { name: 'Publish document' }).disabled).toBe(false))
   expect(writes('/publish')).toHaveLength(0)
+})
+
+
+it.each([
+  ['internal', 'Internal / organization-owned document'],
+  ['public', 'Public or official source'],
+  ['permission', 'Permission granted'],
+])('requires an explicit rights choice and maps %s to the existing license field only', async (choice, label) => {
+  let payload
+  fixture((path, request) => {
+    if (path.endsWith('/assets') && request.method === 'POST') return request.body.get('metadata').text().then(text => { payload = JSON.parse(text); return staged })
+    if (path.endsWith('/retry')) return { ...staged, state: 'FAILED' }
+  })
+  page(); await selectFile()
+  const rights = screen.getByRole('combobox', { name: 'Source usage rights' })
+  expect(rights.value).toBe(''); expect(rights.required).toBe(true)
+  expect(within(rights).getAllByRole('option').map(option => option.value)).toEqual(['', 'internal', 'public', 'permission', 'other'])
+  expect(screen.getByRole('checkbox').checked).toBe(false)
+  fireEvent.change(screen.getByLabelText('Topic / domain'), { target: { value: 'DATA' } })
+  fireEvent.change(screen.getByLabelText('Document language'), { target: { value: 'EN' } })
+  fireEvent.click(screen.getByRole('checkbox'))
+  const form = screen.getByRole('button', { name: 'Upload and process' }).closest('form')
+  fireEvent.submit(form); expect(writes('/assets')).toHaveLength(0)
+  fireEvent.change(rights, { target: { value: choice } })
+  expect(screen.queryByLabelText('Source usage rights details')).toBeNull()
+  fireEvent.submit(form)
+  await waitFor(() => expect(payload?.license).toBe(label))
+  expect(payload.track).toBe('DATA'); expect(payload.reviewed).toBe(true)
+  expect(Object.keys(payload).sort()).toEqual(['assetKey','title','license','track','language','reviewed','requestId','sourceUri'].sort())
+})
+
+it('requires Other details and preserves an unchecked review when selecting another file', async () => {
+  fixture(); page(); await selectFile()
+  fireEvent.change(screen.getByLabelText('Source usage rights'), { target: { value: 'other' } })
+  const detail = screen.getByLabelText('Source usage rights details')
+  expect(detail.required).toBe(true); expect(detail.maxLength).toBe(240)
+  fireEvent.change(screen.getByLabelText('Topic / domain'), { target: { value: 'DATA' } })
+  fireEvent.change(screen.getByLabelText('Document language'), { target: { value: 'EN' } })
+  fireEvent.click(screen.getByRole('checkbox'))
+  fireEvent.submit(screen.getByRole('button', { name: 'Upload and process' }).closest('form'))
+  expect(writes('/assets')).toHaveLength(0)
+  await selectFile(new File(['Another original synthetic source'], 'another.txt', { type: 'text/plain' }))
+  expect(screen.getByLabelText('Document title').value).toBe('another')
+  expect(screen.getByLabelText('Source usage rights').value).toBe('')
+  expect(screen.getByRole('checkbox').checked).toBe(false)
+})
+
+it('starts a distinct logical document after a staged replacement but retains same-file retry receipt', () => {
+  const replacement = selectSource(file(), { replacementKey: 'published-key', license: 'Permission granted', track: 'DATA', language: 'EN' })
+  const uploaded = { ...replacement, stagedJob: staged }
+  const same = selectSource(file(), uploaded)
+  expect(same.assetKey).toBe('published-key'); expect(same.stagedJob).toBe(staged)
+  const next = selectSource(new File(['A different source'], 'second.txt', { type: 'text/plain' }), uploaded)
+  expect(next.assetKey).not.toBe('published-key'); expect(next.replacementKey).toBeUndefined()
+  expect(next.license).toBe(''); expect(next.language).toBe(''); expect(next.stagedJob).toBeUndefined()
+  expect(next.requestId).not.toBe(uploaded.requestId)
+})
+
+it('uploads additional one-file documents into the same KB with independent titles and metadata', async () => {
+  const savedJobs = [], savedVersions = [], inputs = []
+  fixture((path, request) => {
+    if (path.endsWith('/assets') && request.method === 'POST') return request.body.get('metadata').text().then(text => {
+      const input = JSON.parse(text); inputs.push(input)
+      const job = { ...staged, id: 'job-' + inputs.length, assetKey: input.assetKey, metadata: input }
+      savedJobs.unshift(job); return job
+    })
+    if (path.endsWith('/retry')) {
+      const job = savedJobs.find(item => path.includes('/' + item.id + '/'))
+      job.state = 'READY'; job.producedVersionId = String(50 + inputs.length)
+      savedVersions.unshift({ ...version, id: job.producedVersionId, assetKey: job.assetKey, title: job.metadata.title })
+      return { ...job }
+    }
+    if (path.endsWith('/assets')) return savedVersions
+    if (path.endsWith('/ingestions')) return savedJobs
+  })
+  page(); await selectFile(); fireEvent.submit(complete())
+  await screen.findByRole('button', { name: 'Review and publish' })
+  await selectFile(new File(['Another source'], 'Second source.txt', { type: 'text/plain', lastModified: 456 }))
+  expect(screen.getByRole('checkbox').checked).toBe(false)
+  fireEvent.submit(complete())
+  await waitFor(() => expect(screen.getAllByRole('button', { name: 'Review and publish' })).toHaveLength(2))
+  expect(inputs).toHaveLength(2); expect(inputs[0].assetKey).not.toBe(inputs[1].assetKey)
+  expect(inputs.map(input => input.title)).toEqual(['Hướng dẫn nghề nghiệp', 'Second source'])
+  expect(within(screen.getByLabelText('Document list')).getAllByRole('listitem')).toHaveLength(2)
+  expect(writes('/retry')).toHaveLength(2)
+})
+
+
+it('localizes the controlled metadata choices into Vietnamese without assuming rights or review', async () => {
+  fixture(); page('vi')
+  fireEvent.change(await screen.findByLabelText(createTranslator('vi')('Source file')), { target: { files: [file()] } })
+  const rights = screen.getByRole('combobox', { name: 'Quyền sử dụng nguồn' })
+  expect(rights.value).toBe('')
+  expect(within(rights).getByRole('option', { name: 'Tài liệu nội bộ / thuộc sở hữu tổ chức' })).toBeTruthy()
+  expect(within(rights).getByRole('option', { name: 'Nguồn công khai hoặc chính thức' })).toBeTruthy()
+  expect(within(rights).getByRole('option', { name: 'Đã được cấp phép sử dụng' })).toBeTruthy()
+  expect(within(rights).getByRole('option', { name: 'Khác' })).toBeTruthy()
+  expect(screen.getByLabelText('Lĩnh vực / chủ đề').required).toBe(true)
+  expect(screen.getByRole('checkbox').checked).toBe(false)
 })

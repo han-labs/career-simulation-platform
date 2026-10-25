@@ -31,14 +31,14 @@ const keyFeatures = [
   {
     icon: Bot,
     tag: 'Intelligent Companion',
-    title: 'Syn Assistant & Exploration Dashboard',
+    title: 'Exploration Dashboard',
     description:
-      'Bring your results together and explore next steps with Syn.',
+      'Review your results and choose your next exploration step.',
     highlights: [
       'Reflect on interests and practised skills',
       'Standard guidance when AI is unavailable',
     ],
-    action: { label: 'Open Dashboard & Syn', to: '/dashboard' },
+    action: { label: 'Open Dashboard', to: '/dashboard' },
   },
 ]
 

@@ -23,7 +23,7 @@ const journey = [
     icon: BrainCircuit,
     number: '03',
     title: 'Analyze Evidence & Plan Next Steps',
-    copy: 'Review your results with Syn and choose a next step to explore.',
+    copy: 'Review your results and choose a next step to explore.',
     actionLabel: 'Open Dashboard',
     to: '/dashboard',
   },

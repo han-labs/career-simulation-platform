@@ -47,7 +47,7 @@ export default function CoreSimulationPage() {
   }
   const metadata = enrollment?.metadata ?? catalog?.metadata
   return <section className="feature-page section-shell core-flow"><Link to="/simulations">{t('Back to catalog')}</Link><h1>{metadata ? localized(metadata, locale, 'title') : t('Loading simulation...')}</h1>
-    {error && <p role="alert">{t(error)} <Link to="/account">{t('Sign in')}</Link></p>}{notice && <p role="status">{t(notice)}</p>}
+    {error && <p role="alert">{t(error)}</p>}{notice && <p role="status">{t(notice)}</p>}
     {metadata && <p>{localized(metadata, locale, 'introduction')}</p>}
     {!enrollment && catalog && <><p>{localized(metadata, locale, 'summary')}</p><ol>{catalog.taskOutline?.map(tk => <li key={tk.id}>{tk.position}. {tk.title}</li>)}</ol><button className="button" disabled={busy} onClick={enroll}>{t('Enroll in this version')}</button></>}
     {enrollment && <><p>{t('Version')} {enrollment.scenarioVersionId} · {enrollment.finalRequiredTasks}/{enrollment.requiredTasks} {t('required tasks submitted')}</p>

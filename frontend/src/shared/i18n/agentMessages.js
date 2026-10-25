@@ -1,5 +1,37 @@
 // Presentation only: original documents, quoted evidence and model replies remain unchanged.
 export const agentMessages = Object.fromEntries(`
+Other ⇢ Khác
+Source usage rights ⇢ Quyền sử dụng nguồn
+Choose source usage rights ⇢ Chọn quyền sử dụng nguồn
+Internal / organization-owned document ⇢ Tài liệu nội bộ / thuộc sở hữu tổ chức
+Public or official source ⇢ Nguồn công khai hoặc chính thức
+Permission granted ⇢ Đã được cấp phép sử dụng
+Source usage rights details ⇢ Chi tiết quyền sử dụng nguồn
+Record why this document may be used as AI knowledge. Selecting a category does not grant permission. ⇢ Ghi lại lý do tài liệu được phép dùng làm tri thức AI. Chọn một mục không có nghĩa là được cấp quyền.
+Briefly describe the permission or terms that allow this use. ⇢ Mô tả ngắn gọn quyền hoặc điều khoản cho phép sử dụng nguồn.
+Topic / domain ⇢ Lĩnh vực / chủ đề
+For example: BACKEND or DATA. Enter the topic covered by this document. ⇢ Ví dụ: BACKEND hoặc DATA. Nhập lĩnh vực mà tài liệu đề cập.
+Upload one file at a time. Repeat to add more documents to this knowledge base. Review each document before publishing. ⇢ Mỗi lần tải lên một tệp. Bạn có thể lặp lại để thêm tài liệu vào cùng kho tri thức. Rà soát từng tài liệu trước khi công bố.
+Inspect document ⇢ Kiểm tra tài liệu
+Version history ⇢ Lịch sử phiên bản
+Processing history ⇢ Lịch sử xử lý
+Document version ⇢ Phiên bản tài liệu
+Processing record ⇢ Lượt xử lý
+Choose a processing record ⇢ Chọn lượt xử lý
+No source version is available yet. ⇢ Chưa có phiên bản nguồn.
+No processing record is available. ⇢ Chưa có lượt xử lý.
+Indexed document chunks ⇢ Các đoạn tài liệu đã lập chỉ mục
+Chunk ⇢ Đoạn
+Provenance ⇢ Nguồn gốc
+Inspection ID ⇢ Mã bản kiểm tra
+Delete document ⇢ Xóa tài liệu
+Delete this document? ⇢ Xóa tài liệu này?
+Confirm delete document ⇢ Xác nhận xóa tài liệu
+Keep document ⇢ Giữ tài liệu
+Processing failed ⇢ Xử lý không thành công
+Too many requests. Wait before trying again. ⇢ Có quá nhiều yêu cầu. Vui lòng chờ trước khi thử lại.
+Processing will stop and published content will no longer be available for retrieval. History and provenance are retained. ⇢ Quá trình xử lý sẽ dừng và tài liệu đã xuất bản sẽ không còn được truy xuất. Lịch sử và nguồn gốc được giữ lại.
+Document removed from normal use. Publication history is retained. ⇢ Đã gỡ tài liệu khỏi sử dụng. Lịch sử xuất bản được giữ lại.
 Choose one file per upload. ⇢ Mỗi lần chỉ chọn một tệp để tải lên.
 Choose a TXT, MD, PDF, DOCX or XLSX file. ⇢ Chọn tệp TXT, MD, PDF, DOCX hoặc XLSX.
 Choose a non-empty file up to 8 MiB (8,388,608 bytes). ⇢ Chọn tệp có nội dung, tối đa 8 MiB (8.388.608 byte).

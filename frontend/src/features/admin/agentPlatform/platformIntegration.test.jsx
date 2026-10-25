@@ -35,7 +35,7 @@ it('stages, ingests, inspects and explicitly publishes a source, then preserves 
   })
   page(<KnowledgeStudioPage />, '/admin/knowledge?kb=kb-1')
   fireEvent.change(await screen.findByLabelText('Source file'), { target: { files: [new File(['original'], 'guide.txt', { type: 'text/plain' })] } })
-  for (const [label, value] of [['Document title', 'Synthetic guide'], ['Usage rights or license', 'Original fixture'], ['Career area', 'BACKEND'], ['Document language', 'EN']]) fireEvent.change(screen.getByLabelText(label), { target: { value } })
+  for (const [label, value] of [['Document title', 'Synthetic guide'], ['Source usage rights', 'other'], ['Source usage rights details', 'Original fixture'], ['Topic / domain', 'BACKEND'], ['Document language', 'EN']]) fireEvent.change(screen.getByLabelText(label), { target: { value } })
   fireEvent.click(screen.getByRole('checkbox', { name: /I reviewed this content/ }))
   fireEvent.submit(screen.getByRole('button', { name: 'Upload and process' }).closest('form'))
   const inspect = await screen.findByRole('button', { name: 'Review and publish' })

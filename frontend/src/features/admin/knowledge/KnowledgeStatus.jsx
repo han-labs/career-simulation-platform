@@ -3,8 +3,8 @@ import StatusBadge from '../../../shared/ui/StatusBadge.jsx'
 
 const states = {
   ACTIVE: ['info', 'Active'], HIDDEN: ['neutral', 'Hidden'], ARCHIVED: ['neutral', 'Archived'],
-  QUEUED: ['neutral', 'Queued'], PARSING: ['info', 'Parsing'], EMBEDDING: ['info', 'Embedding'],
-  READY: ['warning', 'Ready for review'], PUBLISHED: ['success', 'Published'], FAILED: ['danger', 'Failed'],
+  QUEUED: ['neutral', 'Waiting to process'], PARSING: ['info', 'Processing'], EMBEDDING: ['info', 'Processing'],
+  READY: ['warning', 'Ready for review'], PUBLISHED: ['success', 'Published'], FAILED: ['danger', 'Processing failed'],
   CANCELLED: ['neutral', 'Cancelled'], RETIRED: ['neutral', 'Retired'], UNCHANGED: ['info', 'Unchanged'],
   ACCEPTED: ['info', 'Accepted'], RUNNING: ['info', 'Running'], SUCCEEDED: ['success', 'Succeeded'],
 }

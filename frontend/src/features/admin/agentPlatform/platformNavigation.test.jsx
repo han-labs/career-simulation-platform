@@ -2,7 +2,7 @@
 import { afterEach, expect, it, vi } from 'vitest'
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
-import PlatformNav from './PlatformNav.jsx'
+import AdminStudioLayout from './AdminStudioLayout.jsx'
 import I18nProvider from '../../../shared/i18n/I18nProvider.jsx'
 import { apiRequest } from '../../../shared/api/httpClient.js'
 
@@ -11,7 +11,7 @@ afterEach(() => { cleanup(); vi.resetAllMocks(); vi.unstubAllGlobals() })
 function Location() { const location = useLocation(); return <output aria-label="Current selection">{location.pathname + location.search}</output> }
 function page() {
   return render(<I18nProvider initialLocale="en"><MemoryRouter initialEntries={['/admin/knowledge?kb=kb-a']}>
-    <PlatformNav /><Location />
+    <AdminStudioLayout /><Location />
   </MemoryRouter></I18nProvider>)
 }
 function viewport(mobile) {
@@ -68,7 +68,7 @@ it('releases the mobile modal when resized to desktop and does not reopen it on 
 
 it('keeps authentication controls out of Admin navigation without making API calls', () => {
   viewport(false)
-  render(<I18nProvider initialLocale="en"><MemoryRouter><PlatformNav /></MemoryRouter></I18nProvider>)
+  render(<I18nProvider initialLocale="en"><MemoryRouter><AdminStudioLayout /></MemoryRouter></I18nProvider>)
   expect(screen.getAllByRole('link')).toHaveLength(3)
   expect(screen.getByRole('link', { name: 'Knowledge Bases' })).toBeTruthy()
   expect(screen.queryByText(/Sign in|Sign out|Account/)).toBeNull()

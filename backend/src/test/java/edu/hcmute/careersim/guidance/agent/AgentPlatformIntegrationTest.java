@@ -313,6 +313,20 @@ class AgentPlatformIntegrationTest {
         assertThat(knowledge.versions(admin, kb)).hasSize(1);
         verify(embedding, never()).embed(anyString(), anyBoolean());
         knowledge.retire(admin, kb, "guide", Long.parseLong(ready.producedVersionId()));
+        assertThat(knowledge.search(admin, null, Set.of(kb), FACT, 5, false)).isEmpty();
+        long retiredChunk =
+                Long.parseLong(
+                        knowledge
+                                .version(
+                                        admin,
+                                        kb,
+                                        "guide",
+                                        Long.parseLong(ready.producedVersionId()))
+                                .chunks()
+                                .get(0)
+                                .chunkId());
+        assertThatThrownBy(() -> knowledge.source(admin, kb, retiredChunk))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.NotFoundException.class);
         assertThatThrownBy(() -> knowledge.retry(admin, kb, UUID.fromString(duplicate.id())))
                 .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
         var replacement = upload(kb, UUID.randomUUID(), FACT);

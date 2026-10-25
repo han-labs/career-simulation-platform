@@ -9,7 +9,7 @@ const navigation = [
   { label: 'How It Works', href: '/#how-it-works' },
   { label: 'IT Career Tracks', to: '/simulations' },
   { label: 'Career Assessments', to: '/assessment' },
-  { label: 'Dashboard & Syn', to: '/dashboard' },
+  { label: 'Dashboard', to: '/dashboard' },
 ]
 
 function AppShell() {
@@ -17,7 +17,7 @@ function AppShell() {
   const [menuOpen, setMenuOpen] = useState(false)
   const navigate = useNavigate()
   const { pathname } = useLocation()
-  const adminStudio = ['/admin', '/admin/knowledge', '/admin/agents', '/admin/usage', '/admin/ai-usage'].includes(pathname.replace(/\/$/, ''))
+  const adminStudio = /^\/admin(?:\/|$)/.test(pathname) || pathname === '/account'
 
   const handleStartExploring = () => {
     setMenuOpen(false)
@@ -37,7 +37,7 @@ function AppShell() {
 
       <header className="site-header">
         <div className="site-header__inner">
-          <Link className="brand-link" to="/" aria-label={t("HCM-UTE Career Simulation Platform Home")}>
+          <Link className="brand-link" to={adminStudio ? "/admin" : "/"} aria-label={t("HCM-UTE Career Simulation Platform Home")}>
             <BrandMark />
           </Link>
 
@@ -54,7 +54,7 @@ function AppShell() {
           </button>}
 
           {!adminStudio && <nav className={`site-nav ${menuOpen ? 'site-nav--open' : ''}`}>
-            <NavLink to="/account" onClick={() => setMenuOpen(false)}>{t('Account and privacy')}</NavLink>
+            <NavLink to="/admin" onClick={() => setMenuOpen(false)}>{t('Admin Studio')}</NavLink>
             {!adminStudio && navigation.map((item) =>
               item.to ? (
                 <NavLink
@@ -109,7 +109,6 @@ function AppShell() {
             <div>
               <strong>{t("Learning Journey")}</strong>
               <Link to="/dashboard">{t("Progress Dashboard")}</Link>
-              <Link to="/dashboard">{t("Syn Guidance Assistant")}</Link>
               <a href="/#how-it-works">{t("3-Step Process")}</a>
             </div>
           </nav>

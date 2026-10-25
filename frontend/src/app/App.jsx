@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useEffect, useSyncExternalStore } from 'react'
 import { getAccountGeneration, subscribeAccount } from '../shared/api/httpClient.js'
 import AppShell from '../shared/layout/AppShell.jsx'
@@ -9,19 +9,18 @@ import SimulationAttemptPage from '../features/simulations/pages/SimulationAttem
 import SimulationCatalogPage from '../features/simulations/pages/SimulationCatalogPage.jsx'
 import SimulationDetailPage from '../features/simulations/pages/SimulationDetailPage.jsx'
 import { coreEnabled } from '../shared/api/coreApi.js'
-import AccountPage from '../features/identity/AccountPage.jsx'
 import VersionedAssessmentPage from '../features/assessment/pages/VersionedAssessmentPage.jsx'
 import CoreSimulationPage from '../features/simulations/pages/CoreSimulationPage.jsx'
 import CoreDashboardPage from '../features/guidance/pages/CoreDashboardPage.jsx'
 import CoreCatalogPage from '../features/simulations/pages/CoreCatalogPage.jsx'
 import EnterpriseWorkspace from '../features/enterprise/EnterpriseWorkspace.jsx'
-import AssessmentAdministration from '../features/admin/AssessmentAdministration.jsx'
 import { agentPlatformEnabled } from '../features/admin/agentPlatform/platformApi.js'
 import KnowledgeStudioPage from '../features/admin/knowledge/KnowledgeStudioPage.jsx'
 import AgentBuilderPage from '../features/admin/agents/AgentBuilderPage.jsx'
 import AssignedAgentsPage from '../features/agents/AssignedAgentsPage.jsx'
 import StudentAgentPage from '../features/agents/StudentAgentPage.jsx'
 import AgentUsagePage from '../features/admin/agentPlatform/AgentUsagePage.jsx'
+import { useI18n } from '../shared/i18n/useI18n.js'
 import AdminStudioLayout from '../features/admin/agentPlatform/AdminStudioLayout.jsx'
 
 function LegacyUsageRedirect() {
@@ -53,12 +52,16 @@ function ApplicationLayout() {
   )
 }
 
+function NotFoundPage() {
+  const { t } = useI18n()
+  return <section className="section-shell core-flow"><h1>{t('Page not found')}</h1><Link to="/admin">{t('Open Admin Studio')}</Link></section>
+}
+
 function App() {
   return (
     <Routes>
       <Route element={<ApplicationLayout />}>
         <Route index element={<LandingPage />} />
-        <Route path="account" element={<AccountPage />} />
         {agentPlatformEnabled && <Route path="admin" element={<AdminStudioLayout />}>
           <Route index element={<Navigate to="/admin/knowledge" replace />} />
           <Route path="knowledge" element={<KnowledgeStudioPage />} />
@@ -72,7 +75,6 @@ function App() {
         <Route path="assessment/:assessmentType" element={coreEnabled ? <VersionedAssessmentPage /> : <AssessmentPage />} />
         <Route path="simulations" element={coreEnabled ? <CoreCatalogPage /> : <SimulationCatalogPage />} />
         {coreEnabled && <Route path="enterprise" element={<EnterpriseWorkspace />} />}
-        {coreEnabled && <Route path="admin/assessments" element={<AssessmentAdministration />} />}
         <Route path="simulations/:slug" element={coreEnabled ? <CoreSimulationPage /> : <SimulationDetailPage />} />
         <Route
           path="simulations/:slug/attempt"
@@ -80,6 +82,7 @@ function App() {
         />
         <Route path="dashboard" element={coreEnabled ? <CoreDashboardPage /> : <GuidancePage />} />
         <Route path="guidance" element={<GuidancePage />} />
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
     </Routes>
   )

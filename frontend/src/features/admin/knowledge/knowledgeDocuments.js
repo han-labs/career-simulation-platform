@@ -2,6 +2,15 @@
 export const MAX_SOURCE_BYTES = 8 * 1024 * 1024 // KnowledgeParser.MAX_BYTES
 export const SOURCE_ACCEPT = '.txt,.md,.pdf,.docx,.xlsx'
 
+export const SOURCE_RIGHTS = [
+  { value: 'internal', label: 'Internal / organization-owned document' },
+  { value: 'public', label: 'Public or official source' },
+  { value: 'permission', label: 'Permission granted' },
+]
+export function sourceRightsChoice(draft) {
+  return draft.rightsChoice ?? SOURCE_RIGHTS.find(option => option.label === draft.license)?.value ?? (draft.license ? 'other' : '')
+}
+
 export function sourceFileError(files) {
   if (files.length !== 1) return 'Choose one file per upload.'
   const file = files[0]
@@ -13,12 +22,15 @@ export function sourceFileError(files) {
 export function selectSource(file, previous = {}) {
   const fileIdentity = JSON.stringify([file.name, file.size, file.lastModified, file.type])
   if (previous.fileIdentity === fileIdentity && previous.assetKey && previous.requestId) return { ...previous, reviewed: false }
+  // A new file after an uploaded replacement is another document, unless Replace
+  // was explicitly selected again. Same-file reselection above keeps its receipt.
+  const replacementKey = previous.stagedJob ? undefined : previous.replacementKey
   const title = file.name.replace(/\.[^.]+$/, '').trim().slice(0, 240) || file.name.slice(0, 240)
   const prefix = title.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60) || 'document'
-  return { assetKey: previous.replacementKey || prefix + '-' + crypto.randomUUID(), title,
-    license: previous.replacementKey ? previous.license : '', track: previous.replacementKey ? previous.track : '',
-    language: previous.replacementKey ? previous.language : '', sourceUri: previous.replacementKey ? previous.sourceUri : '',
-    reviewed: false, requestId: crypto.randomUUID(), fileIdentity, replacementKey: previous.replacementKey }
+  return { assetKey: replacementKey || prefix + '-' + crypto.randomUUID(), title,
+    license: replacementKey ? previous.license : '', track: replacementKey ? previous.track : '',
+    language: replacementKey ? previous.language : '', sourceUri: replacementKey ? previous.sourceUri : '',
+    reviewed: false, requestId: crypto.randomUUID(), fileIdentity, replacementKey }
 }
 
 export function uploadInput(draft) {
@@ -44,7 +56,9 @@ export function groupDocuments(versions, jobs, kb) {
   }
   versions.forEach(version => group(version)?.versions.push(version))
   jobs.forEach(job => group(job)?.jobs.push(job)) // API returns newest createdAt first.
-  return [...groups.values()].map(row => {
+  return [...groups.values()].filter(row => row.versions.length
+    ? row.versions.some(v => v.status !== 'RETIRED') || row.jobs.some(j => !['CANCELLED', 'READY', 'PUBLISHED'].includes(j.state))
+    : row.jobs.some(j => j.state !== 'CANCELLED')).map(row => {
     row.versions.sort((a, b) => Number(b.versionNumber ?? b.id) - Number(a.versionNumber ?? a.id))
     row.job = row.jobs[0]
     row.published = row.versions.find(version => version.status === 'PUBLISHED')
