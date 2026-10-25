@@ -227,6 +227,17 @@ a {
   outline-offset: 3px;
 }
 
+.session-signout { white-space: nowrap; flex-shrink: 0; }
+@media (max-width: 560px) {
+  .site-header__inner:has(.session-signout) { flex-wrap: wrap; padding-block: 8px; }
+  .site-header__inner:has(.session-signout) .brand-link { flex-basis: 100%; }
+  .site-header__inner:has(.session-signout) .language-switcher { margin-right: auto; }
+}
+@media (min-width: 1081px) {
+  .site-header__inner:has(.session-signout) { flex-wrap: wrap; padding-block: 8px; }
+  .site-header__inner:has(.session-signout) .site-nav { flex-basis: 100%; justify-content: center; flex-wrap: wrap; }
+}
+
 .brand-link {
   text-decoration: none;
   display: inline-flex;

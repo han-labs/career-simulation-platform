@@ -1,23 +1,47 @@
 import { useI18n } from '../i18n/useI18n.js'
 import { Menu, X, ArrowRight, Compass, ShieldCheck } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import BrandMark from '../ui/BrandMark.jsx'
 import LanguageSwitcher from '../i18n/LanguageSwitcher.jsx'
+import { apiRequest } from '../api/httpClient.js'
+import { command } from '../api/coreApi.js'
 
 const navigation = [
+  { label: 'Home', to: '/' },
   { label: 'How It Works', href: '/#how-it-works' },
   { label: 'IT Career Tracks', to: '/simulations' },
   { label: 'Career Assessments', to: '/assessment' },
   { label: 'Dashboard', to: '/dashboard' },
+  { label: 'Guidance', to: '/guidance' },
 ]
 
 function AppShell() {
   const { t } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [account, setAccount] = useState(null)
+  const [logoutError, setLogoutError] = useState('')
+  const [loggingOut, setLoggingOut] = useState(false)
+  const logoutPending = useRef(false)
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const adminStudio = /^\/admin(?:\/|$)/.test(pathname) || pathname === '/account'
+  useEffect(() => {
+    let active = true
+    apiRequest('/v2/me').then(value => { if (active) setAccount(value) }).catch(() => {})
+    return () => { active = false }
+  }, [])
+
+  async function logout() {
+    if (logoutPending.current) return
+    logoutPending.current = true; setLoggingOut(true); setLogoutError('')
+    try {
+      await command('/v2/auth/logout', {})
+      // httpClient invalidates the account generation and clears CSRF/session UI.
+      navigate('/account', { replace: true })
+    } catch (failure) { setLogoutError(failure.message) }
+    finally { logoutPending.current = false; setLoggingOut(false) }
+  }
 
   const handleStartExploring = () => {
     setMenuOpen(false)
@@ -42,6 +66,7 @@ function AppShell() {
           </Link>
 
           <LanguageSwitcher />
+          {account && <button type="button" className="button button--small session-signout" disabled={loggingOut} onClick={logout}>{t('Sign out')}</button>}
 
           {!adminStudio && <button
             className="menu-button"
@@ -54,7 +79,7 @@ function AppShell() {
           </button>}
 
           {!adminStudio && <nav className={`site-nav ${menuOpen ? 'site-nav--open' : ''}`}>
-            <NavLink to="/admin" onClick={() => setMenuOpen(false)}>{t('Admin Studio')}</NavLink>
+            {account?.role === 'ADMIN' && <NavLink to="/admin" onClick={() => setMenuOpen(false)}>{t('Admin Studio')}</NavLink>}
             {!adminStudio && navigation.map((item) =>
               item.to ? (
                 <NavLink
@@ -85,6 +110,7 @@ function AppShell() {
       </header>
 
       <main id="main-content" tabIndex={-1}>
+        {logoutError && <p role="alert">{t(logoutError)}</p>}
         <Outlet />
       </main>
 

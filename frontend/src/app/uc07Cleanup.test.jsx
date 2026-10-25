@@ -53,7 +53,8 @@ it.each([
   const view = page('/admin/knowledge', locale)
   await screen.findByText(title)
   await waitFor(() => expect(screen.getAllByRole('button', { name: create })[0].disabled).toBe(false))
-  expect(screen.queryByRole('button', { name: /^(Sign in|Sign out|Đăng nhập|Đăng xuất)$/ })).toBeNull()
+  expect(within(view.container.querySelector('main')).queryByRole('button', { name: /^(Sign in|Sign out|Đăng nhập|Đăng xuất)$/ })).toBeNull()
+  expect(screen.getByRole('button', { name: /^(Sign out|Đăng xuất)$/ })).toBeTruthy()
   const links = [...view.container.querySelectorAll('a')].map(link => link.getAttribute('href'))
   expect(links).not.toContain('/assessment')
   expect(links).not.toContain('/account')
@@ -98,7 +99,7 @@ it('redirects the legacy Usage URL with query/hash preserved and replaces histor
 
 it('keeps Usage loading explicit and preserves its existing backend endpoint through the shared shell', async () => {
   page('/admin/usage')
-  expect(apiRequest).not.toHaveBeenCalled()
+  expect(apiRequest.mock.calls.every(([path]) => path === '/v2/me')).toBe(true)
   fireEvent.click(screen.getByRole('button', { name: 'Load usage' }))
   await screen.findByRole('table', { name: 'Executions and known resource usage' })
   expect(apiRequest.mock.calls.filter(([path]) => path.startsWith('/v2/admin/agent-usage?'))).toHaveLength(1)
@@ -110,9 +111,9 @@ it.each(['/admin/assessments'])('returns not-found for removed product route %s 
   expect(screen.getByRole('link', { name: 'Open Admin Studio' }).getAttribute('href')).toBe('/admin')
   expect(screen.queryByRole('heading', { name: 'Purpose-specific consent' })).toBeNull()
   expect(screen.queryByRole('heading', { name: 'Assessment administration' })).toBeNull()
-  expect(screen.queryByRole('button', { name: 'Sign out' })).toBeNull()
+  expect(within(view.container.querySelector('main')).queryByRole('button', { name: 'Sign out' })).toBeNull()
   expect(view.container.querySelector('.site-nav, .site-footer, .syn-widget, .syn-launcher')).toBeNull()
-  expect(apiRequest).not.toHaveBeenCalled()
+  expect(apiRequest.mock.calls.every(([path]) => path === '/v2/me')).toBe(true)
 })
 
 it('keeps the auth-only account route reachable without restoring the Account/Privacy product surface', async () => {
