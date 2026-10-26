@@ -20,14 +20,15 @@ describe('Landing Page components & institutional identity', () => {
       ),
     )
 
-    expect(html).toContain('Practical Career Exploration')
-    expect(html).toContain('Experience IT careers before choosing your')
+    expect(html).toContain('Career Simulation Platform')
+    expect(html).toContain('Explore real careers.')
+    expect(html).toContain('Build your brighter future.')
     expect(html).toContain('Explore career assessments')
     expect(html).not.toContain('Scientific Holland framework')
     expect(html).not.toContain('5 real-world IT tracks')
     expect(html).not.toContain('Explainable AI guidance')
     expect(html).not.toContain('hero__highlights')
-    expect(html).toContain('high school students')
+    expect(html).toContain('Experience real-world tasks, discover your strengths')
     expect(html).toContain('Explore career assessments')
     expect(html).toContain('href="/assessment"')
     expect(html).toContain('href="/simulations"')
@@ -60,17 +61,15 @@ describe('Landing Page components & institutional identity', () => {
     expect(html).toContain('AI does not change them.')
   })
 
-  it('JourneySection renders the 3-step feedback loop with correct route links', () => {
+  it('JourneySection renders four steps while preserving the existing route links', () => {
     const html = renderToStaticMarkup(
       React.createElement(MemoryRouter, null, React.createElement(JourneySection)),
     )
 
-    expect(html).toContain('01')
-    expect(html).toContain('02')
-    expect(html).toContain('03')
-    expect(html).toContain('Explore Interests &amp; Preferences')
-    expect(html).toContain('Experience Authentic IT Tasks')
-    expect(html).toContain('Analyze Evidence &amp; Plan Next Steps')
+    expect([...html.matchAll(/<li>/g)]).toHaveLength(4)
+    expect(html).toContain('Get to know yourself')
+    expect(html).toContain('Explore the career simulation')
+    expect(html).toContain('Analyze your results &amp; Plan for education/training')
     expect(html).toContain('href="/assessment"')
     expect(html).toContain('href="/simulations"')
     expect(html).toContain('href="/dashboard"')
@@ -125,23 +124,24 @@ describe('Landing Page components & institutional identity', () => {
       React.createElement(MemoryRouter, null, React.createElement(CtaSection)),
     )
 
-    expect(html).toContain('Begin Discovering Your IT Potential Today')
-    expect(html).toContain('Explore career assessments')
+    expect(html).toContain('We believe in a future where you can discover a fitting career path')
+    expect(html).toContain('Start your journey today')
     expect(html).toContain('href="/assessment"')
     expect(html).toContain('href="/simulations"')
   })
 
-  it('AppShell renders top institutional bar, HCM-UTE branding, and educational footer', () => {
+  it('AppShell renders compact HCM-UTE branding, real account entry and educational footer', () => {
     const html = renderToStaticMarkup(
       React.createElement(MemoryRouter, null, React.createElement(AppShell)),
     )
 
-    expect(html).toContain('Ho Chi Minh City University of Technology and Engineering (HCM-UTE) · Career Simulation Platform')
-    expect(html).toContain('Empowering students to explore tech careers and shape their future')
+    expect(html).toContain('HCMC University of Technology and Engineering')
+    expect(html).toContain('Sign In / Sign Up')
+    expect(html).not.toContain('institutional-bar')
     expect(html).not.toContain('Technology and Education')
     expect(html).not.toContain('CareerSim')
     expect(html).not.toContain('RIASEC Assessment')
-    expect(html).toContain('/images/hcmute-logo.png')
+    expect(html).toContain('/images/hcmute/logo.jpg')
     expect(html).toContain('Career Simulation Platform')
     expect(html).toContain('href="/assessment"')
     expect(html).toContain('href="/simulations"')

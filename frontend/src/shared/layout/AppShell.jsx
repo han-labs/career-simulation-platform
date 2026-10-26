@@ -1,17 +1,18 @@
 import { useI18n } from '../i18n/useI18n.js'
-import { Menu, X, ArrowRight, Compass, ShieldCheck } from 'lucide-react'
+import { Menu, X, ShieldCheck } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
 import BrandMark from '../ui/BrandMark.jsx'
 import LanguageSwitcher from '../i18n/LanguageSwitcher.jsx'
 import { apiRequest } from '../api/httpClient.js'
-import { command } from '../api/coreApi.js'
+import { command, coreEnabled } from '../api/coreApi.js'
 
 const navigation = [
   { label: 'Home', to: '/' },
   { label: 'How It Works', href: '/#how-it-works' },
-  { label: 'IT Career Tracks', to: '/simulations' },
-  { label: 'Career Assessments', to: '/assessment' },
+  { label: 'Career Simulations', to: '/simulations' },
+  { label: 'Career Quizzes', to: '/assessment' },
+  { label: 'For Enterprise', to: '/enterprise', coreOnly: true },
   { label: 'Dashboard', to: '/dashboard' },
   { label: 'Guidance', to: '/guidance' },
 ]
@@ -23,6 +24,7 @@ function AppShell() {
   const [logoutError, setLogoutError] = useState('')
   const [loggingOut, setLoggingOut] = useState(false)
   const logoutPending = useRef(false)
+  const menuTrigger = useRef(null)
   const navigate = useNavigate()
   const { pathname } = useLocation()
   const adminStudio = /^\/admin(?:\/|$)/.test(pathname) || pathname === '/account'
@@ -43,33 +45,22 @@ function AppShell() {
     finally { logoutPending.current = false; setLoggingOut(false) }
   }
 
-  const handleStartExploring = () => {
-    setMenuOpen(false)
-    navigate('/assessment')
-  }
-
   return (
     <div className="app-shell">
-      {/* Top institutional strip */}
-      <div className="institutional-bar">
-        <div className="institutional-bar__inner">
-          <span className="institutional-bar__badge">
-            <Compass size={14} aria-hidden="true" /> {t("Ho Chi Minh City University of Technology and Engineering (HCM-UTE) · Career Simulation Platform")} </span>
-          {!adminStudio && <span className="institutional-bar__tagline"> {t("Empowering students to explore tech careers and shape their future")} </span>}
-        </div>
-      </div>
-
-      <header className="site-header">
+      <header className="site-header hcmute-header" onKeyDown={event => { if (event.key === 'Escape' && menuOpen) { setMenuOpen(false); menuTrigger.current?.focus() } }}>
         <div className="site-header__inner">
           <Link className="brand-link" to={adminStudio ? "/admin" : "/"} aria-label={t("HCM-UTE Career Simulation Platform Home")}>
             <BrandMark />
           </Link>
 
+          {!adminStudio && !account && <Link className="button button--primary header-auth" to="/account" onClick={() => setMenuOpen(false)}>{t('Sign In / Sign Up')}</Link>}
           <LanguageSwitcher />
           {account && <button type="button" className="button button--small session-signout" disabled={loggingOut} onClick={logout}>{t('Sign out')}</button>}
 
           {!adminStudio && <button
+            ref={menuTrigger}
             className="menu-button"
+            aria-controls="site-navigation"
             type="button"
             aria-label={t(menuOpen ? 'Close menu' : 'Open menu')}
             aria-expanded={menuOpen}
@@ -78,9 +69,9 @@ function AppShell() {
             {menuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>}
 
-          {!adminStudio && <nav className={`site-nav ${menuOpen ? 'site-nav--open' : ''}`}>
+          {!adminStudio && <nav id="site-navigation" aria-label={t('Main navigation')} className={`site-nav ${menuOpen ? 'site-nav--open' : ''}`}>
             {account?.role === 'ADMIN' && <NavLink to="/admin" onClick={() => setMenuOpen(false)}>{t('Admin Studio')}</NavLink>}
-            {!adminStudio && navigation.map((item) =>
+            {!adminStudio && navigation.filter(item => !item.coreOnly || coreEnabled).map((item) =>
               item.to ? (
                 <NavLink
                   key={item.label}
@@ -99,12 +90,6 @@ function AppShell() {
                 </a>
               ),
             )}
-            {!adminStudio && <button
-              className="button button--small button--cta-header"
-              type="button"
-              onClick={handleStartExploring}
-            > {t("Career Assessment")} <ArrowRight size={15} aria-hidden="true" />
-            </button>}
           </nav>}
         </div>
       </header>
@@ -135,7 +120,7 @@ function AppShell() {
             <div>
               <strong>{t("Learning Journey")}</strong>
               <Link to="/dashboard">{t("Progress Dashboard")}</Link>
-              <a href="/#how-it-works">{t("3-Step Process")}</a>
+              <a href="/#how-it-works">{t('Four-step journey')}</a>
             </div>
           </nav>
         </div>

@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom'
 import App from './app/App.jsx'
 import I18nProvider from './shared/i18n/I18nProvider.jsx'
 import './styles/index.css'
+import './styles/hcmute.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>

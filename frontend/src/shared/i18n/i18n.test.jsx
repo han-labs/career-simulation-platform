@@ -49,8 +49,8 @@ it('loads safely when preference reads fail', () => {
 })
 it('uses the requested Vietnamese school identity and translated hero without changing navigation', () => {
   render(<I18nProvider initialLocale="vi"><MemoryRouter><AppShell /><HeroSection status="intro" /></MemoryRouter></I18nProvider>)
-  expect(screen.getByText('Đại học Công nghệ Kỹ thuật TP. HCM · Nền tảng mô phỏng nghề nghiệp')).toBeTruthy()
-  expect(screen.getByText('Khám phá nghề qua trải nghiệm')).toBeTruthy()
+  expect(screen.getAllByText('TRƯỜNG ĐẠI HỌC CÔNG NGHỆ KỸ THUẬT TP. HỒ CHÍ MINH')).toHaveLength(2)
+  expect(screen.getByRole('heading', { level: 1 }).textContent).toContain('Khám phá nghề nghiệp thực tế.')
   expect(screen.getAllByRole('link', { name: /Đánh giá hướng nghiệp/ }).every(link => link.getAttribute('href') === '/assessment')).toBe(true)
   expect(screen.getByRole('combobox', { name: 'Ngôn ngữ website' })).toBeTruthy()
 })

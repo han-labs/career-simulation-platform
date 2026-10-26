@@ -15,6 +15,8 @@ Exact people/Git identities and reviewer rotation remain pending group sign-off.
 
 ## Current work queue
 
+2026-10-26 main-derived HCM-UTE frontend rebuild: current corrective request authorizes shared presentation/integration on feature/hcmute-frontend-flow-alignment from origin/main 608e812. Prior rejected branch 887e0d1 is preserved and excluded. [Pre-edit audit](reports/hcmute-main-functional-audit.md), [plan](plans/foundation-hcmute-frontend-flow-alignment.md), [executed verification](reports/hcmute-main-rebuild-verification.md) and [AI log](reports/ai/2026-10-26-hcmute-main-rebuild.md) record scope and evidence. Existing main callbacks/state/feature business code and all backend sources are preserved; D12–D14 are explicit baseline follow-ups, not passing acceptance. Human review remains pending; no push/main merge.
+
 2026-10-24 urgent local Docker startup maintenance is authorized in the US-01/US-03
 integration worktree. [Plan](plans/UC-01-02-03-compose-startup.md),
 [current startup runbook](../docs/deployment/local-compose.md) and
@@ -164,7 +166,6 @@ Required tests: AI success, fallback, timeout, malformed response mapped to fall
 
 Copy `.github/pull_request_template.md` and fill every section. A PR with missing trace source, tests, evidence, report impact, or known gaps is not ready for review.
 
-
 ## 9 Syn core/vector RAG checkpoint — 2026-09-28
 
 - P1/P2 implementation delivered for review; continue from this checkpoint instead of restarting the earlier foundation plan.
@@ -244,7 +245,6 @@ Continuation 2026-10-02: private evidence scope and negated simulation fixes, bo
   frontend default/enabled each90 PASS +lint/build. Isolated gateways/restore and
   V20-to-V21 upgrade passed;21 unique migrations,62/62 protected inputs preserved.
   Browser UAT and live model verification remain unavailable/not executed.
-
 
 ## P5/P6 implementation checkpoint — 2026-10-20
 
