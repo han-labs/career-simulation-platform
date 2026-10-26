@@ -54,7 +54,8 @@ public class AgentRegistryDao {
                             r.getTimestamp("assigned_at").toInstant(),
                             r.getTimestamp("revoked_at") == null
                                     ? null
-                                    : r.getTimestamp("revoked_at").toInstant());
+                                    : r.getTimestamp("revoked_at").toInstant(),
+                            r.getString("student_display_name"));
 
     public List<Agent> list() {
         return jdbc.query("SELECT * FROM public.agent ORDER BY created_at,id LIMIT 200", agentMap);
@@ -218,7 +219,7 @@ public class AgentRegistryDao {
 
     public List<Assignment> assignments(UUID agent) {
         return jdbc.query(
-                "SELECT * FROM public.agent_assignment WHERE agent_id=? ORDER BY assigned_at DESC,id LIMIT 500",
+                "SELECT x.*,u.display_name AS student_display_name FROM public.agent_assignment x JOIN public.app_users u ON u.id=x.student_user_id WHERE x.agent_id=? ORDER BY x.assigned_at DESC,x.id LIMIT 500",
                 assignmentMap,
                 agent);
     }
@@ -226,7 +227,7 @@ public class AgentRegistryDao {
     public Assignment assignment(UUID agent, UUID assignment) {
         return jdbc
                 .query(
-                        "SELECT * FROM public.agent_assignment WHERE id=? AND agent_id=?",
+                        "SELECT x.*,u.display_name AS student_display_name FROM public.agent_assignment x JOIN public.app_users u ON u.id=x.student_user_id WHERE x.id=? AND x.agent_id=?",
                         assignmentMap,
                         assignment,
                         agent)
@@ -238,7 +239,7 @@ public class AgentRegistryDao {
     public Assignment assign(long admin, UUID agent, long student) {
         var old =
                 jdbc.query(
-                        "SELECT * FROM public.agent_assignment WHERE agent_id=? AND student_user_id=? AND status='ACTIVE'",
+                        "SELECT x.*,u.display_name AS student_display_name FROM public.agent_assignment x JOIN public.app_users u ON u.id=x.student_user_id WHERE x.agent_id=? AND x.student_user_id=? AND x.status='ACTIVE'",
                         assignmentMap,
                         agent,
                         student);

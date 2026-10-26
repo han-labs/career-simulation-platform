@@ -1,5 +1,70 @@
 // Presentation only: original documents, quoted evidence and model replies remain unchanged.
 export const agentMessages = Object.fromEntries(`
+Publish & Assign ⇢ Công bố & phân công
+Publication ⇢ Công bố
+Refresh status ⇢ Tải lại trạng thái
+Not saved ⇢ Chưa lưu
+Published version unavailable ⇢ Không tải được phiên bản đã công bố
+Save a configuration before publication. ⇢ Lưu cấu hình trước khi công bố.
+Unsaved changes must be saved and previewed before publication. ⇢ Cần lưu và xem trước thay đổi trước khi công bố.
+Checking publication readiness... ⇢ Đang kiểm tra điều kiện công bố...
+Publication readiness ⇢ Điều kiện công bố
+Configuration saved ⇢ Cấu hình đã lưu
+No unsaved changes ⇢ Không có thay đổi chưa lưu
+Agent is not archived ⇢ Agent chưa bị lưu trữ
+Knowledge grants available ⇢ Kho tri thức được cấp quyền khả dụng
+Successful Preview of this exact saved configuration ⇢ Xem trước thành công đúng cấu hình đã lưu này
+Version eligible for publication ⇢ Phiên bản đủ điều kiện công bố
+Satisfied ⇢ Đạt
+Blocked ⇢ Bị chặn
+Not verified ⇢ Chưa xác minh
+Run a successful Admin Preview for this exact version. Failed or unavailable Preview does not qualify. ⇢ Cần xem trước thành công đúng phiên bản này. Lượt xem trước lỗi hoặc không khả dụng không đủ điều kiện.
+The backend rechecks publication readiness and revision at confirmation. Publishing does not assign Students. ⇢ Máy chủ kiểm tra lại điều kiện và phiên bản cập nhật khi xác nhận. Công bố không tự phân công sinh viên.
+Publish version ⇢ Công bố phiên bản
+This saved version is published. ⇢ Phiên bản đã lưu này đã được công bố.
+Assignments ⇢ Phân công
+Search active Students with a Student profile. AI consent is not an assignment requirement. Access requires an active, published Agent and an explicit assignment. ⇢ Tìm sinh viên đang hoạt động và có hồ sơ sinh viên. Đồng ý AI không phải điều kiện phân công. Truy cập cần Agent đang hoạt động, đã công bố và được phân công rõ ràng.
+Publish and activate this Agent before assigning Students. ⇢ Công bố và kích hoạt Agent trước khi phân công sinh viên.
+Search Students by name ⇢ Tìm sinh viên theo tên
+Search Students ⇢ Tìm sinh viên
+Loading eligible Students... ⇢ Đang tải sinh viên đủ điều kiện...
+Retry Student search ⇢ Tìm lại sinh viên
+No eligible Students match this search. ⇢ Không có sinh viên đủ điều kiện khớp tìm kiếm.
+Eligible Student ⇢ Sinh viên đủ điều kiện
+Choose a Student ⇢ Chọn sinh viên
+Account ID ⇢ Mã tài khoản
+Load more Students ⇢ Tải thêm sinh viên
+This Student already has an active assignment. ⇢ Sinh viên này đã có phân công đang hoạt động.
+Assign selected Student ⇢ Phân công sinh viên đã chọn
+Assigned Students ⇢ Sinh viên được phân công
+Loading assignments... ⇢ Đang tải phân công...
+Retry assignments ⇢ Tải lại phân công
+No Student assignments yet. ⇢ Chưa phân công sinh viên.
+Assigned at ⇢ Thời điểm phân công
+Assignments grant Agent access; they do not pin a separate configuration version. The published Agent version is shown above. ⇢ Phân công cấp quyền truy cập Agent, không ghim riêng một phiên bản cấu hình. Phiên bản Agent đã công bố hiển thị ở trên.
+Confirm publication ⇢ Xác nhận công bố
+Confirm Student assignment ⇢ Xác nhận phân công sinh viên
+Confirm assignment revocation ⇢ Xác nhận thu hồi phân công
+Confirm publish ⇢ Xác nhận công bố
+Confirm assignment ⇢ Xác nhận phân công
+Confirm revoke ⇢ Xác nhận thu hồi
+Publish this exact saved version? No Student access is granted automatically. ⇢ Công bố đúng phiên bản đã lưu này? Không tự cấp quyền truy cập cho sinh viên.
+Grant this Student access to the published Agent? No Student conversation will be created. ⇢ Cấp cho sinh viên này quyền truy cập Agent đã công bố? Không tạo hội thoại sinh viên.
+Revoke this Student’s Agent access? Assignment history will remain available. ⇢ Thu hồi quyền truy cập Agent của sinh viên này? Lịch sử phân công được giữ lại.
+Publication state changed. Refresh readiness before publishing. ⇢ Trạng thái công bố đã thay đổi. Tải lại điều kiện trước khi công bố.
+Publication saved. No Students were assigned automatically. ⇢ Đã công bố. Không tự động phân công sinh viên.
+Assignment is active. No Student conversation was created. ⇢ Phân công đang hoạt động. Không tạo hội thoại sinh viên.
+Assignment revoked. History is preserved. ⇢ Đã thu hồi phân công. Lịch sử được giữ lại.
+Student Experience Preview ⇢ Xem trước trải nghiệm sinh viên
+PRESENTATION ONLY ⇢ CHỈ MINH HỌA GIAO DIỆN
+A visual example only. No Student is impersonated and no Student conversation, message or memory is created. ⇢ Chỉ minh họa giao diện. Không đóng vai sinh viên, không tạo hội thoại, tin nhắn hay bộ nhớ sinh viên.
+Student access requires publication, an active Agent and an active assignment. This preview grants no access. ⇢ Sinh viên cần Agent đã công bố, đang hoạt động và phân công đang hoạt động để truy cập. Bản xem trước này không cấp quyền truy cập.
+Granted knowledge bases ⇢ Kho tri thức được cấp quyền
+Enabled capabilities ⇢ Khả năng được bật
+No domain tools enabled ⇢ Chưa bật công cụ nghiệp vụ
+Example Agent answer ⇢ Câu trả lời minh họa của Agent
+Example from a successful Admin Preview of the selected saved version. This is not a personalized Student response. ⇢ Ví dụ từ lượt xem trước thành công của quản trị viên cho phiên bản đã lưu đang chọn. Đây không phải phản hồi cá nhân hóa cho sinh viên.
+No successful answer for this exact version is available. Run Admin Preview to see an example here. ⇢ Chưa có câu trả lời thành công cho đúng phiên bản này. Chạy xem trước dành cho quản trị viên để xem ví dụ tại đây.
 Enter an Agent name. ⇢ Nhập tên Agent.
 Enter an Agent purpose. ⇢ Nhập mục đích của Agent.
 PREVIEW · SAVED CONFIGURATION ⇢ XEM TRƯỚC · CẤU HÌNH ĐÃ LƯU

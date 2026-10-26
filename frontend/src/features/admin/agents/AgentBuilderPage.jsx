@@ -12,6 +12,7 @@ import Tabs from '../../../shared/ui/Tabs.jsx'
 import ExecutionResult from '../agentPlatform/ExecutionResult.jsx'
 import useExecution from '../agentPlatform/useExecution.js'
 import { agentPath, platformCommand } from '../agentPlatform/platformApi.js'
+import PublishAssignPanel from './PublishAssignPanel.jsx'
 import AgentConfigurationForm from './AgentConfigurationForm.jsx'
 import { configurationDraft, emptyConfiguration, validateConfiguration } from './agentConfiguration.js'
 import './agentBuilder.css'
@@ -68,11 +69,11 @@ export default function AgentBuilderPage() {
 
 function AgentWorkspace({ owner, id, bases, options, onChanged }) {
   const { t } = useI18n(), localKey = draftKey(owner, 'agent-config', id), previewKey = draftKey(owner, 'agent-preview-execution', id)
-  const [agent, setAgent] = useState(null), [configs, setConfigs] = useState([]), [assignments, setAssignments] = useState([]), [selected, setSelected] = useState(null)
+  const [agent, setAgent] = useState(null), [configs, setConfigs] = useState([]), [selected, setSelected] = useState(null)
   const [name, setName] = useState(''), [purpose, setPurpose] = useState(''), [agentStatus, setAgentStatus] = useState('DRAFT')
   const [draft, setDraft] = useState(() => emptyConfiguration(options)), [expectedRevision, setExpectedRevision] = useState(null)
   const [error, setError] = useState(''), [notice, setNotice] = useState(''), [errors, setErrors] = useState({}), [busy, setBusy] = useState(false), [conflict, setConflict] = useState(false), [errorScope, setErrorScope] = useState('configuration')
-  const [query, setQuery] = useState(''), [requestId, setRequestId] = useState(crypto.randomUUID()), [student, setStudent] = useState(''), [pendingSelection, setPendingSelection] = useState(null)
+  const [query, setQuery] = useState(''), [requestId, setRequestId] = useState(crypto.randomUUID()), [pendingSelection, setPendingSelection] = useState(null)
   const [accepted, setAccepted] = useState(() => readDraft(previewKey))
   const [tab, setTab] = useState('brain'), [pane, setPane] = useState('configuration'), [submittedQuery, setSubmittedQuery] = useState('')
   const alive = useRef(false), inFlight = useRef(false)
@@ -85,15 +86,14 @@ function AgentWorkspace({ owner, id, bases, options, onChanged }) {
   const running = Boolean(accepted?.id && !result.error && (!result.execution || ['ACCEPTED', 'RUNNING'].includes(result.execution.status)))
   const awaitingPreview = busy && errorScope === 'preview'
   const showAcceptedRun = accepted?.id && !awaitingPreview && (!submittedQuery || submittedQuery === accepted.query)
-  const tested = matchingRun && result.execution?.status === 'SUCCEEDED'
   const published = configs.find(c => c.id === agent?.publishedConfigurationId)
-  const readWorkspace = useCallback(() => Promise.all([apiRequest(agentPath(id)), apiRequest(`${agentPath(id)}/configurations`), apiRequest(`${agentPath(id)}/assignments`)]), [id])
+  const readWorkspace = useCallback(() => Promise.all([apiRequest(agentPath(id)), apiRequest(`${agentPath(id)}/configurations`)]), [id])
   useEffect(() => {
     alive.current = true
-    readWorkspace().then(([a, versions, members]) => {
+    readWorkspace().then(([a, versions]) => {
       if (!alive.current) return
       const local = readDraft(localKey), saved = versions.find(c => c.id === local?.configurationId) ?? (!local?.dirty ? versions[0] : null)
-      setAgent(a); setConfigs(versions); setAssignments(members); setName(a.name); setPurpose(a.purpose); setAgentStatus(a.status)
+      setAgent(a); setConfigs(versions); setName(a.name); setPurpose(a.purpose); setAgentStatus(a.status)
       setSelected(saved ?? null); setDraft(local?.draft ?? (saved ? configurationDraft(saved) : emptyConfiguration(options)))
       setExpectedRevision(local?.dirty && Number.isInteger(local.baseRevision) ? local.baseRevision : a.revision)
       if (local?.dirty) setNotice('Your preserved local draft has been restored. Save before Preview.')
@@ -111,9 +111,12 @@ function AgentWorkspace({ owner, id, bases, options, onChanged }) {
     setName(agent.name); setPurpose(agent.purpose); setAgentStatus(agent.status); setSubmittedQuery('')
   }
   async function refresh() {
-    const [a, versions, members] = await readWorkspace()
+    const [a, versions] = await readWorkspace()
     if (!alive.current) return
-    setAgent(a); setConfigs(versions); setAssignments(members)
+    setName(current => current === agent.name ? a.name : current)
+    setPurpose(current => current === agent.purpose ? a.purpose : current)
+    setAgentStatus(current => current === agent.status ? a.status : current)
+    setAgent(a); setConfigs(versions); setSelected(current => versions.find(config => config.id === current?.id) ?? current)
     return a
   }
   async function action(work, refreshAfter = true, scope = 'configuration') {
@@ -191,10 +194,6 @@ function AgentWorkspace({ owner, id, bases, options, onChanged }) {
     </div>
     <form onSubmit={preview} className="agent-chat-composer"><FormField label={t('Preview question')} required><textarea rows={3} maxLength={2000} disabled={running} value={query} onChange={e => { setQuery(e.target.value); setRequestId(crypto.randomUUID()) }} /></FormField><div className="cs-actions"><Button type="submit" variant="primary" busy={busy} disabled={busy || hasEdits || !selected || running || Boolean(result.error) || agent.status === 'ARCHIVED'}>{t(accepted?.id && ['FAILED', 'REFUSED', 'CANCELLED'].includes(result.execution?.status) ? 'Retry preview' : 'Send')}</Button></div></form>
   </section>
-  const publication = <details className="cs-surface agent-publication"><summary>{t('Publication and assignments')}</summary><div className="cs-stack">
-    <Button disabled={busy || hasEdits || !tested || selected?.status !== 'SAVED'} onClick={() => action(async () => { await platformCommand(`${agentPath(id)}/configurations/${selected.id}/publish`, { confirmed: true }, agent.revision); const config = await apiRequest(`${agentPath(id)}/configurations/${selected.id}`); if (alive.current) setSelected(config) })}>{t('Publish this tested configuration')}</Button>
-    <section className="cs-stack"><h3>{t('Student assignments')}</h3><p>{t('Only explicitly assigned active Students can see this active Agent.')}</p><form className="cs-stack" onSubmit={event => { event.preventDefault(); action(() => platformCommand(`${agentPath(id)}/assignments`, { studentUserId: student })) }}><FormField label={t('Student account ID')} required><input inputMode="numeric" pattern="[1-9][0-9]*" value={student} onChange={e => setStudent(e.target.value)} /></FormField><div className="cs-actions"><Button type="submit" disabled={busy || agent.status !== 'ACTIVE'}>{t('Assign this Agent')}</Button></div></form><ul className="platform-list">{assignments.map(a => <li key={a.id}><p>{t('Student account ID')}: {a.studentUserId} · {a.status}</p>{a.status === 'ACTIVE' && <Button disabled={busy} onClick={() => action(() => platformCommand(`${agentPath(id)}/assignments/${a.id}/revoke`, {}))}>{t('Revoke assignment')}</Button>}</li>)}</ul></section>
-  </div></details>
   return <div className="cs-stack agent-workspace">
     <form onSubmit={save} className="cs-surface agent-workspace-header"><div className="cs-section-header"><h2>{agent.name}</h2><StatusBadge>{agent.status}</StatusBadge></div>
       <div className="agent-version-controls"><FormField label={t('Selected saved version')}><select disabled={busy} value={selected?.id ?? ''} onChange={e => { const config = configs.find(c => c.id === e.target.value); if (hasEdits) setPendingSelection({ config }); else select(config) }}>{!selected && <option value="">{t('None selected')}</option>}{configs.map(config => <option key={config.id} value={config.id}>{t('Version')} {config.versionNumber} · {config.status}</option>)}</select></FormField>
@@ -216,11 +215,11 @@ function AgentWorkspace({ owner, id, bases, options, onChanged }) {
           { value: 'brain', label: t('Brain'), content: <div className="cs-stack">{identity}{configurationArea('brain')}</div> },
           { value: 'integrations', label: t('Integrations'), content: configurationArea('integrations') },
           { value: 'advanced', label: t('Advanced'), content: configurationArea('advanced') },
+          { value: 'publication', label: t('Publish & Assign'), content: <PublishAssignPanel key={id} active={tab === 'publication'} agent={agent} selected={selected} published={published} dirty={hasEdits} execution={result.execution} onChanged={async () => { const a = await refresh(); if (a && alive.current) setExpectedRevision(a.revision); await onChanged() }} /> },
         ]} />
       </section>
       <div id={`${id}-preview-pane`} className={'agent-preview-pane' + (pane !== 'preview' ? ' agent-pane--inactive' : '')}>{chat}</div>
     </div>
-    {publication}
     {pendingSelection && <Dialog title={t('Discard unsaved configuration changes?')} description={t('The selected saved configuration is unchanged. Discarding restores saved settings.')} closeLabel={t('Keep editing')} onRequestClose={() => setPendingSelection(null)} footer={<><Button onClick={() => setPendingSelection(null)}>{t('Keep editing')}</Button><Button variant="danger" onClick={() => { select(pendingSelection.config); setPendingSelection(null) }}>{t('Discard and restore')}</Button></>} />}
   </div>
 }

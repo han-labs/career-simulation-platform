@@ -617,6 +617,230 @@ class AgentPlatformIntegrationTest {
     }
 
     @Test
+    void eligibleStudentPickerIsBoundedMinimalAdminOnlyAndMatchesAssignmentEligibility()
+            throws Exception {
+        var a =
+                registry.create(
+                        admin, new AgentInput("Picker fixture", "Public exploration", null));
+        UUID aid = UUID.fromString(a.id());
+        String prefix = "Picker " + UUID.randomUUID();
+        jdbc.update("UPDATE app_users SET display_name=? WHERE id=?", prefix + " Alpha", student);
+        long second =
+                jdbc.queryForObject(
+                        "INSERT INTO app_users(email,password_hash,display_name,role) VALUES (?,'synthetic-only',?,'STUDENT') RETURNING id",
+                        Long.class,
+                        UUID.randomUUID() + "@example.test",
+                        prefix + " Beta");
+        jdbc.update("INSERT INTO student_profiles(user_id) VALUES (?)", second);
+        long inactive =
+                jdbc.queryForObject(
+                        "INSERT INTO app_users(email,password_hash,display_name,role,status) VALUES (?,'synthetic-only',?,'STUDENT','LOCKED') RETURNING id",
+                        Long.class,
+                        UUID.randomUUID() + "@example.test",
+                        prefix + " Locked");
+        jdbc.update("INSERT INTO student_profiles(user_id) VALUES (?)", inactive);
+        jdbc.update(
+                "INSERT INTO app_users(email,password_hash,display_name,role) VALUES (?,'synthetic-only',?,'STUDENT')",
+                UUID.randomUUID() + "@example.test",
+                prefix + " No profile");
+        var page = registry.eligibleStudents(admin, aid, prefix.toLowerCase(), 0, 1);
+        assertThat(page.items()).hasSize(1);
+        assertThat(page.items().get(0).id()).isEqualTo(Long.toString(student));
+        assertThat(page.nextAfterId()).isEqualTo(Long.toString(student));
+        var next =
+                registry.eligibleStudents(
+                        admin, aid, prefix, Long.parseLong(page.nextAfterId()), 1);
+        assertThat(next.items()).extracting(x -> x.id()).containsExactly(Long.toString(second));
+        assertThat(next.nextAfterId()).isNull();
+        assertThat(registry.eligibleStudents(admin, aid, "%_", 0, 50).items()).isEmpty();
+        assertThatThrownBy(() -> registry.eligibleStudents(student, aid, "", 0, 20))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        for (int limit : new int[] {0, 51})
+            assertThatThrownBy(() -> registry.eligibleStudents(admin, aid, "", 0, limit))
+                    .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        assertThatThrownBy(() -> registry.eligibleStudents(admin, aid, "x".repeat(81), 0, 20))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        assertThatThrownBy(() -> registry.eligibleStudents(admin, aid, "", -1, 20))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        String path = "/v2/admin/agents/" + aid + "/eligible-students";
+        mvc.perform(org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(path))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                                .isUnauthorized());
+        mvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
+                                        path)
+                                .cookie(cookie(student)))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                                .isForbidden());
+        var response =
+                mvc.perform(
+                                org.springframework.test.web.servlet.request.MockMvcRequestBuilders
+                                        .get(path)
+                                        .cookie(cookie(admin))
+                                        .param("q", prefix))
+                        .andExpect(
+                                org.springframework.test.web.servlet.result.MockMvcResultMatchers
+                                        .status()
+                                        .isOk())
+                        .andReturn();
+        var item =
+                json.readTree(response.getResponse().getContentAsString())
+                        .path("data")
+                        .path("items")
+                        .get(0);
+        assertThat(item.size()).isEqualTo(2);
+        assertThat(item.has("id")).isTrue();
+        assertThat(item.has("displayName")).isTrue();
+        for (String query :
+                List.of(
+                        "limit=51",
+                        "limit=0",
+                        "afterId=-1",
+                        "afterId=abc",
+                        "q=" + "x".repeat(81))) {
+            var invalid =
+                    mvc.perform(
+                                    org.springframework.test.web.servlet.request
+                                            .MockMvcRequestBuilders.get(path + "?" + query)
+                                            .cookie(cookie(admin)))
+                            .andReturn();
+            assertThat(invalid.getResponse().getStatus()).isIn(400, 422);
+        }
+        var activeAdminCookie = cookie(admin);
+        jdbc.update("UPDATE app_users SET status='LOCKED' WHERE id=?", admin);
+        mvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
+                                        path)
+                                .cookie(activeAdminCookie))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                                .isForbidden());
+    }
+
+    @Test
+    void readinessUsesPersistedExactPreviewAndFailedPublicationPreservesPublishedVersion() {
+        UUID kb = publishedKb();
+        var a =
+                registry.create(
+                        admin, new AgentInput("Publication fixture", "Public exploration", null));
+        UUID aid = UUID.fromString(a.id());
+        var c = registry.save(admin, aid, a.revision(), config(kb));
+        UUID cid = UUID.fromString(c.id());
+        assertThat(registry.publicationReadiness(admin, aid, cid).previewSucceeded()).isFalse();
+        assertThat(registry.publicationReadiness(admin, aid, cid).publishable()).isFalse();
+        assertThat(registry.assigned(student)).noneMatch(x -> x.id().equals(a.id()));
+        assertThatThrownBy(() -> registry.assign(admin, aid, student))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        var run =
+                terminal(
+                        executions.preview(
+                                admin,
+                                aid,
+                                cid,
+                                new Preview(UUID.randomUUID(), "Synthetic backend practice")));
+        assertThat(run.status()).isEqualTo("SUCCEEDED");
+        clearInvocations(model);
+        var readiness = registry.publicationReadiness(admin, aid, cid);
+        assertThat(readiness.publishable()).isTrue();
+        assertThat(readiness.configurationHash()).isEqualTo(c.contentHash());
+        long revision = registry.get(admin, aid).revision();
+        assertThatThrownBy(() -> registry.publish(admin, aid, cid, revision, false))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        assertThatThrownBy(() -> registry.publish(admin, aid, cid, revision - 1, true))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        registry.publish(admin, aid, cid, revision, true);
+        assertThat(registry.assignments(admin, aid)).isEmpty();
+        var nextInput = config(kb);
+        var revised =
+                new ConfigurationInput(
+                        nextInput.modelKey(),
+                        nextInput.promptTemplate() + " Revised",
+                        nextInput.promptTemplateRef(),
+                        nextInput.toolPolicy(),
+                        nextInput.memoryPolicy(),
+                        nextInput.outputPolicy(),
+                        nextInput.knowledgeBaseIds());
+        var second = registry.save(admin, aid, registry.get(admin, aid).revision(), revised);
+        assertThat(
+                        registry.publicationReadiness(admin, aid, UUID.fromString(second.id()))
+                                .previewSucceeded())
+                .isFalse();
+        assertThatThrownBy(
+                        () ->
+                                registry.publish(
+                                        admin,
+                                        aid,
+                                        UUID.fromString(second.id()),
+                                        registry.get(admin, aid).revision(),
+                                        true))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        assertThat(registry.get(admin, aid).publishedConfigurationId()).isEqualTo(c.id());
+        jdbc.update("UPDATE knowledge_base SET status='HIDDEN' WHERE id=?", kb);
+        assertThat(registry.publicationReadiness(admin, aid, cid).knowledgeAvailable()).isFalse();
+        assertThat(registry.publicationReadiness(admin, aid, cid).publishable()).isFalse();
+        verify(model, never())
+                .decide(anyString(), anyString(), anyString(), anyList(), anyBoolean());
+    }
+
+    @Test
+    void assignmentRechecksActiveProfileAndRolePreservesHistoryAndCreatesNoStudentSession() {
+        UUID kb = publishedKb();
+        var a =
+                registry.create(
+                        admin, new AgentInput("Assignment fixture", "Public exploration", null));
+        UUID aid = UUID.fromString(a.id());
+        var c = registry.save(admin, aid, a.revision(), config(kb));
+        UUID cid = UUID.fromString(c.id());
+        assertThat(
+                        terminal(
+                                        executions.preview(
+                                                admin,
+                                                aid,
+                                                cid,
+                                                new Preview(
+                                                        UUID.randomUUID(),
+                                                        "Synthetic backend practice")))
+                                .status())
+                .isEqualTo("SUCCEEDED");
+        registry.publish(admin, aid, cid, registry.get(admin, aid).revision(), true);
+        int sessions = jdbc.queryForObject("SELECT count(*) FROM agent_session", Integer.class);
+        clearInvocations(model);
+        assertThatThrownBy(() -> registry.requireAssignedConfiguration(student, aid, cid))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.NotFoundException.class);
+        assertThatThrownBy(() -> registry.assign(admin, aid, admin))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        assertThat(
+                        registry.eligibleStudents(admin, aid, "Synthetic Student", student - 1, 1)
+                                .items())
+                .isNotEmpty();
+        jdbc.update("UPDATE app_users SET status='LOCKED' WHERE id=?", student);
+        assertThatThrownBy(() -> registry.assign(admin, aid, student))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        jdbc.update("UPDATE app_users SET status='ACTIVE' WHERE id=?", student);
+        jdbc.update("DELETE FROM student_profiles WHERE user_id=?", student);
+        assertThatThrownBy(() -> registry.assign(admin, aid, student))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        jdbc.update("INSERT INTO student_profiles(user_id) VALUES (?)", student);
+        var assignment = registry.assign(admin, aid, student);
+        assertThat(assignment.studentDisplayName()).isEqualTo("Synthetic Student");
+        assertThat(registry.assign(admin, aid, student).id()).isEqualTo(assignment.id());
+        registry.requireAssignedConfiguration(student, aid, cid);
+        var revoked = registry.revoke(admin, aid, UUID.fromString(assignment.id()));
+        assertThat(registry.revoke(admin, aid, UUID.fromString(assignment.id())).revokedAt())
+                .isEqualTo(revoked.revokedAt());
+        assertThat(registry.assignments(admin, aid)).hasSize(1);
+        assertThat(registry.assignments(admin, aid).get(0).status()).isEqualTo("REVOKED");
+        assertThatThrownBy(() -> registry.requireAssignedConfiguration(student, aid, cid))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.NotFoundException.class);
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM agent_session", Integer.class))
+                .isEqualTo(sessions);
+        verify(model, never())
+                .decide(anyString(), anyString(), anyString(), anyList(), anyBoolean());
+    }
+
+    @Test
     void stagedFailuresAndCancellationNeverReplacePublishedEvidenceAndRetriesDeduplicate() {
         UUID kb = publishedKb();
         var listed = knowledge.versions(admin, kb).get(0);
@@ -1040,6 +1264,7 @@ class AgentPlatformIntegrationTest {
                 .andExpect(
                         org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
                                 .json("{\"data\":[]}"));
+        var activeAdminCookie = cookie(admin);
         jdbc.update("UPDATE app_users SET status='LOCKED' WHERE id=?", admin);
         mvc.perform(
                         org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(

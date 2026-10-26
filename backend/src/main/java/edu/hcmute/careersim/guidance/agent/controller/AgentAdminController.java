@@ -120,6 +120,24 @@ public class AgentAdminController {
                 registry.assign(actors.admin(p).id(), agent, CoreValues.id(r.studentUserId())));
     }
 
+    @GetMapping("/agents/{agent}/eligible-students")
+    public ApiResponse<?> eligibleStudents(
+            Principal p,
+            @PathVariable UUID agent,
+            @RequestParam(defaultValue = "") String q,
+            @RequestParam(defaultValue = "0") long afterId,
+            @RequestParam(defaultValue = "20") int limit) {
+        return ApiResponse.success(
+                registry.eligibleStudents(actors.admin(p).id(), agent, q, afterId, limit));
+    }
+
+    @GetMapping("/agents/{agent}/configurations/{config}/publication-readiness")
+    public ApiResponse<?> publicationReadiness(
+            Principal p, @PathVariable UUID agent, @PathVariable UUID config) {
+        return ApiResponse.success(
+                registry.publicationReadiness(actors.admin(p).id(), agent, config));
+    }
+
     @PostMapping("/agents/{agent}/assignments/{assignment}/revoke")
     public ApiResponse<?> revoke(
             Principal p, @PathVariable UUID agent, @PathVariable UUID assignment) {

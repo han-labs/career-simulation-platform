@@ -1,5 +1,6 @@
 @import '../../../shared/ui/ui.css';
 .agent-builder { min-width:0; }
+.agent-builder.core-flow { width:100%; max-width:none; }
 .agent-builder-grid { display:grid; grid-template-columns:minmax(170px,210px) minmax(0,1fr); gap:20px; align-items:start; }
 .agent-builder-grid > *, .agent-workspace, .agent-workspace .cs-tabs { min-width:0; }
 .agent-workspace { container:agent-workspace / inline-size; }
@@ -89,3 +90,15 @@
   .agent-save-bar .cs-actions { width:100%; }
   .agent-save-bar .cs-actions > button { flex:1 1 120px; }
 }
+
+.agent-publication-panel .cs-section-header { margin:0; align-items:center; }
+.agent-readiness,.agent-assignment-list { list-style:none; padding:0; margin:0; display:grid; gap:10px; }
+.agent-readiness li { display:flex; align-items:start; justify-content:space-between; gap:12px; padding-block:6px; border-bottom:1px solid var(--cs-border); font-size:.875rem; }
+.agent-readiness .cs-badge { flex:0 0 auto; }
+.agent-student-search { display:flex; align-items:end; gap:8px; flex-wrap:wrap; }
+.agent-student-search .cs-field { flex:1 1 180px; }
+.agent-assignment-list li { display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--cs-border); }
+.agent-assignment-list li > div { flex:1 1 160px; min-width:0; overflow-wrap:anywhere; }
+.student-agent-shell { padding:16px; border:1px solid var(--cs-border); border-radius:10px; background:var(--cs-surface-muted); }
+.student-experience-preview p,.student-experience-preview li { overflow-wrap:anywhere; }
+.student-experience-preview .cs-metadata { grid-template-columns:minmax(0,1fr); }

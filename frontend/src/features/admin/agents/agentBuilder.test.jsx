@@ -42,6 +42,8 @@ function fixture() {
       if (request.headers['If-Match'] !== String(agent.revision)) throw Object.assign(new Error('Conflict'), { status: 409 })
       Object.assign(agent, JSON.parse(request.body), { revision: agent.revision + 1 }); return { ...agent }
     }
+    if (path.includes('/eligible-students?')) return { items: [], nextAfterId: null }
+    if (path.endsWith('/publication-readiness')) { const version = state.versions[agent.id].find(v => path.includes(`/${v.id}/`)); return { configurationId: version.id, configurationHash: version.contentHash, agentRevision: agent.revision, configurationStatus: version.status, agentEditable: true, knowledgeAvailable: true, previewSucceeded: state.runs.some(r => r.configurationId === version.id && r.status === 'SUCCEEDED'), publishable: state.runs.some(r => r.configurationId === version.id && r.status === 'SUCCEEDED') } }
     if (path.endsWith('/assignments')) return []
     if (path.endsWith('/configurations')) {
       if (!request.method) return state.versions[agent.id]
@@ -67,7 +69,7 @@ function page(url = '/admin/agents?agent=a', locale = 'en') { return render(<I18
 async function loaded() { await screen.findByLabelText('Saved Agent instructions') }
 function pane(name) { fireEvent.click(within(screen.getByRole('group', { name: 'Agent workspace view' })).getByRole('button', { name, exact: true })) }
 function tab(name) { pane('Configuration'); fireEvent.click(screen.getByRole('tab', { name, exact: true })) }
-function publication() { const summary = screen.getByText('Publication and assignments'); if (!summary.closest('details').open) fireEvent.click(summary) }
+function publication() { tab('Publish & Assign') }
 function input(label, value) { fireEvent.change(screen.getByLabelText(label), { target: { value: String(value) } }) }
 function postCalls(suffix) { return apiRequest.mock.calls.filter(([path, request]) => path.endsWith(suffix) && request?.method === 'POST') }
 async function preview() {
@@ -133,7 +135,7 @@ it('validates creation fields inline before sending a mutation', async () => {
   input('Name', 'Valid name'); fireEvent.click(screen.getByRole('button', { name: 'Create Agent', exact: true }))
   expect(document.activeElement).toBe(screen.getByLabelText('Description / purpose'))
 })
-it('keeps Preview mounted alongside all three configuration tabs with one workspace Save and Discard', async () => {
+it('keeps Preview mounted alongside all configuration tabs with one workspace Save and Discard', async () => {
   const state = fixture(); page(); await loaded(); await preview()
   const chat = screen.getByRole('region', { name: 'Admin Preview chat' })
   expect(screen.queryByRole('tab', { name: 'Chat', exact: true })).toBeNull()
@@ -151,7 +153,7 @@ it('keeps Preview mounted alongside all three configuration tabs with one worksp
     expect(within(chat).getByText('Validated preview answer.')).toBeTruthy()
   }
   expect(state.runs).toHaveLength(1); expect(postCalls('/previews')).toHaveLength(1)
-  expect(screen.getByText('Publication and assignments').closest('[role="tabpanel"]')).toBeNull()
+  expect(screen.getByRole('tab', { name: 'Publish & Assign' })).toBeTruthy()
 })
 it('provides responsive pane controls without unmounting the draft or accepted Preview', async () => {
   fixture(); page(); await loaded(); await preview(); tab('Brain')
@@ -185,9 +187,9 @@ it('does not attach an old answer or citations to a newly submitted Preview ques
   expect(screen.queryByText('Validated preview answer.')).toBeNull()
   expect(screen.getByRole('button', { name: 'Send' }).disabled).toBe(false)
 })
-it('organizes controls into three accessible panels and preserves edits while changing tabs', async () => {
+it('organizes controls into four accessible panels and preserves edits while changing tabs', async () => {
   fixture(); page(); await loaded()
-  expect(screen.getAllByRole('tab').map(node => node.textContent)).toEqual(['Brain', 'Integrations', 'Advanced'])
+  expect(screen.getAllByRole('tab').map(node => node.textContent)).toEqual(['Brain', 'Integrations', 'Advanced', 'Publish & Assign'])
   expect(screen.getAllByRole('tabpanel')).toHaveLength(1)
   expect(within(screen.getByRole('tabpanel', { name: 'Brain' })).getByLabelText('Agent name')).toBeTruthy()
   input('Saved Agent instructions', 'Preserve between tabs')
@@ -311,7 +313,7 @@ it('previews only the selected saved version and renders exact citations and saf
   tab('Brain'); input('Saved Agent instructions', 'Revised config requires another Save'); pane('Preview')
   expect(screen.getByRole('button', { name: 'Send' }).disabled).toBe(true)
   publication()
-  expect(screen.getByRole('button', { name: 'Publish this tested configuration' }).disabled).toBe(true)
+  expect(screen.getByRole('button', { name: 'Publish version 1' }).disabled).toBe(true)
   expect(state.runs).toHaveLength(1)
 })
 it('reuses an acceptance request ID after a lost POST response without creating duplicate executions', async () => {

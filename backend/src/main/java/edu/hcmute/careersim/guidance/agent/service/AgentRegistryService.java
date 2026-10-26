@@ -25,6 +25,11 @@ public interface AgentRegistryService {
 
     List<Assignment> assignments(long admin, UUID agent);
 
+    EligibleStudents eligibleStudents(
+            long admin, UUID agent, String query, long afterId, int limit);
+
+    PublicationReadiness publicationReadiness(long admin, UUID agent, UUID config);
+
     Assignment assign(long admin, UUID agent, long student);
 
     Assignment revoke(long admin, UUID agent, UUID assignment);

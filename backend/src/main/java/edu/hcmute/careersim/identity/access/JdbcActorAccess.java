@@ -65,4 +65,13 @@ class JdbcActorAccess implements ActorAccess {
                 .findFirst()
                 .orElseThrow(() -> new ApiException(ErrorCode.UNAUTHORIZED));
     }
+
+    public java.util.List<StudentIdentity> eligibleStudents(String query, long afterId, int limit) {
+        return jdbc.query(
+                "SELECT u.id,u.display_name FROM public.app_users u WHERE u.id>? AND u.role='STUDENT' AND u.status='ACTIVE' AND EXISTS(SELECT 1 FROM public.student_profiles p WHERE p.user_id=u.id) AND POSITION(LOWER(?) IN LOWER(u.display_name))>0 ORDER BY u.id LIMIT ?",
+                (r, n) -> new StudentIdentity(r.getString("id"), r.getString("display_name")),
+                afterId,
+                query,
+                limit);
+    }
 }

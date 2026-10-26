@@ -56,7 +56,22 @@ public final class AgentContracts {
             String assignedByAdminUserId,
             String status,
             Instant assignedAt,
-            Instant revokedAt) {}
+            Instant revokedAt,
+            String studentDisplayName) {}
+
+    public record EligibleStudents(
+            List<edu.hcmute.careersim.identity.access.ActorAccess.StudentIdentity> items,
+            String nextAfterId) {}
+
+    public record PublicationReadiness(
+            String configurationId,
+            String configurationHash,
+            long agentRevision,
+            String configurationStatus,
+            boolean agentEditable,
+            boolean knowledgeAvailable,
+            boolean previewSucceeded,
+            boolean publishable) {}
 
     public record PublicAgent(String id, String name, String purpose) {}
 
