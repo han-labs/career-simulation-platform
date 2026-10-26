@@ -7,7 +7,7 @@ describe('BrandMark institutional branding component', () => {
   it('renders official HCM-UTE logo image path and accessible alt text', () => {
     const html = renderToStaticMarkup(React.createElement(BrandMark))
 
-    expect(html).toContain('src="/images/hcmute-logo.png"')
+    expect(html).toContain('src="/images/hcmute/logo.jpg"')
     expect(html).toContain('alt="Ho Chi Minh City University of Technology and Engineering - HCM-UTE Logo"')
     expect(html).toContain('brand-mark__logo')
   })

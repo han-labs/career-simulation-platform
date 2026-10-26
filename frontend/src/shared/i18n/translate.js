@@ -4,10 +4,26 @@ import { coreMessages } from './coreMessages.js'
 import { agentMessages } from './agentMessages.js'
 import { identityMessages } from './identityMessages.js'
 import { assessmentMessages } from './assessmentMessages.js'
+import { messages } from './messages.js'
+import { contentMessages } from './contentMessages.js'
+import { coreMessages } from './coreMessages.js'
+import { agentMessages } from './agentMessages.js'
+import { identityMessages } from './identityMessages.js'
+import { assessmentMessages } from './assessmentMessages.js'
 import { usageMessages } from './usageMessages.js'
+import { landingRedesignMessages } from './landingRedesignMessages.js'
 
 // Existing shared labels retain their translations in other owners' features.
-const dictionary = { ...usageMessages, ...messages, ...contentMessages, ...coreMessages, ...agentMessages, ...assessmentMessages, ...identityMessages }
+const dictionary = {
+  ...usageMessages,
+  ...messages,
+  ...contentMessages,
+  ...coreMessages,
+  ...agentMessages,
+  ...assessmentMessages,
+  ...identityMessages,
+  ...landingRedesignMessages,
+}
 // Templates are presentation-only. Numbers, IDs and API payloads never change.
 const templates = [
   [/^(\d+) minutes$/, (m) => `${m[1]} phút`],

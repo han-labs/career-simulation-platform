@@ -1,67 +1,25 @@
-import { useI18n } from '../../../shared/i18n/useI18n.js'
-import { Target, Laptop, BrainCircuit, ArrowRight } from 'lucide-react'
+import { ArrowRight, BriefcaseBusiness, ChartNoAxesColumnIncreasing, Trophy, UserRound } from 'lucide-react'
 import { Link } from 'react-router-dom'
+import { useI18n } from '../../../shared/i18n/useI18n.js'
 
 const journey = [
-  {
-    icon: Target,
-    number: '01',
-    title: 'Explore Interests & Preferences',
-    copy: 'Use a 42-question RIASEC self-reflection to review six interest dimensions and choose what you want to explore next.',
-    actionLabel: 'Take Assessment',
-    to: '/assessment',
-  },
-  {
-    icon: Laptop,
-    number: '02',
-    title: 'Experience Authentic IT Tasks',
-    copy: 'Try a focused task in Frontend, Backend, Data, QA or Cybersecurity.',
-    actionLabel: 'Browse Roles',
-    to: '/simulations',
-  },
-  {
-    icon: BrainCircuit,
-    number: '03',
-    title: 'Analyze Evidence & Plan Next Steps',
-    copy: 'Review your results and choose a next step to explore.',
-    actionLabel: 'Open Dashboard',
-    to: '/dashboard',
-  },
+  { icon: UserRound, title: 'Get to know yourself', copy: 'Take career quizzes to discover your interests, strengths, and values.', to: '/assessment', actionLabel: 'Take Assessment' },
+  { icon: BriefcaseBusiness, title: 'Explore the career simulation', copy: 'Experience real-world tasks in various career fields.', to: '/simulations', actionLabel: 'Browse Roles' },
+  { icon: ChartNoAxesColumnIncreasing, title: 'Analyze your results & Plan for education/training', copy: 'Receive detailed feedback and personalized learning suggestions.', to: '/dashboard', actionLabel: 'Open Dashboard' },
+  { icon: Trophy, title: 'Stand out to employers', copy: 'Build your skills and showcase your potential through practical experience.' },
 ]
 
 function JourneySection() {
   const { t } = useI18n()
-  return (
-    <section className="section section--paper" id="how-it-works" aria-labelledby="journey-heading">
-      <div className="section-shell">
-        <div className="section-heading">
-          <span className="eyebrow">{t('A student-led exploration process')}</span>
-          <h2 id="journey-heading">{t('From Interests to First-hand Experience')}</h2>
-          <p className="section-heading__sub">
-            {t('Combine self-reflection with hands-on activities and decide for yourself what to explore further.')}
-          </p>
-        </div>
-
-        <div className="journey-grid">
-          {journey.map(({ icon: Icon, number, title, copy, actionLabel, to }) => (
-            <article className="journey-card" key={number}>
-              <div className="journey-card__header">
-                <div className="journey-card__icon" aria-hidden="true">
-                  <Icon size={24} />
-                </div>
-                <span className="journey-card__number">{t(number)}</span>
-              </div>
-              <h3>{t(title)}</h3>
-              <p>{t(copy)}</p>
-              <Link className="journey-card__link" to={to}>
-                {t(actionLabel)} <ArrowRight size={15} aria-hidden="true" />
-              </Link>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
+  return <section className="home-journey section-shell" id="how-it-works" aria-labelledby="journey-heading">
+    <h2 id="journey-heading">{t('How It Works')}</h2>
+    <p className="home-journey__intro">{t('Our platform brings you closer to employers through real-world experiences and self-discovery assessments, helping you gradually identify career paths that suit you. Throughout this journey, an AI assistant is available to help you understand your strengths and plan your future development.')}</p>
+    <ol className="home-journey__steps">{journey.map(({ icon: Icon, title, copy, to, actionLabel }, index) => <li key={title}>
+      <span className="home-journey__icon"><Icon size={28} aria-hidden="true" /></span>
+      <h3>{t(title)}</h3><p>{t(copy)}</p>
+      {to && <Link className="text-link" to={to}>{t(actionLabel)} <ArrowRight size={14} aria-hidden="true" /></Link>}
+      {index < 3 && <ArrowRight className="home-journey__arrow" size={26} aria-hidden="true" />}
+    </li>)}</ol>
+  </section>
 }
-
 export default JourneySection

@@ -285,3 +285,6 @@ project's live-model evaluation gates remain pending.
   gateway unreachable; this later observation does not erase the earlier startup evidence.
   Browser was disabled in Work settings. Details and exact Git state:
   `.agent/reports/ai/2026-10-26-uc08-role-publication.md`.
+## 2026-10-26 — HCM-UTE rebuild from latest main
+
+Codex (GPT-6-based agent) performed the current corrective request on a fresh main 608e812 worktree/feature branch; prior redesign887e0d1 remained untouched. It audited real flows before frontend changes, reused existing callbacks/hooks/routes/cards/state views, applied supplied visual assets and VI/EN copy, and executed baseline/final gates plus actual isolated API/browser journeys. [AI record](.agent/reports/ai/2026-10-26-hcmute-main-rebuild.md), [audit](.agent/reports/hcmute-main-functional-audit.md), [plan](.agent/plans/foundation-hcmute-frontend-flow-alignment.md) and [verification](.agent/reports/hcmute-main-rebuild-verification.md) distinguish mocks/live evidence, original-main defects and human review pending. No backend or feature-owned business implementation, auth/score authority or provider flow was replaced. No human acceptance, Google/live-model UAT or push/main merge is claimed.

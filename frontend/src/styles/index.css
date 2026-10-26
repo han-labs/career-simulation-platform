@@ -8,10 +8,10 @@
   text-rendering: optimizeLegibility;
 
   /* Institutional Palette - HCM-UTE */
-  --hcmute-blue: #1a3b8b;
-  --hcmute-blue-dark: #102558;
-  --hcmute-blue-hover: #153072;
-  --hcmute-blue-soft: #eef3fd;
+  --hcmute-blue: #0068b5;
+  --hcmute-blue-dark: #103458;
+  --hcmute-blue-hover: #00518e;
+  --hcmute-blue-soft: #eaf5fd;
   --hcmute-red: #e31b23;
   --hcmute-red-hover: #c5131a;
   --hcmute-red-soft: #fde8e9;
@@ -31,15 +31,15 @@
   --line-strong: #cbd5e1;
 
   /* Backwards-Compatibility Component Tokens */
-  --accent: #e31b23;
-  --accent-dark: #c5131a;
-  --tech: #1a3b8b;
-  --tech-deep: #102558;
-  --tech-soft: #eef3fd;
+  --accent: var(--hcmute-blue);
+  --accent-dark: var(--hcmute-blue-hover);
+  --tech: var(--hcmute-blue);
+  --tech-deep: var(--hcmute-blue-dark);
+  --tech-soft: var(--hcmute-blue-soft);
   --sage: #e2f0e8;
   --sage-ink: #1e5a38;
-  --blue: #eef3fd;
-  --blue-ink: #1a3b8b;
+  --blue: var(--hcmute-blue-soft);
+  --blue-ink: var(--hcmute-blue);
   --violet: #f0eaf8;
   --violet-ink: #553c7b;
   --gold: #fdf5d8;
