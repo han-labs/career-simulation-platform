@@ -16,6 +16,14 @@ Use [the requirements index](README.md), [selected report stories](user-stories/
 | US-09 Create AI agent | UC-08 | 3 | US-10 |
 | US-10 View AI usage dashboard | UC-09 | 3 | US-15 |
 
+UC-09 implementation follow-up (2026-10-26, human review pending): the existing
+AgentUsageController/Query/Dao now exposes an additive safe dashboard view over
+agent_execution, with server aggregates, UTC trends, filters and bounded keyset
+pagination. AgentUsagePage reuses the current Admin Studio shell. Contracts and
+metric/privacy semantics: [UC-09 API](../api/ai-usage-uc09.md). Focused evidence:
+AgentUsageDashboardTest and frontend usageDashboard.test.jsx. No new migration
+or analytics producer; runtime/model quality acceptance is recorded separately.
+
 Baseline profile/dashboard US-02 is documented by supplementary UC-10/11; Enterprise US-05 by UC-12/13; Admin assessment US-03 by UC-16; account administration also supports UC-15. These are supporting relationships, not new selected stories or person assignments. UC-14 is deferred. The exact prior-report UC renumbering comes from the supplied [UC index](use-cases/README.md#historical-uc-renumbering-2026-10-21--current).
 
 For each selected UC, the imported spec now links production source/tests and distinguishes existing automated evidence from pending UAT. [The alignment register](REPORT_CODE_ALIGNMENT_2026-10-22.md) records unresolved report/code differences; do not mark a full flow accepted from an endpoint or a mock.

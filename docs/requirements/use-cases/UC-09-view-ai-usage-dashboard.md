@@ -41,6 +41,16 @@ The actor views the authorized AI usage summary for the selected interval.
 
 ## Current repository comparison (2026-10-22)
 
+Implementation follow-up 2026-10-26 (Team Lead review pending): the existing
+usage path supports `view=dashboard` with summary KPIs, UTC request trend,
+outcome health and bounded recent metadata. Server-side Agent/provider/model/
+outcome/time filters and keyset pagination reuse agent_execution. No migration,
+new event producer or provider pricing. The legacy aggregate response is retained.
+See [current dashboard contract](../../api/ai-usage-uc09.md),
+`AgentUsageDashboardTest` and frontend `usageDashboard.test.jsx`. Real API checks
+are recorded separately from browser UAT, which was unavailable in Work settings.
+Human acceptance remains pending.
+
 Safe aggregate projection distinguishes known/unknown/partial/not-applicable metrics. Mock observations and estimated costs are not provider billing or production benchmarks.
 
 Checked main `5486f9f` and matching application source; source flows above are retained. See [alignment/provenance](../REPORT_CODE_ALIGNMENT_2026-10-22.md), [current catalogue](README.md) and [official allocation](../../TEAM_ASSIGNMENTS.md). Supplementary and deferred scope is not expanded by this comparison.

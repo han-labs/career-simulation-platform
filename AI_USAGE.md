@@ -150,3 +150,37 @@ incidents or claims that the human reviewer has accepted the fixes.
 corrections, perform the Chrome checklist after the Owner builds the stack, and
 sign off with their real name/date. Earlier draft contributor records and the
 project's live-model evaluation gates remain pending.
+
+## UC-09 AI Usage dashboard — 2026-10-26, human review pending
+
+- Assignment: Codex Sol, existing stacked feat/uc09-ai-usage-dashboard, selected
+  UC-09/US-10 only. Prompt: inspect persisted usage first; implement Admin request,
+  cost, canonical latency and failed/refused metrics, server filters/trend/bounded
+  execution list; preserve KB/Agent Studio, privacy and existing accounting.
+- Tools: Codex coding/PowerShell/Docker, JUnit/Testcontainers/PostgreSQL and
+  Vitest/Testing Library. Existing application data was read for UAT, never sent
+  to a provider. No generated production usage, migration, .env/security-policy
+  change, stage/commit/push/merge. Browser tool reported disabled in Work settings;
+  no browser UAT PASS or screenshot is claimed.
+- Reused AgentUsageController/Query/Dao and agent_execution, existing pricing
+  snapshots and Admin Studio/shared UI. Safe DTO explicitly excludes Student
+  identifiers, prompts, transcripts, provider payloads, tool arguments and source
+  passages. Existing aggregate API stays compatible; dashboard uses view=dashboard.
+- Actual verification: targeted dashboard PostgreSQL8 PASS; final backend verify
+  418 discovered /412 PASS /6 opt-in live SKIP /0 failures/errors; frontend330 PASS
+  with lint/build. Real gateway API19 checks PASS; SQL agrees with18 real existing
+  executions and nullable costs. All73 table fingerprints and assets unchanged.
+- Actual generated-code defects caught and corrected (not invented examples):
+  UC09-FIX-01: JDBC getObject(Long.class) rejected jsonb_array_length's PostgreSQL
+  int4 (7 errors in the initial isolated run). Explicit bigint cast fixed the
+  projection; repeated targeted/full tests passed. UC09-FIX-02: new VI dictionary
+  initially overrode7 existing shared-label translations (observed by comparing
+  actual dictionaries). Existing dictionary precedence was restored, retaining
+  other owners' labels; final330-test frontend check passed.
+- Human responsibilities: inspect safe DTO/SQL/semantics and code; execute actual
+  desktop/mobile browser UAT and sign off. API UAT uses the unchanged existing
+  local-profile Admin principal, not evidence of a fresh real-browser JWT login.
+  Real cost/partial-cost data is absent; synthetic isolated tests cover those
+  paths. No live AI quality evaluation is implied.
+- Detailed scope, files, actual failures/corrections and review checklist:
+  `.agent/reports/ai/2026-10-26-uc09-ai-usage-dashboard.md`.

@@ -5,6 +5,7 @@ import { MemoryRouter, useLocation, useNavigate } from 'react-router-dom'
 import App from './App.jsx'
 import I18nProvider from '../shared/i18n/I18nProvider.jsx'
 import { apiRequest } from '../shared/api/httpClient.js'
+import { emptyUsageFixture } from '../features/admin/usage/usageFixture.js'
 
 vi.mock('../shared/api/httpClient.js', async importOriginal => ({
   ...await importOriginal(), apiRequest: vi.fn(),
@@ -26,7 +27,7 @@ beforeEach(() => {
     if (path === '/v2/auth/logout') return { loggedOut: true }
     if (path === '/v2/admin/knowledge-bases') return []
     if (path === '/v2/admin/agents') return []
-    if (path.startsWith('/v2/admin/agent-usage?')) return { groups: [], nativeTools: [] }
+    if (path.startsWith('/v2/admin/agent-usage?view=dashboard&')) return emptyUsageFixture()
     if (path === '/v2/admin/agent-platform/options') return { models: [] }
     if (path === '/v2/admin/assessment-types') return []
     if (path === '/v1/guidance/dashboard') return {
@@ -73,7 +74,7 @@ it.each([
   ['/admin', 'Knowledge bases', 'Knowledge Bases', '/admin/knowledge'],
   ['/admin/knowledge', 'Knowledge bases', 'Knowledge Bases', '/admin/knowledge'],
   ['/admin/agents', 'Agent Studio', 'AI Agents', '/admin/agents'],
-  ['/admin/usage', 'AI Usage Dashboard', 'AI Usage', '/admin/usage'],
+  ['/admin/usage', 'AI Usage', 'AI Usage', '/admin/usage'],
 ])('uses one focused Admin shell at %s', async (path, heading, active, canonical) => {
   const view = page(path)
   await screen.findByRole('heading', { name: heading })
@@ -90,19 +91,18 @@ it.each([
 
 it('redirects the legacy Usage URL with query/hash preserved and replaces history', async () => {
   page('/admin/ai-usage?mode=KB_TEST#usage', 'en', ['/admin/knowledge'])
-  await screen.findByRole('heading', { name: 'AI Usage Dashboard' })
+  await screen.findByRole('heading', { name: 'AI Usage' })
   expect(screen.getByLabelText('Current route').textContent).toBe('/admin/usage?mode=KB_TEST#usage')
   fireEvent.click(screen.getByRole('button', { name: 'Browser back' }))
   await screen.findByRole('heading', { name: 'Knowledge bases' })
   expect(screen.getByLabelText('Current route').textContent).toBe('/admin/knowledge')
 })
 
-it('keeps Usage loading explicit and preserves its existing backend endpoint through the shared shell', async () => {
+it('loads the bounded Usage dashboard through the existing shared shell', async () => {
   page('/admin/usage')
-  expect(apiRequest.mock.calls.every(([path]) => path === '/v2/me')).toBe(true)
-  fireEvent.click(screen.getByRole('button', { name: 'Load usage' }))
-  await screen.findByRole('table', { name: 'Executions and known resource usage' })
-  expect(apiRequest.mock.calls.filter(([path]) => path.startsWith('/v2/admin/agent-usage?'))).toHaveLength(1)
+  await screen.findByRole('heading', { name: 'No AI usage records are available for this period.' })
+  expect(apiRequest.mock.calls.filter(([path]) => path.startsWith('/v2/admin/agent-usage?view=dashboard&'))).toHaveLength(1)
+  expect(apiRequest.mock.calls.every(([path]) => path === '/v2/me' || path.startsWith('/v2/admin/agent-usage?view=dashboard&'))).toBe(true)
 })
 
 it.each(['/admin/assessments'])('returns not-found for removed product route %s without identity or authoring APIs', async path => {
