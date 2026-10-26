@@ -78,6 +78,7 @@ it('preserves simulation catalogue/detail/results navigation without privileged 
 it('labels local workspace and never offers misleading logout or posts logout',async()=>{
  apiRequest.mockImplementation(path=>Promise.resolve(path==='/v2/auth/providers'?{google:false,localWorkspace:true}:{id:'7',role:'ADMIN'}))
  page('/admin');await screen.findByText('Local workspace');expect(screen.queryByRole('button',{name:'Sign out'})).toBeNull();expect(screen.getByText('Local workspace').getAttribute('title')).toContain('auth-test');expect(apiRequest.mock.calls.some(([path])=>path==='/v2/auth/logout')).toBe(false)
+})
 it('keeps mobile navigation controls and returns focus to its trigger on Escape', async () => {
   apiRequest.mockRejectedValue(Object.assign(new Error('Sign in is required.'), { status: 401 }))
   page('/')
