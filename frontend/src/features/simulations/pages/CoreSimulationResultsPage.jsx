@@ -20,7 +20,8 @@ export default function CoreSimulationResultsPage() {
       apiRequest('/v2/me'),
       apiRequest(`/v2/enrollments/${enrollmentId}`),
       apiRequest(`/v2/enrollments/${enrollmentId}/results`),
-      apiRequest(`/v2/scenarios/${encodeURIComponent(slug)}`),
+      // Dashboard's "enrolled" alias identifies an owned enrollment, not a public slug.
+      slug === 'enrolled' ? Promise.resolve(null) : apiRequest(`/v2/scenarios/${encodeURIComponent(slug)}`),
     ]).then(([, enrollment, results, scenario]) => {
       if (active) setState({ status: 'ready', enrollment, results, scenario })
     }).catch(error => {
@@ -39,7 +40,7 @@ export default function CoreSimulationResultsPage() {
     {status === 'denied' && <><p role="alert">{t('You do not have permission to view these simulation results.')}</p><Link to="/dashboard">{t('Return to my simulation history')}</Link></>}
     {status === 'ready' && <>
       <header className="core-completion-page__hero">
-        <p className="core-eyebrow">{scenario.enterpriseName}</p>
+        {scenario?.enterpriseName && <p className="core-eyebrow">{scenario.enterpriseName}</p>}
         <h1>{localized(enrollment.metadata, locale, 'title')}</h1>
         <p>{t('Simulation completed')}</p>
       </header>

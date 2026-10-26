@@ -233,10 +233,11 @@ it('stores the selected detail path and opens account when Start is unauthentica
 
 it('returns to the selected detail after successful regular login without enrolling', async () => {
   sessionStorage.setItem('careersim_pending_simulation_path', '/simulations/api-triage')
+  let signedIn = false
   apiRequest.mockImplementation((path, options = {}) => {
     if (path === '/v2/auth/providers') return Promise.resolve({ google: false })
-    if (path === '/v2/me') return Promise.reject(Object.assign(new Error('Sign in is required.'), { status: 401 }))
-    if (path === '/v2/auth/login' && options.method === 'POST') return Promise.resolve({ id: '7', displayName: 'Student', role: 'STUDENT' })
+    if (path === '/v2/me') return signedIn ? Promise.resolve({ id: '7', displayName: 'Student', role: 'STUDENT' }) : Promise.reject(Object.assign(new Error('Sign in is required.'), { status: 401 }))
+    if (path === '/v2/auth/login' && options.method === 'POST') { signedIn = true; return Promise.resolve({ id: '7', displayName: 'Student', role: 'STUDENT' }) }
     return Promise.reject(new Error('Unexpected request'))
   })
   renderAccount()

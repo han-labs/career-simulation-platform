@@ -215,3 +215,19 @@ See [current API correction](../api/agent-platform-p3-p4.md#uc-08-role-publicati
 **Verification profile clarification:** main intentionally supplies an active Administrator on loopback /v2/me and selected Admin paths when the local Spring profile is active. The isolated live browser checks use SPRING_PROFILES_ACTIVE=flow-verification to exercise real guest/password/role boundaries. LOCAL_DEMO_MODE is not an implemented switch for that filter. No production profile/security source was changed.
 
 **D14 — baseline Dashboard alias completion/results:** real owned draft resume and direct public-slug completion/results pass. Main Dashboard links to /simulations/enrolled/attempt?enrollment=…; completing from that alias builds /simulations/enrolled/results, whose required public metadata request /v2/scenarios/enrolled returns 404 and blocks the otherwise owned results. Observed on unchanged main through the real gateway. The simulation implementation remains unchanged in this presentation task; the original published-slug detail/results route is verified separately. Person 2 follow-up is required.
+### Integrated recovery at main 31aece4 — 2026-10-27
+
+Read-only merge audit found PR14 landing/assets intact (23 unchanged frontend paths,
+3 later modified shared paths), not removed by a later landing rewrite. PR13 integration
+introduced duplicate i18n imports and an unclosed AppShell test. Minimal syntax fixes
+restore buildability while preserving landing/usage dictionaries and Admin navigation.
+Previously recorded D13 pending-login destination and D14 Dashboard alias-results gaps
+are now corrected with focused route/API-boundary regressions; real Student runtime UAT
+still requires an Owner-approved non-local profile and simulation fixture.
+
+Runtime local auto-Admin is intentional, not an authentication regression. The current
+Core DB has4published assessment types/versions and75questions but0scenario/versions/
+enrollments;5legacy simulations do not populate the versioned catalogue. Do not disable
+Core flags, seed third-party content, or silently reinterpret empty catalogue as a code
+failure. Profile/cookie changes and original demo data require explicit Owner approval.
+See [recovery evidence](../../.agent/reports/final-integrated-system-recovery-2026-10-27.md).

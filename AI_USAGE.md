@@ -288,3 +288,30 @@ project's live-model evaluation gates remain pending.
 ## 2026-10-26 — HCM-UTE rebuild from latest main
 
 Codex (GPT-6-based agent) performed the current corrective request on a fresh main 608e812 worktree/feature branch; prior redesign887e0d1 remained untouched. It audited real flows before frontend changes, reused existing callbacks/hooks/routes/cards/state views, applied supplied visual assets and VI/EN copy, and executed baseline/final gates plus actual isolated API/browser journeys. [AI record](.agent/reports/ai/2026-10-26-hcmute-main-rebuild.md), [audit](.agent/reports/hcmute-main-functional-audit.md), [plan](.agent/plans/foundation-hcmute-frontend-flow-alignment.md) and [verification](.agent/reports/hcmute-main-rebuild-verification.md) distinguish mocks/live evidence, original-main defects and human review pending. No backend or feature-owned business implementation, auth/score authority or provider flow was replaced. No human acceptance, Google/live-model UAT or push/main merge is claimed.
+### 2026-10-27 — Final integrated system recovery (Codex Sol)
+
+- Prompt/scope: recover integrated main-derived product on `fix/final-integrated-system`
+  at `31aece45ffa2d5279a9e81ec769f9e72a9813281`; audit merged PR sources/runtime/data;
+  preserve Admin features; no AI/provider work, Git mutation, .env/profile change or seeding.
+- Findings verified before edits: PR14 landing/assets remained; PR13 integration merge
+  `86be6c2` duplicated i18n imports and omitted a closing test delimiter. Initial `npm run
+  check` failed parsing both files. These were actual merge defects; their authoring origin
+  is not asserted. Running frontend lacked campus hero/home styles and images.
+- Minimal fixes: deduplicate imports while retaining all dictionaries; close the existing
+  AppShell test; restore pending simulation only through the active /me effect after login;
+  Dashboard alias results use owned enrollment data without fetching public slug `enrolled`.
+  No scoring, completion, authorization, provider or schema behavior was rewritten.
+- Evidence: focused suites73PASS then75PASS; full frontend377PASS/38files, lint/buildPASS;
+  backend verify473total/467PASS/6existingSKIP. Tests retain account-generation remount,
+  anti-open-redirect, no automatic enrollment and denied alias-result checks.
+- Runtime: standard careersimfresh build and controlled backend/frontend/gateway recreation;
+  backend image unchanged, frontend replaced. Gateway bundles match the current enabled local
+  build byte-for-byte; HCM-UTE images match source. Database V1–V31 checksums match, no pending
+  migration; data counts and private asset hashes unchanged. Protected backup made first.
+- Owner boundary: runtime remains local; real-auth demo requires approval for auth-test and
+  localhost HTTP cookie configuration. Core scenario/version/enrollment counts are zero;
+  no seed/data insertion or Enterprise permission change performed. Quiz has4published
+  versions/75questions, so no assessment data addition is needed. Browser disabled in Work
+  settings: actual Chrome rendering/login/Student-runtime UAT NOT RUN. Human review pending.
+- Detailed current evidence and exact Git status are in
+  `.agent/reports/final-integrated-system-recovery-2026-10-27.md`.

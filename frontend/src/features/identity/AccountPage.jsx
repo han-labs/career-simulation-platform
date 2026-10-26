@@ -61,6 +61,8 @@ export default function AccountPage() {
     finally { setBusy(false) }
   }
   // The authenticated server account is the only source for role routing.
+  // After login, restore /me before consuming pending navigation. Account-generation
+  // remounts may discard this instance; only the active restoration effect consumes it.
   const destination = account && (account.role === 'STUDENT' ? (pendingDestination || '/assessment')
     : account.role === 'ENTERPRISE' && coreEnabled ? '/enterprise'
       : account.role === 'ADMIN' ? '/admin' : null)
@@ -68,7 +70,7 @@ export default function AccountPage() {
   return <section className="feature-page section-shell core-flow"><h1>{t('Account access')}</h1>
     {error && <p role="alert">{t(error)}</p>}
     {oauthError && <p role="alert">{t(oauthError)}</p>}
-    {loading ? <p role="status">{t(oauthSuccess ? 'Restoring your Google sign-in session…' : 'Checking your session…')}</p> : loadError ? <><p role="alert">{t(loadError)}</p><button onClick={() => { setLoadError(''); setLoading(true); setRetry(value => value + 1) }}>{t('Try again')}</button>{oauthSuccess && <Link to="/account" onClick={() => setLoadError('')}>{t('Sign in')}</Link>}</> : !account ? <AuthenticationForm google={google} providerError={providerError} onRetryProvider={() => { setGoogle(null); setProviderError(false); setProviderRetry(value => value + 1) }} onAuthenticated={value => { if (value.role === 'STUDENT') setPendingDestination(consumePendingSimulation()); setAccount(value) }} /> : <>
+    {loading ? <p role="status">{t(oauthSuccess ? 'Restoring your Google sign-in session…' : 'Checking your session…')}</p> : loadError ? <><p role="alert">{t(loadError)}</p><button onClick={() => { setLoadError(''); setLoading(true); setRetry(value => value + 1) }}>{t('Try again')}</button>{oauthSuccess && <Link to="/account" onClick={() => setLoadError('')}>{t('Sign in')}</Link>}</> : !account ? <AuthenticationForm google={google} providerError={providerError} onRetryProvider={() => { setGoogle(null); setProviderError(false); setProviderRetry(value => value + 1) }} onAuthenticated={() => { setLoading(true); setRetry(value => value + 1) }} /> : <>
       <p>{account.displayName} · {account.role}</p>
       {account.role !== 'ENTERPRISE' && <p role="alert">{t('You do not have permission to access this account.')}</p>}
       {localWorkspace ? <p role="status">{t('Local workspace')}</p> : <button disabled={busy} onClick={logout}>{t('Sign out')}</button>}

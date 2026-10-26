@@ -14,10 +14,29 @@ vi.mock('./httpClient.js', () => ({ apiRequest: vi.fn(), API_BASE_URL: '/api' })
 beforeEach(() => { vi.resetAllMocks(); localStorage.clear() })
 afterEach(cleanup)
 function page(component, path = '/test', locale = 'en') { return render(<I18nProvider initialLocale={locale}><MemoryRouter initialEntries={[path]}><Routes><Route path="*" element={component} /></Routes></MemoryRouter></I18nProvider>) }
-function resultsPage(locale = 'en') { return render(<I18nProvider initialLocale={locale}><MemoryRouter initialEntries={['/simulations/test/results?enrollment=2']}><Routes><Route path="/simulations/:slug/results" element={<CoreSimulationResultsPage />} /></Routes></MemoryRouter></I18nProvider>) }
+function resultsPage(locale = 'en', slug = 'test') { return render(<I18nProvider initialLocale={locale}><MemoryRouter initialEntries={[`/simulations/${slug}/results?enrollment=2`]}><Routes><Route path="/simulations/:slug/results" element={<CoreSimulationResultsPage />} /></Routes></MemoryRouter></I18nProvider>) }
 const definition = { id: '9', name: 'Response', format: 'TEXT', required: true, validationConfig: { maxLength: 1000 } }
 const task = { id: '4', title: 'Fixture task', instructions: 'Write actual work', resources: [], definitions: [definition], translations: {} }
 const enrollment = { id: '2', scenarioVersionId: '3', requiredTasks: 1, finalRequiredTasks: 0, metadata: { title: 'Fixture', translations: {} }, tasks: [task] }
+it('opens Dashboard alias results using owned pinned data without requesting a nonexistent public slug', async () => {
+  apiRequest.mockImplementation(path => {
+    if (path === '/v2/me') return Promise.resolve({ id: '7', role: 'STUDENT' })
+    if (path === '/v2/enrollments/2') return Promise.resolve(enrollment)
+    if (path === '/v2/enrollments/2/results') return Promise.resolve({ tasks: [{ taskId: '4', status: 'FINAL' }], practicedSkills: [] })
+    return Promise.reject(Object.assign(new Error('No public alias scenario'), { status: 404 }))
+  })
+  resultsPage('en', 'enrolled')
+  expect(await screen.findByRole('heading', { name: 'Fixture' })).toBeTruthy()
+  expect(screen.getByRole('heading', { name: 'Fixture task' })).toBeTruthy()
+  expect(apiRequest.mock.calls.map(([path]) => path)).toEqual(['/v2/me', '/v2/enrollments/2', '/v2/enrollments/2/results'])
+  expect(screen.queryByRole('alert')).toBeNull()
+})
+it.each([401, 403, 404])('does not turn denied Dashboard alias data into public results (%s)', async status => {
+  apiRequest.mockRejectedValue(Object.assign(new Error('Denied'), { status }))
+  resultsPage('en', 'enrolled')
+  expect(await screen.findByRole('alert')).toBeTruthy()
+  expect(screen.queryByRole('heading', { name: 'Fixture' })).toBeNull()
+})
 it('keeps a scoped draft after failed persistence and never displays a fabricated final result', async () => {
   apiRequest.mockImplementation(path => path === '/v2/me' ? Promise.resolve({ id: '7' }) : path === '/v2/enrollments/2' ? Promise.resolve(enrollment) : path.endsWith('/results') ? Promise.resolve({ tasks: [], practicedSkills: [] }) : path.endsWith('/submission') ? Promise.resolve({ status: 'DRAFT', revision: 0, items: [] }) : Promise.reject(new Error('Unavailable')))
   page(<CoreSimulationPage />, '/test?enrollment=2')

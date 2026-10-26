@@ -59,9 +59,11 @@ it('shows only authentication controls on the anonymous account entry', async ()
 })
 
 it.each(['STUDENT', 'ENTERPRISE', 'ADMIN'])('redirects password authentication by the server role %s and ignores query destinations', async role => {
+  let signedIn = false
   apiRequest.mockImplementation(path => {
     if (path === '/v2/auth/providers') return Promise.resolve({ google: false })
-    if (path === '/v2/auth/login') return Promise.resolve({ id: '72', role, displayName: 'Synthetic' })
+    if (path === '/v2/auth/login') { signedIn = true; return Promise.resolve({ id: '72', role, displayName: 'Synthetic' }) }
+    if (path === '/v2/me' && signedIn) return Promise.resolve({ id: '72', role, displayName: 'Synthetic' })
     return Promise.reject(Object.assign(new Error('Unauthorized'), { status: 401 }))
   })
   page('/account?role=ADMIN&redirect=https://untrusted.example&returnTo=/admin/assessments')
