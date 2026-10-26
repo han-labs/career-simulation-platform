@@ -151,6 +151,140 @@ corrections, perform the Chrome checklist after the Owner builds the stack, and
 sign off with their real name/date. Earlier draft contributor records and the
 project's live-model evaluation gates remain pending.
 
+## UC-09 AI Usage dashboard — 2026-10-26, human review pending
+
+- Assignment: Codex Sol, existing stacked feat/uc09-ai-usage-dashboard, selected
+  UC-09/US-10 only. Prompt: inspect persisted usage first; implement Admin request,
+  cost, canonical latency and failed/refused metrics, server filters/trend/bounded
+  execution list; preserve KB/Agent Studio, privacy and existing accounting.
+- Tools: Codex coding/PowerShell/Docker, JUnit/Testcontainers/PostgreSQL and
+  Vitest/Testing Library. Existing application data was read for UAT, never sent
+  to a provider. No generated production usage, migration, .env/security-policy
+  change, stage/commit/push/merge. Browser tool reported disabled in Work settings;
+  no browser UAT PASS or screenshot is claimed.
+- Reused AgentUsageController/Query/Dao and agent_execution, existing pricing
+  snapshots and Admin Studio/shared UI. Safe DTO explicitly excludes Student
+  identifiers, prompts, transcripts, provider payloads, tool arguments and source
+  passages. Existing aggregate API stays compatible; dashboard uses view=dashboard.
+- Actual verification: targeted dashboard PostgreSQL8 PASS; final backend verify
+  418 discovered /412 PASS /6 opt-in live SKIP /0 failures/errors; frontend330 PASS
+  with lint/build. Real gateway API19 checks PASS; SQL agrees with18 real existing
+  executions and nullable costs. All73 table fingerprints and assets unchanged.
+- Actual generated-code defects caught and corrected (not invented examples):
+  UC09-FIX-01: JDBC getObject(Long.class) rejected jsonb_array_length's PostgreSQL
+  int4 (7 errors in the initial isolated run). Explicit bigint cast fixed the
+  projection; repeated targeted/full tests passed. UC09-FIX-02: new VI dictionary
+  initially overrode7 existing shared-label translations (observed by comparing
+  actual dictionaries). Existing dictionary precedence was restored, retaining
+  other owners' labels; final330-test frontend check passed.
+- Human responsibilities: inspect safe DTO/SQL/semantics and code; execute actual
+  desktop/mobile browser UAT and sign off. API UAT uses the unchanged existing
+  local-profile Admin principal, not evidence of a fresh real-browser JWT login.
+  Real cost/partial-cost data is absent; synthetic isolated tests cover those
+  paths. No live AI quality evaluation is implied.
+- Detailed scope, files, actual failures/corrections and review checklist:
+  `.agent/reports/ai/2026-10-26-uc09-ai-usage-dashboard.md`.
+
+## Admin Studio final repair — 2026-10-26, human review pending
+
+- Authorization/prompt: implement Astra's approved final repair on the stacked
+  UC-09 branch; closely adapt supported reference interactions, preserve existing
+  business/security contracts, add only explicit stored-file Reprocess, and leave
+  all changes unstaged for Team Lead UAT. Optional UC-06/Syn shell excluded.
+- Tool: Codex Sol with shell/patch tools, Vitest/Testing Library, JUnit/Mockito/
+  Testcontainers, Docker and the in-app browser. Read the actual reference React
+  files/tests; reused CareerSim API/storage/configuration semantics and shared UI.
+  Applied build-rag-agent correctness guidance to source/publication/generation
+  safety. No dependencies, migrations, provider/pricing/auth changes or live AI calls.
+- Changes: shared scoped Admin visual rules; KB/Agent card grids; direct document
+  detail/actions and publication summary; revision-fenced Reprocess; coherent
+  partial Save; Brain/Chat/Integrations/Publish tabs; saved-config Preview with
+  bounded UI-only run continuity, keyboard/Expand and revalidated source chips;
+  compact Usage layout and explicit nullable/partial/zero cost presentation.
+- Actual checks: final full backend verify 422 discovered, 416 PASS, 6 opt-in live
+  SKIP, zero failures/errors. Four new Reprocess integration cases use disposable
+  PostgreSQL and mocked embeddings. Full frontend check includes shared/i18n and
+  Student/KB/Builder/Usage regressions. Exact final count is in the repair report.
+- Actual generated-code mistakes detected and corrected:
+  1. Generated Reprocess audit metadata used `previousRevision`, outside the real
+     AuditWriter allowlist. Targeted PostgreSQL tests failed with Unsafe audit
+     field. Changed to existing allowed `revision`; authorization/If-Match,
+     unchanged/changed/failure/cancel tests and full verify passed.
+  2. Generated compact header selectors lost to the shared `.cs-ui .cs-surface`
+     specificity. Real browser measured a 288.49px header with 24px padding.
+     Scoped Admin selectors restored 16px padding and a 171.49px header, retaining
+     responsive panes; this was observed, not a fabricated screenshot outcome.
+  3. Six new static UI labels initially lacked VI entries. Full translation
+     coverage failed; added real translations without excluding labels/tests.
+- Runtime: standard Compose build, only changed backend/frontend recreated in
+  careersimfresh. Existing gateway/PostgreSQL containers and volume bindings kept;
+  startup validated 28 migrations, no migration necessary. Read-only API/browser
+  checks used existing authorized local Admin context; no new login/password,
+  fake usage, provider call, document/configuration/assignment mutation or DB reset.
+- Human action: inspect code/contracts and perform state-changing UAT, live provider
+  checks only when separately approved, then sign off. Browser layout/read checks
+  are not human acceptance or live-model quality evidence. No stage/commit/push/merge.
+
+
+### 2026-10-26 — Revised Agent Studio (Codex Sol, Team Lead approved Astra plan)
+
+- Prompt/task: implement the approved revised final plan on the existing dirty UC-09 branch;
+  preserve prior repair, add real experience config/variables/Admin chats, KB counts and
+  narrow native Agent deadline repair; no Git mutations, secrets inspection or .env edits.
+- Tool assistance: source/reference analysis, Java/SQL/React implementation, synthetic
+  Testcontainers and HTTP-wire tests, focused frontend tests. Live/provider and runtime
+  evidence is recorded separately in the revised repair report; no human UAT is inferred.
+- Actual AI-generated mistakes detected and corrected: (1) nullable JSON experienceConfig
+  arriving through HTTP was written as JSON null and violated the new object constraint;
+  DAO normalizes both omitted/null to SQL NULL, preserving legacy hashes. (2) Preview Send
+  initially held the mutation lock while waiting for the first transcript GET, disabling Stop;
+  acceptance now releases Send while a fenced GET refresh proceeds. The exact-run Stop
+  regression test includes a deliberately stalled GET. (3) a datalist was initially a second
+  FormField child, breaking its single-control contract; moved outside the field and tested.
+- Verification/human boundary: automated tests are evidence of those paths, not human review.
+  Team Lead visual/product UAT and approval remain pending. No fabricated incorrect-code
+  examples, provider successes or human validation are claimed.
+
+- Final observed evidence for this revised pass: backend verify453 total/447PASS/6SKIP,
+  frontend check363PASS, standard Compose build/startPASS, V29/V30 deployed after protected
+  backup/checksum preflight. Exactly ONE live Preview FAILED PROVIDER_UNAVAILABLE at2129ms,
+  model gemini/gemini-3.1-flash-lite, zero tools/citations, UNKNOWN cost; no repeat provider
+  call. API lifecycle/usage checksPASS. Browser disabled in Work settings: actual geometry,
+  responsive visual and Chrome authNOT RUN. Detailed evidence/limitations:
+  `.agent/reports/ai/2026-10-26-revised-agent-studio.md`.
+
+### 2026-10-26 — UC-08 role publication and provider diagnostics correction (Codex Sol)
+
+- Human prompt/scope: focus UC-08 and blocking auth UX, preserve all dirty prior repair;
+  diagnose provider safely, allow exactly one controlled Preview after deterministic gates;
+  replace fixed-name variables with bounded key/value entries; replace per-Student
+  assignment UX/access with whole-role publication; distinguish local demo from real logout.
+- AI assistance: Java/SQL/React changes and synthetic Testcontainers/HTTP-wire tests.
+  No pricing lookup, credential inspection/replacement, .env change, Syn restoration,
+  Git staging/commit/push/merge or UC-07/UC-09 redesign.
+- Actual incorrect AI-generated code caught and repaired: V31 initially referenced an
+  out-of-scope SQL alias in the session guard; integration tests caught it and the guard
+  now checks NEW.owner_user_id. Role activation initially wrote an unsupported `roles`
+  audit metadata field; the existing audit whitelist rejected the transaction. Changed
+  to the approved safe status/count fields; rollback/concurrency tests verify the result.
+  Publication readiness also initially missed a newly completed Preview; its read identity
+  now includes exact execution ID/status, with the save/preview/publish UI regression intact.
+- Verification: backend full verify 473 total, 467 passed, 6 existing opt-in skips, no failures.
+  Initial frontend parallel runs hit long DOM-workflow timeouts; assertions and runtime
+  limits were retained. Final frontend/runtime/live results are in the dated role-publication
+  evidence report. Browser is disabled in Work settings; Chrome visual/auth/geometry UAT
+  and human approval are not claimed. Team Lead review remains pending.
+
+- Final observed evidence for this pass: frontend check362PASS (37 files; one worker,
+  unchanged assertions/timeouts); backend verify473 total/467PASS/6SKIP. Standard
+  Compose build/startPASS at23:06, V31 applied normally; old sealed proofs/assets preserved.
+  Exactly ONE live Admin Preview FAILED at10356ms with safe HTTP503/
+  PROVIDER_HTTP_UNAVAILABLE, outbound=true, configured=true, zero tools/citations,
+  UNKNOWN cost; no second provider call. No credential replacement is justified by
+  that503. On resumption at23:24 the Docker Desktop Linux engine was unavailable and
+  gateway unreachable; this later observation does not erase the earlier startup evidence.
+  Browser was disabled in Work settings. Details and exact Git state:
+  `.agent/reports/ai/2026-10-26-uc08-role-publication.md`.
 ## 2026-10-26 — HCM-UTE rebuild from latest main
 
 Codex (GPT-6-based agent) performed the current corrective request on a fresh main 608e812 worktree/feature branch; prior redesign887e0d1 remained untouched. It audited real flows before frontend changes, reused existing callbacks/hooks/routes/cards/state views, applied supplied visual assets and VI/EN copy, and executed baseline/final gates plus actual isolated API/browser journeys. [AI record](.agent/reports/ai/2026-10-26-hcmute-main-rebuild.md), [audit](.agent/reports/hcmute-main-functional-audit.md), [plan](.agent/plans/foundation-hcmute-frontend-flow-alignment.md) and [verification](.agent/reports/hcmute-main-rebuild-verification.md) distinguish mocks/live evidence, original-main defects and human review pending. No backend or feature-owned business implementation, auth/score authority or provider flow was replaced. No human acceptance, Google/live-model UAT or push/main merge is claimed.

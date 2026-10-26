@@ -34,9 +34,18 @@ public class IdentityController {
     @Value("${app.auth.google.enabled:false}")
     private boolean googleEnabled;
 
+    @org.springframework.beans.factory.annotation.Autowired
+    private org.springframework.core.env.Environment environment;
+
     @GetMapping("/auth/providers")
     public ApiResponse<?> providers() {
-        return ApiResponse.success(Map.of("google", googleEnabled));
+        return ApiResponse.success(
+                Map.of(
+                        "google",
+                        googleEnabled,
+                        "localWorkspace",
+                        edu.hcmute.careersim.common.config.SecurityConfig.localAdminEnabled(
+                                environment)));
     }
 
     @PostMapping("/auth/google/link")

@@ -10,7 +10,7 @@ import KnowledgeStatus from './KnowledgeStatus.jsx'
 import { kbPath } from '../agentPlatform/platformApi.js'
 
 // The keyed parent fences exact KB/version/job identity and every late response.
-export default function KnowledgeDocumentInspector({ kb, selection, onReviewed, onClose, onPublish, publishDisabled = true, onRetire, versions = [], jobs = [], onSelectVersion, onSelectJob, onReprocess, reprocessDisabled = false }) {
+export default function KnowledgeDocumentInspector({ kb, selection, onReviewed, onClose, onPublish, publishDisabled = true, onRetire, versions = [], jobs = [], onSelectVersion, onSelectJob, onReprocess, onReplace, reprocessDisabled = false }) {
   const { t } = useI18n(), [detail, setDetail] = useState(null), [error, setError] = useState(''), [tab, setTab] = useState('text')
   const [generation, setGeneration] = useState(null)
   const { kind, id, assetKey, revision } = selection
@@ -29,10 +29,12 @@ export default function KnowledgeDocumentInspector({ kb, selection, onReviewed, 
     ['Content language', detail?.language ?? detail?.metadata?.language], ['Reviewer', detail?.reviewer],
     ['Source HTTPS reference (optional)', detail?.sourceUri ?? detail?.metadata?.sourceUri],
   ].filter(([, value]) => value !== undefined && value !== null && value !== '')
-  return <Dialog wide title={t('Inspect document')} description={detail?.title ?? detail?.metadata?.title ?? t('Loading document inspection...')} closeLabel={t('Close dialog')} onRequestClose={onClose} footer={<>{onRetire && <Button variant="danger" disabled={!detail || Boolean(error)} onClick={onRetire}>{t('Retire source version')}</Button>}<Button onClick={onClose}>{t('Close inspector')}</Button>{onPublish && <Button variant="primary" disabled={publishDisabled} onClick={onPublish}>{t('Publish document')}</Button>}</>}>
+  return <Dialog wide title={t('Document detail')} description={detail?.title ?? detail?.metadata?.title ?? t('Loading document inspection...')} closeLabel={t('Close dialog')} onRequestClose={onClose} footer={<>{onRetire && <Button variant="danger" disabled={!detail || Boolean(error)} onClick={onRetire}>{t('Retire source version')}</Button>}<Button onClick={onClose}>{t('Close inspector')}</Button></>}>
     <section aria-label={t('Document inspector')} className="cs-stack">
+      {onPublish && <div className="cs-actions kb-inspector-actions"><Button variant="primary" disabled={publishDisabled} onClick={onPublish}>{t('Publish document')}</Button></div>}
       {!detail ? <FeedbackPanel kind={error ? 'error' : 'loading'}>{t(error || 'Loading document inspection...')}</FeedbackPanel> : <>
         <div className="kb-inspector-identity"><KnowledgeStatus value={detail.status ?? detail.state} />{kind === 'version' && <span className="cs-caption">{t('Version')}: {detail.versionNumber ?? t('Not reported')}</span>}</div>
+        <div className="cs-actions">{onReplace && kind === 'version' && <Button disabled={reprocessDisabled} onClick={() => onReplace(detail)}>{t('Replace file')}</Button>}{kind === 'attempt' && onReprocess && <Button disabled={reprocessDisabled || ['PARSING', 'EMBEDDING'].includes(detail.state)} onClick={() => onReprocess(detail)}>{t('Reprocess')}</Button>}</div>
         <Tabs label={t('Inspection views')} value={tab} onChange={setTab} items={[
           { value: 'text', label: t('Extracted text'), content: snapshot ? <div className="cs-stack">
             <p className="cs-caption">{t('Normalized extraction snapshot')}</p>
@@ -60,7 +62,6 @@ export default function KnowledgeDocumentInspector({ kb, selection, onReviewed, 
         <details className="cs-disclosure"><summary>{t('Technical details')}</summary>
           {kind === 'attempt' && <><FormField label={t('Attempt generation')}><select value={attempt?.generation ?? ''} onChange={event => setGeneration(event.target.value)}>{attempts.map(item => <option key={item.generation} value={item.generation}>{item.generation} · {item.stage ?? t('Not reported')}</option>)}</select></FormField>
             {(attempt?.errorCode ?? detail.errorCode) && <p>{attempt?.errorCode ?? detail.errorCode} · {t('Failed stage')}: {attempt?.stage ?? t('Not reported')}</p>}
-            {onReprocess && ['READY', 'PUBLISHED'].includes(detail.state) && <Button disabled={reprocessDisabled} onClick={() => onReprocess(detail)}>{t('Check existing ingestion')}</Button>}
           </>}
           <dl className="cs-metadata">{[
             ['Stable asset key', detail.assetKey], ['Content hash', detail.contentHash], ['Parser profile', snapshot?.parserProfile ?? detail.provenance?.parserProfile], ['Text unit', snapshot?.textUnit],

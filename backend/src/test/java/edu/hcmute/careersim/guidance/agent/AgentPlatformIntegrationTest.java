@@ -73,6 +73,581 @@ class AgentPlatformIntegrationTest {
     @org.springframework.boot.test.web.server.LocalServerPort int port;
     long admin, student;
 
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+    edu.hcmute.careersim.guidance.agent.dao.AgentRoleBindingDao roleDao;
+
+    RoleActivation selection(java.util.List<String> selectedRoles) {
+        return new RoleActivation(
+                selectedRoles,
+                registry.roleBindings(admin).stream()
+                        .collect(
+                                java.util.stream.Collectors.toMap(
+                                        RoleBinding::role, RoleBinding::revision)),
+                true);
+    }
+
+    void activate(UUID aid, String... roles) {
+        registry.activateRoles(
+                admin, aid, registry.get(admin, aid).revision(), selection(List.of(roles)));
+    }
+
+    UUID roleAgent(String name) {
+        UUID kb = publishedKb();
+        var a = registry.create(admin, new AgentInput(name, "Synthetic role fixture", null));
+        UUID aid = UUID.fromString(a.id());
+        var c = registry.save(admin, aid, a.revision(), config(kb));
+        terminal(
+                executions.preview(
+                        admin,
+                        aid,
+                        UUID.fromString(c.id()),
+                        new Preview(UUID.randomUUID(), "Synthetic backend practice")));
+        registry.publish(
+                admin, aid, UUID.fromString(c.id()), registry.get(admin, aid).revision(), true);
+        return aid;
+    }
+
+    @Test
+    void rolesResolveOnePublishedAgentForEveryUserWithoutPerUserAssignments() throws Exception {
+        UUID a = roleAgent("Role A"), b = roleAgent("Role B");
+        long enterprise =
+                jdbc.queryForObject(
+                        "INSERT INTO app_users(email,display_name,role,status) VALUES (?,'Synthetic enterprise','ENTERPRISE','ACTIVE') RETURNING id",
+                        Long.class,
+                        UUID.randomUUID() + "@example.test");
+        activate(a, "STUDENT", "ENTERPRISE");
+        assertThat(registry.available(student))
+                .extracting(PublicAgent::id)
+                .containsExactly(a.toString());
+        assertThat(registry.available(enterprise))
+                .extracting(PublicAgent::id)
+                .containsExactly(a.toString());
+        assertThat(registry.available(enterprise)).allMatch(x -> !x.runtimeAvailable());
+        assertThat(registry.assignments(admin, a)).isEmpty();
+        activate(b, "STUDENT");
+        assertThat(registry.available(student))
+                .extracting(PublicAgent::id)
+                .containsExactly(b.toString());
+        assertThat(registry.available(enterprise))
+                .extracting(PublicAgent::id)
+                .containsExactly(a.toString());
+        assertThat(registry.available(enterprise)).allMatch(x -> !x.runtimeAvailable());
+        assertThat(
+                        registry.roleBindings(admin).stream()
+                                .filter(
+                                        r ->
+                                                r.agentId() != null
+                                                        && r.agentId().equals(a.toString()))
+                                .map(RoleBinding::role))
+                .containsExactly("ENTERPRISE");
+        mvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
+                                        "/v2/agents")
+                                .cookie(cookie(enterprise)))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                                .isOk());
+        mvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
+                                        "/v2/agent-sessions")
+                                .cookie(cookie(enterprise)))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                                .isForbidden());
+        mvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put(
+                                        "/v2/admin/agents/" + a + "/roles")
+                                .cookie(cookie(student))
+                                .with(
+                                        org.springframework.security.test.web.servlet.request
+                                                .SecurityMockMvcRequestPostProcessors.csrf())
+                                .contentType("application/json")
+                                .content(CoreValues.write(selection(List.of("STUDENT")))))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                                .isForbidden());
+    }
+
+    @Test
+    void concurrentRoleReplacementAcceptsExactlyOneRevisionSnapshot() throws Exception {
+        UUID a = roleAgent("Concurrent A"), b = roleAgent("Concurrent B");
+        long otherAdmin =
+                jdbc.queryForObject(
+                        "INSERT INTO app_users(email,display_name,role,status) VALUES (?,'Synthetic other Admin','ADMINISTRATOR','ACTIVE') RETURNING id",
+                        Long.class,
+                        UUID.randomUUID() + "@example.test");
+        var snapshot = selection(List.of("STUDENT", "ENTERPRISE"));
+        var start = new java.util.concurrent.CountDownLatch(1);
+        var pool = java.util.concurrent.Executors.newFixedThreadPool(2);
+        try {
+            var one =
+                    pool.submit(
+                            () -> {
+                                start.await();
+                                try {
+                                    registry.activateRoles(
+                                            admin, a, registry.get(admin, a).revision(), snapshot);
+                                    return true;
+                                } catch (
+                                        edu.hcmute.careersim.common.exception.ApiException
+                                                conflict) {
+                                    return false;
+                                }
+                            });
+            var two =
+                    pool.submit(
+                            () -> {
+                                start.await();
+                                try {
+                                    registry.activateRoles(
+                                            otherAdmin,
+                                            b,
+                                            registry.get(otherAdmin, b).revision(),
+                                            snapshot);
+                                    return true;
+                                } catch (
+                                        edu.hcmute.careersim.common.exception.ApiException
+                                                conflict) {
+                                    return false;
+                                }
+                            });
+            start.countDown();
+            assertThat(
+                            List.of(
+                                    one.get(10, java.util.concurrent.TimeUnit.SECONDS),
+                                    two.get(10, java.util.concurrent.TimeUnit.SECONDS)))
+                    .containsExactlyInAnyOrder(true, false);
+            assertThat(registry.roleBindings(admin)).hasSize(2);
+            assertThat(registry.roleBindings(admin).stream().map(RoleBinding::agentId).distinct())
+                    .hasSize(1);
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
+    void roleReplacementRollsBackBothSlotsOnStorageFailureAndRejectsStaleRevisions() {
+        UUID a = roleAgent("Atomic A"), b = roleAgent("Atomic B");
+        activate(a, "STUDENT", "ENTERPRISE");
+        var before = registry.roleBindings(admin);
+        var request = selection(List.of("STUDENT", "ENTERPRISE"));
+        doThrow(
+                        new org.springframework.dao.DataIntegrityViolationException(
+                                "synthetic binding fault"))
+                .when(roleDao)
+                .bind(eq("STUDENT"), eq(b));
+        assertThatThrownBy(
+                        () ->
+                                registry.activateRoles(
+                                        admin, b, registry.get(admin, b).revision(), request))
+                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+        assertThat(registry.roleBindings(admin)).isEqualTo(before);
+        org.mockito.Mockito.reset(roleDao);
+        activate(b, "ENTERPRISE");
+        assertThatThrownBy(
+                        () ->
+                                registry.activateRoles(
+                                        admin, b, registry.get(admin, b).revision(), request))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+    }
+
+    @Test
+    void unpublishedAndUnpreviewedAgentsCannotActivateAndArchiveClearsBindings() {
+        var draft = registry.create(admin, new AgentInput("Unpublished", "Purpose", null));
+        UUID id = UUID.fromString(draft.id());
+        assertThatThrownBy(
+                        () ->
+                                registry.activateRoles(
+                                        admin, id, draft.revision(), selection(List.of("STUDENT"))))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        UUID a = roleAgent("Active then archive");
+        activate(a, "STUDENT", "ENTERPRISE");
+        registry.archive(admin, a, registry.get(admin, a).revision());
+        assertThat(registry.roleBindings(admin)).allMatch(r -> r.agentId() == null);
+        assertThat(registry.available(student)).isEmpty();
+    }
+
+    @Test
+    void republishKeepsRoleIdentityAndOldSessionPinWhileNewSessionsUseCurrentPublishedConfig() {
+        UUID a = roleAgent("Republish");
+        activate(a, "STUDENT");
+        var first = registry.get(admin, a).publishedConfigurationId();
+        UUID kb =
+                UUID.fromString(
+                        registry.configuration(admin, a, UUID.fromString(first))
+                                .knowledgeBaseIds()
+                                .get(0));
+        var second = registry.save(admin, a, registry.get(admin, a).revision(), config(kb));
+        terminal(
+                executions.preview(
+                        admin,
+                        a,
+                        UUID.fromString(second.id()),
+                        new Preview(UUID.randomUUID(), "Synthetic backend practice")));
+        registry.publish(
+                admin, a, UUID.fromString(second.id()), registry.get(admin, a).revision(), true);
+        assertThat(
+                        registry.roleBindings(admin).stream()
+                                .filter(r -> r.role().equals("STUDENT"))
+                                .findFirst()
+                                .orElseThrow()
+                                .agentId())
+                .isEqualTo(a.toString());
+        registry.requireAssignedConfiguration(student, a, UUID.fromString(first));
+        var before = registry.roleBindings(admin);
+        registry.publish(
+                admin, a, UUID.fromString(second.id()), registry.get(admin, a).revision(), true);
+        assertThat(registry.roleBindings(admin)).isEqualTo(before);
+        assertThat(registry.get(admin, a).publishedConfigurationId()).isEqualTo(second.id());
+    }
+
+    @Autowired AdminPreviewConversationService previewChats;
+
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+    edu.hcmute.careersim.guidance.agent.dao.AgentRegistryDao registryDao;
+
+    @Test
+    void configurationFailureRollsBackIdentityInTheSameTransaction() {
+        UUID kb = publishedKb();
+        var a = registry.create(admin, new AgentInput("Before", "Before purpose", null));
+        UUID aid = UUID.fromString(a.id());
+        doThrow(
+                        new org.springframework.dao.DataIntegrityViolationException(
+                                "synthetic insertion fault"))
+                .when(registryDao)
+                .save(eq(admin), eq(aid), any(), anyString(), anyString(), anyString());
+        assertThatThrownBy(() -> registry.save(admin, aid, a.revision(), experience(kb, true)))
+                .isInstanceOf(org.springframework.dao.DataIntegrityViolationException.class);
+        assertThat(registry.get(admin, aid).name()).isEqualTo("Before");
+        assertThat(registry.get(admin, aid).revision()).isEqualTo(a.revision());
+        assertThat(registry.configurations(admin, aid)).isEmpty();
+    }
+
+    @Test
+    void historyDisabledAndOtherChatsNeverLeakPreviousTurnsAndOwnersAreIsolated() {
+        UUID kb = publishedKb();
+        var a = registry.create(admin, new AgentInput("History", "Purpose", null));
+        UUID aid = UUID.fromString(a.id());
+        var c = registry.save(admin, aid, a.revision(), experience(kb, false));
+        var chat =
+                previewChats.create(
+                        admin,
+                        aid,
+                        new edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.NewChat(
+                                UUID.randomUUID(), UUID.fromString(c.id())));
+        UUID id = UUID.fromString(chat.id());
+        terminal(
+                previewChats.send(
+                        admin,
+                        aid,
+                        id,
+                        new edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.Message(
+                                UUID.randomUUID(), "FIRST_SYNTHETIC_TURN")));
+        clearInvocations(model);
+        terminal(
+                previewChats.send(
+                        admin,
+                        aid,
+                        id,
+                        new edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.Message(
+                                UUID.randomUUID(), "SECOND_SYNTHETIC_TURN")));
+        var capture = org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(model, atLeastOnce())
+                .decide(anyString(), anyString(), capture.capture(), anyList(), anyBoolean());
+        assertThat(capture.getAllValues().toString()).doesNotContain("FIRST_SYNTHETIC_TURN");
+        assertThat(previewChats.read(admin, aid, id, Long.MAX_VALUE, 50).turns()).hasSize(2);
+        long other =
+                jdbc.queryForObject(
+                        "INSERT INTO app_users(email,password_hash,display_name,role) VALUES (?,'synthetic-only','Other reviewer','ADMINISTRATOR') RETURNING id",
+                        Long.class,
+                        UUID.randomUUID() + "@example.test");
+        assertThat(previewChats.list(other, aid, 20, 0).items()).isEmpty();
+        assertThatThrownBy(() -> previewChats.read(other, aid, id, Long.MAX_VALUE, 50))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.NotFoundException.class);
+        var another = registry.create(admin, new AgentInput("Other Agent", "Purpose", null));
+        assertThatThrownBy(
+                        () ->
+                                previewChats.read(
+                                        admin,
+                                        UUID.fromString(another.id()),
+                                        id,
+                                        Long.MAX_VALUE,
+                                        50))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.NotFoundException.class);
+        assertThatThrownBy(() -> previewChats.list(admin, aid, 51, 0))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        assertThat(previewChats.read(admin, aid, id, Long.MAX_VALUE, 1).nextBefore()).isNotNull();
+    }
+
+    @Test
+    void clearFencesAnActivePreviewAndRetainsCancelledUsageAudit() throws Exception {
+        UUID kb = publishedKb();
+        var a = registry.create(admin, new AgentInput("Race", "Purpose", null));
+        UUID aid = UUID.fromString(a.id());
+        var c = registry.save(admin, aid, a.revision(), experience(kb, true));
+        var chat =
+                previewChats.create(
+                        admin,
+                        aid,
+                        new edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.NewChat(
+                                UUID.randomUUID(), UUID.fromString(c.id())));
+        UUID id = UUID.fromString(chat.id());
+        var entered = new java.util.concurrent.CountDownLatch(1);
+        var release = new java.util.concurrent.CountDownLatch(1);
+        when(model.decide(anyString(), anyString(), anyString(), anyList(), anyBoolean()))
+                .thenAnswer(
+                        call -> {
+                            entered.countDown();
+                            release.await(5, java.util.concurrent.TimeUnit.SECONDS);
+                            return new AgentModelProvider.Decision(
+                                    CoreValues.tree(Map.of()),
+                                    List.of(),
+                                    CoreValues.tree(
+                                            Map.of(
+                                                    "schemaVersion",
+                                                    1,
+                                                    "outcome",
+                                                    "REFUSED",
+                                                    "text",
+                                                    "Synthetic refusal",
+                                                    "citations",
+                                                    List.of(),
+                                                    "suggestions",
+                                                    List.of())));
+                        });
+        var run =
+                previewChats.send(
+                        admin,
+                        aid,
+                        id,
+                        new edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.Message(
+                                UUID.randomUUID(), "Synthetic race"));
+        try {
+            assertThat(entered.await(3, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+            assertThatThrownBy(
+                            () ->
+                                    previewChats.send(
+                                            admin,
+                                            aid,
+                                            id,
+                                            new edu.hcmute.careersim.guidance.agent.dto
+                                                    .AdminPreviewContracts.Message(
+                                                    UUID.randomUUID(), "Duplicate active")))
+                    .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+            var before = previewChats.read(admin, aid, id, Long.MAX_VALUE, 50).conversation();
+            var after = previewChats.change(admin, aid, id, before.revision(), true, false);
+            assertThat(after.epoch()).isEqualTo(before.epoch() + 1);
+        } finally {
+            release.countDown();
+        }
+        Awaitility.await()
+                .atMost(Duration.ofSeconds(5))
+                .until(
+                        () ->
+                                "CANCELLED"
+                                        .equals(
+                                                jdbc.queryForObject(
+                                                        "SELECT status FROM agent_execution WHERE id=?",
+                                                        String.class,
+                                                        UUID.fromString(run.id()))));
+        assertThat(previewChats.read(admin, aid, id, Long.MAX_VALUE, 50).turns()).isEmpty();
+        assertThatThrownBy(() -> executions.read(admin, UUID.fromString(run.id())))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.NotFoundException.class);
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT session_id IS NULL FROM agent_execution WHERE id=?",
+                                Boolean.class,
+                                UUID.fromString(run.id())))
+                .isTrue();
+    }
+
+    ConfigurationInput experience(UUID kb, boolean history) {
+        var old = config(kb);
+        return new ConfigurationInput(
+                old.modelKey(),
+                "Help {{name}} explore practice.",
+                old.promptTemplateRef(),
+                old.toolPolicy(),
+                old.memoryPolicy(),
+                old.outputPolicy(),
+                old.knowledgeBaseIds(),
+                CoreValues.tree(
+                        Map.of(
+                                "schemaVersion",
+                                2,
+                                "name",
+                                "Pinned Agent",
+                                "description",
+                                "Pinned purpose",
+                                "audience",
+                                "business",
+                                "language",
+                                "vi",
+                                "greeting",
+                                "Xin chào {{name}}",
+                                "timezone",
+                                "Asia/Ho_Chi_Minh",
+                                "variables",
+                                Map.of("name", "An Nguyễn"),
+                                "chat",
+                                Map.of(
+                                        "includeHistory",
+                                        history,
+                                        "maxTurns",
+                                        2,
+                                        "showSourceExcerpts",
+                                        false,
+                                        "responseStyle",
+                                        "concise"))));
+    }
+
+    @Test
+    void experienceRoundTripsAtomicallyAndDoesNotChangeLegacyConfigurationHashes() {
+        UUID kb = publishedKb();
+        var a = registry.create(admin, new AgentInput("Original", "Original purpose", null));
+        UUID aid = UUID.fromString(a.id());
+        var legacy = registry.save(admin, aid, a.revision(), config(kb));
+        var c =
+                registry.save(
+                        admin, aid, registry.get(admin, aid).revision(), experience(kb, true));
+        assertThat(c.experienceConfig()).isEqualTo(experience(kb, true).experienceConfig());
+        assertThat(registry.get(admin, aid).name()).isEqualTo("Pinned Agent");
+        assertThat(registry.configuration(admin, aid, UUID.fromString(legacy.id())).contentHash())
+                .isEqualTo(legacy.contentHash());
+        assertThat(
+                        registry.configuration(admin, aid, UUID.fromString(legacy.id()))
+                                .experienceConfig())
+                .isNull();
+        assertThatThrownBy(
+                        () ->
+                                jdbc.update(
+                                        "UPDATE agent_configuration SET experience_config='{}'::jsonb WHERE id=?",
+                                        UUID.fromString(c.id())))
+                .isInstanceOf(org.springframework.dao.DataAccessException.class);
+        var bad = experience(kb, true);
+        ((com.fasterxml.jackson.databind.node.ObjectNode) bad.experienceConfig())
+                .put("name", "Must roll back");
+        assertThatThrownBy(() -> registry.save(admin, aid, a.revision(), bad))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        assertThat(registry.get(admin, aid).name()).isEqualTo("Pinned Agent");
+        verify(model, never())
+                .decide(anyString(), anyString(), anyString(), anyList(), anyBoolean());
+    }
+
+    @Test
+    void kbCountsUseLogicalDocumentsAndOnlyCurrentPublishedUsableChunks() {
+        UUID kb = publishedKb();
+        var summary =
+                knowledge.list(admin).stream()
+                        .filter(b -> b.id().equals(kb.toString()))
+                        .findFirst()
+                        .orElseThrow();
+        assertThat(summary.documentCount()).isEqualTo(1);
+        assertThat(summary.publishedChunkCount()).isPositive();
+        var job = knowledge.jobs(admin, kb).get(0);
+        knowledge.reprocess(admin, kb, UUID.fromString(job.id()), job.revision());
+        var after =
+                knowledge.list(admin).stream()
+                        .filter(b -> b.id().equals(kb.toString()))
+                        .findFirst()
+                        .orElseThrow();
+        assertThat(after.documentCount()).isEqualTo(1);
+        assertThat(after.publishedChunkCount()).isEqualTo(summary.publishedChunkCount());
+    }
+
+    @Test
+    void adminChatsArePinnedResumableIdempotentAndClearPreservesAuditAndPublicationProof() {
+        UUID kb = publishedKb();
+        var a = registry.create(admin, new AgentInput("Original", "Purpose", null));
+        UUID aid = UUID.fromString(a.id());
+        var config = registry.save(admin, aid, a.revision(), experience(kb, true));
+        UUID cid = UUID.fromString(config.id()), request = UUID.randomUUID();
+        var chat =
+                previewChats.create(
+                        admin,
+                        aid,
+                        new edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.NewChat(
+                                request, cid));
+        UUID chatId = UUID.fromString(chat.id());
+        assertThat(
+                        previewChats
+                                .create(
+                                        admin,
+                                        aid,
+                                        new edu.hcmute.careersim.guidance.agent.dto
+                                                .AdminPreviewContracts.NewChat(request, cid))
+                                .id())
+                .isEqualTo(chat.id());
+        var transcript = previewChats.read(admin, aid, chatId, Long.MAX_VALUE, 50);
+        assertThat(transcript.greeting()).isEqualTo("Xin chào An Nguyễn");
+        assertThat(transcript.turns()).isEmpty();
+        verify(model, never())
+                .decide(anyString(), anyString(), anyString(), anyList(), anyBoolean());
+        var message =
+                new edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.Message(
+                        UUID.randomUUID(), "Synthetic first practice");
+        var first = terminal(previewChats.send(admin, aid, chatId, message));
+        assertThat(first.status()).isEqualTo("SUCCEEDED");
+        assertThat(previewChats.send(admin, aid, chatId, message).id()).isEqualTo(first.id());
+        assertThat(previewChats.list(admin, aid, 20, 0).items()).hasSize(1);
+        clearInvocations(model);
+        terminal(
+                previewChats.send(
+                        admin,
+                        aid,
+                        chatId,
+                        new edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.Message(
+                                UUID.randomUUID(), "Synthetic second practice")));
+        var captured = org.mockito.ArgumentCaptor.forClass(String.class);
+        verify(model, atLeastOnce())
+                .decide(
+                        anyString(),
+                        contains("An Nguyễn"),
+                        captured.capture(),
+                        anyList(),
+                        anyBoolean());
+        assertThat(captured.getAllValues().toString())
+                .contains("Synthetic first practice", "Untrusted previous");
+        var other =
+                previewChats.create(
+                        admin,
+                        aid,
+                        new edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.NewChat(
+                                UUID.randomUUID(), cid));
+        assertThat(
+                        previewChats
+                                .read(admin, aid, UUID.fromString(other.id()), Long.MAX_VALUE, 50)
+                                .turns())
+                .isEmpty();
+        assertThatThrownBy(() -> previewChats.read(student, aid, chatId, Long.MAX_VALUE, 50))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        long revision =
+                previewChats.read(admin, aid, chatId, Long.MAX_VALUE, 50).conversation().revision();
+        assertThatThrownBy(() -> previewChats.change(admin, aid, chatId, revision - 1, true, false))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        previewChats.change(admin, aid, chatId, revision, true, false);
+        assertThat(previewChats.read(admin, aid, chatId, Long.MAX_VALUE, 50).turns()).isEmpty();
+        assertThatThrownBy(() -> previewChats.send(admin, aid, chatId, message))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT status FROM agent_execution WHERE id=?",
+                                String.class,
+                                UUID.fromString(first.id())))
+                .isEqualTo("SUCCEEDED");
+        registry.publish(admin, aid, cid, registry.get(admin, aid).revision(), true);
+        var current = previewChats.read(admin, aid, chatId, Long.MAX_VALUE, 50).conversation();
+        previewChats.change(admin, aid, chatId, current.revision(), true, true);
+        assertThatThrownBy(() -> previewChats.read(admin, aid, chatId, Long.MAX_VALUE, 50))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.NotFoundException.class);
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT count(*) FROM agent_execution WHERE configuration_id=?",
+                                Integer.class,
+                                cid))
+                .isEqualTo(2);
+    }
+
     jakarta.servlet.http.Cookie cookie(long id) {
         return new jakarta.servlet.http.Cookie("CAREERSIM_AUTH", auth.issue(id).value());
     }
@@ -112,6 +687,175 @@ class AgentPlatformIntegrationTest {
 
     @Autowired org.springframework.transaction.PlatformTransactionManager transactionManager;
     @Autowired AgentUsageQuery agentUsage;
+
+    @org.springframework.test.context.bean.override.mockito.MockitoSpyBean
+    edu.hcmute.careersim.guidance.knowledge.infrastructure.KnowledgeParser parser;
+
+    @Test
+    void explicitReprocessParsesStoredSourceAndReusesValidIndexWithoutAnotherUpload() {
+        UUID kb = publishedKb();
+        var job = knowledge.jobs(admin, kb).get(0);
+        UUID id = UUID.fromString(job.id());
+        clearInvocations(parser, embedding);
+        var result = knowledge.reprocess(admin, kb, id, job.revision());
+        assertThat(result.state()).isEqualTo("PUBLISHED");
+        assertThat(result.sourceFileId()).isEqualTo(job.sourceFileId());
+        assertThat(result.producedVersionId()).isEqualTo(job.producedVersionId());
+        assertThat(result.attempts()).hasSize(job.attempts().size() + 1);
+        assertThat(result.attempts().get(result.attempts().size() - 1).path("outcome").asText())
+                .isEqualTo("UNCHANGED");
+        assertThat(knowledge.jobs(admin, kb)).hasSize(1);
+        assertThat(knowledge.versions(admin, kb)).hasSize(1);
+        verify(parser).parse(anyString(), anyString(), any(byte[].class), anyString());
+        verify(embedding, never()).embed(anyString(), anyBoolean());
+        assertThatThrownBy(() -> knowledge.reprocess(admin, kb, id, job.revision()))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        assertThat(knowledge.job(admin, kb, id).attempts()).hasSize(result.attempts().size());
+    }
+
+    @Test
+    void reprocessChangedProfileStagesReadyAndFailurePreservesPublishedSource() {
+        UUID kb = publishedKb();
+        var original = knowledge.versions(admin, kb).get(0);
+        var job = knowledge.jobs(admin, kb).get(0);
+        UUID id = UUID.fromString(job.id());
+        when(embedding.profile()).thenReturn("synthetic:768:v2");
+        when(embedding.embed(anyString(), anyBoolean()))
+                .thenThrow(
+                        new SynGuidanceProvider.ProviderException(
+                                SynGuidanceProvider.FailureKind.PROVIDER_UNAVAILABLE));
+        var failed = knowledge.reprocess(admin, kb, id, job.revision());
+        assertThat(failed.state()).isEqualTo("FAILED");
+        assertThat(failed.attempts().get(failed.attempts().size() - 1).has("extractionSnapshot"))
+                .isTrue();
+        assertThat(knowledge.versions(admin, kb)).hasSize(1);
+        assertThat(knowledge.version(admin, kb, "guide", Long.parseLong(original.id())).status())
+                .isEqualTo("PUBLISHED");
+        double[] vector = new double[768];
+        vector[0] = 1;
+        doReturn(vector).when(embedding).embed(anyString(), anyBoolean());
+        var ready = knowledge.reprocess(admin, kb, id, failed.revision());
+        assertThat(ready.state()).isEqualTo("READY");
+        assertThat(ready.assetKey()).isEqualTo(job.assetKey());
+        assertThat(ready.sourceFileId()).isEqualTo(job.sourceFileId());
+        assertThat(ready.producedVersionId()).isNotEqualTo(original.id());
+        assertThat(knowledge.versions(admin, kb)).hasSize(2);
+        assertThat(knowledge.version(admin, kb, "guide", Long.parseLong(original.id())).status())
+                .isEqualTo("PUBLISHED");
+        assertThat(knowledge.jobs(admin, kb)).hasSize(1);
+        knowledge.retire(admin, kb, "guide", Long.parseLong(ready.producedVersionId()));
+        assertThatThrownBy(() -> knowledge.reprocess(admin, kb, id, ready.revision()))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        assertThat(knowledge.version(admin, kb, "guide", Long.parseLong(original.id())).status())
+                .isEqualTo("PUBLISHED");
+    }
+
+    @Test
+    void cancelledReprocessCannotStageLateResultOrReplacePublishedVersion() throws Exception {
+        UUID kb = publishedKb();
+        var original = knowledge.versions(admin, kb).get(0);
+        var job = knowledge.jobs(admin, kb).get(0);
+        UUID id = UUID.fromString(job.id());
+        when(embedding.profile()).thenReturn("synthetic:768:v2");
+        var entered = new java.util.concurrent.CountDownLatch(1);
+        var release = new java.util.concurrent.CountDownLatch(1);
+        when(embedding.embed(anyString(), anyBoolean()))
+                .thenAnswer(
+                        call -> {
+                            entered.countDown();
+                            release.await(10, java.util.concurrent.TimeUnit.SECONDS);
+                            SynExecutionScope.recordUsage(
+                                    "gemini", "synthetic-embedding", 7L, null);
+                            double[] vector = new double[768];
+                            vector[0] = 1;
+                            return vector;
+                        });
+        var pool = java.util.concurrent.Executors.newSingleThreadExecutor();
+        try {
+            var future = pool.submit(() -> knowledge.reprocess(admin, kb, id, job.revision()));
+            assertThat(entered.await(10, java.util.concurrent.TimeUnit.SECONDS)).isTrue();
+            assertThatThrownBy(() -> knowledge.reprocess(admin, kb, id, job.revision()))
+                    .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+            knowledge.cancel(admin, kb, id);
+            release.countDown();
+            assertThat(future.get(15, java.util.concurrent.TimeUnit.SECONDS).state())
+                    .isEqualTo("CANCELLED");
+        } finally {
+            release.countDown();
+            pool.shutdownNow();
+        }
+        assertThat(knowledge.versions(admin, kb)).hasSize(1);
+        assertThat(knowledge.version(admin, kb, "guide", Long.parseLong(original.id())).status())
+                .isEqualTo("PUBLISHED");
+        var attempts = knowledge.job(admin, kb, id).attempts();
+        assertThat(attempts.get(attempts.size() - 1).toString())
+                .contains("extractionSnapshot", "inputTokens", "7");
+    }
+
+    @Test
+    void reprocessEndpointRequiresAdminAndRevisionAndRejectsRetiredSource() throws Exception {
+        UUID kb = publishedKb();
+        var job = knowledge.jobs(admin, kb).get(0);
+        String path = "/v2/admin/knowledge-bases/" + kb + "/ingestions/" + job.id() + "/reprocess";
+        mvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                                        path)
+                                .with(
+                                        org.springframework.security.test.web.servlet.request
+                                                .SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                                .isUnauthorized());
+        mvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                                        path)
+                                .cookie(cookie(student))
+                                .with(
+                                        org.springframework.security.test.web.servlet.request
+                                                .SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                                .isForbidden());
+        mvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                                        path)
+                                .cookie(cookie(admin))
+                                .with(
+                                        org.springframework.security.test.web.servlet.request
+                                                .SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                                .isPreconditionRequired());
+        mvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                                        path)
+                                .cookie(cookie(admin))
+                                .header("If-Match", job.revision())
+                                .with(
+                                        org.springframework.security.test.web.servlet.request
+                                                .SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                                .isOk());
+        mvc.perform(
+                        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                                        path)
+                                .cookie(cookie(admin))
+                                .header("If-Match", job.revision())
+                                .with(
+                                        org.springframework.security.test.web.servlet.request
+                                                .SecurityMockMvcRequestPostProcessors.csrf()))
+                .andExpect(
+                        org.springframework.test.web.servlet.result.MockMvcResultMatchers.status()
+                                .isConflict());
+        knowledge.retire(admin, kb, "guide", Long.parseLong(job.producedVersionId()));
+        var current = knowledge.job(admin, kb, UUID.fromString(job.id()));
+        assertThatThrownBy(
+                        () ->
+                                knowledge.reprocess(
+                                        admin, kb, UUID.fromString(job.id()), current.revision()))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+    }
 
     @Test
     void kbTestUsageCountsExecutionsNotIngestionOrReloadAndPreservesUnknownMetrics() {
@@ -408,6 +1152,8 @@ class AgentPlatformIntegrationTest {
 
     @BeforeEach
     void fixture() {
+        jdbc.update(
+                "UPDATE agent_role_binding SET agent_id=NULL,row_version=row_version+1,updated_at=CURRENT_TIMESTAMP");
         String suffix = UUID.randomUUID().toString();
         admin =
                 jdbc.queryForObject(
@@ -607,10 +1353,9 @@ class AgentPlatformIntegrationTest {
         assertThat(preview.toolStepsAndSources().toString()).contains("ACTUAL_NATIVE_CALL");
         registry.publish(admin, aid, cid, registry.get(admin, aid).revision(), true);
         assertThat(registry.assigned(student)).isEmpty();
-        var assignment = registry.assign(admin, aid, student);
-        assertThat(registry.assign(admin, aid, student).id()).isEqualTo(assignment.id());
+        activate(aid, "STUDENT");
         assertThat(registry.assigned(student)).hasSize(1);
-        registry.revoke(admin, aid, UUID.fromString(assignment.id()));
+        activate(aid);
         assertThat(registry.assigned(student)).isEmpty();
         assertThatThrownBy(() -> registry.requireAssignedConfiguration(student, aid, cid))
                 .isInstanceOf(edu.hcmute.careersim.common.exception.NotFoundException.class);
@@ -826,12 +1571,17 @@ class AgentPlatformIntegrationTest {
         var assignment = registry.assign(admin, aid, student);
         assertThat(assignment.studentDisplayName()).isEqualTo("Synthetic Student");
         assertThat(registry.assign(admin, aid, student).id()).isEqualTo(assignment.id());
+        activate(aid, "STUDENT");
         registry.requireAssignedConfiguration(student, aid, cid);
         var revoked = registry.revoke(admin, aid, UUID.fromString(assignment.id()));
         assertThat(registry.revoke(admin, aid, UUID.fromString(assignment.id())).revokedAt())
                 .isEqualTo(revoked.revokedAt());
         assertThat(registry.assignments(admin, aid)).hasSize(1);
         assertThat(registry.assignments(admin, aid).get(0).status()).isEqualTo("REVOKED");
+        registry.requireAssignedConfiguration(
+                student, aid,
+                cid); // Historical per-user revocation no longer grants/removes role access.
+        activate(aid);
         assertThatThrownBy(() -> registry.requireAssignedConfiguration(student, aid, cid))
                 .isInstanceOf(edu.hcmute.careersim.common.exception.NotFoundException.class);
         assertThat(jdbc.queryForObject("SELECT count(*) FROM agent_session", Integer.class))
@@ -1183,7 +1933,7 @@ class AgentPlatformIntegrationTest {
                 .isEqualTo(input.promptTemplate());
         registry.publish(
                 admin, aid, UUID.fromString(c1.id()), registry.get(admin, aid).revision(), true);
-        registry.assign(admin, aid, student);
+        activate(aid, "STUDENT");
         registry.archive(admin, aid, registry.get(admin, aid).revision());
         assertThat(registry.assigned(student)).isEmpty();
         assertThatThrownBy(
@@ -1335,7 +2085,7 @@ class AgentPlatformIntegrationTest {
                         cid,
                         new Preview(UUID.randomUUID(), "Synthetic backend practice")));
         registry.publish(admin, aid, cid, registry.get(admin, aid).revision(), true);
-        registry.assign(admin, aid, student);
+        activate(aid, "STUDENT");
         UUID s1 = UUID.randomUUID(),
                 s2 = UUID.randomUUID(),
                 message = UUID.randomUUID(),
@@ -1685,15 +2435,29 @@ class AgentPlatformIntegrationTest {
                     Map.of("confirmed", true),
                     revision,
                     200);
-            var assignment =
-                    gateway(
-                            http,
-                            origin,
-                            "POST",
-                            agentRoot + "/assignments",
-                            Map.of("studentUserId", Long.toString(student)),
-                            null,
-                            200);
+            var bindingSnapshot =
+                    gateway(http, origin, "GET", "/v2/admin/agent-role-bindings", null, null, 200);
+            var roleRevisions = new java.util.HashMap<String, Long>();
+            bindingSnapshot.forEach(
+                    r -> roleRevisions.put(r.path("role").asText(), r.path("revision").asLong()));
+            long roleAgentRevision =
+                    gateway(http, origin, "GET", agentRoot, null, null, 200)
+                            .path("revision")
+                            .asLong();
+            gateway(
+                    http,
+                    origin,
+                    "PUT",
+                    agentRoot + "/roles",
+                    Map.of(
+                            "roles",
+                            List.of("STUDENT"),
+                            "expectedRoleRevisions",
+                            roleRevisions,
+                            "confirmed",
+                            true),
+                    roleAgentRevision,
+                    200);
             var studentBrowser = browser(student, origin);
             var publicAgents =
                     gateway(studentBrowser, origin, "GET", "/v2/agents", null, null, 200);
@@ -1701,13 +2465,24 @@ class AgentPlatformIntegrationTest {
                     .contains("Gateway Agent")
                     .doesNotContain("promptTemplate", "knowledgeBaseIds");
             gateway(studentBrowser, origin, "GET", root + "/assets", null, null, 403);
+            bindingSnapshot =
+                    gateway(http, origin, "GET", "/v2/admin/agent-role-bindings", null, null, 200);
+            roleRevisions.clear();
+            bindingSnapshot.forEach(
+                    r -> roleRevisions.put(r.path("role").asText(), r.path("revision").asLong()));
             gateway(
                     http,
                     origin,
-                    "POST",
-                    agentRoot + "/assignments/" + assignment.path("id").asText() + "/revoke",
-                    Map.of(),
-                    null,
+                    "PUT",
+                    agentRoot + "/roles",
+                    Map.of(
+                            "roles",
+                            List.of(),
+                            "expectedRoleRevisions",
+                            roleRevisions,
+                            "confirmed",
+                            true),
+                    roleAgentRevision,
                     200);
             assertThat(gateway(studentBrowser, origin, "GET", "/v2/agents", null, null, 200))
                     .isEmpty();

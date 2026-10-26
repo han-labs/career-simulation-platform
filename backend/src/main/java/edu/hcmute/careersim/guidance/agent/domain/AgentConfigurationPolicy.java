@@ -40,6 +40,7 @@ public class AgentConfigurationPolicy {
         if (r == null || r.modelKey() == null || !models.contains(r.modelKey()))
             CoreValues.invalid("Choose a server-allowlisted model.");
         CoreValues.text(r.promptTemplate(), 12000);
+        AgentExperience.validate(r.experienceConfig(), r.promptTemplate());
         if (r.promptTemplate()
                 .matches(
                         "(?is).*(?:bearer\\s+[a-z0-9._-]{15,}|(?:api[_ -]?key|password|secret)\\s*[:=]\\s*\\S+|eyJ[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+).*"))
@@ -93,6 +94,26 @@ public class AgentConfigurationPolicy {
     }
 
     public String hash(ConfigurationInput input) {
+        if (input.experienceConfig() != null && !input.experienceConfig().isNull()) {
+            return CoreValues.hash(
+                    Map.of(
+                            "schemaVersion",
+                            2,
+                            "legacyFields",
+                            hash(
+                                    new ConfigurationInput(
+                                            input.modelKey(),
+                                            input.promptTemplate(),
+                                            input.promptTemplateRef(),
+                                            input.toolPolicy(),
+                                            input.memoryPolicy(),
+                                            input.outputPolicy(),
+                                            input.knowledgeBaseIds())),
+                            "experience",
+                            input.experienceConfig(),
+                            "renderedPromptHash",
+                            promptHash(input)));
+        }
         return CoreValues.hash(
                 Map.of(
                         "modelKey",
@@ -111,6 +132,17 @@ public class AgentConfigurationPolicy {
                         input.outputPolicy(),
                         "knowledgeBaseIds",
                         input.knowledgeBaseIds().stream().map(UUID::toString).sorted().toList()));
+    }
+
+    public String instructions(String ref, String custom, JsonNode experience) {
+        return instructions(ref, AgentExperience.render(custom, experience))
+                + AgentExperience.policy(experience);
+    }
+
+    public String promptHash(ConfigurationInput input) {
+        return CoreValues.bytesHash(
+                instructions(reference, input.promptTemplate(), input.experienceConfig())
+                        .getBytes(StandardCharsets.UTF_8));
     }
 
     public static void object(JsonNode n, Set<String> keys) {

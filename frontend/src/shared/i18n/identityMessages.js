@@ -2,6 +2,8 @@ export const identityMessages = {
   'Home': 'Trang chủ',
   'Guidance': 'Hướng dẫn',
   'Display name': 'Tên hiển thị',
+  'Local workspace': 'Không gian local',
+  'Local mode automatically provides Administrator access. Use auth-test to test sign-in and sign-out.': 'Chế độ local tự cung cấp quyền Quản trị viên. Dùng auth-test để kiểm tra đăng nhập và đăng xuất.',
   'Sign out': 'Đăng xuất',
   'Continue with Google': 'Tiếp tục với Google',
   'Connecting to Google…': 'Đang kết nối với Google…',

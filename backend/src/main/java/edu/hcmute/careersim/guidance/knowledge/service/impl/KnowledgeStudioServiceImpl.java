@@ -69,7 +69,7 @@ public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
         return b;
     }
 
-    public List<Base> list(long admin) {
+    public List<BaseSummary> list(long admin) {
         admin(admin);
         return dao.list();
     }
@@ -189,13 +189,65 @@ public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
     }
 
     public Job retry(long admin, UUID kb, UUID id) {
+        return process(admin, kb, id, null);
+    }
+
+    public Job reprocess(long admin, UUID kb, UUID id, long revision) {
+        return process(admin, kb, id, revision);
+    }
+
+    private Job process(long admin, UUID kb, UUID id, Long expectedRevision) {
         Job claimed =
                 tx.execute(
                         s -> {
                             lockAdmin(admin);
                             available(kb, true);
                             var j = dao.job(kb, id, true);
-                            if (Set.of("READY", "PUBLISHED").contains(j.state())) {
+                            if (expectedRevision != null) {
+                                CoreValues.match(expectedRevision, j.revision());
+                                if (j.producedVersionId() != null
+                                        && "RETIRED"
+                                                .equals(
+                                                        dao.version(
+                                                                        kb,
+                                                                        j.assetKey(),
+                                                                        Long.parseLong(
+                                                                                j
+                                                                                        .producedVersionId()),
+                                                                        true)
+                                                                .status()))
+                                    throw new ApiException(
+                                            ErrorCode.CONFLICT,
+                                            "Retired content requires a new source version.");
+                                // A new attempt must never revive a retired source. Check the
+                                // original file's versions even after a failed attempt cleared
+                                // producedVersionId. The existing base lock serializes retire.
+                                var versions = dao.versions(kb);
+                                var sources =
+                                        versions.stream()
+                                                .filter(
+                                                        v ->
+                                                                v.assetKey().equals(j.assetKey())
+                                                                        && v.sourceFileId()
+                                                                                .equals(
+                                                                                        j
+                                                                                                .sourceFileId()))
+                                                .toList();
+                                if (!sources.isEmpty()
+                                        && sources.stream()
+                                                .allMatch(v -> "RETIRED".equals(v.status())))
+                                    throw new ApiException(
+                                            ErrorCode.CONFLICT,
+                                            "Retired content requires a new source version.");
+                                if (j.producedVersionId() == null
+                                        && sources.isEmpty()
+                                        && versions.size() >= 500)
+                                    throw new ApiException(
+                                            ErrorCode.CONFLICT,
+                                            "Source history cannot be resolved safely. Upload a replacement.");
+                            }
+                            if (expectedRevision == null
+                                    && Set.of("READY", "PUBLISHED").contains(j.state())) {
                                 var version =
                                         dao.version(
                                                 kb,
@@ -215,6 +267,13 @@ public class KnowledgeStudioServiceImpl implements KnowledgeStudioService {
                                 throw new ApiException(
                                         ErrorCode.CONFLICT, "Ingestion is already running.");
                             dao.claim(id);
+                            if (expectedRevision != null)
+                                audit.recordKey(
+                                        admin,
+                                        "KB_SOURCE_REPROCESS_REQUESTED",
+                                        "knowledge_ingestion_job",
+                                        id.toString(),
+                                        Map.of("revision", expectedRevision));
                             return dao.job(kb, id, false);
                         });
         if (Set.of("READY", "PUBLISHED").contains(claimed.state())) return claimed;

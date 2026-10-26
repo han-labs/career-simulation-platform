@@ -7,7 +7,8 @@ import { apiRequest } from '../../shared/api/httpClient.js'
 import { streamExecution } from './studentAgentApi.js'
 import StudentAgentPage from './StudentAgentPage.jsx'
 import AgentUsagePage from '../admin/agentPlatform/AgentUsagePage.jsx'
-vi.mock('../../shared/api/httpClient.js', () => ({ apiRequest: vi.fn() }))
+import { usageFixture } from '../admin/usage/usageFixture.js'
+vi.mock('../../shared/api/httpClient.js', () => ({ apiRequest: vi.fn(), getAccountGeneration: () => 0 }))
 vi.mock('./studentAgentApi.js', () => ({ sessionPath: id => `/v2/agent-sessions/${id}`, runPath: id => `/v2/agent-executions/${id}`, streamExecution: vi.fn() }))
 beforeEach(() => { vi.resetAllMocks(); localStorage.clear() }); afterEach(cleanup)
 function page() { return render(<I18nProvider><MemoryRouter initialEntries={['/agents/a1?session=s1']}><Routes><Route path="/agents/:agentId" element={<StudentAgentPage />} /></Routes></MemoryRouter></I18nProvider>) }
@@ -50,7 +51,12 @@ it('does not render an earlier account response after the workspace is unmounted
  const view = page(); await screen.findByLabelText('New conversation title'); view.unmount(); render(<p>Second account workspace</p>); deliver([{ id: 'old', actorType: 'ASSISTANT', content: { text: 'Private previous account narrative' } }]); await Promise.resolve()
  expect(screen.queryByText('Private previous account narrative')).toBeNull()
 })
-it('renders unknown Admin metrics honestly and only requests the aggregate usage contract', async () => {
- apiRequest.mockResolvedValue({ groups: [{ mode: 'STUDENT_CHAT', status: 'SUCCEEDED', executions: 2, mean_latency_ms: 12, known_input_tokens: null, known_output_tokens: null, unknown_token_executions: 2, known_estimated_subtotal_usd: null, unknown_cost_executions: 1, partial_cost_executions: 1 }], nativeTools: [{ mode: 'STUDENT_CHAT', tool: 'assessment.lookup', status: 'SUCCEEDED', native_calls: 1 }] })
- render(<I18nProvider><MemoryRouter><AgentUsagePage /></MemoryRouter></I18nProvider>); fireEvent.click(screen.getByRole('button', { name: 'Load usage' })); await screen.findByText('STUDENT_CHAT', { selector: 'td' }); expect(screen.getAllByText('Unknown').length).toBeGreaterThan(0); expect(apiRequest.mock.calls[0][0]).toMatch(/^\/v2\/admin\/agent-usage\?/); expect(apiRequest.mock.calls.some(([p]) => p.includes('insight-reports') || p.includes('interactions'))).toBe(false)
+it('renders unknown Admin metrics honestly and only requests the safe dashboard contract', async () => {
+ const data = usageFixture(); data.summary.recordedEstimatedCostUsd = null
+ apiRequest.mockResolvedValue(data)
+ render(<I18nProvider><MemoryRouter><AgentUsagePage /></MemoryRouter></I18nProvider>)
+ await screen.findByRole('heading', { name: 'Recent AI executions' })
+ expect(screen.getAllByText('Not available').length).toBeGreaterThan(0)
+ expect(apiRequest.mock.calls[0][0]).toMatch(/^\/v2\/admin\/agent-usage\?view=dashboard&/)
+ expect(apiRequest.mock.calls.some(([p]) => p.includes('insight-reports') || p.includes('interactions'))).toBe(false)
 })

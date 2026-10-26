@@ -99,6 +99,16 @@ public class KnowledgeAdminController {
         return ApiResponse.success(studio.cancel(actors.admin(p).id(), kb, job));
     }
 
+    @PostMapping("/{kb}/ingestions/{job}/reprocess")
+    public ApiResponse<?> reprocess(
+            Principal p,
+            @PathVariable UUID kb,
+            @PathVariable UUID job,
+            @RequestHeader(value = "If-Match", required = false) String revision) {
+        return ApiResponse.success(
+                studio.reprocess(actors.admin(p).id(), kb, job, CoreValues.revision(revision)));
+    }
+
     @GetMapping("/{kb}/assets/{key}/versions/{version}")
     public ApiResponse<?> version(
             Principal p,

@@ -183,3 +183,147 @@ extraction text.
 
 Implementation evidence and remaining browser/human gates:
 [`UC-07-completion.vi.md`](../../.agent/reports/UC-07-completion.vi.md).
+
+## Admin Studio final repair — 2026-10-26
+
+This supplements the dated reupload/retry description above. Existing retry behavior
+is retained; an explicit Reprocess operation now runs the pipeline from stored source.
+
+`POST /api/v2/admin/knowledge-bases/{kb}/ingestions/{job}/reprocess`
+
+- Active Admin and existing CSRF/authentication apply. Send the **job revision**
+  in `If-Match` and an empty JSON body. Missing precondition: HTTP428; invalid
+  revision: HTTP422; stale revision/running attempt: HTTP409. Existing `Job` response.
+- Reuses stored source file, job and assetKey. Claim increments existing generation;
+  extraction/chunking/embedding/staging reuse the existing pipeline and profiles.
+  An audit event records only the prior revision.
+- Parses again even for READY/PUBLISHED jobs. Matching content/profile and complete
+  valid index returns attempt outcome UNCHANGED without another upload, embedding
+  or version. A changed profile/result stages READY for explicit review/publication.
+  It never changes the published pointer implicitly.
+- Retired produced versions cannot be reprocessed. After failure clears the produced
+  pointer, original-file version history is checked. If bounded history cannot
+  establish safety, fail closed and require replacement upload. No DAO/schema change.
+- Failure/cancel retains previous published content and attempt extraction/usage.
+  Generation fencing rejects stale staging. Lost responses require reading job
+  state before another attempt with a fresh revision; no automatic retry.
+- `/retry` is unchanged, including terminal READY/PUBLISHED fast-return.
+
+One Builder Save Changes validates draft, PATCHes changed identity, then POSTs the
+configuration using the updated revision. Partial success is explicit; draft and
+revision are retained for recovery. Preview may test a selected saved version while
+a draft exists, but never submits the draft or previous Preview turns. At most ten
+runs are held in React state for continuity, not conversation memory; reload retains
+only the existing accepted-execution receipt. Citation chips join same-run reference
+IDs and revalidate exact source version/text through the existing source API.
+
+Publication/readiness/hash, assignment eligibility/revoke, Student sessions/SSE/
+consent, tool grants and usage accounting contracts remain unchanged.
+
+
+## Revised Agent Studio contract — 2026-10-26
+
+Additive V29/V30 preserve all existing sealed v1 configurations and publication proofs.
+`experienceConfig` is nullable; omitted/JSON null keeps the v1 renderer and hash algorithm.
+New saves from Agent Studio use schemaVersion 2 with `name`, `description`, `audience`
+(personal/business: response orientation only), `language` (en/vi/bilingual), `greeting`
+(up to 1000), IANA `timezone`, `variables: {name}` (plain text, optional, up to 100), and
+`chat: {includeHistory,maxTurns,showSourceExcerpts,responseStyle}`. Bounds: maxTurns 1–6,
+responseStyle concise/balanced/detailed; existing Top K 1–10 and runtime/output caps remain.
+`modelKey` remains canonical; provider/model choices are derived from model options.
+Availability means server configuration only, never quota, billing status or live success.
+
+`POST /api/v2/admin/agents/{agent}/configurations` plus `If-Match` validates then saves
+mutable identity and immutable configuration in ONE transaction. No separate metadata PATCH
+is needed. Save does not execute, publish or assign. Names/purposes are pinned in v2 configs.
+Raw templates + variables participate in the configuration hash; rendered instructions
+participate in promptHash. Only literal single-pass `{{name}}` is accepted in custom
+instructions/greeting; unknown or nested templates are rejected. Platform prompt, schemas,
+tool arguments and credentials are never templated. Blank greeting is deterministic.
+DB timestamps stay UTC; timezone supplies response/date context, not a clock tool.
+
+### Dedicated Admin Preview conversations
+
+All routes below are `/api/v2/admin/agents/{agent}/preview-conversations` and require the
+current ACTIVE Admin owner. These tables never reuse Student sessions or private evidence.
+
+| Method / suffix | Contract |
+|---|---|
+| GET collection | `limit` 1–50 (default 20), `offset` 0–5000; items + nextOffset |
+| POST collection | `{requestId,configurationId}`; pins saved config, no model call |
+| GET `/{chat}` | `before` positive sequence, `limit` 1–100 (default 50); pinned greeting/config, current-epoch turns referencing executions, nextBefore |
+| POST `/{chat}/messages` | `{requestId,query}`; accepted existing execution DTO, idempotent within exact chat/epoch/input; one active run per chat |
+| POST `/{chat}/clear` | `If-Match`, `{confirmed:true}`; cancels active work, advances epoch, hides prior transcript/context |
+| DELETE `/{chat}` | `If-Match`, `{confirmed:true}`; cancels, advances epoch, soft-deletes chat; normal read/resume denied |
+
+Clear/Delete retain immutable executions, usage and exact-configuration publication evidence.
+Workers fence against current chat epoch before dispatch and final commit. Resume performs
+GET only. History is bounded complete successful pairs from this same chat, max 6 and 12KB;
+it is untrusted narrative, never grounding evidence. History off retains the visible transcript.
+Current source authorization still governs replay and citations. Revoked turns cannot display
+cached source text as current evidence. Stop uses the exact accepted execution's cancel route.
+
+Native Agent transport now uses effective remaining execution time, a 2-second safety margin,
+a maximum 60-second transport cap and independent 5-second connect cap. Legacy Syn bounded
+call caps remain unchanged. No automatic provider fallback or retry is added.
+
+### Knowledge Base list counts
+
+`GET /api/v2/admin/knowledge-bases` returns flat BaseSummary plus `documentCount` and
+`publishedChunkCount`, using one aggregate query over at most 200 bases. Documents follow
+logical active-document grouping, including processing attempts without duplicating replacements.
+Chunks belong only to current active PUBLISHED versions with non-null embeddings.
+The UI reports unavailable counts honestly when an older server omits these fields.
+
+## UC-08 role publication correction — 2026-10-26
+
+This explicit Team Lead correction supersedes the per-Student assignment UX and the
+fixed-name variable limit described above. Existing historical assignment records remain;
+they no longer authorize discovery, new sessions or execution. HTTP assignment/revoke
+writes return 409 after the Admin check. Historical reads are compatibility endpoints only.
+
+### Role availability (V31)
+
+| Endpoint | Contract |
+|---|---|
+| `GET /api/v2/admin/agent-role-bindings` | Admin only; two slots: `role, agentId, agentName, revision, updatedAt` |
+| `PUT /api/v2/admin/agents/{agent}/roles` | Admin only; Agent `If-Match`; `{roles:[STUDENT,ENTERPRISE], expectedRoleRevisions:{STUDENT:n,ENTERPRISE:n}, confirmed:true}` |
+| `GET /api/v2/agents` | Current ACTIVE Student/Enterprise role resolves zero or one published Agent; `id,name,purpose,runtimeAvailable` |
+
+Role slots are unique and locked in deterministic order. A stale snapshot fails atomically;
+selecting both roles replaces both bindings in one transaction. Unselected roles are removed
+only when currently bound to this Agent. Activation requires ACTIVE Agent, current published
+sealed configuration, available KB grants and successful exact-configuration Preview proof.
+Archive, inactive lifecycle or unavailable publication/KB clears its bindings. No inferred
+backfill from per-user assignments occurs; after V31 an Admin must explicitly activate roles.
+
+Bindings point to Agent identity. New Student chats pin its current published configuration;
+same-Agent re-publication preserves existing valid immutable pins and the role binding.
+Replacing the role with another Agent denies old-Agent runtime access. Session ownership,
+consent and Student-private tool checks remain server-side. Enterprise discovery returns
+`runtimeAvailable:false`: Enterprise cannot use Student sessions/private evidence. No Syn
+runtime or popup is restored. Save, Preview, Publish and role activation remain distinct.
+
+### Dynamic variables and diagnostics
+
+`experienceConfig.variables` now accepts up to 20 `{key,value}` entries. New UI saves an
+array; existing v2 `{name: "..."}` objects remain valid without rewriting sealed records.
+Keys are unique ASCII identifiers, non-digit start, 1–40 characters; reserved/credential
+names are rejected. Values are optional plain text up to 500 UTF-16 characters, without
+control characters, credentials or nested placeholders. Only instructions/greeting accept
+defined `{{key}}` references. Unknown/malformed expressions fail Save; substitution is
+literal and single-pass. Raw templates/variables remain part of the immutable config hash;
+old v1/v2 sealed hashes and publication proofs are not recalculated.
+
+Admin options include safe `providerState` booleans/selected-provider enum and
+`embeddingAvailable`. Native generation and embedding have separate clients/enable flags,
+although Gemini credential/base URL property paths are shared. Failures retain only safe
+`PROVIDER_DIAGNOSTIC` metadata: configured booleans, outbound-attempt flag, numeric HTTP
+status/class or network class. No raw bodies, URLs, keys, prompts or request headers are
+recorded. Native generation distinguishes not-configured, disabled/mismatched model,
+authentication rejection, model unavailable, rate limit, HTTP unavailability and transport
+failure/deadline; no provider fallback or automatic retry is added.
+
+`GET /api/v2/auth/providers` also returns `localWorkspace` using the existing local-demo
+profile predicate. Local workspace shows an explanatory indicator instead of misleading
+Sign out. Real-auth sign-out and JWT/session revocation semantics are unchanged.

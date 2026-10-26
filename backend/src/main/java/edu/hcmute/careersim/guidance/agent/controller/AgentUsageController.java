@@ -16,7 +16,26 @@ public class AgentUsageController {
     private final AgentUsageService usage;
     private final ActorAccess actors;
 
-    @GetMapping("/v2/admin/agent-usage")
+    @GetMapping(value = "/v2/admin/agent-usage", params = "view=dashboard")
+    public ApiResponse<?> dashboard(
+            Principal p,
+            @RequestParam Instant from,
+            @RequestParam Instant to,
+            @RequestParam(required = false) java.util.UUID agent,
+            @RequestParam(required = false) String provider,
+            @RequestParam(required = false) String model,
+            @RequestParam(required = false) String outcome,
+            @RequestParam(required = false) String mode,
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(required = false) String cursor) {
+        return ApiResponse.success(
+                usage.dashboard(
+                        actors.admin(p).id(),
+                        new edu.hcmute.careersim.guidance.agent.dto.AgentUsageContracts.Filter(
+                                from, to, agent, provider, model, outcome, mode, limit, cursor)));
+    }
+
+    @GetMapping(value = "/v2/admin/agent-usage", params = "!view")
     public ApiResponse<?> usage(
             Principal p,
             @RequestParam Instant from,

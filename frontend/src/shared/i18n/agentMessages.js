@@ -162,7 +162,7 @@ Safe run details ⇢ Chi tiết thực thi an toàn
 Saved configuration ID ⇢ Mã cấu hình đã lưu
 Observable execution metadata only. Private model reasoning and provider protocol are never displayed. ⇢ Chỉ hiển thị metadata thực thi quan sát được. Không hiển thị suy luận riêng của mô hình hoặc giao thức nội bộ nhà cung cấp.
 Your preserved local draft has been restored. Save before Preview. ⇢ Bản nháp trên máy đã được khôi phục. Hãy lưu trước khi xem trước.
-A new immutable version was saved. Nothing was published or assigned; no provider was called. ⇢ Đã lưu phiên bản bất biến mới. Không công bố hoặc gán sinh viên; không gọi nhà cung cấp.
+A new immutable version was saved. Nothing was published or activated; no provider was called. ⇢ Đã lưu phiên bản bất biến mới. Không xuất bản hoặc kích hoạt; không gọi nhà cung cấp.
 Latest Agent revision loaded. Your unsaved input is preserved. ⇢ Đã tải revision Agent mới nhất. Nội dung chưa lưu của bạn được giữ nguyên.
 This Agent has changed. Reload the latest Agent before saving. Your draft is preserved. ⇢ Agent này đã thay đổi. Tải Agent mới nhất trước khi lưu. Bản nháp của bạn được giữ nguyên.
 Complete the required agent settings before saving. ⇢ Hoàn tất các thiết lập Agent bắt buộc trước khi lưu.
@@ -579,4 +579,153 @@ rowEnd ⇢ Hàng kết thúc
 heading ⇢ Tiêu đề
 section ⇢ Mục
 
+Configure bounded career Agents and their knowledge access. ⇢ Cấu hình Agent nghề nghiệp và quyền truy cập tri thức.
+All Agents ⇢ Tất cả Agent
+Archive Agent ⇢ Lưu trữ Agent
+Archive Agent? ⇢ Lưu trữ Agent?
+Confirm archive ⇢ Xác nhận lưu trữ
+Archive this Agent? Configuration and execution history are retained. ⇢ Lưu trữ Agent này? Lịch sử cấu hình và lượt chạy được giữ lại.
+Version details ⇢ Chi tiết phiên bản
+Review the latest revision before saving again. ⇢ Kiểm tra bản sửa đổi mới nhất trước khi lưu lại.
+Agent information was saved, but the configuration was not saved. ⇢ Thông tin Agent đã lưu, nhưng cấu hình chưa lưu.
+Chat preview ⇢ Xem thử trò chuyện
+Message ⇢ Tin nhắn
+Each Preview run is independent. ⇢ Mỗi lượt xem thử chạy độc lập.
+Expand preview ⇢ Mở rộng xem thử
+Restore preview ⇢ Thu gọn xem thử
+Configured ⇢ Đã cấu hình
+Availability reflects server configuration, not quota or live call success. ⇢ Trạng thái phản ánh cấu hình máy chủ, không xác nhận hạn mức hay khả năng gọi thực tế.
+Insert reply-language instruction ⇢ Chèn hướng dẫn ngôn ngữ trả lời
+Insert instruction ⇢ Chèn hướng dẫn
+Applies to Student runtime only. Admin Preview runs independently. ⇢ Chỉ áp dụng khi sinh viên sử dụng. Xem thử của Admin chạy độc lập.
+Advanced execution limits ⇢ Giới hạn thực thi nâng cao
+Manage knowledge bases ⇢ Quản lý kho tri thức
+Search knowledge bases ⇢ Tìm kho tri thức
+selected ⇢ đã chọn
+Search published passages from granted knowledge bases. ⇢ Tìm đoạn đã xuất bản trong kho được cấp quyền.
+Authorized Student assessment. Public catalogue only in Admin Preview. ⇢ Kết quả đánh giá được phép của sinh viên. Xem thử Admin chỉ có danh mục công khai.
+Explore public simulations. ⇢ Khám phá mô phỏng công khai.
+Student-owned results. Unavailable in Admin Preview. ⇢ Kết quả thuộc sinh viên. Không có trong xem thử Admin.
+Run ⇢ Lượt chạy
+Completed ⇢ Hoàn tất
+Request failed ⇢ Yêu cầu thất bại
+The provider could not complete this request. ⇢ Nhà cung cấp không thể hoàn tất yêu cầu này.
+Request refused ⇢ Yêu cầu bị từ chối
+This request could not be answered within the permitted scope. ⇢ Không thể trả lời yêu cầu trong phạm vi được phép.
+This run was cancelled. You can send another message. ⇢ Lượt chạy đã hủy. Bạn có thể gửi tin nhắn khác.
+Cancellation could not be confirmed. Reload this run before trying again. ⇢ Chưa xác nhận được việc hủy. Tải lại lượt chạy trước khi thử lại.
+Stop ⇢ Dừng
+Stopping... ⇢ Đang dừng...
+Cost status ⇢ Trạng thái chi phí
+Safe error category ⇢ Nhóm lỗi an toàn
+Answer sources ⇢ Nguồn của câu trả lời
+Supporting excerpt ⇢ Đoạn trích hỗ trợ
+Source evidence ⇢ Bằng chứng nguồn
+Source unavailable ⇢ Nguồn không còn khả dụng
+Resolving the current source... ⇢ Đang kiểm tra nguồn hiện tại...
+Publication details ⇢ Chi tiết xuất bản
+Ready to publish ⇢ Sẵn sàng xuất bản
+Publication needs attention ⇢ Cần xử lý trước khi xuất bản
+Presentation only ⇢ Chỉ minh họa giao diện
+Document detail ⇢ Chi tiết tài liệu
+Detail ⇢ Chi tiết
+Reprocess ⇢ Xử lý lại
+Replace file ⇢ Thay tệp
+Source publication ⇢ Xuất bản nguồn
+published ⇢ đã xuất bản
+ready for review ⇢ chờ duyệt
+Review pending documents ⇢ Duyệt tài liệu đang chờ
+Archive ⇢ Lưu trữ
+English ⇢ Tiếng Anh
+Vietnamese ⇢ Tiếng Việt
+Apply ⇢ Áp dụng
+None ⇢ Không có
+This knowledge source is no longer available. ⇢ Nguồn tri thức này không còn khả dụng.
+
+Open ⇢ Mở
+Counts unavailable ⇢ Chưa có số lượng
+documents ⇢ tài liệu
+published chunks ⇢ đoạn đã xuất bản
+Audience ⇢ Đối tượng
+Personal ⇢ Cá nhân
+Business ⇢ Doanh nghiệp
+Language ⇢ Ngôn ngữ
+Bilingual ⇢ Song ngữ
+Description ⇢ Mô tả
+System instructions / personality ⇢ Chỉ dẫn hệ thống / tính cách
+Only {{name}} is supported. Audience and language do not change data permissions. ⇢ Chỉ hỗ trợ {{name}}. Đối tượng và ngôn ngữ không thay đổi quyền dữ liệu.
+Opening greeting ⇢ Lời chào mở đầu
+Configured text, not an AI response. Blank uses a greeting in the saved language. ⇢ Văn bản cấu hình, không phải phản hồi AI. Để trống sẽ dùng lời chào theo ngôn ngữ đã lưu.
+Timezone (IANA) ⇢ Múi giờ (IANA)
+Available ⇢ Khả dụng
+Conversation ⇢ Hội thoại
+Include same-chat history ⇢ Sử dụng lịch sử cùng cuộc trò chuyện
+Previous turns ⇢ Số lượt trước
+History off keeps the transcript. No cross-chat memory. ⇢ Tắt lịch sử vẫn giữ nội dung trò chuyện. Không có bộ nhớ giữa các cuộc trò chuyện.
+Retrieval ⇢ Truy xuất
+Sources ⇢ Nguồn
+Show source excerpts ⇢ Hiển thị đoạn trích nguồn
+Citation links remain available when excerpts are hidden. ⇢ Liên kết trích dẫn vẫn có khi ẩn đoạn trích.
+Response ⇢ Phản hồi
+Response style ⇢ Phong cách phản hồi
+Concise ⇢ Ngắn gọn
+Balanced ⇢ Cân bằng
+Detailed ⇢ Chi tiết
+Variables ⇢ Biến
+Name variable ⇢ Biến tên
+Optional, plain text, up to 100 characters. Used only as {{name}} in instructions and greeting. ⇢ Tùy chọn, văn bản thuần tối đa 100 ký tự. Chỉ dùng {{name}} trong chỉ dẫn và lời chào.
+No expressions, recursive templates or secret variables. ⇢ Không hỗ trợ biểu thức, mẫu đệ quy hoặc biến bí mật.
+New chat ⇢ Trò chuyện mới
+Chat pinned to ⇢ Trò chuyện gắn với
+Resume conversation ⇢ Tiếp tục hội thoại
+Select a conversation ⇢ Chọn hội thoại
+Selected conversation ⇢ Hội thoại đã chọn
+Chat ⇢ Trò chuyện
+Clear chat ⇢ Xóa nội dung
+Delete chat ⇢ Xóa hội thoại
+Loading conversation... ⇢ Đang tải hội thoại...
+Start a new chat or resume a saved conversation. ⇢ Bắt đầu trò chuyện mới hoặc tiếp tục hội thoại đã lưu.
+Configured greeting ⇢ Lời chào cấu hình
+Older turns ⇢ Lượt trước đó
+Retry send ⇢ Gửi lại
+Clear conversation? ⇢ Xóa nội dung hội thoại?
+Delete conversation? ⇢ Xóa hội thoại?
+Confirm clear ⇢ Xác nhận xóa nội dung
+Confirm delete ⇢ Xác nhận xóa hội thoại
+This hides the transcript and stops active work. Immutable execution audit and usage records are retained. ⇢ Thao tác ẩn nội dung trò chuyện và dừng lượt đang chạy. Nhật ký thực thi và sử dụng bất biến được giữ nguyên.
+
+Use {{key}} for a defined variable. Audience and language do not change data permissions. ⇢ Dùng {{key}} cho biến đã khai báo. Đối tượng và ngôn ngữ không thay đổi quyền dữ liệu.
+Up to 20 plain-text variables. Use {{key}} in instructions and greeting only. ⇢ Tối đa 20 biến văn bản thuần. Chỉ dùng {{key}} trong chỉ dẫn và lời chào.
+Key ⇢ Khóa
+Value ⇢ Giá trị
+Remove variable ⇢ Xóa biến
+Remove ⇢ Xóa
++ Add variable ⇢ + Thêm biến
+Use up to 20 unique safe variable keys (1–40 characters). ⇢ Dùng tối đa 20 khóa biến an toàn, không trùng (1–40 ký tự).
+Variable values must be plain text without secrets or nested templates, up to 500 characters. ⇢ Giá trị biến phải là văn bản thuần, không có bí mật hoặc mẫu lồng nhau, tối đa 500 ký tự.
+Every {{key}} must reference a defined variable. Expressions are unsupported. ⇢ Mỗi {{key}} phải tham chiếu biến đã khai báo. Không hỗ trợ biểu thức.
+Publish ⇢ Xuất bản
+Publication or role state changed. Refresh before continuing. ⇢ Trạng thái xuất bản hoặc vai trò đã đổi. Tải lại trước khi tiếp tục.
+Version published. Role activation is a separate action. ⇢ Đã xuất bản phiên bản. Kích hoạt vai trò là thao tác riêng.
+Role availability updated atomically. ⇢ Đã cập nhật vai trò trong cùng giao dịch.
+Available to roles ⇢ Khả dụng cho vai trò
+Role activation uses the published version. It does not grant private-data permissions. ⇢ Kích hoạt vai trò sử dụng phiên bản đã xuất bản, không cấp quyền dữ liệu riêng tư.
+Publish this Agent before role activation. ⇢ Xuất bản Agent trước khi kích hoạt vai trò.
+Loading role availability... ⇢ Đang tải trạng thái vai trò...
+Currently use ⇢ Hiện sử dụng
+No active Agent ⇢ Chưa có Agent hoạt động
+Activate ⇢ Kích hoạt
+Confirm role activation ⇢ Xác nhận kích hoạt vai trò
+Publish this exact saved version? Role availability is unchanged. ⇢ Xuất bản đúng phiên bản đã lưu này? Trạng thái vai trò được giữ nguyên.
+Activate instead ⇢ Thay bằng
+Remove this Agent from the role? ⇢ Gỡ Agent này khỏi vai trò?
+Students ⇢ Sinh viên
+Enterprise representatives ⇢ Đại diện doanh nghiệp
+Career Agent ⇢ Agent hướng nghiệp
+The published Agent available to your role. ⇢ Agent đã xuất bản và được kích hoạt cho vai trò của bạn.
+Loading available Agent... ⇢ Đang tải Agent khả dụng...
+No published Agent is active for your role. ⇢ Chưa có Agent đã xuất bản hoạt động cho vai trò của bạn.
+Enterprise chat runtime is not available. Role publication does not grant Student-private tools. ⇢ Chưa hỗ trợ hội thoại cho doanh nghiệp. Xuất bản theo vai trò không cấp công cụ dữ liệu riêng của sinh viên.
+Agent is archived. ⇢ Agent đã được lưu trữ.
+Student access requires publication, an active Agent and an active role binding. This preview grants no access. ⇢ Quyền truy cập của sinh viên yêu cầu xuất bản, Agent hoạt động và liên kết vai trò đang hiệu lực. Bản xem trước này không cấp quyền truy cập.
 `.trim().split('\n').map(line => line.split(' ⇢ ')))

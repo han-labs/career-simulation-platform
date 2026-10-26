@@ -18,6 +18,286 @@ import org.springframework.web.client.RestClient;
 class NativeAgentModelProviderTest {
     final ObjectMapper json = new ObjectMapper();
 
+    @org.junit.jupiter.api.Test
+    void exposesOnlyConfiguredBooleansAndRejectsModelProviderMismatchBeforeDispatch() {
+        var adapter =
+                new NativeAgentModelProvider(
+                        json,
+                        RestClient.builder(),
+                        "gemini",
+                        "SYNTHETIC_PRIVATE_KEY",
+                        "",
+                        "synthetic",
+                        "synthetic",
+                        "http://127.0.0.1:1",
+                        "http://127.0.0.1:1");
+        assertThat(adapter.state())
+                .containsEntry("geminiCredentialConfigured", true)
+                .containsEntry("adapterInstantiated", true);
+        assertThat(adapter.state().toString()).doesNotContain("SYNTHETIC_PRIVATE_KEY", "http://");
+        assertThatThrownBy(() -> adapter.requireAvailable("openai/synthetic"))
+                .isInstanceOfSatisfying(
+                        SynGuidanceProvider.ProviderException.class,
+                        e -> {
+                            assertThat(e.kind())
+                                    .isEqualTo(SynGuidanceProvider.FailureKind.PROVIDER_DISABLED);
+                            assertThat(e.diagnostics()).containsEntry("outboundAttempted", false);
+                        });
+        assertThatThrownBy(() -> adapter.requireAvailable("gemini/unsupported"))
+                .isInstanceOfSatisfying(
+                        SynGuidanceProvider.ProviderException.class,
+                        e ->
+                                assertThat(e.kind())
+                                        .isEqualTo(
+                                                SynGuidanceProvider.FailureKind
+                                                        .PROVIDER_MODEL_UNAVAILABLE));
+        var missing =
+                new NativeAgentModelProvider(
+                        json,
+                        RestClient.builder(),
+                        "gemini",
+                        "",
+                        "",
+                        "synthetic",
+                        "synthetic",
+                        "http://127.0.0.1:1",
+                        "http://127.0.0.1:1");
+        assertThatThrownBy(() -> missing.requireAvailable("gemini/synthetic"))
+                .isInstanceOfSatisfying(
+                        SynGuidanceProvider.ProviderException.class,
+                        e -> {
+                            assertThat(e.kind())
+                                    .isEqualTo(
+                                            SynGuidanceProvider.FailureKind
+                                                    .PROVIDER_NOT_CONFIGURED);
+                            assertThat(e.diagnostics())
+                                    .containsEntry("geminiCredentialConfigured", false);
+                        });
+    }
+
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({
+        "401,PROVIDER_AUTH_REJECTED",
+        "403,PROVIDER_AUTH_REJECTED",
+        "404,PROVIDER_MODEL_UNAVAILABLE",
+        "429,PROVIDER_RATE_LIMITED",
+        "503,PROVIDER_HTTP_UNAVAILABLE"
+    })
+    void streamingPreviewPreservesSafeHttpCategoryWithoutRetainingProviderBody(
+            int status, String category) throws Exception {
+        var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext(
+                "/",
+                exchange -> {
+                    exchange.getRequestBody().readAllBytes();
+                    byte[] body = "PRIVATE_REMOTE_BODY".getBytes();
+                    exchange.sendResponseHeaders(status, body.length);
+                    exchange.getResponseBody().write(body);
+                    exchange.close();
+                });
+        server.start();
+        try (var scope = SynExecutionScope.open(Duration.ofSeconds(10), () -> true)) {
+            String url = "http://127.0.0.1:" + server.getAddress().getPort();
+            var adapter =
+                    new NativeAgentModelProvider(
+                            json,
+                            RestClient.builder(),
+                            "gemini",
+                            "synthetic-only",
+                            "",
+                            "synthetic",
+                            "synthetic",
+                            url,
+                            url);
+            assertThatThrownBy(
+                            () ->
+                                    adapter.stream(
+                                            "gemini/synthetic",
+                                            "Instructions",
+                                            "Question",
+                                            List.of(),
+                                            List.of(),
+                                            delta -> {}))
+                    .isInstanceOfSatisfying(
+                            SynGuidanceProvider.ProviderException.class,
+                            e -> {
+                                assertThat(e.kind().name()).isEqualTo(category);
+                                assertThat(e.diagnostics())
+                                        .containsEntry("outboundAttempted", true)
+                                        .containsEntry("providerHttpStatus", status);
+                                assertThat(e.toString() + e.diagnostics())
+                                        .doesNotContain("PRIVATE_REMOTE_BODY", "synthetic-only");
+                            });
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @org.junit.jupiter.api.Test
+    void refusedLocalConnectionIsNetworkFailureNotBadCredentials() throws Exception {
+        int port;
+        try (var socket = new java.net.ServerSocket(0)) {
+            port = socket.getLocalPort();
+        }
+        String url = "http://127.0.0.1:" + port;
+        var adapter =
+                new NativeAgentModelProvider(
+                        json,
+                        RestClient.builder(),
+                        "gemini",
+                        "synthetic-only",
+                        "",
+                        "synthetic",
+                        "synthetic",
+                        url,
+                        url);
+        try (var scope = SynExecutionScope.open(Duration.ofSeconds(10), () -> true)) {
+            assertThatThrownBy(
+                            () ->
+                                    adapter.stream(
+                                            "gemini/synthetic",
+                                            "Instructions",
+                                            "Question",
+                                            List.of(),
+                                            List.of(),
+                                            delta -> {}))
+                    .isInstanceOfSatisfying(
+                            SynGuidanceProvider.ProviderException.class,
+                            e -> {
+                                assertThat(e.kind())
+                                        .isEqualTo(
+                                                SynGuidanceProvider.FailureKind
+                                                        .PROVIDER_NETWORK_UNAVAILABLE);
+                                assertThat(e.diagnostics())
+                                        .containsEntry("networkCategory", "CONNECT");
+                            });
+        }
+        assertThat(
+                        edu.hcmute.careersim.guidance.infrastructure.SynHttpRequests
+                                .networkCategory(new java.net.UnknownHostException()))
+                .isEqualTo("DNS");
+        assertThat(
+                        edu.hcmute.careersim.guidance.infrastructure.SynHttpRequests
+                                .networkCategory(
+                                        new javax.net.ssl.SSLHandshakeException("synthetic")))
+                .isEqualTo("TLS");
+    }
+
+    @org.junit.jupiter.api.Test
+    void nativeAgentCanReceiveAResponseBeyondTheFormerTwelveSecondDeadline() throws Exception {
+        var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext(
+                "/",
+                exchange -> {
+                    try {
+                        exchange.getRequestBody().readAllBytes();
+                        Thread.sleep(13000);
+                        byte[] body =
+                                json.writeValueAsBytes(
+                                        Map.of(
+                                                "candidates",
+                                                List.of(
+                                                        Map.of(
+                                                                "content",
+                                                                Map.of(
+                                                                        "parts",
+                                                                        List.of(
+                                                                                Map.of(
+                                                                                        "text",
+                                                                                        "{\"schemaVersion\":1,\"outcome\":\"REFUSED\",\"text\":\"Synthetic response\",\"citations\":[],\"suggestions\":[]}")))))));
+                        exchange.getResponseHeaders().add("Content-Type", "application/json");
+                        exchange.sendResponseHeaders(200, body.length);
+                        exchange.getResponseBody().write(body);
+                    } catch (InterruptedException interrupted) {
+                        Thread.currentThread().interrupt();
+                    } finally {
+                        exchange.close();
+                    }
+                });
+        server.start();
+        try (var scope = SynExecutionScope.open(Duration.ofSeconds(30), () -> true)) {
+            String url = "http://127.0.0.1:" + server.getAddress().getPort();
+            var adapter =
+                    new NativeAgentModelProvider(
+                            json,
+                            RestClient.builder(),
+                            "gemini",
+                            "synthetic-only",
+                            "",
+                            "synthetic",
+                            "synthetic",
+                            url,
+                            url);
+            assertThat(
+                            adapter.decide(
+                                            "gemini/synthetic",
+                                            "Synthetic instructions",
+                                            "Synthetic query",
+                                            List.of(),
+                                            false)
+                                    .output()
+                                    .path("text")
+                                    .asText())
+                    .isEqualTo("Synthetic response");
+        } finally {
+            server.stop(0);
+        }
+    }
+
+    @ParameterizedTest
+    @org.junit.jupiter.params.provider.CsvSource({
+        "400,PROVIDER_REJECTED",
+        "401,PROVIDER_AUTH_REJECTED",
+        "403,PROVIDER_AUTH_REJECTED",
+        "429,PROVIDER_RATE_LIMITED",
+        "500,PROVIDER_HTTP_UNAVAILABLE",
+        "503,PROVIDER_HTTP_UNAVAILABLE"
+    })
+    void safeHttpStatusTaxonomyDoesNotExposePrivateResponseBody(int status, String category)
+            throws Exception {
+        var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext(
+                "/",
+                exchange -> {
+                    exchange.getRequestBody().readAllBytes();
+                    byte[] body = "PRIVATE_RESPONSE_DO_NOT_EXPOSE".getBytes();
+                    exchange.sendResponseHeaders(status, body.length);
+                    exchange.getResponseBody().write(body);
+                    exchange.close();
+                });
+        server.start();
+        try (var scope = SynExecutionScope.open(Duration.ofSeconds(10), () -> true)) {
+            String url = "http://127.0.0.1:" + server.getAddress().getPort();
+            var adapter =
+                    new NativeAgentModelProvider(
+                            json,
+                            RestClient.builder(),
+                            "gemini",
+                            "synthetic-only",
+                            "",
+                            "synthetic",
+                            "synthetic",
+                            url,
+                            url);
+            assertThatThrownBy(
+                            () ->
+                                    adapter.decide(
+                                            "gemini/synthetic",
+                                            "Synthetic instructions",
+                                            "Synthetic query",
+                                            List.of(),
+                                            false))
+                    .isInstanceOfSatisfying(
+                            SynGuidanceProvider.ProviderException.class,
+                            e -> {
+                                assertThat(e.kind().name()).isEqualTo(category);
+                                assertThat(e.getMessage()).doesNotContain("PRIVATE_RESPONSE");
+                            });
+        } finally {
+            server.stop(0);
+        }
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"gemini", "openai"})
     void actualNativeProtocolRoundTripPreservesCorrelationButNotPrivateThoughtInOutput(

@@ -30,11 +30,20 @@ public interface AgentRegistryService {
 
     PublicationReadiness publicationReadiness(long admin, UUID agent, UUID config);
 
+    /** Historical assignment storage only; no runtime access grant. HTTP writes are retired. */
+    @Deprecated
     Assignment assign(long admin, UUID agent, long student);
 
+    @Deprecated
     Assignment revoke(long admin, UUID agent, UUID assignment);
 
     List<PublicAgent> assigned(long student);
 
     void requireAssignedConfiguration(long student, UUID agent, UUID config);
+
+    List<RoleBinding> roleBindings(long admin);
+
+    List<RoleBinding> activateRoles(long admin, UUID agent, long revision, RoleActivation input);
+
+    List<PublicAgent> available(long actor);
 }

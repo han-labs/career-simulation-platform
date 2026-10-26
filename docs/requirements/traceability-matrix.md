@@ -16,6 +16,14 @@ Use [the requirements index](README.md), [selected report stories](user-stories/
 | US-09 Create AI agent | UC-08 | 3 | US-10 |
 | US-10 View AI usage dashboard | UC-09 | 3 | US-15 |
 
+UC-09 implementation follow-up (2026-10-26, human review pending): the existing
+AgentUsageController/Query/Dao now exposes an additive safe dashboard view over
+agent_execution, with server aggregates, UTC trends, filters and bounded keyset
+pagination. AgentUsagePage reuses the current Admin Studio shell. Contracts and
+metric/privacy semantics: [UC-09 API](../api/ai-usage-uc09.md). Focused evidence:
+AgentUsageDashboardTest and frontend usageDashboard.test.jsx. No new migration
+or analytics producer; runtime/model quality acceptance is recorded separately.
+
 Baseline profile/dashboard US-02 is documented by supplementary UC-10/11; Enterprise US-05 by UC-12/13; Admin assessment US-03 by UC-16; account administration also supports UC-15. These are supporting relationships, not new selected stories or person assignments. UC-14 is deferred. The exact prior-report UC renumbering comes from the supplied [UC index](use-cases/README.md#historical-uc-renumbering-2026-10-21--current).
 
 For each selected UC, the imported spec now links production source/tests and distinguishes existing automated evidence from pending UAT. [The alignment register](REPORT_CODE_ALIGNMENT_2026-10-22.md) records unresolved report/code differences; do not mark a full flow accepted from an endpoint or a mock.
@@ -34,6 +42,18 @@ For each selected UC, the imported spec now links production source/tests and di
 Feature report: `.agent/reports/us-04-uc-04-browse-simulations-verification.vi.md`. PO-reported UAT 2026-10-25: 14 PASS / 1 PARTIAL / 1 BLOCKED / 0 FAIL; TC-04-04A passed all 8 checks. Codex did not observe the full PO session. Final commit SHA, redistribution/published-content integrity decision and integration review remain pending. Pre-enrollment survey is a UC-05 requirements-review item (D10), not a UC-04 defect.
 
 ## Historical initial matrix
+
+### Approved Admin Studio repair — 2026-10-26, human UAT pending
+
+| Selected UC / US | Implementation and focused evidence |
+|---|---|
+| UC-07 / US-08 | KnowledgeStudioPage card grid/native links, direct document actions, exact READY review, top publication summary and Inspector. `knowledgeStudio`/`knowledgeDocuments` tests retain revision/draft/publication invariants. |
+| UC-07 reprocess alternative | KnowledgeAdminController → KnowledgeStudioServiceImpl → existing DAO/parser/embedding pipeline; job If-Match, stored source, generation fence, UNCHANGED and READY. Four new AgentPlatformIntegrationTest tests prove authorization, no duplicate upload/version, parser invocation, failure/cancel preservation and retired-source denial on isolated PostgreSQL. No migration. |
+| UC-08 / US-09 | AgentBuilderPage/ConfigurationForm/Preview, PublishAssignPanel: coherent partial Save, four supported tabs, explicit grants, independent saved-config Preview, bounded UI-only history, source revalidation, exact publish/assign/revoke. `agentBuilder`, `publishAssign`, `previewSources`, `platformIntegration` tests. |
+| UC-09 / US-10 | Existing aggregation unchanged; compact KPI/filter/history presentation, explicit cost statuses and zero estimate. `usageDashboard` and unchanged AgentUsageDashboardTest cover metadata privacy, scope/pagination and cost coverage. |
+
+Browser evidence is separate from provider/human acceptance. Read-only canonical
+runtime checks do not prove live embedding, generation, publication or assignment.
 
 ### UC-07 / selected US-08 implementation evidence — 2026-10-23
 
@@ -77,6 +97,24 @@ Create a sequence-to-code trace from `.agent/templates/sequence-to-code-trace.md
 
 </details>
 
+
+Revised Admin Studio (2026-10-26): UC-07 counts/card navigation reuse the ingestion/publication
+model; UC-08 experience v2 + owned Preview conversations use additive V29/V30 and the existing
+execution/audit ledger. `AgentExperienceTest`, `AgentExperienceUpgradeTest`,
+`AgentPlatformIntegrationTest`, `agentBuilder.test.jsx`, `agentPreview.test.jsx` cover the
+new contracts. UC-09 aggregation/cost semantics are unchanged. Automated evidence and runtime
+limitations are recorded separately; human UAT remains pending.
+
+UC-08 explicit role-publication correction (2026-10-26): V31 / `AgentRoleBindingDao`,
+`AgentRegistryServiceImpl.activateRoles`, role-aware `/v2/agents` and the compact Publish
+panel replace per-Student assignment UX/access. `AgentPlatformIntegrationTest` verifies
+both roles, atomic concurrent replacement/rollback, stale revisions, readiness, archive
+and same-Agent re-publication; `StudentAgentIntegrationTest` retains ownership/private
+evidence regressions. `AgentExperienceTest` and `agentBuilder.test.jsx` cover dynamic
+bounded variables and legacy v2 readability. Native provider wire tests classify safe
+HTTP/network failures. `RegistrationAssessmentIntegrationTest` exercises real auth-test
+login/refresh/logout/relogin for Student, Enterprise and Administrator; AppShell tests
+separately verify the local-workspace indicator. No UC-07/UC-09 architecture change.
 ## 2026-10-26 main-derived frontend foundation trace
 
 This presentation/integration task adds no US/UC and does not change acceptance or owner assignments. [Audit](../../.agent/reports/hcmute-main-functional-audit.md) traces actual actors/routes/components/state/APIs/failures/tests before UI changes; [verification](../../.agent/reports/hcmute-main-rebuild-verification.md) maps every modified source and distinguishes clean-main, mocked and real gateway evidence.

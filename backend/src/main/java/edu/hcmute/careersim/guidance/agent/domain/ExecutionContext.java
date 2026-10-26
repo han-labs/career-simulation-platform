@@ -16,7 +16,8 @@ public record ExecutionContext(
         boolean retrievalOnly,
         String modelKey,
         long privacyVersion,
-        Instant deadline) {
+        Instant deadline,
+        edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.Scope previewScope) {
     public ExecutionContext {
         knowledgeBases = Set.copyOf(knowledgeBases);
     }

@@ -30,6 +30,7 @@ final class LocalDemoAuthenticationFilter extends OncePerRequestFilter {
         return path.equals("/v2/me")
                 || path.equals("/v2/admin/agent-platform/options")
                 || path.equals("/v2/admin/agent-usage")
+                || path.equals("/v2/admin/agent-role-bindings")
                 || List.of(
                                 "/v2/admin/knowledge-bases",
                                 "/v2/admin/agents",

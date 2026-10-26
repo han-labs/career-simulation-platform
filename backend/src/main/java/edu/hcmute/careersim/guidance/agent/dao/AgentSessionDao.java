@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
 public class AgentSessionDao {
     private final JdbcTemplate jdbc;
     private static final String SELECT =
-            "SELECT s.*,a.name AS agent_name,c.version_number FROM public.agent_session s JOIN public.agent a ON a.id=s.agent_id JOIN public.agent_configuration c ON c.id=s.configuration_id";
+            "SELECT s.*,COALESCE(c.experience_config->>'name',a.name) AS agent_name,c.version_number FROM public.agent_session s JOIN public.agent a ON a.id=s.agent_id JOIN public.agent_configuration c ON c.id=s.configuration_id";
     private final RowMapper<Session> map =
             (r, n) ->
                     new Session(

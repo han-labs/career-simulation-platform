@@ -51,10 +51,34 @@ public class KnowledgeStudioDao {
                                     ? null
                                     : r.getTimestamp("finished_at").toInstant());
 
-    public List<Base> list() {
+    public List<BaseSummary> list() {
         return jdbc.query(
-                "SELECT * FROM public.knowledge_base WHERE scope_type='PLATFORM' ORDER BY created_at,id LIMIT 200",
-                baseMap);
+                """
+            WITH bases AS (SELECT * FROM public.knowledge_base WHERE scope_type='PLATFORM' ORDER BY created_at,id LIMIT 200),
+            versions AS (SELECT s.knowledge_base_id,s.asset_key,count(*) total,bool_or(m.publication_status<>'RETIRED') live
+                FROM public.knowledge_document_scope s JOIN bases b ON b.id=s.knowledge_base_id JOIN public.knowledge_asset_metadata m ON m.document_id=s.document_id GROUP BY 1,2),
+            jobs AS (SELECT j.knowledge_base_id,j.asset_key,bool_or(j.state NOT IN ('CANCELLED','READY','PUBLISHED')) pending,bool_or(j.state<>'CANCELLED') live
+                FROM public.knowledge_ingestion_job j JOIN bases b ON b.id=j.knowledge_base_id GROUP BY 1,2),
+            docs AS (SELECT coalesce(v.knowledge_base_id,j.knowledge_base_id) kb,count(*) n FROM versions v FULL JOIN jobs j USING(knowledge_base_id,asset_key)
+                WHERE coalesce(v.live,false) OR (v.total IS NOT NULL AND coalesce(j.pending,false)) OR (v.total IS NULL AND coalesce(j.live,false)) GROUP BY 1),
+            chunks AS (SELECT s.knowledge_base_id kb,count(*) n FROM public.knowledge_document_scope s JOIN bases b ON b.id=s.knowledge_base_id
+                JOIN public.knowledge_documents d ON d.id=s.document_id AND d.status='PUBLISHED'
+                JOIN public.knowledge_asset_metadata m ON m.version_id=d.active_version_id AND m.publication_status='PUBLISHED'
+                JOIN public.knowledge_chunks c ON c.version_id=d.active_version_id AND c.embedding IS NOT NULL GROUP BY 1)
+            SELECT b.*,coalesce(d.n,0) document_count,coalesce(c.n,0) published_chunk_count FROM bases b LEFT JOIN docs d ON d.kb=b.id LEFT JOIN chunks c ON c.kb=b.id ORDER BY b.created_at,b.id
+            """,
+                (r, n) ->
+                        new BaseSummary(
+                                r.getString("id"),
+                                r.getString("name"),
+                                r.getString("scope_type"),
+                                r.getString("visibility"),
+                                r.getString("status"),
+                                r.getLong("publication_revision"),
+                                r.getLong("row_version"),
+                                r.getTimestamp("created_at").toInstant(),
+                                r.getLong("document_count"),
+                                r.getLong("published_chunk_count")));
     }
 
     public Base base(UUID id, boolean lock) {

@@ -4,7 +4,7 @@
 .cs-ui .kb-main { width: 100%; max-width: 1208px; min-width: 0; margin-inline: auto; padding: 32px 24px 48px; }
 .cs-ui .kb-main > .cs-feedback { margin-bottom: var(--cs-space-5); }
 .cs-ui .kb-eyebrow { font-size: .875rem; font-weight: 600; color: var(--cs-text-secondary); margin-bottom: 8px; }
-.cs-ui .kb-collection { display: grid; gap: var(--cs-space-4); }
+.cs-ui .kb-collection { display: grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,290px),1fr)); gap: var(--cs-space-4); }
 .cs-ui .kb-collection-row { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: var(--cs-space-5); align-items: start; }
 .cs-ui .kb-collection-row > .cs-actions { grid-column: 1/-1; justify-content: flex-end; border-top: 1px solid var(--cs-border); padding-top: var(--cs-space-4); }
 .cs-ui .kb-collection-name .cs-caption { margin-top: var(--cs-space-2); }
@@ -69,3 +69,14 @@
   .cs-ui .kb-version-heading > .cs-badge { grid-column: 2; }
 }
 .cs-ui .kb-mode-hint { display:block; font-size:.875rem; color:var(--cs-text-secondary); margin-top:4px; }
+.cs-ui .kb-collection-row { padding:0; display:flex; flex-direction:column; overflow:hidden; }
+.cs-ui .kb-collection-row .studio-card-main { display:flex; flex-direction:column; align-items:flex-start; gap:16px; padding:20px; flex:1; text-decoration:none; color:inherit; }
+.cs-ui .kb-collection-row .studio-card-main:hover { background:var(--cs-surface-muted); }
+.cs-ui .kb-collection-row > .cs-actions { margin:0 20px; padding:12px 0; }
+.cs-ui .kb-collection-row .kb-item-title { margin:0; }
+.cs-ui .kb-publication-summary { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px; padding:12px 16px; }
+.cs-ui .kb-document-title { font:inherit; font-weight:600; text-align:left; color:var(--cs-primary); background:none; border:0; padding:0; min-height:44px; cursor:pointer; overflow-wrap:anywhere; }
+.cs-ui .kb-document-name { position:relative; }
+.cs-ui .kb-document-title::after { content:''; position:absolute; inset:0; }
+.cs-ui .kb-inspector-actions { position:sticky; top:0; z-index:1; padding:8px 0; background:var(--cs-surface); }
+.cs-ui .kb-document-controls { justify-content:flex-start; }

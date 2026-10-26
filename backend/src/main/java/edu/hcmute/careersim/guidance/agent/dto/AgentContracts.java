@@ -34,7 +34,8 @@ public final class AgentContracts {
             String status,
             String contentHash,
             Instant createdAt,
-            Instant publishedAt) {}
+            Instant publishedAt,
+            JsonNode experienceConfig) {}
 
     public record ConfigurationInput(
             String modelKey,
@@ -43,11 +44,37 @@ public final class AgentContracts {
             JsonNode toolPolicy,
             JsonNode memoryPolicy,
             JsonNode outputPolicy,
-            List<UUID> knowledgeBaseIds) {}
+            List<UUID> knowledgeBaseIds,
+            JsonNode experienceConfig) {
+        public ConfigurationInput(
+                String modelKey,
+                String promptTemplate,
+                String promptTemplateRef,
+                JsonNode toolPolicy,
+                JsonNode memoryPolicy,
+                JsonNode outputPolicy,
+                List<UUID> knowledgeBaseIds) {
+            this(
+                    modelKey,
+                    promptTemplate,
+                    promptTemplateRef,
+                    toolPolicy,
+                    memoryPolicy,
+                    outputPolicy,
+                    knowledgeBaseIds,
+                    null);
+        }
+    }
 
     public record Preview(UUID requestId, String query) {}
 
     public record Assign(String studentUserId) {}
+
+    public record RoleBinding(
+            String role, String agentId, String agentName, long revision, Instant updatedAt) {}
+
+    public record RoleActivation(
+            List<String> roles, Map<String, Long> expectedRoleRevisions, boolean confirmed) {}
 
     public record Assignment(
             String id,
@@ -73,7 +100,11 @@ public final class AgentContracts {
             boolean previewSucceeded,
             boolean publishable) {}
 
-    public record PublicAgent(String id, String name, String purpose) {}
+    public record PublicAgent(String id, String name, String purpose, boolean runtimeAvailable) {
+        public PublicAgent(String id, String name, String purpose) {
+            this(id, name, purpose, true);
+        }
+    }
 
     public record Execution(
             String id,
