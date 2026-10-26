@@ -3,7 +3,7 @@ name: Continuous integration
 on:
   pull_request:
   push:
-    branches: [main, develop, feature/complete-simulation]
+    branches: [main, develop, feature/browse-simulations, feature/complete-simulation]
 
 permissions:
   contents: read
