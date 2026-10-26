@@ -32,7 +32,21 @@ public final class SynHttpRequests {
     }
 
     public static ClientHttpRequestFactory deadlineAware(int seconds, String provider) {
-        Duration maximum = Duration.ofSeconds(Math.max(1, Math.min(seconds, 20)));
+        return deadlineFactory(Duration.ofSeconds(Math.max(1, Math.min(seconds, 20))), provider);
+    }
+
+    /**
+     * Native Agent only; effective execution scope supplies its configured deadline and 2s margin.
+     */
+    public static Duration agentBudget() {
+        return SynExecutionScope.remaining(Duration.ofSeconds(60));
+    }
+
+    public static ClientHttpRequestFactory agentDeadlineAware(String provider) {
+        return deadlineFactory(Duration.ofSeconds(60), provider);
+    }
+
+    private static ClientHttpRequestFactory deadlineFactory(Duration maximum, String provider) {
         return (uri, method) ->
                 new ClientHttpRequest() {
                     private final HttpHeaders headers = new HttpHeaders();
@@ -91,7 +105,25 @@ public final class SynHttpRequests {
                                                     CLIENT.sendAsync(
                                                             builder.build(),
                                                             info -> limitedBody()));
-                            var response = pending.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
+                            long deadline = System.nanoTime() + timeout.toNanos();
+                            HttpResponse<byte[]> received;
+                            while (true) {
+                                SynExecutionScope.checkExternal();
+                                long left = deadline - System.nanoTime();
+                                if (left <= 0) throw new TimeoutException();
+                                try {
+                                    received =
+                                            pending.get(
+                                                    Math.min(
+                                                            left,
+                                                            TimeUnit.MILLISECONDS.toNanos(200)),
+                                                    TimeUnit.NANOSECONDS);
+                                    break;
+                                } catch (TimeoutException waiting) {
+                                    if (System.nanoTime() >= deadline) throw waiting;
+                                }
+                            }
+                            final var response = received;
                             var responseHeaders = new HttpHeaders();
                             response.headers().map().forEach(responseHeaders::put);
                             return new ClientHttpResponse() {
@@ -159,7 +191,23 @@ public final class SynHttpRequests {
                                                                     body))
                                                     .build(),
                                             HttpResponse.BodyHandlers.ofPublisher()));
-            var response = pending.get(timeout.toNanos(), TimeUnit.NANOSECONDS);
+            long headerDeadline = System.nanoTime() + timeout.toNanos();
+            HttpResponse<Flow.Publisher<List<ByteBuffer>>> received;
+            while (true) {
+                SynExecutionScope.checkExternal();
+                long left = headerDeadline - System.nanoTime();
+                if (left <= 0) throw new TimeoutException();
+                try {
+                    received =
+                            pending.get(
+                                    Math.min(left, TimeUnit.MILLISECONDS.toNanos(200)),
+                                    TimeUnit.NANOSECONDS);
+                    break;
+                } catch (TimeoutException waiting) {
+                    if (System.nanoTime() >= headerDeadline) throw waiting;
+                }
+            }
+            final var response = received;
             if (response.statusCode() != 200) {
                 response.body()
                         .subscribe(
@@ -183,7 +231,14 @@ public final class SynHttpRequests {
                                         ? edu.hcmute.careersim.guidance.service.SynGuidanceProvider
                                                 .FailureKind.PROVIDER_UNAVAILABLE
                                         : edu.hcmute.careersim.guidance.service.SynGuidanceProvider
-                                                .FailureKind.PROVIDER_REJECTED);
+                                                .FailureKind.PROVIDER_REJECTED,
+                        java.util.Map.of(
+                                "outboundAttempted",
+                                true,
+                                "providerHttpStatus",
+                                response.statusCode(),
+                                "transportPhase",
+                                "HEADERS"));
             }
             var queue = new ArrayBlockingQueue<Object>(32);
             Object eof = new Object();
@@ -307,12 +362,31 @@ public final class SynHttpRequests {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("Provider stream interrupted");
         } catch (IOException | ExecutionException | TimeoutException e) {
-            throw new IllegalStateException("Provider stream unavailable");
+            throw new edu.hcmute.careersim.guidance.service.SynGuidanceProvider.ProviderException(
+                    edu.hcmute.careersim.guidance.service.SynGuidanceProvider.FailureKind
+                            .TIMEOUT_OR_TRANSPORT,
+                    java.util.Map.of(
+                            "outboundAttempted", true, "networkCategory", networkCategory(e)));
         } finally {
             if (subscription.get() != null) subscription.get().cancel();
             if (pending != null && !pending.isDone()) pending.cancel(true);
             IN_FLIGHT.release();
         }
+    }
+
+    public static String networkCategory(Throwable error) {
+        for (Throwable cause = error; cause != null; cause = cause.getCause()) {
+            if (cause instanceof java.net.http.HttpConnectTimeoutException)
+                return "CONNECT_TIMEOUT";
+            if (cause instanceof java.net.UnknownHostException
+                    || cause instanceof java.nio.channels.UnresolvedAddressException) return "DNS";
+            if (cause instanceof javax.net.ssl.SSLException) return "TLS";
+            if (cause instanceof java.net.ConnectException) return "CONNECT";
+            if (cause instanceof TimeoutException
+                    || cause instanceof java.net.http.HttpTimeoutException)
+                return "TRANSPORT_DEADLINE";
+        }
+        return "NETWORK_IO";
     }
 
     private static HttpResponse.BodySubscriber<byte[]> limitedBody() {

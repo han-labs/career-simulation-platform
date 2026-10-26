@@ -5,7 +5,8 @@ import SourcePassages from './SourcePassages.jsx'
 import Button from '../../../shared/ui/Button.jsx'
 import FeedbackPanel from '../../../shared/ui/FeedbackPanel.jsx'
 import StatusBadge from '../../../shared/ui/StatusBadge.jsx'
-export default function ExecutionResult({ id, execution, error, reload, presentation = 'legacy', detailsLabel }) {
+import PreviewResult from '../agents/PreviewResult.jsx'
+export default function ExecutionResult({ id, execution, error, reload, presentation = 'legacy', detailsLabel, showStop = true }) {
   const { t } = useI18n()
   const [cancelError, setCancelError] = useState('')
   if (!id) return null
@@ -19,7 +20,8 @@ export default function ExecutionResult({ id, execution, error, reload, presenta
   const builder = presentation === 'builder'
   const safeSteps = (execution?.toolStepsAndSources ?? []).map(step => ({ type: step.type, name: step.name, status: step.status, errorCode: step.errorCode, elapsedMs: step.elapsedMs,
     sourceReferences: (Array.isArray(step.sources) ? step.sources : Array.isArray(step.evidence) ? step.evidence : []).map(source => ({ referenceId: source.referenceId, versionId: source.versionId, chunkId: source.chunkId })) }))
-  if (presentation === 'studio' || builder) return <section className="cs-surface cs-stack" aria-label={t('Persisted execution result')} aria-busy={pending && !error}>
+  if (builder) return <PreviewResult id={id} execution={execution} error={error} reload={reload} showStop={showStop} />
+  if (presentation === 'studio') return <section className="cs-surface cs-stack" aria-label={t('Persisted execution result')} aria-busy={pending && !error}>
     <div className="cs-section-header"><h2>{t(builder ? 'Preview result' : 'Test results')}</h2>{execution && <StatusBadge tone={pending ? 'info' : execution.status === 'SUCCEEDED' ? 'success' : execution.status === 'REFUSED' ? 'warning' : 'danger'}>{t(({ SUCCEEDED: 'Succeeded', FAILED: 'Failed', REFUSED: 'Refused', CANCELLED: 'Cancelled', ACCEPTED: 'Accepted', RUNNING: 'Running' })[execution.status] ?? execution.status)}</StatusBadge>}</div>
     {(error || cancelError) && <FeedbackPanel kind="error">{t(error || cancelError)}</FeedbackPanel>}
     {!execution && !error && <FeedbackPanel kind="loading">{t('Loading saved execution...')}</FeedbackPanel>}

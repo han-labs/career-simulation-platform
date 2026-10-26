@@ -177,3 +177,30 @@ docs/requirements/traceability-matrix.md
 3. Stage **only reviewed paths from the exact list above** plus the new UC directory, selected-US file, team/checklist/requirements-index/alignment Markdown. If including the assistance record, stage that single `.md` path, never all `.agent/reports/`.
 4. Run `git diff --cached --name-status`, `git diff --cached --check` and `git diff --cached`; review for contact data, tokens and local paths. The intended PR has only approved Markdown additions/modifications, **no deletions, application/SQL/proxy changes, raw logs, JSON, screenshots or source report binaries**.
 5. The repository owner alone commits/pushes/opens the PR against current main after reviewing the staged content. Reconcile main updates without overwriting preserved local work. No `git add -A`, hard reset, clean, valuable DB action or full-suite rerun is needed for this documentation handoff.
+
+
+### Approved revised Agent Studio extension — 2026-10-26
+
+Team Lead explicitly approved Astra's revised final plan: UC-08 now includes versioned
+experience fields, literal name variable and persisted owned Admin Preview chats, with
+additive V29/V30. These supersede the earlier repair's unsupported-field/UI-only-preview
+boundary for this approved pass only. UC numbering/selected catalogue and authorization
+remain unchanged; no Student shell or Syn restoration is included. UC-07 real counts and
+prior Reprocess remain within the approved Admin work. Implementation/API evidence:
+[Agent Platform contract](../api/agent-platform-p3-p4.md) and
+[revised verification](../../.agent/reports/ai/2026-10-26-revised-agent-studio.md).
+Automated verification is separate from failed live provider verification and pending
+human/browser UAT; do not infer full acceptance.
+
+### Explicit UC-08 role publication correction — 2026-10-26
+
+Team Lead explicitly replaces the Phase-B per-Student assignment interpretation with
+one active published Agent per whole role (`STUDENT`, `ENTERPRISE`). V31 adds unique
+role slots and atomic replacement; historical per-user tables remain for compatibility
+but do not grant runtime access. Enterprise discovery is supported; Student-private
+execution is not granted to Enterprise. Existing same-Agent configuration pins survive
+re-publication; replacing a role Agent revokes old-Agent runtime access. The current
+Publish UI has no Student picker/search/assignment/revoke list. Dynamic bounded variables
+replace the fixed Name editor without rewriting sealed v2 records. This is an explicit
+product correction, not a silent reinterpretation of the historical baseline/catalogue.
+See [current API correction](../api/agent-platform-p3-p4.md#uc-08-role-publication-correction--2026-10-26).

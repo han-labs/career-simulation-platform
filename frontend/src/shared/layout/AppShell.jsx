@@ -20,6 +20,7 @@ function AppShell() {
   const { t } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
   const [account, setAccount] = useState(null)
+  const [localWorkspace,setLocalWorkspace]=useState(null)
   const [logoutError, setLogoutError] = useState('')
   const [loggingOut, setLoggingOut] = useState(false)
   const logoutPending = useRef(false)
@@ -28,6 +29,7 @@ function AppShell() {
   const adminStudio = /^\/admin(?:\/|$)/.test(pathname) || pathname === '/account'
   useEffect(() => {
     let active = true
+    apiRequest('/v2/auth/providers').then(value=>{if(active)setLocalWorkspace(value.localWorkspace===true)}).catch(()=>{if(active)setLocalWorkspace(null)})
     apiRequest('/v2/me').then(value => { if (active) setAccount(value) }).catch(() => {})
     return () => { active = false }
   }, [])
@@ -66,7 +68,8 @@ function AppShell() {
           </Link>
 
           <LanguageSwitcher />
-          {account && <button type="button" className="button button--small session-signout" disabled={loggingOut} onClick={logout}>{t('Sign out')}</button>}
+          {account && localWorkspace === true && <span className="session-local-workspace" role="status" title={t('Local mode automatically provides Administrator access. Use auth-test to test sign-in and sign-out.')}>{t('Local workspace')}</span>}
+          {account && localWorkspace === false && <button type="button" className="button button--small session-signout" disabled={loggingOut} onClick={logout}>{t('Sign out')}</button>}
 
           {!adminStudio && <button
             className="menu-button"

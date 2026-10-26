@@ -5,7 +5,7 @@ import static edu.hcmute.careersim.guidance.knowledge.dto.KnowledgeContracts.*;
 import java.util.*;
 
 public interface KnowledgeStudioService {
-    List<Base> list(long admin);
+    List<BaseSummary> list(long admin);
 
     Base create(long admin, BaseInput input);
 
@@ -22,6 +22,8 @@ public interface KnowledgeStudioService {
     List<Job> jobs(long admin, UUID kb);
 
     Job retry(long admin, UUID kb, UUID job);
+
+    Job reprocess(long admin, UUID kb, UUID job, long revision);
 
     Job cancel(long admin, UUID kb, UUID job);
 

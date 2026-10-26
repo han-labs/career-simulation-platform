@@ -6,6 +6,16 @@ in `.agent/reports/p5-p6-completion.vi.md`. Feature flags remain opt-in:
 HTTP prefix `/api`; all UUIDs and Core BIGINTs are serialized as strings.
 Existing Core, legacy Syn, KB Studio and Admin Builder contracts stay available.
 
+Current UC-08 correction (2026-10-26, V31): role publication supersedes the historical
+per-Student assignment wording below. `/v2/agents` resolves at most one current published
+Agent through the authenticated `STUDENT` or `ENTERPRISE` role. It includes
+`runtimeAvailable:true` for Student and `false` for Enterprise, which has no Student
+session/private-tool access. New Student sessions pin the role Agent's current published
+configuration. Re-publishing that same Agent preserves existing valid pins; replacing
+the role Agent removes old-Agent runtime authority. Historical per-user assignments are
+not an access grant. Session owner, consent, privacy, source authorization and execution
+fencing remain mandatory. See [role API](agent-platform-p3-p4.md#uc-08-role-publication-correction--2026-10-26).
+
 ## Browser contract
 
 Backend-issued short-lived HttpOnly JWT cookie; existing same-origin CSRF bootstrap

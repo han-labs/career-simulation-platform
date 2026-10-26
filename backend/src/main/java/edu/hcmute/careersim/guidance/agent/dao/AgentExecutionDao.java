@@ -89,10 +89,11 @@ public class AgentExecutionDao {
             String model,
             String promptHash,
             String configHash,
-            long privacy) {
+            long privacy,
+            java.time.Instant started) {
         UUID id = UUID.randomUUID();
         jdbc.update(
-                "INSERT INTO public.agent_execution(id,execution_mode,task_type,initiated_by_user_id,configuration_id,knowledge_base_id,input_snapshot,request_id,request_hash,status,model_key,prompt_hash,configuration_hash,privacy_version) VALUES (?,?,?,?,?,?,CAST(? AS jsonb),?,?,'ACCEPTED',?,?,?,?)",
+                "INSERT INTO public.agent_execution(id,execution_mode,task_type,initiated_by_user_id,configuration_id,knowledge_base_id,input_snapshot,request_id,request_hash,status,model_key,prompt_hash,configuration_hash,privacy_version,started_at) VALUES (?,?,?,?,?,?,CAST(? AS jsonb),?,?,'ACCEPTED',?,?,?,?,?)",
                 id,
                 mode,
                 "KB_TEST".equals(mode) ? "KB_QUERY" : "CHAT",
@@ -105,7 +106,8 @@ public class AgentExecutionDao {
                 model,
                 promptHash,
                 configHash,
-                privacy);
+                privacy,
+                java.sql.Timestamp.from(started));
         return get(id, false);
     }
 

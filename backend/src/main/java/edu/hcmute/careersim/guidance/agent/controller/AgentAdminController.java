@@ -21,6 +21,101 @@ public class AgentAdminController {
     private final AgentRegistryService registry;
     private final ExecutionService executions;
     private final ActorAccess actors;
+    private final AdminPreviewConversationService previewChats;
+
+    @GetMapping("/agent-role-bindings")
+    public ApiResponse<?> roleBindings(Principal p) {
+        return ApiResponse.success(registry.roleBindings(actors.admin(p).id()));
+    }
+
+    @PutMapping("/agents/{agent}/roles")
+    public ApiResponse<?> activateRoles(
+            Principal p,
+            @PathVariable UUID agent,
+            @RequestHeader(value = "If-Match", required = false) String revision,
+            @RequestBody RoleActivation input) {
+        return ApiResponse.success(
+                registry.activateRoles(
+                        actors.admin(p).id(), agent, CoreValues.revision(revision), input));
+    }
+
+    @GetMapping("/agents/{agent}/preview-conversations")
+    public ApiResponse<?> chats(
+            Principal p,
+            @PathVariable UUID agent,
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(defaultValue = "0") int offset) {
+        return ApiResponse.success(previewChats.list(actors.admin(p).id(), agent, limit, offset));
+    }
+
+    @PostMapping("/agents/{agent}/preview-conversations")
+    public ApiResponse<?> newChat(
+            Principal p,
+            @PathVariable UUID agent,
+            @RequestBody
+                    edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.NewChat input) {
+        return ApiResponse.success(previewChats.create(actors.admin(p).id(), agent, input));
+    }
+
+    @GetMapping("/agents/{agent}/preview-conversations/{chat}")
+    public ApiResponse<?> chat(
+            Principal p,
+            @PathVariable UUID agent,
+            @PathVariable UUID chat,
+            @RequestParam(defaultValue = "9223372036854775807") long before,
+            @RequestParam(defaultValue = "50") int limit) {
+        return ApiResponse.success(
+                previewChats.read(actors.admin(p).id(), agent, chat, before, limit));
+    }
+
+    @PostMapping("/agents/{agent}/preview-conversations/{chat}/messages")
+    public ResponseEntity<?> message(
+            Principal p,
+            @PathVariable UUID agent,
+            @PathVariable UUID chat,
+            @RequestBody
+                    edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.Message input) {
+        return ResponseEntity.accepted()
+                .body(
+                        ApiResponse.success(
+                                previewChats.send(actors.admin(p).id(), agent, chat, input)));
+    }
+
+    @PostMapping("/agents/{agent}/preview-conversations/{chat}/clear")
+    public ApiResponse<?> clearChat(
+            Principal p,
+            @PathVariable UUID agent,
+            @PathVariable UUID chat,
+            @RequestHeader(value = "If-Match", required = false) String revision,
+            @RequestBody
+                    edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.Change input) {
+        return ApiResponse.success(
+                previewChats.change(
+                        actors.admin(p).id(),
+                        agent,
+                        chat,
+                        CoreValues.revision(revision),
+                        input.confirmed(),
+                        false));
+    }
+
+    @DeleteMapping("/agents/{agent}/preview-conversations/{chat}")
+    public ApiResponse<?> deleteChat(
+            Principal p,
+            @PathVariable UUID agent,
+            @PathVariable UUID chat,
+            @RequestHeader(value = "If-Match", required = false) String revision,
+            @RequestBody
+                    edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.Change input) {
+        return ApiResponse.success(
+                previewChats.change(
+                        actors.admin(p).id(),
+                        agent,
+                        chat,
+                        CoreValues.revision(revision),
+                        input.confirmed(),
+                        true));
+    }
 
     @GetMapping("/agent-platform/options")
     public ApiResponse<?> options(Principal p) {
@@ -116,8 +211,8 @@ public class AgentAdminController {
 
     @PostMapping("/agents/{agent}/assignments")
     public ApiResponse<?> assign(Principal p, @PathVariable UUID agent, @RequestBody Assign r) {
-        return ApiResponse.success(
-                registry.assign(actors.admin(p).id(), agent, CoreValues.id(r.studentUserId())));
+        actors.admin(p);
+        return ApiResponse.success(retiredAssignment());
     }
 
     @GetMapping("/agents/{agent}/eligible-students")
@@ -141,7 +236,8 @@ public class AgentAdminController {
     @PostMapping("/agents/{agent}/assignments/{assignment}/revoke")
     public ApiResponse<?> revoke(
             Principal p, @PathVariable UUID agent, @PathVariable UUID assignment) {
-        return ApiResponse.success(registry.revoke(actors.admin(p).id(), agent, assignment));
+        actors.admin(p);
+        return ApiResponse.success(retiredAssignment());
     }
 
     @GetMapping("/agent-executions/{id}")
@@ -152,5 +248,11 @@ public class AgentAdminController {
     @PostMapping("/agent-executions/{id}/cancel")
     public ApiResponse<?> cancel(Principal p, @PathVariable UUID id) {
         return ApiResponse.success(executions.cancel(actors.admin(p).id(), id));
+    }
+
+    private Object retiredAssignment() {
+        throw new edu.hcmute.careersim.common.exception.ApiException(
+                edu.hcmute.careersim.common.exception.ErrorCode.CONFLICT,
+                "Per-Student assignments are retired. Use role publication.");
     }
 }

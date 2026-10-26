@@ -32,9 +32,11 @@ import org.springframework.transaction.support.TransactionTemplate;
 @ConditionalOnProperty(name = "app.agent-platform-enabled", havingValue = "true")
 public class ExecutionServiceImpl implements ExecutionService {
     private final AgentExecutionDao dao;
+    private final AdminPreviewConversationDao chats;
     private final AgentRegistryDao registry;
     private final ActorAccess actors;
     private final AgentModelProvider model;
+    private final EmbeddingProvider embeddings;
     private final StudentEvidenceTools domainTools;
     private final KnowledgeStudioService knowledge;
     private final AgentConfigurationPolicy prompts;
@@ -44,9 +46,11 @@ public class ExecutionServiceImpl implements ExecutionService {
 
     public ExecutionServiceImpl(
             AgentExecutionDao dao,
+            AdminPreviewConversationDao chats,
             AgentRegistryDao registry,
             ActorAccess actors,
             AgentModelProvider model,
+            EmbeddingProvider embeddings,
             StudentEvidenceTools domainTools,
             KnowledgeStudioService knowledge,
             AgentConfigurationPolicy prompts,
@@ -54,9 +58,11 @@ public class ExecutionServiceImpl implements ExecutionService {
             @Qualifier("agentExecutionExecutor") ExecutorService workers,
             PlatformTransactionManager tm) {
         this.dao = dao;
+        this.chats = chats;
         this.registry = registry;
         this.actors = actors;
         this.model = model;
+        this.embeddings = embeddings;
         this.domainTools = domainTools;
         this.knowledge = knowledge;
         this.prompts = prompts;
@@ -81,6 +87,10 @@ public class ExecutionServiceImpl implements ExecutionService {
         return Map.of(
                 "models",
                 model.models(),
+                "providerState",
+                model.state(),
+                "embeddingAvailable",
+                embeddings.available(),
                 "tools",
                 StudentEvidenceTools.NAMES.stream()
                         .sorted()
@@ -127,6 +137,15 @@ public class ExecutionServiceImpl implements ExecutionService {
     }
 
     public Execution preview(long admin, UUID agent, UUID configuration, Preview r) {
+        return previewConversation(admin, agent, configuration, r, null);
+    }
+
+    public Execution previewConversation(
+            long admin,
+            UUID agent,
+            UUID configuration,
+            Preview r,
+            edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.Scope scope) {
         admin(admin);
         var c = registry.configuration(agent, configuration, false);
         if ("ARCHIVED".equals(registry.get(agent, false).status()) || "RETIRED".equals(c.status()))
@@ -140,7 +159,8 @@ public class ExecutionServiceImpl implements ExecutionService {
                 r.query(),
                 false,
                 c.toolPolicy().path("topK").asInt(),
-                c.modelKey());
+                c.modelKey(),
+                scope);
     }
 
     public Execution test(long admin, UUID kb, KnowledgeContracts.Test r) {
@@ -177,12 +197,14 @@ public class ExecutionServiceImpl implements ExecutionService {
                 r.query(),
                 r.retrievalOnly(),
                 KnowledgeSourcePolicy.topK(r.topK()),
-                key);
+                key,
+                null);
     }
 
     private String instructions(String mode, Configuration c) {
         if ("ADMIN_PREVIEW".equals(mode))
-            return prompts.instructions(c.promptTemplateRef(), c.promptTemplate())
+            return prompts.instructions(
+                            c.promptTemplateRef(), c.promptTemplate(), c.experienceConfig())
                     + "\nBackend output policy: "
                     + c.outputPolicy();
         return prompts.instructions(
@@ -208,7 +230,8 @@ public class ExecutionServiceImpl implements ExecutionService {
             String query,
             boolean retrievalOnly,
             int topK,
-            String modelKey) {
+            String modelKey,
+            edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.Scope previewScope) {
         if (request == null) CoreValues.invalid("A request ID is required.");
         String q = minimized(query);
         if (modelKey != null && !model.modelKeys().contains(modelKey))
@@ -227,11 +250,35 @@ public class ExecutionServiceImpl implements ExecutionService {
         snapshot.put("topK", topK);
         snapshot.put("scope", bases.stream().map(UUID::toString).sorted().toList());
         snapshot.put("context", "PUBLIC_ADMIN_TEST_NO_STUDENT_DATA");
+        if (previewScope != null) {
+            snapshot.put("previewConversation", previewScope.conversation().toString());
+            snapshot.put("previewEpoch", previewScope.epoch());
+            snapshot.put("requestFingerprint", CoreValues.hash(query));
+        }
         String hash =
-                CoreValues.hash(Arrays.asList(mode, cid, kb, query, retrievalOnly, topK, modelKey));
+                previewScope == null
+                        ? CoreValues.hash(
+                                Arrays.asList(mode, cid, kb, query, retrievalOnly, topK, modelKey))
+                        : CoreValues.hash(
+                                Arrays.asList(
+                                        mode,
+                                        cid,
+                                        kb,
+                                        query,
+                                        retrievalOnly,
+                                        topK,
+                                        modelKey,
+                                        previewScope.conversation(),
+                                        previewScope.epoch()));
+        Instant admittedAt = Instant.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS);
         String promptHash =
                 CoreValues.bytesHash(
-                        instructions(mode, c).getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                        (instructions(mode, c)
+                                        + (c == null
+                                                ? ""
+                                                : AgentExperience.at(
+                                                        c.experienceConfig(), admittedAt)))
+                                .getBytes(java.nio.charset.StandardCharsets.UTF_8));
         var admission =
                 tx.execute(
                         s -> {
@@ -258,7 +305,8 @@ public class ExecutionServiceImpl implements ExecutionService {
                                             modelKey,
                                             promptHash,
                                             c == null ? null : c.contentHash(),
-                                            actor.privacyVersion()),
+                                            actor.privacyVersion(),
+                                            admittedAt),
                                     true);
                         });
         if (!admission.fresh()) return read(admin, UUID.fromString(admission.execution().id()));
@@ -279,11 +327,30 @@ public class ExecutionServiceImpl implements ExecutionService {
                         retrievalOnly,
                         modelKey,
                         actors.requireId(admin).privacyVersion(),
-                        e.startedAt().plusSeconds(seconds));
+                        e.startedAt().plusSeconds(seconds),
+                        previewScope);
+        Runnable dispatch = () -> dispatch(context);
+        if (org.springframework.transaction.support.TransactionSynchronizationManager
+                .isActualTransactionActive())
+            org.springframework.transaction.support.TransactionSynchronizationManager
+                    .registerSynchronization(
+                            new org.springframework.transaction.support
+                                    .TransactionSynchronization() {
+                                public void afterCommit() {
+                                    dispatch.run();
+                                }
+                            });
+        else dispatch.run();
+        return e;
+    }
+
+    private void dispatch(ExecutionContext context) {
         try {
             workers.execute(() -> run(context));
         } catch (RejectedExecutionException busy) {
-            tx.executeWithoutResult(
+            var capacityTx = new TransactionTemplate(tx.getTransactionManager());
+            capacityTx.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+            capacityTx.executeWithoutResult(
                     s ->
                             dao.finish(
                                     context.executionId(),
@@ -298,11 +365,13 @@ public class ExecutionServiceImpl implements ExecutionService {
                                     0,
                                     Map.of()));
         }
-        return e;
     }
 
     private boolean active(ExecutionContext c) {
         try {
+            if (c.previewScope() != null
+                    && !chats.active(c.previewScope().conversation(), c.previewScope().epoch()))
+                return false;
             var actor = actors.requireId(c.actor());
             if (!"ADMIN".equals(actor.role())
                     || actor.privacyVersion() != c.privacyVersion()
@@ -469,18 +538,36 @@ public class ExecutionServiceImpl implements ExecutionService {
                                                     .noneMatch(
                                                             m ->
                                                                     m.key().equals(c.modelKey())
-                                                                            && m.available()))
+                                                                            && m.available())) {
+                                                model.requireAvailable(c.modelKey());
                                                 throw new SynGuidanceProvider.ProviderException(
                                                         SynGuidanceProvider.FailureKind
-                                                                .PROVIDER_UNAVAILABLE);
+                                                                .PROVIDER_NOT_CONFIGURED);
+                                            }
                                             String request = c.query();
+                                            if (c.previewScope() != null)
+                                                request +=
+                                                        "\nUntrusted previous complete turns from this same Admin chat (not evidence): "
+                                                                + c.previewScope().history();
                                             if ("KB_TEST".equals(c.mode()))
                                                 request +=
                                                         "\nUntrusted retrieved evidence: "
                                                                 + CoreValues.write(
                                                                         evidence.values());
                                             String prompt =
-                                                    instructions(c.mode(), c.configuration());
+                                                    instructions(c.mode(), c.configuration())
+                                                            + (c.configuration() == null
+                                                                    ? ""
+                                                                    : AgentExperience.at(
+                                                                            c.configuration()
+                                                                                    .experienceConfig(),
+                                                                            c.deadline()
+                                                                                    .minusSeconds(
+                                                                                            c.configuration()
+                                                                                                    .toolPolicy()
+                                                                                                    .path(
+                                                                                                            "timeoutSeconds")
+                                                                                                    .asInt())));
                                             String actualRequest = request;
                                             return SynExecutionScope.observe(
                                                     "AGENT_MODEL",
@@ -705,6 +792,15 @@ public class ExecutionServiceImpl implements ExecutionService {
                 }
             } catch (SynGuidanceProvider.ProviderException failure) {
                 error = failure.kind().name();
+                if (!failure.diagnostics().isEmpty())
+                    steps.add(
+                            Map.of(
+                                    "type",
+                                    "PROVIDER_DIAGNOSTIC",
+                                    "status",
+                                    "FAILED",
+                                    "diagnostic",
+                                    failure.diagnostics()));
                 boolean denied = failure.kind() == SynGuidanceProvider.FailureKind.CONSENT_REVOKED;
                 status =
                         denied
@@ -739,6 +835,17 @@ public class ExecutionServiceImpl implements ExecutionService {
                                     new ArrayList<>(evidence.values()));
                         } catch (ApiException denied) {
                             locked = false;
+                        }
+                        if (c.previewScope() != null) {
+                            try {
+                                chats.get(
+                                        c.actor(),
+                                        UUID.fromString(c.configuration().agentId()),
+                                        c.previewScope().conversation(),
+                                        true);
+                            } catch (ApiException gone) {
+                                locked = false;
+                            }
                         }
                         var current = dao.get(c.executionId(), true);
                         if (!Set.of("ACCEPTED", "RUNNING").contains(current.status())) return;
@@ -918,6 +1025,18 @@ public class ExecutionServiceImpl implements ExecutionService {
         if (!e.initiatedByUserId().equals(Long.toString(admin))
                 || !Set.of("KB_TEST", "ADMIN_PREVIEW").contains(e.executionMode()))
             throw new NotFoundException("Execution not found.");
+        if (e.inputSnapshot().has("previewConversation")) {
+            var chat =
+                    chats.get(
+                            admin,
+                            UUID.fromString(
+                                    registry.configuration(UUID.fromString(e.configurationId()))
+                                            .agentId()),
+                            UUID.fromString(e.inputSnapshot().path("previewConversation").asText()),
+                            false);
+            if (chat.epoch() != e.inputSnapshot().path("previewEpoch").asLong())
+                throw new NotFoundException("Preview turn is no longer available.");
+        }
         UUID cid = e.configurationId() == null ? null : UUID.fromString(e.configurationId());
         var bases = new HashSet<UUID>();
         for (var value : e.inputSnapshot().path("scope"))

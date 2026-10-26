@@ -38,11 +38,12 @@ export default function AccountPage() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
   const [google, setGoogle] = useState(null)
+  const [localWorkspace,setLocalWorkspace]=useState(false)
   const [providerError, setProviderError] = useState(false)
   const [providerRetry, setProviderRetry] = useState(0)
   useEffect(() => {
     let active = true
-    apiRequest('/v2/auth/providers').then(p => { if (typeof p.google !== 'boolean') throw new Error('Invalid provider availability'); if (active) setGoogle(p.google) }).catch(() => { if (active) setProviderError(true) })
+    apiRequest('/v2/auth/providers').then(p => { if (typeof p.google !== 'boolean') throw new Error('Invalid provider availability'); if (active) {setGoogle(p.google);setLocalWorkspace(p.localWorkspace===true)} }).catch(() => { if (active) setProviderError(true) })
     return () => { active = false }
   }, [providerRetry])
   useEffect(() => {
@@ -70,7 +71,7 @@ export default function AccountPage() {
     {loading ? <p role="status">{t(oauthSuccess ? 'Restoring your Google sign-in session…' : 'Checking your session…')}</p> : loadError ? <><p role="alert">{t(loadError)}</p><button onClick={() => { setLoadError(''); setLoading(true); setRetry(value => value + 1) }}>{t('Try again')}</button>{oauthSuccess && <Link to="/account" onClick={() => setLoadError('')}>{t('Sign in')}</Link>}</> : !account ? <AuthenticationForm google={google} providerError={providerError} onRetryProvider={() => { setGoogle(null); setProviderError(false); setProviderRetry(value => value + 1) }} onAuthenticated={value => { if (value.role === 'STUDENT') setPendingDestination(consumePendingSimulation()); setAccount(value) }} /> : <>
       <p>{account.displayName} · {account.role}</p>
       {account.role !== 'ENTERPRISE' && <p role="alert">{t('You do not have permission to access this account.')}</p>}
-      <button disabled={busy} onClick={logout}>{t('Sign out')}</button>
+      {localWorkspace ? <p role="status">{t('Local workspace')}</p> : <button disabled={busy} onClick={logout}>{t('Sign out')}</button>}
     </>}
   </section>
 }

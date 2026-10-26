@@ -9,6 +9,13 @@ public interface ExecutionService {
 
     Execution preview(long admin, UUID agent, UUID configuration, Preview request);
 
+    Execution previewConversation(
+            long admin,
+            UUID agent,
+            UUID configuration,
+            Preview request,
+            edu.hcmute.careersim.guidance.agent.dto.AdminPreviewContracts.Scope scope);
+
     Execution test(long admin, UUID kb, Test request);
 
     Execution read(long admin, UUID execution);

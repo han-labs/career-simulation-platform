@@ -31,7 +31,7 @@ it.each(['STUDENT', 'ENTERPRISE', 'ADMIN'])('uses the server role for navigation
 it('never exposes privileged navigation while anonymous or when session lookup fails', async () => {
   apiRequest.mockRejectedValue(Object.assign(new Error('Sign in is required.'), { status: 401 }))
   page()
-  await waitFor(() => expect(apiRequest).toHaveBeenCalledTimes(1))
+  await waitFor(() => expect(apiRequest).toHaveBeenCalledTimes(2))
   expect(screen.queryByRole('link', { name: 'Admin Studio' })).toBeNull()
   expect(screen.queryByRole('button', { name: 'Sign out' })).toBeNull()
 })
@@ -73,4 +73,9 @@ it('preserves simulation catalogue/detail/results navigation without privileged 
   fireEvent.click(screen.getByRole('link', { name: 'IT Career Tracks' }))
   expect(await screen.findByRole('heading', { name: '/simulations' })).toBeTruthy()
   expect(screen.queryByRole('link', { name: 'Admin Studio' })).toBeNull()
+})
+
+it('labels local workspace and never offers misleading logout or posts logout',async()=>{
+ apiRequest.mockImplementation(path=>Promise.resolve(path==='/v2/auth/providers'?{google:false,localWorkspace:true}:{id:'7',role:'ADMIN'}))
+ page('/admin');await screen.findByText('Local workspace');expect(screen.queryByRole('button',{name:'Sign out'})).toBeNull();expect(screen.getByText('Local workspace').getAttribute('title')).toContain('auth-test');expect(apiRequest.mock.calls.some(([path])=>path==='/v2/auth/logout')).toBe(false)
 })

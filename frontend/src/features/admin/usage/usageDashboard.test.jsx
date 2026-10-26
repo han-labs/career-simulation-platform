@@ -9,6 +9,7 @@ import AdminStudioLayout from '../agentPlatform/AdminStudioLayout.jsx'
 import { emptyUsageFixture, usageFixture } from './usageFixture.js'
 import { initialFilters, usageRequest, usageUrl } from './usageDashboard.js'
 import { readFileSync } from 'node:fs'
+import { executionCost } from './usageFormat.js'
 
 vi.mock('../../../shared/api/httpClient.js', () => ({ apiRequest: vi.fn(), getAccountGeneration: () => 0 }))
 beforeEach(() => { vi.resetAllMocks(); localStorage.clear(); apiRequest.mockResolvedValue(usageFixture()) })
@@ -47,8 +48,8 @@ it('labels recorded estimated cost and partial/unavailable coverage honestly', a
 })
 it('uses canonical measured execution latency in milliseconds with coverage', async () => {
   page(); await loaded(); expect(metric('Average Latency').textContent).toContain('240 ms')
-  expect(metric('Average Latency').textContent).toContain('3 measured finished executions')
-  expect(metric('Average Latency').textContent).toContain('1 missing measurements')
+  expect(metric('Average Latency').textContent).toContain('3 measured')
+  expect(metric('Average Latency').textContent).toContain('1 missing')
 })
 it('distinguishes failed and refused with separate counts and status labels', async () => {
   page(); await loaded(); expect(metric('Failed / Refused').querySelector('.usage-kpi-value').textContent).toBe('1 / 1')
@@ -133,4 +134,31 @@ it('preserves UTC elapsed windows across local timezone/daylight changes', () =>
   const now = new Date('2026-03-08T07:30:00Z'), request = usageRequest(initialFilters, now)
   expect(request.to).toBe(now.toISOString()); expect(Date.parse(request.to) - Date.parse(request.from)).toBe(7 * 86400000)
   expect(usageUrl(request, null)).not.toContain('undefined')
+})
+it.each([
+  ['ESTIMATED',1.27,'$1.27','Estimated'],['PARTIAL',0.25,'$0.25','Partial estimate'],
+  ['UNKNOWN',null,'Not available',''],['UNKNOWN',0,'Not available',''],
+  ['NOT_APPLICABLE',null,'N/A',''],['ESTIMATED',0,'$0.00','Recorded estimate'],
+  ['ESTIMATED',0.00000001,'$0.00000001','Estimated'],['PARTIAL',null,'Not available',''],
+  ['ESTIMATED',-1,'Not available',''],['ESTIMATED','NaN','Not available',''],
+  ['ESTIMATED',' ','Not available',''],['ESTIMATED',[],'Not available',''],['PARTIAL',0,'$0.00','Partial estimate · Recorded estimate'],
+])('formats %s %s honestly without billing assumptions', (status,amount,value,label) => {
+  expect(executionCost(status,amount,'en',text => text)).toEqual({value,label})
+})
+it('orders scope, metrics, overview, whole-dashboard filters and compact recent rows', async () => {
+  page(); await loaded()
+  const scope = screen.getByLabelText('Applied reporting interval'), metrics = screen.getByLabelText('AI usage key metrics'), filters = screen.getByRole('form',{name:'AI usage filters'}), recent = screen.getByRole('heading',{name:'Recent AI executions'})
+  for (const [a,b] of [[scope,metrics],[metrics,filters],[screen.getByRole('heading',{name:'Outcome health'}),filters],[filters,recent]]) expect(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(filters.textContent).toContain('Filters apply to the entire dashboard.')
+  const table = screen.getByRole('table',{name:'Recent executions, newest first (UTC)'})
+  expect(within(table).getAllByRole('columnheader').map(cell => cell.textContent)).toEqual(['Time','Agent','Model','Tools','Latency','Tokens','Cost','Outcome'])
+  expect(screen.queryByText(/Free tier/i)).toBeNull()
+})
+it('keeps incomplete coverage compact and recalculates all metrics through the server filter', async () => {
+  page(); await loaded(); expect(metric('Estimated Cost').textContent).toContain('Incomplete cost coverage')
+  expect(screen.getByText('Coverage').closest('details').open).toBe(false)
+  apiRequest.mockResolvedValue(usageFixture({summary:{...usageFixture().summary,requests:1,failed:0,refused:1}}))
+  fireEvent.change(screen.getByLabelText('Outcome'),{target:{value:'REFUSED'}}); fireEvent.click(screen.getByRole('button',{name:'Apply filters'})); await loaded()
+  expect(metric('Requests').querySelector('.usage-kpi-value').textContent).toBe('1')
+  expect(metric('Failed / Refused').querySelector('.usage-kpi-value').textContent).toBe('0 / 1')
 })

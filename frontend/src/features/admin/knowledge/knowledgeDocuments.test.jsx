@@ -49,7 +49,7 @@ it('deletes a published logical document only after confirmation, safely retires
     if (path.endsWith('/retire')) { const id = path.split('/').at(-2); versions = versions.map(v => v.id === id ? { ...v, status: 'RETIRED' } : v); return versions.find(v => v.id === id) }
     if (request.method) throw new Error('Unexpected deletion endpoint')
   })
-  page(); fireEvent.click(await screen.findByText('Document options'))
+  page(); await screen.findByLabelText('Document list')
   fireEvent.click(screen.getByRole('button', { name: 'Delete document' }))
   expect(writes('/retire')).toHaveLength(0)
   expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Keep document' }))
@@ -140,7 +140,7 @@ it('uploads then processes exactly once under repeated submit, with no automatic
   let resolveUpload, saved = null, ready = false, payload
   fixture((path, request) => {
     if (path.endsWith('/assets') && request.method === 'POST') { payload = request.body; return new Promise(resolve => { resolveUpload = resolve }) }
-    if (path.endsWith('/retry')) { ready = true; return { ...staged, state: 'READY', producedVersionId: version.id } }
+    if (path.endsWith('/retry') || path.endsWith('/reprocess')) { ready = true; return { ...staged, state: 'READY', producedVersionId: version.id } }
     if (path.endsWith('/ingestions')) return saved ? [{ ...saved, state: ready ? 'READY' : 'QUEUED' }] : []
     if (path.endsWith('/assets')) return ready ? [version] : []
   })
@@ -161,17 +161,17 @@ it('keeps the staged job on processing failure and retries it without uploading 
   let job = null, ready = false, calls = 0
   fixture((path, request) => {
     if (path.endsWith('/assets') && request.method === 'POST') { job = { ...staged }; return job }
-    if (path.endsWith('/retry')) { calls++; job = { ...job, state: calls === 1 ? 'FAILED' : 'READY', producedVersionId: calls === 1 ? null : version.id }; ready = calls > 1; return job }
+    if (path.endsWith('/retry') || path.endsWith('/reprocess')) { calls++; job = { ...job, state: calls === 1 ? 'FAILED' : 'READY', producedVersionId: calls === 1 ? null : version.id }; ready = calls > 1; return job }
     if (path.endsWith('/assets')) return ready ? [version] : []
     if (path.endsWith('/ingestions')) return job ? [job] : []
   })
   const view = page(); await selectFile(); fireEvent.submit(complete())
   await screen.findByText('Processing failed. Your uploaded file is saved. Retry processing from the document list.')
-  expect(screen.getByRole('button', { name: 'Retry processing' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: 'Reprocess' })).toBeTruthy()
   view.unmount(); page()
-  fireEvent.click(await screen.findByRole('button', { name: 'Retry processing' }))
+  fireEvent.click(await screen.findByRole('button', { name: 'Reprocess' }))
   await screen.findByRole('button', { name: 'Review and publish' })
-  expect(writes('/assets')).toHaveLength(1); expect(writes('/retry')).toHaveLength(2)
+  expect(writes('/assets')).toHaveLength(1); expect(writes('/retry')).toHaveLength(1); expect(writes('/reprocess')).toHaveLength(1)
 })
 
 it('preserves the upload request ID after an ambiguous upload failure and file reselection after remount', async () => {
@@ -201,12 +201,12 @@ it('retains a saved upload when the processing response is lost and never retrie
   let job = null
   fixture((path, request) => {
     if (path.endsWith('/assets') && request.method === 'POST') { job = staged; return job }
-    if (path.endsWith('/retry')) return Promise.reject(new Error('Processing transport unavailable'))
+    if (path.endsWith('/retry') || path.endsWith('/reprocess')) return Promise.reject(new Error('Processing transport unavailable'))
     if (path.endsWith('/ingestions')) return job ? [job] : []
   })
   page(); await selectFile(); fireEvent.submit(complete())
   await screen.findByText('The processing request could not finish. Your uploaded file is saved. Refresh or retry from the document list.')
-  expect(screen.getByRole('button', { name: 'Process document' })).toBeTruthy()
+  expect(screen.getByRole('button', { name: 'Reprocess' })).toBeTruthy()
   fireEvent.click(screen.getByRole('button', { name: 'Reload knowledge base' }))
   await waitFor(() => expect(screen.getByRole('button', { name: 'Reload knowledge base' }).disabled).toBe(false))
   await selectFile()
@@ -220,11 +220,12 @@ it('reuses the published document key when replacing and keeps publication separ
   const published = { ...version, assetKey: 'keep-published-key', status: 'PUBLISHED', license: 'Original license', language: 'VI', provenance: { track: 'DATA' } }
   fixture((path, request) => {
     if (path.endsWith('/assets') && request.method === 'POST') return request.body.get('metadata').text().then(text => { input = JSON.parse(text); return staged })
-    if (path.endsWith('/retry')) return { ...staged, state: 'FAILED' }
+    if (path.endsWith('/retry') || path.endsWith('/reprocess')) return { ...staged, state: 'FAILED' }
     if (path.endsWith('/assets')) return [published]
+    if (path.endsWith('/versions/51')) return published
   })
-  page(); fireEvent.click(await screen.findByText('Document options'))
-  fireEvent.click(screen.getByRole('button', { name: 'Replace document' }))
+  page(); await screen.findByLabelText('Document list')
+  fireEvent.click(screen.getByRole('button', { name: 'Detail' })); fireEvent.click(await screen.findByRole('button', { name: 'Replace file' }))
   await selectFile()
   expect(screen.getByLabelText('Source usage rights').value).toBe('other')
   expect(screen.getByLabelText('Source usage rights details').value).toBe('Original license')
@@ -258,7 +259,7 @@ it.each([
   let payload
   fixture((path, request) => {
     if (path.endsWith('/assets') && request.method === 'POST') return request.body.get('metadata').text().then(text => { payload = JSON.parse(text); return staged })
-    if (path.endsWith('/retry')) return { ...staged, state: 'FAILED' }
+    if (path.endsWith('/retry') || path.endsWith('/reprocess')) return { ...staged, state: 'FAILED' }
   })
   page(); await selectFile()
   const rights = screen.getByRole('combobox', { name: 'Source usage rights' })
@@ -313,7 +314,7 @@ it('uploads additional one-file documents into the same KB with independent titl
       const job = { ...staged, id: 'job-' + inputs.length, assetKey: input.assetKey, metadata: input }
       savedJobs.unshift(job); return job
     })
-    if (path.endsWith('/retry')) {
+    if (path.endsWith('/retry') || path.endsWith('/reprocess')) {
       const job = savedJobs.find(item => path.includes('/' + item.id + '/'))
       job.state = 'READY'; job.producedVersionId = String(50 + inputs.length)
       savedVersions.unshift({ ...version, id: job.producedVersionId, assetKey: job.assetKey, title: job.metadata.title })
@@ -331,7 +332,7 @@ it('uploads additional one-file documents into the same KB with independent titl
   expect(inputs).toHaveLength(2); expect(inputs[0].assetKey).not.toBe(inputs[1].assetKey)
   expect(inputs.map(input => input.title)).toEqual(['Hướng dẫn nghề nghiệp', 'Second source'])
   expect(within(screen.getByLabelText('Document list')).getAllByRole('listitem')).toHaveLength(2)
-  expect(writes('/retry')).toHaveLength(2)
+  expect(writes('/retry')).toHaveLength(2); expect(writes('/reprocess')).toHaveLength(0)
 })
 
 

@@ -33,6 +33,7 @@ import org.testcontainers.junit.jupiter.*;
             "app.ai.provider=disabled"
         })
 @AutoConfigureMockMvc
+@ActiveProfiles("auth-test")
 @Testcontainers
 class RegistrationAssessmentIntegrationTest {
     @Container
@@ -51,6 +52,57 @@ class RegistrationAssessmentIntegrationTest {
     @Autowired JdbcTemplate jdbc;
     @Autowired AssessmentAuthoringService authoring;
     @Autowired BrowserAuthentication authentication;
+    @Autowired org.springframework.security.crypto.password.PasswordEncoder encoder;
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(
+            strings = {"ADMINISTRATOR", "STUDENT", "ENTERPRISE"})
+    void realAuthProfileLoginRefreshLogoutBackRefreshAndRelogin(String role) throws Exception {
+        String email = "auth-regression-" + UUID.randomUUID() + "@example.test";
+        long account =
+                jdbc.queryForObject(
+                        "INSERT INTO app_users(email,password_hash,display_name,role,status) VALUES (?,?,?,?,'ACTIVE') RETURNING id",
+                        Long.class,
+                        email,
+                        encoder.encode(PASSWORD),
+                        "Synthetic auth fixture",
+                        role);
+        if (role.equals("STUDENT"))
+            jdbc.update("INSERT INTO student_profiles(user_id) VALUES (?)", account);
+        var browser = new Browser();
+        browser.bootstrap();
+        mvc.perform(get("/v2/auth/providers"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.localWorkspace").value(false));
+        mvc.perform(get("/v2/me")).andExpect(status().isUnauthorized());
+        for (int round = 0; round < 2; round++) {
+            var login =
+                    mvc.perform(
+                                    browser.write(
+                                            "/v2/auth/login",
+                                            Map.of("email", email, "password", PASSWORD)))
+                            .andExpect(status().isOk())
+                            .andReturn();
+            browser.credential = login.getResponse().getCookie(BrowserCredentialCookies.NAME);
+            assertThat(browser.credential).isNotNull();
+            browser.bootstrap();
+            for (int refresh = 0; refresh < 2; refresh++)
+                mvc.perform(get("/v2/me").cookie(browser.credential))
+                        .andExpect(status().isOk())
+                        .andExpect(
+                                jsonPath("$.data.role")
+                                        .value(role.equals("ADMINISTRATOR") ? "ADMIN" : role));
+            var retiredCredential = browser.credential;
+            mvc.perform(browser.write("/v2/auth/logout", Map.of())).andExpect(status().isOk());
+            mvc.perform(get("/v2/me")).andExpect(status().isUnauthorized());
+            mvc.perform(get("/v2/me").cookie(retiredCredential))
+                    .andExpect(status().isUnauthorized());
+            browser.credential = null;
+            browser.session = null;
+            browser.bootstrap();
+        }
+    }
+
     static final String PASSWORD = "synthetic-registration-2026";
 
     class Browser {

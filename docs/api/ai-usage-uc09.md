@@ -95,3 +95,24 @@ are distinct. EN/VI and shared Button/FormField/StatusBadge/FeedbackPanel reused
 Verification: AgentUsageDashboardTest (isolated PostgreSQL),
 frontend usageDashboard.test.jsx, existing Student/KB/Builder/navigation regressions.
 See the dated UC-09 evidence report for actual commands/UAT and limitations.
+
+### Presentation repair — 2026-10-26
+
+Order: header/applied scope, four compact KPIs, trend/outcomes, filters, recent
+executions and pagination. Filters still apply to the **entire dashboard** through
+the same server request. Desktop uses eight columns; mobile uses stacked records.
+Safe audit metadata/tool names remain in closed Details disclosures.
+
+Cost display uses the existing status and persisted amount only:
+
+| State | Display |
+|---|---|
+| ESTIMATED, positive valid amount | Persisted USD value · Estimated |
+| PARTIAL, valid amount | Persisted subtotal · Partial estimate |
+| UNKNOWN, invalid/missing amount | Not available, never zero |
+| NOT_APPLICABLE | N/A |
+| Known zero estimate | $0.00 · Recorded estimate (PARTIAL retains its partial label) |
+
+Tiny positive amounts retain precision instead of rounding to a fake zero. No
+Free tier/billing inference, pricing table, recomputation or aggregation change.
+The total KPI still uses recordedEstimatedCostUsd and separate coverage counts.

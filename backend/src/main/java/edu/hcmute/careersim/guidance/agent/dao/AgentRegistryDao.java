@@ -42,7 +42,10 @@ public class AgentRegistryDao {
                             r.getTimestamp("created_at").toInstant(),
                             r.getTimestamp("published_at") == null
                                     ? null
-                                    : r.getTimestamp("published_at").toInstant());
+                                    : r.getTimestamp("published_at").toInstant(),
+                            r.getString("experience_config") == null
+                                    ? null
+                                    : CoreValues.json(r.getString("experience_config")));
     private final RowMapper<Assignment> assignmentMap =
             (r, n) ->
                     new Assignment(
@@ -124,7 +127,8 @@ public class AgentRegistryDao {
                 c.status(),
                 c.contentHash(),
                 c.createdAt(),
-                c.publishedAt());
+                c.publishedAt(),
+                c.experienceConfig());
     }
 
     public Configuration configuration(UUID agent, UUID config, boolean lock) {
@@ -169,7 +173,7 @@ public class AgentRegistryDao {
                         Integer.class,
                         agent);
         jdbc.update(
-                "INSERT INTO public.agent_configuration(id,agent_id,version_number,model_key,prompt_template,prompt_template_ref,prompt_hash,tool_policy,memory_policy,output_policy,created_by_admin_id,content_hash) VALUES (?,?,?,?,?,?,?,CAST(? AS jsonb),CAST(? AS jsonb),CAST(? AS jsonb),?,?)",
+                "INSERT INTO public.agent_configuration(id,agent_id,version_number,model_key,prompt_template,prompt_template_ref,prompt_hash,tool_policy,memory_policy,output_policy,created_by_admin_id,content_hash,experience_config) VALUES (?,?,?,?,?,?,?,CAST(? AS jsonb),CAST(? AS jsonb),CAST(? AS jsonb),?,?,CAST(? AS jsonb))",
                 id,
                 agent,
                 version,
@@ -181,7 +185,10 @@ public class AgentRegistryDao {
                 CoreValues.write(input.memoryPolicy()),
                 CoreValues.write(input.outputPolicy()),
                 admin,
-                contentHash);
+                contentHash,
+                input.experienceConfig() == null || input.experienceConfig().isNull()
+                        ? null
+                        : CoreValues.write(input.experienceConfig()));
         for (var kb : input.knowledgeBaseIds())
             jdbc.update(
                     "INSERT INTO public.agent_config_kb_scope(configuration_id,knowledge_base_id) VALUES (?,?)",
@@ -261,20 +268,25 @@ public class AgentRegistryDao {
                 agent);
     }
 
-    public List<PublicAgent> assigned(long student) {
+    public List<PublicAgent> available(String role) {
         return jdbc.query(
-                "SELECT a.id,a.name,a.purpose FROM public.agent a JOIN public.agent_assignment x ON x.agent_id=a.id JOIN public.agent_configuration c ON c.id=a.published_configuration_id AND c.status='PUBLISHED' AND c.sealed WHERE x.student_user_id=? AND x.status='ACTIVE' AND a.status='ACTIVE' ORDER BY a.name,a.id",
-                (r, n) -> new PublicAgent(r.getString(1), r.getString(2), r.getString(3)),
-                student);
+                "SELECT a.id,COALESCE(c.experience_config->>'name',a.name),COALESCE(c.experience_config->>'description',a.purpose) FROM agent_role_binding b JOIN agent a ON a.id=b.agent_id AND a.status='ACTIVE' JOIN agent_configuration c ON c.id=a.published_configuration_id AND c.status='PUBLISHED' AND c.sealed WHERE b.role=? AND NOT EXISTS(SELECT 1 FROM agent_config_kb_scope g JOIN knowledge_base kb ON kb.id=g.knowledge_base_id WHERE g.configuration_id=c.id AND kb.status<>'ACTIVE')",
+                (r, n) ->
+                        new PublicAgent(
+                                r.getString(1),
+                                r.getString(2),
+                                r.getString(3),
+                                "STUDENT".equals(role)),
+                role);
     }
 
     public boolean assignedConfiguration(long student, UUID agent, UUID config) {
         return Boolean.TRUE.equals(
                 jdbc.queryForObject(
-                        "SELECT EXISTS(SELECT 1 FROM public.agent a JOIN public.agent_assignment x ON x.agent_id=a.id JOIN public.agent_configuration c ON c.agent_id=a.id WHERE a.id=? AND c.id=? AND c.status IN ('PUBLISHED','RETIRED') AND c.sealed AND a.status='ACTIVE' AND x.student_user_id=? AND x.status='ACTIVE')",
+                        "SELECT EXISTS(SELECT 1 FROM agent_role_binding rb JOIN agent a ON a.id=rb.agent_id AND a.status='ACTIVE' JOIN agent_configuration current_config ON current_config.id=a.published_configuration_id AND current_config.status='PUBLISHED' AND current_config.sealed JOIN agent_configuration pinned ON pinned.agent_id=a.id AND pinned.id=? AND pinned.status IN ('PUBLISHED','RETIRED') AND pinned.sealed JOIN app_users u ON u.id=? AND u.role='STUDENT' AND u.status='ACTIVE' WHERE rb.role='STUDENT' AND a.id=?)",
                         Boolean.class,
-                        agent,
                         config,
-                        student));
+                        student,
+                        agent));
     }
 }

@@ -135,6 +135,14 @@ public interface SynGuidanceProvider {
         PROVIDER_REJECTED,
         PROVIDER_RATE_LIMITED,
         PROVIDER_UNAVAILABLE,
+        PROVIDER_NOT_CONFIGURED,
+        PROVIDER_CLIENT_UNAVAILABLE,
+        PROVIDER_AUTH_REJECTED,
+        PROVIDER_MODEL_UNAVAILABLE,
+        PROVIDER_DISABLED,
+        PROVIDER_HTTP_UNAVAILABLE,
+        PROVIDER_NETWORK_UNAVAILABLE,
+        PROVIDER_TRANSPORT_DEADLINE,
         MALFORMED_OUTPUT,
         UNAVAILABLE_TOOL,
         EMPTY_EVIDENCE,
@@ -144,15 +152,28 @@ public interface SynGuidanceProvider {
 
     final class ProviderException extends RuntimeException {
         private final FailureKind kind;
+        private final java.util.Map<String, Object> diagnostics;
+
+        public ProviderException(FailureKind kind, java.util.Map<String, Object> diagnostics) {
+            super(kind.name());
+            this.kind = kind;
+            this.diagnostics = java.util.Map.copyOf(diagnostics);
+        }
+
+        public java.util.Map<String, Object> diagnostics() {
+            return diagnostics;
+        }
 
         public ProviderException(FailureKind kind, Throwable cause) {
             super(kind.name(), cause);
             this.kind = kind;
+            this.diagnostics = java.util.Map.of();
         }
 
         public ProviderException(FailureKind kind) {
             super(kind.name());
             this.kind = kind;
+            this.diagnostics = java.util.Map.of();
         }
 
         public FailureKind kind() {

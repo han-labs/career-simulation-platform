@@ -17,6 +17,6 @@ public class AssignedAgentController {
 
     @GetMapping("/v2/agents")
     public ApiResponse<?> assigned(Principal p) {
-        return ApiResponse.success(registry.assigned(actors.student(p).id()));
+        return ApiResponse.success(registry.available(actors.require(p).id()));
     }
 }

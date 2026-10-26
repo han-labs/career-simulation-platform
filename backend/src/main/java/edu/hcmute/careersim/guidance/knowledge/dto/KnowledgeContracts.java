@@ -17,6 +17,18 @@ public final class KnowledgeContracts {
             long revision,
             Instant createdAt) {}
 
+    public record BaseSummary(
+            String id,
+            String name,
+            String scopeType,
+            String visibility,
+            String status,
+            long publicationRevision,
+            long revision,
+            Instant createdAt,
+            long documentCount,
+            long publishedChunkCount) {}
+
     public record BaseInput(String name, String status) {}
 
     public record Upload(

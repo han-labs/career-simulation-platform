@@ -282,8 +282,20 @@ class StudentAgentIntegrationTest {
                         admin, new AgentInput("Synthetic Student Agent", "Exploration", null));
         agent = UUID.fromString(a.id());
         config = savePublish();
-        registry.assign(admin, agent, owner);
-        registry.assign(admin, agent, other);
+        activateRole(true);
+    }
+
+    void activateRole(boolean active) {
+        var revisions =
+                registry.roleBindings(admin).stream()
+                        .collect(
+                                java.util.stream.Collectors.toMap(
+                                        RoleBinding::role, RoleBinding::revision));
+        registry.activateRoles(
+                admin,
+                agent,
+                registry.get(admin, agent).revision(),
+                new RoleActivation(active ? List.of("STUDENT") : List.of(), revisions, true));
     }
 
     void assessment() {
@@ -672,15 +684,10 @@ class StudentAgentIntegrationTest {
     }
 
     @Test
-    void assignmentRevocationAndAccountLockBlockAdmissionAndReplay() {
+    void roleDeactivationAndAccountLockBlockAdmissionAndReplay() {
         var s = session(owner);
         var run = done(owner, message(s, "Explore"));
-        var a =
-                registry.assignments(admin, agent).stream()
-                        .filter(x -> x.studentUserId().equals(Long.toString(owner)))
-                        .findFirst()
-                        .orElseThrow();
-        registry.revoke(admin, agent, UUID.fromString(a.id()));
+        activateRole(false);
         assertThatThrownBy(() -> students.read(owner, UUID.fromString(run.id())))
                 .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
         assertThatThrownBy(() -> message(s, "Denied"))

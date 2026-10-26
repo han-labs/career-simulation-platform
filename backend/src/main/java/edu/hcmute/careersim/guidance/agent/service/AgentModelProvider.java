@@ -33,6 +33,28 @@ public interface AgentModelProvider {
                 tools.stream().anyMatch(t -> t.name().equals("kb.search")));
     }
 
+    default Map<String, Object> state() {
+        return Map.of("adapterInstantiated", true);
+    }
+
+    default void requireAvailable(String key) {
+        var model =
+                models().stream()
+                        .filter(m -> m.key().equals(key))
+                        .findFirst()
+                        .orElseThrow(
+                                () ->
+                                        new edu.hcmute.careersim.guidance.service
+                                                .SynGuidanceProvider.ProviderException(
+                                                edu.hcmute.careersim.guidance.service
+                                                        .SynGuidanceProvider.FailureKind
+                                                        .PROVIDER_MODEL_UNAVAILABLE));
+        if (!model.available())
+            throw new edu.hcmute.careersim.guidance.service.SynGuidanceProvider.ProviderException(
+                    edu.hcmute.careersim.guidance.service.SynGuidanceProvider.FailureKind
+                            .PROVIDER_NOT_CONFIGURED);
+    }
+
     List<Model> models();
 
     default Set<String> modelKeys() {

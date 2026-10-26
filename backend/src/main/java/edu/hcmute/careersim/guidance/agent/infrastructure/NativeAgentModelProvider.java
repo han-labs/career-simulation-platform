@@ -46,12 +46,12 @@ public class NativeAgentModelProvider implements AgentModelProvider {
         gemini =
                 builder.clone()
                         .baseUrl(googleBase)
-                        .requestFactory(SynHttpRequests.deadlineAware(12, "gemini"))
+                        .requestFactory(SynHttpRequests.agentDeadlineAware("gemini"))
                         .build();
         openai =
                 builder.clone()
                         .baseUrl(openaiBase)
-                        .requestFactory(SynHttpRequests.deadlineAware(12, "openai"))
+                        .requestFactory(SynHttpRequests.agentDeadlineAware("openai"))
                         .build();
     }
 
@@ -111,15 +111,7 @@ public class NativeAgentModelProvider implements AgentModelProvider {
             String query,
             List<Exchange> exchanges,
             boolean search) {
-        var model =
-                models().stream()
-                        .filter(m -> m.key().equals(key) && m.available())
-                        .findFirst()
-                        .orElseThrow(
-                                () ->
-                                        failure(
-                                                SynGuidanceProvider.FailureKind
-                                                        .PROVIDER_UNAVAILABLE));
+        var model = requireModel(key);
         try {
             return model.provider().equals("gemini")
                     ? gemini(model, instructions, query, exchanges, search, null, null)
@@ -127,16 +119,83 @@ public class NativeAgentModelProvider implements AgentModelProvider {
         } catch (SynGuidanceProvider.ProviderException failure) {
             throw failure;
         } catch (RestClientResponseException remote) {
-            int code = remote.getStatusCode().value();
-            throw failure(
-                    code == 429
-                            ? SynGuidanceProvider.FailureKind.PROVIDER_RATE_LIMITED
-                            : code >= 500
-                                    ? SynGuidanceProvider.FailureKind.PROVIDER_UNAVAILABLE
-                                    : SynGuidanceProvider.FailureKind.PROVIDER_REJECTED);
+            throw httpFailure(remote.getStatusCode().value());
         } catch (RestClientException transport) {
-            throw failure(SynGuidanceProvider.FailureKind.TIMEOUT_OR_TRANSPORT);
+            throw transportFailure(SynHttpRequests.networkCategory(transport));
         }
+    }
+
+    public Map<String, Object> state() {
+        return Map.of(
+                "selectedProvider",
+                Set.of("gemini", "openai").contains(selected) ? selected : "disabled",
+                "adapterInstantiated",
+                true,
+                "generationEnabled",
+                Set.of("gemini", "openai").contains(selected),
+                "geminiCredentialConfigured",
+                !googleKey.isBlank(),
+                "openaiCredentialConfigured",
+                !openaiKey.isBlank());
+    }
+
+    public void requireAvailable(String key) {
+        requireModel(key);
+    }
+
+    private Model requireModel(String key) {
+        var m =
+                models().stream()
+                        .filter(x -> x.key().equals(key))
+                        .findFirst()
+                        .orElseThrow(
+                                () ->
+                                        safeFailure(
+                                                SynGuidanceProvider.FailureKind
+                                                        .PROVIDER_MODEL_UNAVAILABLE,
+                                                false,
+                                                Map.of()));
+        if (!m.provider().equals(selected))
+            throw safeFailure(SynGuidanceProvider.FailureKind.PROVIDER_DISABLED, false, Map.of());
+        if (!(m.provider().equals("gemini") ? !googleKey.isBlank() : !openaiKey.isBlank()))
+            throw safeFailure(
+                    SynGuidanceProvider.FailureKind.PROVIDER_NOT_CONFIGURED, false, Map.of());
+        return m;
+    }
+
+    private SynGuidanceProvider.ProviderException safeFailure(
+            SynGuidanceProvider.FailureKind kind, boolean outbound, Map<String, Object> metadata) {
+        var d = new LinkedHashMap<String, Object>(state());
+        d.putAll(metadata);
+        d.put("outboundAttempted", outbound);
+        return new SynGuidanceProvider.ProviderException(kind, d);
+    }
+
+    private SynGuidanceProvider.ProviderException httpFailure(int status) {
+        var kind =
+                status == 401 || status == 403
+                        ? SynGuidanceProvider.FailureKind.PROVIDER_AUTH_REJECTED
+                        : status == 404
+                                ? SynGuidanceProvider.FailureKind.PROVIDER_MODEL_UNAVAILABLE
+                                : status == 429
+                                        ? SynGuidanceProvider.FailureKind.PROVIDER_RATE_LIMITED
+                                        : status >= 500
+                                                ? SynGuidanceProvider.FailureKind
+                                                        .PROVIDER_HTTP_UNAVAILABLE
+                                                : SynGuidanceProvider.FailureKind.PROVIDER_REJECTED;
+        return safeFailure(
+                kind,
+                true,
+                Map.of("providerHttpStatus", status, "httpStatusClass", (status / 100) + "xx"));
+    }
+
+    private SynGuidanceProvider.ProviderException transportFailure(String category) {
+        return safeFailure(
+                category.contains("TIMEOUT") || category.equals("TRANSPORT_DEADLINE")
+                        ? SynGuidanceProvider.FailureKind.PROVIDER_TRANSPORT_DEADLINE
+                        : SynGuidanceProvider.FailureKind.PROVIDER_NETWORK_UNAVAILABLE,
+                true,
+                Map.of("networkCategory", category));
     }
 
     private Decision gemini(
@@ -348,18 +407,22 @@ public class NativeAgentModelProvider implements AgentModelProvider {
             List<Exchange> exchanges,
             List<Tool> tools,
             java.util.function.Consumer<String> delta) {
-        var model =
-                models().stream()
-                        .filter(m -> m.key().equals(key) && m.available())
-                        .findFirst()
-                        .orElseThrow(
-                                () ->
-                                        failure(
-                                                SynGuidanceProvider.FailureKind
-                                                        .PROVIDER_UNAVAILABLE));
-        return model.provider().equals("gemini")
-                ? gemini(model, instructions, query, exchanges, false, tools, delta)
-                : openai(model, instructions, query, exchanges, false, tools, delta);
+        var model = requireModel(key);
+        try {
+            return model.provider().equals("gemini")
+                    ? gemini(model, instructions, query, exchanges, false, tools, delta)
+                    : openai(model, instructions, query, exchanges, false, tools, delta);
+        } catch (SynGuidanceProvider.ProviderException failure) {
+            var d = failure.diagnostics();
+            if (d.get("providerHttpStatus") instanceof Integer status) throw httpFailure(status);
+            if (d.get("networkCategory") instanceof String category)
+                throw transportFailure(category);
+            throw failure;
+        } catch (RestClientResponseException remote) {
+            throw httpFailure(remote.getStatusCode().value());
+        } catch (RestClientException transport) {
+            throw transportFailure(SynHttpRequests.networkCategory(transport));
+        }
     }
 
     private JsonNode streamed(Model model, Object body, java.util.function.Consumer<String> delta) {
@@ -390,7 +453,7 @@ public class NativeAgentModelProvider implements AgentModelProvider {
                             throw failure(SynGuidanceProvider.FailureKind.MALFORMED_OUTPUT);
                         }
                         if (e.has("error"))
-                            throw failure(SynGuidanceProvider.FailureKind.PROVIDER_REJECTED);
+                            throw httpFailure(e.path("error").path("code").asInt(400));
                         if (google) {
                             if (e.has("usageMetadata")) usage.set(e.path("usageMetadata"));
                             for (var p :

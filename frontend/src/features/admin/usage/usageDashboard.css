@@ -5,7 +5,7 @@
 .ai-usage .usage-filter-note { flex:1 0 100%; }
 .ai-usage .usage-scope { margin:16px 0 24px; }
 .ai-usage .usage-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:16px; }
-.ai-usage .usage-kpi { padding:20px; display:flex; flex-direction:column; gap:8px; }
+.ai-usage .usage-kpi { padding:16px; display:flex; flex-direction:column; gap:6px; }
 .ai-usage .usage-kpi h2 { font-size:.875rem; color:var(--cs-text-secondary); letter-spacing:0; }
 .ai-usage .usage-kpi-value { font-size:clamp(1.4rem,2.5vw,2rem); line-height:1.25; font-weight:700; font-variant-numeric:tabular-nums; overflow-wrap:anywhere; }
 .ai-usage .usage-overview { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(220px,1fr); gap:24px; }
@@ -32,6 +32,11 @@
 .ai-usage .usage-details .cs-metadata > div { margin-bottom:10px; }
 .ai-usage .usage-details dd { margin:2px 0 0; }
 .ai-usage .usage-pagination { justify-content:flex-end; }
+.ai-usage .usage-coverage { font-size:.75rem; color:var(--cs-text-secondary); }
+.ai-usage .usage-coverage summary { cursor:pointer; min-height:32px; }
+.ai-usage > .usage-filters { margin-block:20px; padding:16px; }
+.ai-usage .usage-kpi-value { font-size:clamp(1.25rem,2.3vw,1.75rem); }
+.cs-ui.ai-usage .usage-kpi { padding:16px; gap:6px; }
 @media(max-width:1200px) { .ai-usage .usage-kpis { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 @media(max-width:980px) {
   .cs-ui.ai-usage { padding:24px 20px 48px; }

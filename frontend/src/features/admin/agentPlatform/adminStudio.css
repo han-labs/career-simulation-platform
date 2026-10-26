@@ -3,6 +3,17 @@
 .admin-studio { width: 100%; max-width: 1600px; margin-inline: auto; display: grid; grid-template-columns: 256px minmax(0,1fr); align-items: start; }
 .admin-studio:has(.admin-sidebar--collapsed) { grid-template-columns: 76px minmax(0,1fr); }
 .admin-studio-content { min-width: 0; }
+.admin-studio-content .cs-page-header { align-items:flex-start; gap:16px; margin-bottom:24px; }
+.admin-studio-content .cs-page-header h1 { font-size:1.75rem; line-height:1.25; letter-spacing:-.025em; }
+.admin-studio-content .cs-page-header p { max-width:68ch; }
+.admin-studio-content .cs-surface { border-radius:12px; }
+.admin-studio-content .kb-main { max-width:none; }
+.admin-studio-content .agent-builder { padding:32px 24px 48px; }
+.admin-studio-content .studio-collection-card { padding:0; display:flex; flex-direction:column; overflow:hidden; }
+.admin-studio-content .studio-card-main { display:flex; flex-direction:column; align-items:flex-start; gap:14px; flex:1; min-width:0; padding:20px; color:inherit; text-decoration:none; overflow-wrap:anywhere; }
+.admin-studio-content .studio-card-main:hover { background:var(--cs-surface-muted); }
+.admin-studio-content .studio-card-main:focus-visible { outline:3px solid var(--cs-primary); outline-offset:-3px; }
+.admin-studio-content .studio-collection-card > .cs-actions { margin:0 20px; padding:12px 0; border-top:1px solid var(--cs-border); justify-content:flex-end; }
 .admin-studio-content > .feature-page { width: 100%; min-width: 0; padding: 32px 24px 48px; }
 .cs-ui.admin-sidebar { position: sticky; top: 104px; min-width: 0; min-height: calc(100dvh - 104px); max-height: calc(100dvh - 104px); padding: 20px 12px; border-right: 1px solid var(--cs-border); background: var(--cs-surface); display: flex; flex-direction: column; gap: var(--cs-space-5); }
 .cs-ui .admin-sidebar-heading { display: flex; align-items: center; justify-content: space-between; gap: var(--cs-space-2); padding-left: var(--cs-space-3); font-weight: 700; line-height: 1.4; }
@@ -24,9 +35,11 @@
 @media(max-width:980px) {
   .admin-studio { display: block; }
   .admin-studio-content > .feature-page { padding: 24px 20px 48px; }
+  .admin-studio-content .agent-builder { padding:24px 20px 48px; }
   .cs-ui.admin-mobile-navigation { padding: 20px 20px 0; }
 }
 @media(max-width:560px) {
   .admin-studio-content > .feature-page { padding-inline: 16px; }
+  .admin-studio-content .agent-builder { padding-inline:16px; }
   .cs-ui.admin-mobile-navigation { padding-inline: 16px; }
 }

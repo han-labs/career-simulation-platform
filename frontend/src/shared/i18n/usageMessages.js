@@ -94,4 +94,13 @@ estimated ⇢ có ước tính
 No model call recorded ⇢ Chưa ghi nhận lần gọi mô hình
 Model identifies the selected model. Recorded model attempts describe actual calls; a selection alone does not imply a provider call. ⇢ Mô hình thể hiện lựa chọn của yêu cầu. Số lần gọi đã ghi nhận thể hiện hoạt động thực tế; chọn mô hình không có nghĩa đã gọi nhà cung cấp.
 Unknown ⇢ Chưa rõ
+Filters apply to the entire dashboard. ⇢ Bộ lọc áp dụng cho toàn dashboard.
+Incomplete cost coverage ⇢ Chi phí chưa được ghi nhận đầy đủ
+Recorded estimate ⇢ Ước tính đã ghi nhận
+Coverage ⇢ Độ bao phủ
+measured ⇢ đã đo
+missing ⇢ thiếu
+Metric definitions ⇢ Định nghĩa chỉ số
+Native tools ⇢ Công cụ đã gọi
+No recorded estimate ⇢ Chưa có ước tính được ghi nhận
 `.trim().split('\n').map(line => line.split(' ⇢ ')))

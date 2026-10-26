@@ -73,7 +73,7 @@ it.each([
 it.each([
   ['/admin', 'Knowledge bases', 'Knowledge Bases', '/admin/knowledge'],
   ['/admin/knowledge', 'Knowledge bases', 'Knowledge Bases', '/admin/knowledge'],
-  ['/admin/agents', 'Agent Studio', 'AI Agents', '/admin/agents'],
+  ['/admin/agents', 'AI Agents', 'AI Agents', '/admin/agents'],
   ['/admin/usage', 'AI Usage', 'AI Usage', '/admin/usage'],
 ])('uses one focused Admin shell at %s', async (path, heading, active, canonical) => {
   const view = page(path)
@@ -102,7 +102,7 @@ it('loads the bounded Usage dashboard through the existing shared shell', async 
   page('/admin/usage')
   await screen.findByRole('heading', { name: 'No AI usage records are available for this period.' })
   expect(apiRequest.mock.calls.filter(([path]) => path.startsWith('/v2/admin/agent-usage?view=dashboard&'))).toHaveLength(1)
-  expect(apiRequest.mock.calls.every(([path]) => path === '/v2/me' || path.startsWith('/v2/admin/agent-usage?view=dashboard&'))).toBe(true)
+  expect(apiRequest.mock.calls.every(([path]) => path === '/v2/me' || path === '/v2/auth/providers' || path.startsWith('/v2/admin/agent-usage?view=dashboard&'))).toBe(true)
 })
 
 it.each(['/admin/assessments'])('returns not-found for removed product route %s without identity or authoring APIs', async path => {
@@ -113,7 +113,7 @@ it.each(['/admin/assessments'])('returns not-found for removed product route %s 
   expect(screen.queryByRole('heading', { name: 'Assessment administration' })).toBeNull()
   expect(within(view.container.querySelector('main')).queryByRole('button', { name: 'Sign out' })).toBeNull()
   expect(view.container.querySelector('.site-nav, .site-footer, .syn-widget, .syn-launcher')).toBeNull()
-  expect(apiRequest.mock.calls.every(([path]) => path === '/v2/me')).toBe(true)
+  expect(apiRequest.mock.calls.every(([path]) => path === '/v2/me' || path === '/v2/auth/providers')).toBe(true)
 })
 
 it('keeps the auth-only account route reachable without restoring the Account/Privacy product surface', async () => {

@@ -40,9 +40,7 @@ export default function AgentUsagePage() {
   const providers = [...new Set(options.models.map(model => model.provider).filter(Boolean))]
   const dirty = Object.keys(initialFilters).some(key => filters[key] !== request[key])
   const date = value => new Intl.DateTimeFormat(locale === 'vi' ? 'vi-VN' : 'en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'UTC' }).format(new Date(value))
-  return <section className="cs-ui ai-usage core-flow">
-    <header className="cs-page-header"><div><h1>{t('AI Usage')}</h1><p>{t('Monitor AI request volume, runtime health, latency and cost.')}</p></div></header>
-    <form className="cs-surface usage-filters" onSubmit={apply} aria-label={t('AI usage filters')}>
+  const filterForm = <form className="cs-surface usage-filters" onSubmit={apply} aria-label={t('AI usage filters')}>
       <FormField label={t('Time range')}><select value={filters.range} onChange={e => edit('range', e.target.value)}>
         <option value="24h">{t('Last 24 hours')}</option><option value="7d">{t('Last 7 days')}</option><option value="30d">{t('Last 30 days')}</option><option value="366d">{t('Last 366 days')}</option>
       </select></FormField>
@@ -51,29 +49,34 @@ export default function AgentUsagePage() {
       <FormField label={t('Model')}><select value={filters.model} onChange={e => edit('model', e.target.value)}><option value="">{t('All models')}</option>{options.models.filter(model => !filters.provider || model.provider === filters.provider).map(model => <option value={model.model} key={model.model}>{model.model}</option>)}</select></FormField>
       <FormField label={t('Outcome')}><select value={filters.outcome} onChange={e => edit('outcome', e.target.value)}><option value="">{t('All outcomes')}</option>{Object.entries(outcomes).map(([value, label]) => <option key={value} value={value}>{t(label)}</option>)}</select></FormField>
       <Button type="submit" variant="primary" busy={busy}>{t('Apply filters')}</Button>
+      <p className="cs-caption usage-filter-note">{t('Filters apply to the entire dashboard.')}</p>
       {dirty && <p className="cs-caption usage-filter-note">{t('Apply filters to update results.')}</p>}
       {options.truncated && <p className="cs-caption usage-filter-note">{t('Filter choices are limited to 100. Narrow the time range for other choices.')}</p>}
     </form>
-    <p className="cs-caption usage-scope">{t('Agent Platform executions only: Student Chat, Admin Preview and KB Test. Legacy Syn and ingestion are excluded.')}</p>
+  return <section className="cs-ui ai-usage core-flow">
+    <header className="cs-page-header"><div><h1>{t('AI Usage')}</h1><p>{t('Monitor AI request volume, runtime health, latency and cost.')}</p></div></header>
+
     {busy && <FeedbackPanel kind="loading">{t('Loading AI usage...')}</FeedbackPanel>}
     {error && <FeedbackPanel kind="error" title={t('AI usage unavailable')} action={<Button onClick={() => { start(); setReload(value => value + 1) }}>{t('Retry')}</Button>}>{t(error)}</FeedbackPanel>}
     {!busy && !error && data && <div className="cs-stack">
       <p className="cs-caption" aria-label={t('Applied reporting interval')}>{date(data.from)} — {date(data.to)} · UTC{request.agent && <> · {options.agents.find(a => a.id === request.agent)?.name ?? t('Historical Agent')}</>}{request.provider && <> · {request.provider}</>}{request.model && <> · {request.model}</>}{request.outcome && <> · {t(outcomes[request.outcome])}</>}</p>
       <div className="usage-kpis" aria-label={t('AI usage key metrics')}>
-        <section className="cs-surface usage-kpi"><h2>{t('Requests')}</h2><p className="usage-kpi-value">{n(summary.requests)}</p><p className="cs-caption">{t('One persisted execution per request, including no-model requests.')}</p></section>
-        <section className="cs-surface usage-kpi"><h2>{t('Estimated Cost')}</h2><p className="usage-kpi-value">{money(summary.recordedEstimatedCostUsd, locale, t)}</p><p className="cs-caption">{t('Recorded generation subtotal in USD; not provider billing.')}</p><p className="cs-caption">{n(summary.estimatedCostExecutions)} {t('estimated')} · {n(summary.unknownCostExecutions)} {t('unavailable')} · {n(summary.partialCostExecutions)} {t('partial')} · {n(summary.notApplicableCostExecutions)} {t('not applicable')}</p></section>
-        <section className="cs-surface usage-kpi"><h2>{t('Average Latency')}</h2><p className="usage-kpi-value">{summary.averageLatencyMs == null ? t('Not available') : n(summary.averageLatencyMs) + ' ms'}</p><p className="cs-caption">{n(summary.latencySamples)} {t('measured finished executions')} · {n(summary.missingLatencyExecutions)} {t('missing measurements')}</p></section>
-        <section className="cs-surface usage-kpi"><h2>{t('Failed / Refused')}</h2><p className="usage-kpi-value">{n(summary.failed)} / {n(summary.refused)}</p><p className="cs-caption">{t('Failed executions / refused executions. Refusal is not an infrastructure failure.')}</p></section>
+        <section className="cs-surface usage-kpi"><h2>{t('Requests')}</h2><p className="usage-kpi-value">{n(summary.requests)}</p></section>
+        <section className="cs-surface usage-kpi"><h2>{t('Estimated Cost')}</h2><p className="usage-kpi-value">{money(summary.recordedEstimatedCostUsd, locale, t)}</p><p className="cs-caption">{t(summary.recordedEstimatedCostUsd == null ? 'No recorded estimate' : summary.unknownCostExecutions || summary.partialCostExecutions ? 'Incomplete cost coverage' : 'Recorded estimate')}</p><details className="usage-coverage"><summary>{t('Coverage')}</summary><p className="cs-caption">{n(summary.estimatedCostExecutions)} {t('estimated')} · {n(summary.unknownCostExecutions)} {t('unavailable')} · {n(summary.partialCostExecutions)} {t('partial')} · {n(summary.notApplicableCostExecutions)} {t('not applicable')}</p><p>{t('Recorded generation subtotal in USD; not provider billing.')}</p></details></section>
+        <section className="cs-surface usage-kpi"><h2>{t('Average Latency')}</h2><p className="usage-kpi-value">{summary.averageLatencyMs == null ? t('Not available') : n(summary.averageLatencyMs) + ' ms'}</p><p className="cs-caption">{n(summary.latencySamples)} {t('measured')} · {n(summary.missingLatencyExecutions)} {t('missing')}</p></section>
+        <section className="cs-surface usage-kpi"><h2>{t('Failed / Refused')}</h2><p className="usage-kpi-value">{n(summary.failed)} / {n(summary.refused)}</p></section>
       </div>
       {!summary.requests ? <FeedbackPanel kind="empty" title={t('No AI usage records are available for this period.')}>{t('No executions match the selected filters. Change the filters or reporting interval.')}</FeedbackPanel> : <>
         <div className="usage-overview"><UsageTrend data={data.trend} unit={data.bucketUnit} />
-          <section className="cs-surface"><h2>{t('Outcome health')}</h2><p className="cs-caption">{t('Execution outcomes retain their original meaning.')}</p><dl className="usage-outcomes">{[['succeeded', 'Succeeded'], ['failed', 'Failed'], ['refused', 'Refused'], ['cancelled', 'Cancelled'], ['pending', 'In progress']].map(([key, label]) => <div key={key} className={'usage-outcome usage-outcome--' + key}><dt>{t(label)}</dt><dd>{n(summary[key])}</dd></div>)}</dl></section>
+          <section className="cs-surface"><h2>{t('Outcome health')}</h2><dl className="usage-outcomes">{[['succeeded', 'Succeeded'], ['failed', 'Failed'], ['refused', 'Refused'], ['cancelled', 'Cancelled'], ['pending', 'In progress']].map(([key, label]) => <div key={key} className={'usage-outcome usage-outcome--' + key}><dt>{t(label)}</dt><dd>{n(summary[key])}</dd></div>)}</dl></section>
         </div>
+      </>}
+    </div>}
+    {filterForm}
+    {!busy && !error && data && Boolean(summary.requests) && <div className="cs-stack">
         <UsageExecutions rows={data.executions} />
         <nav className="cs-actions usage-pagination" aria-label={t('Execution pagination')}><Button disabled={history.length === 1} onClick={() => page(false)}>{t('Previous page')}</Button><span>{t('Page')} {history.length}</span><Button disabled={!data.nextCursor} onClick={() => page(true)}>{t('Next page')}</Button></nav>
-      </>}
-      <p className="cs-caption">{t('Latency is full execution latency in milliseconds, measured for finished executions only. Unknown cost is never zero; partial cost is not a complete total. Embedding costs are excluded.')}</p>
-      <p className="cs-caption">{t('Model identifies the selected model. Recorded model attempts describe actual calls; a selection alone does not imply a provider call.')}</p>
+      <details className="cs-disclosure"><summary>{t('Metric definitions')}</summary><p className="cs-caption">{t('Agent Platform executions only: Student Chat, Admin Preview and KB Test. Legacy Syn and ingestion are excluded.')}</p><p className="cs-caption">{t('Latency is full execution latency in milliseconds, measured for finished executions only. Unknown cost is never zero; partial cost is not a complete total. Embedding costs are excluded.')}</p><p className="cs-caption">{t('Model identifies the selected model. Recorded model attempts describe actual calls; a selection alone does not imply a provider call.')}</p></details>
     </div>}
   </section>
 }

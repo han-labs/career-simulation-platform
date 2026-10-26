@@ -1,4 +1,4 @@
-import { ArrowLeft, ArrowRight, BookOpen, FileText, Plus, RefreshCw, Upload, X } from 'lucide-react'
+import { ArrowLeft, BookOpen, FileText, Plus, RefreshCw, Upload, X } from 'lucide-react'
 import Button from '../../../shared/ui/Button.jsx'
 import Dialog from '../../../shared/ui/Dialog.jsx'
 import FeedbackPanel from '../../../shared/ui/FeedbackPanel.jsx'
@@ -50,7 +50,7 @@ export default function KnowledgeStudioPage() {
     {selected ? me && options && <KnowledgeWorkspace key={me.id + ':' + selected} owner={me.id} id={selected} options={options} onChanged={saved => { if (saved) setBases(rows => rows.map(base => base.id === saved.id ? saved : base)) }} />
       : <div className="kb-collection">
         {!loading && !error && !bases.length && <FeedbackPanel kind="empty" title={t('A place for reviewed knowledge')} action={<Button variant="primary" disabled={me?.role !== 'ADMIN'} onClick={() => setCreating(true)}>{t('Create knowledge base')}</Button>}>{t('No knowledge bases yet. Create an empty knowledge base to begin.')}</FeedbackPanel>}
-        {bases.map(base => <article className="cs-surface kb-collection-row" key={base.id}><div className="kb-collection-name"><div className="kb-document-icon" aria-hidden="true"><BookOpen size={22} /></div><div><Link className="kb-item-title" to={'?kb=' + encodeURIComponent(base.id)}>{base.name}</Link><p className="cs-caption">{t('Reviewed platform knowledge')}</p></div></div><KnowledgeStatus value={base.status} /><div className="cs-actions"><Button onClick={() => setCollectionEdit(base)} aria-label={t('Edit knowledge base') + ': ' + base.name}>{t('Edit knowledge base')}</Button><Link className="cs-button cs-button--primary" aria-label={t('Open knowledge base') + ': ' + base.name} to={'?kb=' + encodeURIComponent(base.id)}>{t('Open knowledge base')}<ArrowRight size={18} aria-hidden="true" /></Link></div></article>)}
+        {bases.map(base => <article className="cs-surface kb-collection-row studio-collection-card" key={base.id}><Link className="studio-card-main" aria-label={t('Open knowledge base') + ': ' + base.name} to={'?kb=' + encodeURIComponent(base.id)}><div className="kb-collection-name"><div className="kb-document-icon" aria-hidden="true"><BookOpen size={22} /></div><div><h2 className="kb-item-title">{base.name}</h2><p className="cs-caption">{Number.isInteger(base.documentCount) && Number.isInteger(base.publishedChunkCount) ? `${base.documentCount} ${t('documents')} · ${base.publishedChunkCount} ${t('published chunks')}` : t('Counts unavailable')}</p></div></div><KnowledgeStatus value={base.status} /></Link><div className="cs-actions"><Link className="cs-button" to={'?kb=' + encodeURIComponent(base.id)} aria-label={t('Open') + ': ' + base.name}>{t('Open')}</Link><Button onClick={() => setCollectionEdit(base)} aria-label={t('Edit knowledge base') + ': ' + base.name}>{t('Edit knowledge base')}</Button></div></article>)}
       </div>}
     {creating && me && <KnowledgeBaseDialog owner={me.id} onClose={() => setCreating(false)} onSaved={saved => { setCreating(false); setCreated(saved.id); setBases(rows => [...rows.filter(base => base.id !== saved.id), saved]); setSearch({ kb: saved.id }); load() }} />}
     {collectionEdit && me && <KnowledgeBaseDialog owner={me.id} base={collectionEdit} onClose={() => setCollectionEdit(null)} onSaved={saved => { setCollectionEdit(null); setBases(rows => rows.map(base => base.id === saved.id ? saved : base)); load() }} />}
@@ -121,10 +121,10 @@ function KnowledgeWorkspace({ owner, id, options, onChanged }) {
     } catch (e) { if (alive.current) setError(e.message) }
     finally { operation.current = false; if (alive.current) setBusy(false) }
   }
-  async function processJob(job) {
+  async function processJob(job, reprocess = false) {
     setIngesting(job.id); setError(''); setNotice('')
     try {
-      const result = await platformCommand(`${kbPath(id)}/ingestions/${job.id}/retry`, {})
+      const result = await platformCommand(`${kbPath(id)}/ingestions/${job.id}/${reprocess ? 'reprocess' : 'retry'}`, {}, reprocess ? job.revision : undefined)
       if (!alive.current) return
       rememberJob(result)
       const last = result.attempts?.at(-1)
@@ -134,10 +134,10 @@ function KnowledgeWorkspace({ owner, id, options, onChanged }) {
     } catch (e) { if (alive.current) { setError(e.status === 429 ? e.message : 'The processing request could not finish. Your uploaded file is saved. Refresh or retry from the document list.'); if (e.status !== 429) setNotice(e.message) } }
     finally { if (alive.current) setIngesting(null) }
   }
-  async function ingest(job) {
+  async function ingest(job, reprocess = false) {
     if (operation.current) return
     operation.current = true; setBusy(true)
-    try { await processJob(job); if (alive.current) { setSourceEpoch(n => n + 1); const updated = await refresh(); if (alive.current) onChanged(updated) } }
+    try { await processJob(job, reprocess); if (alive.current) { setSourceEpoch(n => n + 1); const updated = await refresh(); if (alive.current) onChanged(updated) } }
     catch (e) { if (alive.current) setError(e.message) }
     finally { operation.current = false; if (alive.current) setBusy(false) }
   }
@@ -222,22 +222,18 @@ function KnowledgeWorkspace({ owner, id, options, onChanged }) {
       <div className="cs-section-header"><h3>{t('Your documents')}</h3></div>
       {!rows.length && <FeedbackPanel kind="empty">{t('No documents yet. Upload a file to begin.')}</FeedbackPanel>}
       <ul className="kb-document-list">{rows.map(row => {
-        const retryable = row.job && ['QUEUED', 'FAILED', 'CANCELLED'].includes(row.job.state)
+        const processing = ['PARSING', 'EMBEDDING'].includes(row.state)
         return <li className="kb-document-row" key={row.assetKey} aria-label={t('Document') + ': ' + row.name}>
-          <div className="kb-document-name"><div className="kb-document-icon" aria-hidden="true"><FileText size={22} /></div><div><h4>{row.name}</h4>
+          <div className="kb-document-name"><div className="kb-document-icon" aria-hidden="true"><FileText size={22} /></div><div><h4><button type="button" className="kb-document-title" onClick={() => inspectDocument(row)}>{row.name}</button></h4>
             {row.published && <p className="cs-caption">{t('Published version')}: {row.published.versionNumber}</p>}
             {row.published && ['FAILED', 'CANCELLED'].includes(row.state) && <p className="kb-document-warning">{t('Replacement did not complete. The published version is still in use.')}</p>}
           </div></div>
           <KnowledgeStatus value={row.state} label={statusLabels[row.state]} />
           <div className="cs-actions kb-document-controls">
-            {retryable ? <Button disabled={busy || base.status !== 'ACTIVE'} busy={ingesting === row.job.id} onClick={() => ingest(row.job)}>{t(row.job.state === 'QUEUED' ? 'Process document' : 'Retry processing')}</Button>
-              : row.ready && !['PARSING', 'EMBEDDING'].includes(row.state) ? <Button variant="primary" disabled={busy || base.status !== 'ACTIVE'} onClick={() => inspect(row.ready)}>{t('Review and publish')}</Button>
-              : null}
-            <details className="kb-document-options"><summary>{t('Document options')}</summary><div className="kb-document-menu">
-              {row.latest && <Button variant="quiet" disabled={busy || base.status !== 'ACTIVE'} onClick={() => replace(row.published ?? row.latest)}>{t('Replace document')}</Button>}
-              <Button variant="quiet" disabled={busy} onClick={() => inspectDocument(row)}>{t('Inspect document')}</Button>
-              <Button variant="danger" disabled={busy} onClick={() => setConfirming({ kind: 'delete', row })}>{t('Delete document')}</Button>
-            </div></details>
+            {row.ready && !processing && <Button variant="primary" disabled={busy || base.status !== 'ACTIVE'} onClick={() => inspect(row.ready)}>{t('Review and publish')}</Button>}
+            <Button onClick={() => inspectDocument(row)}>{t('Detail')}</Button>
+            <Button disabled={busy || processing || !row.job || base.status !== 'ACTIVE'} busy={ingesting === row.job?.id} onClick={() => ingest(row.job, true)}>{t('Reprocess')}</Button>
+            <Button variant="danger" disabled={busy} onClick={() => setConfirming({ kind: 'delete', row })}>{t('Delete document')}</Button>
           </div>
         </li>
       })}</ul>
@@ -245,6 +241,7 @@ function KnowledgeWorkspace({ owner, id, options, onChanged }) {
   </div>
   return <div className="cs-stack">
     <header className="cs-page-header"><div><p className="kb-eyebrow">{t('Knowledge Base Studio')}</p><h1 ref={workspaceHeading} tabIndex={-1}>{base.name}</h1><div className="cs-actions kb-workspace-meta"><KnowledgeStatus value={base.status} /></div></div><div className="cs-actions"><Button icon={<RefreshCw size={18} />} disabled={busy} onClick={() => action(async () => {})}>{t('Reload knowledge base')}</Button><Button disabled={busy} onClick={() => setEditing(true)}>{t('Edit knowledge base')}</Button></div></header>
+    <section className="cs-surface kb-publication-summary" aria-label={t('Source publication')}><p><strong>{rows.filter(row => row.published).length}</strong> {t('published')} · <strong>{rows.filter(row => row.ready).length}</strong> {t('ready for review')}</p><Button disabled={!rows.some(row => row.ready)} onClick={() => inspect(rows.find(row => row.ready).ready)}>{t('Review pending documents')}</Button></section>
     {error && <FeedbackPanel kind="error">{t(error)}</FeedbackPanel>}
     {notice && <FeedbackPanel kind="info" live={false}>{t(notice)}</FeedbackPanel>}
     {base.status !== 'ACTIVE' && <FeedbackPanel kind="warning">{t('Knowledge base unavailable.')}</FeedbackPanel>}
@@ -253,7 +250,7 @@ function KnowledgeWorkspace({ owner, id, options, onChanged }) {
       { value: 'documents', label: t('Documents'), content: documents },
       { value: 'test', label: t('Test KB'), content: tab === 'test' ? <KnowledgeBaseTestPanel key={id + ':' + sourceEpoch} owner={owner} id={id} options={options} active={base.status === 'ACTIVE'} /> : null },
     ]} />
-    {selection && inspectorOpen && <KnowledgeDocumentInspector key={selection.inspectionId} kb={id} selection={selection} versions={versions.filter(version => version.assetKey === selection.assetKey)} jobs={jobs.filter(job => job.assetKey === selection.assetKey)} onSelectVersion={inspect} onSelectJob={inspectJob} onReprocess={job => { setInspectorOpen(false); ingest(job) }} reprocessDisabled={busy || base.status !== 'ACTIVE'} onReviewed={reviewed} onClose={() => setInspectorOpen(false)} publishDisabled={busy || base.status !== 'ACTIVE' || inspected?.id !== selection.id} onPublish={publishVersion ? () => { setInspectorOpen(false); setConfirming({ kind: 'publish', version: publishVersion, revision: inspected.revision }) } : undefined} onRetire={selection.kind === 'version' && versions.find(version => version.id === selection.id && version.status !== 'RETIRED') ? () => { setInspectorOpen(false); setConfirming({ kind: 'retire', version: versions.find(version => version.id === selection.id) }) } : undefined} />}
+    {selection && inspectorOpen && <KnowledgeDocumentInspector key={selection.inspectionId} kb={id} selection={selection} versions={versions.filter(version => version.assetKey === selection.assetKey)} jobs={jobs.filter(job => job.assetKey === selection.assetKey)} onSelectVersion={inspect} onSelectJob={inspectJob} onReplace={version => { setInspectorOpen(false); replace(version) }} onReprocess={job => { setInspectorOpen(false); ingest(job, true) }} reprocessDisabled={busy || base.status !== 'ACTIVE'} onReviewed={reviewed} onClose={() => setInspectorOpen(false)} publishDisabled={busy || base.status !== 'ACTIVE' || inspected?.id !== selection.id} onPublish={publishVersion ? () => { setInspectorOpen(false); setConfirming({ kind: 'publish', version: publishVersion, revision: inspected.revision }) } : undefined} onRetire={selection.kind === 'version' && versions.find(version => version.id === selection.id && version.status !== 'RETIRED') ? () => { setInspectorOpen(false); setConfirming({ kind: 'retire', version: versions.find(version => version.id === selection.id) }) } : undefined} />}
     {confirming && <Dialog title={t(confirming.kind === 'delete' ? 'Delete this document?' : confirming.kind === 'publish' ? 'Publish this reviewed version?' : 'Retire this source? Current citations will become unavailable.')} description={t(confirming.kind === 'delete' ? 'Processing will stop and published content will no longer be available for retrieval. History and provenance are retained.' : confirming.kind === 'publish' ? 'Publishing replaces the currently published content only after this reviewed version is accepted.' : 'Changing availability can revoke access to current sources and results.')} closeLabel={t('Close dialog')} busy={busy} initialFocusRef={safeAction} restoreFocusRef={workspaceHeading} onRequestClose={() => setConfirming(null)} footer={<>
       <Button ref={safeAction} disabled={busy} onClick={() => setConfirming(null)}>{t(confirming.kind === 'delete' ? 'Keep document' : 'Keep current publication')}</Button><Button variant={confirming.kind === 'publish' ? 'primary' : 'danger'} busy={busy} onClick={lifecycle}>{t(confirming.kind === 'delete' ? 'Confirm delete document' : 'Confirm source action')}</Button>
     </>}>{confirming.kind === 'delete' ? <p>{confirming.row.name}</p> : <dl className="cs-metadata"><div><dt>{t('Document')}</dt><dd>{confirming.version?.title}</dd></div>{confirming.version && <div><dt>{t('Version')}</dt><dd>{confirming.version.versionNumber}</dd></div>}</dl>}</Dialog>}

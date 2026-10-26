@@ -160,7 +160,7 @@ public class SecurityConfig {
         return http.build();
     }
 
-    static boolean localAdminEnabled(Environment env) {
+    public static boolean localAdminEnabled(Environment env) {
         return env.acceptsProfiles(Profiles.of("local"))
                 && !env.acceptsProfiles(Profiles.of("prod", "production"));
     }

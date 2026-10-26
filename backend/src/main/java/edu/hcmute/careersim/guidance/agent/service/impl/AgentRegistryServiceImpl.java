@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 @ConditionalOnProperty(name = "app.agent-platform-enabled", havingValue = "true")
 public class AgentRegistryServiceImpl implements AgentRegistryService {
     private final AgentRegistryDao dao;
+    private final edu.hcmute.careersim.guidance.agent.dao.AgentRoleBindingDao roles;
     private final ActorAccess actors;
     private final AgentConfigurationPolicy policy;
     private final AgentModelProvider provider;
@@ -36,6 +37,7 @@ public class AgentRegistryServiceImpl implements AgentRegistryService {
     }
 
     private Agent editable(UUID id) {
+        roles.lock();
         var a = dao.get(id, true);
         if ("ARCHIVED".equals(a.status()))
             throw new ApiException(ErrorCode.CONFLICT, "Agent is archived.");
@@ -73,6 +75,7 @@ public class AgentRegistryServiceImpl implements AgentRegistryService {
     @Transactional
     public Agent update(long admin, UUID id, long revision, AgentInput input) {
         lock(admin);
+        roles.lock();
         var a = dao.get(id, true);
         CoreValues.match(revision, a.revision());
         CoreValues.text(input.name(), 180);
@@ -108,13 +111,19 @@ public class AgentRegistryServiceImpl implements AgentRegistryService {
         CoreValues.match(revision, a.revision());
         policy.validate(input, provider.modelKeys());
         knowledge.lockAvailable(admin, null, new HashSet<>(input.knowledgeBaseIds()), List.of());
+        if (input.experienceConfig() != null && !input.experienceConfig().isNull())
+            dao.update(
+                    agent,
+                    input.experienceConfig().path("name").asText(),
+                    input.experienceConfig().path("description").asText(),
+                    a.status());
         var c =
                 dao.save(
                         admin,
                         agent,
                         input,
                         policy.reference(),
-                        policy.promptHash(input.promptTemplate()),
+                        policy.promptHash(input),
                         policy.hash(input));
         audit.recordKey(
                 admin,
@@ -237,7 +246,7 @@ public class AgentRegistryServiceImpl implements AgentRegistryService {
     @Transactional(readOnly = true)
     public List<PublicAgent> assigned(long student) {
         ActorAccess.requireRole(actors.requireId(student), "STUDENT");
-        return dao.assigned(student);
+        return dao.available("STUDENT");
     }
 
     @Transactional(readOnly = true)
@@ -245,5 +254,65 @@ public class AgentRegistryServiceImpl implements AgentRegistryService {
         ActorAccess.requireRole(actors.requireId(student), "STUDENT");
         if (!dao.assignedConfiguration(student, agent, config))
             throw new NotFoundException("Assigned Agent unavailable.");
+    }
+
+    @Transactional(readOnly = true)
+    public List<PublicAgent> available(long id) {
+        var actor = actors.requireId(id);
+        if (!Set.of("STUDENT", "ENTERPRISE").contains(actor.role()))
+            throw new ApiException(ErrorCode.FORBIDDEN);
+        return dao.available(actor.role());
+    }
+
+    @Transactional(readOnly = true)
+    public List<RoleBinding> roleBindings(long id) {
+        admin(id);
+        return roles.list();
+    }
+
+    @Transactional
+    public List<RoleBinding> activateRoles(
+            long id, UUID agent, long revision, RoleActivation input) {
+        lock(id);
+        roles.lock();
+        var a = editable(agent);
+        CoreValues.match(revision, a.revision());
+        if (input == null
+                || !input.confirmed()
+                || input.roles() == null
+                || input.roles().size() > 2
+                || input.roles().stream().anyMatch(Objects::isNull)
+                || new HashSet<>(input.roles()).size() != input.roles().size()
+                || !Set.of("STUDENT", "ENTERPRISE").containsAll(input.roles())
+                || input.expectedRoleRevisions() == null
+                || !input.expectedRoleRevisions().keySet().equals(Set.of("STUDENT", "ENTERPRISE")))
+            CoreValues.invalid("Confirm the supported role selection with current revisions.");
+        var bindings = roles.list();
+        for (var b : bindings)
+            if (!Objects.equals(input.expectedRoleRevisions().get(b.role()), b.revision()))
+                throw new ApiException(
+                        ErrorCode.CONFLICT,
+                        "Role availability changed. Refresh before activation.");
+        if (!input.roles().isEmpty()) {
+            if (!"ACTIVE".equals(a.status()) || a.publishedConfigurationId() == null)
+                throw new ApiException(
+                        ErrorCode.CONFLICT, "Publish this Agent before role activation.");
+            var ready =
+                    publicationReadiness(id, agent, UUID.fromString(a.publishedConfigurationId()));
+            if (!ready.publishable())
+                throw new ApiException(
+                        ErrorCode.CONFLICT, "Published configuration is not ready for activation.");
+        }
+        for (var b : bindings) {
+            if (input.roles().contains(b.role())) roles.bind(b.role(), agent);
+            else if (agent.toString().equals(b.agentId())) roles.bind(b.role(), null);
+        }
+        audit.recordKey(
+                id,
+                "AGENT_ROLES_ACTIVATED",
+                "agent",
+                agent.toString(),
+                Map.of("status", String.join(",", input.roles()), "count", input.roles().size()));
+        return roles.list();
     }
 }
