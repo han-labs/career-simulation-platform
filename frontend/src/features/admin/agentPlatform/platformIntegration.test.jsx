@@ -68,7 +68,9 @@ function builderFixture() {
     if (path.endsWith('/configurations')) return configs
     if (path.endsWith('/previews')) { const config = configs.find(c => path.includes(`/${c.id}/`)); lastPreview = { id: `preview-${config.id}`, configurationId: config.id, configurationHash: config.contentHash, status: 'SUCCEEDED', executionMode: 'ADMIN_PREVIEW', inputTokens: 10, outputTokens: 5, estimatedCost: null, costStatus: 'UNKNOWN', latencyMs: 9, toolStepsAndSources: [], outputSnapshot: { outcome: 'ANSWER', text: 'Synthetic validated preview.', citations: [] } }; return { id: lastPreview.id, status: 'ACCEPTED' } }
     if (path.startsWith('/v2/admin/agent-executions/')) return lastPreview
-    if (path.endsWith('/publish')) { const c = configs.find(c => path.includes(`/${c.id}/`)); expect(lastPreview.configurationHash).toBe(c.contentHash); c.status = 'PUBLISHED'; agent = { ...agent, status: 'ACTIVE', revision: agent.revision + 1 }; return agent }
+    if (path.includes('/eligible-students?')) return { items: [{ id: '7', displayName: 'Synthetic Student' }], nextAfterId: null }
+    if (path.endsWith('/publication-readiness')) { const c = configs.find(c => path.includes(`/${c.id}/`)); return { configurationId: c.id, configurationHash: c.contentHash, agentRevision: agent.revision, agentEditable: true, knowledgeAvailable: true, previewSucceeded: lastPreview?.configurationHash === c.contentHash, publishable: lastPreview?.configurationHash === c.contentHash } }
+    if (path.endsWith('/publish')) { const c = configs.find(c => path.includes(`/${c.id}/`)); expect(lastPreview.configurationHash).toBe(c.contentHash); c.status = 'PUBLISHED'; agent = { ...agent, status: 'ACTIVE', publishedConfigurationId: c.id, revision: agent.revision + 1 }; return agent }
     if (path.includes('/configurations/config-')) return configs.find(c => path.endsWith(c.id))
     if (path.endsWith('/assignments') && request.method === 'POST') { assignments = [{ id: 'assignment-1', studentUserId: JSON.parse(request.body).studentUserId, status: 'ACTIVE' }]; return assignments[0] }
     if (path.endsWith('/assignments')) return assignments
@@ -76,48 +78,62 @@ function builderFixture() {
     throw new Error(`Unexpected fixture route ${path}`)
   })
 }
+function pane(name) { fireEvent.click(screen.getByRole('button', { name, exact: true })) }
+function tab(name) { pane('Configuration'); fireEvent.click(screen.getByRole('tab', { name, exact: true })) }
+function publication() { tab('Publish & Assign') }
 async function saveAndPreview() {
   fireEvent.change(await screen.findByLabelText('Saved Agent instructions'), { target: { value: 'Explain authorized evidence only.' } })
+  tab('Integrations')
   expect(screen.getByRole('checkbox', { name: /Public KB/ }).checked).toBe(false)
   expect(screen.getByRole('checkbox', { name: 'kb.search' }).checked).toBe(false)
   fireEvent.click(screen.getByRole('checkbox', { name: /Public KB/ }))
   fireEvent.click(screen.getByRole('checkbox', { name: 'kb.search' }))
-  fireEvent.click(screen.getByRole('button', { name: 'Save new immutable version' }))
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Run saved configuration preview' }).disabled).toBe(false))
+  fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+  pane('Preview')
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Send' }).disabled).toBe(false))
   fireEvent.change(screen.getByLabelText('Preview question'), { target: { value: 'Explain the practice guide' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Run saved configuration preview' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Send' }))
   await screen.findByText('Synthetic validated preview.')
 }
 it('saves and previews exact versions, blocks dirty publication, then publishes and assigns explicitly', async () => {
   builderFixture(); page(<AgentBuilderPage />, '/admin/agents?agent=agent-1'); await saveAndPreview()
-  expect(screen.getByRole('button', { name: 'Publish this tested configuration' }).disabled).toBe(false)
-  fireEvent.change(screen.getByLabelText('Saved Agent instructions'), { target: { value: 'New instructions require a new tested version.' } })
-  expect(screen.getByRole('button', { name: 'Publish this tested configuration' }).disabled).toBe(true)
-  expect(screen.getByRole('button', { name: 'Run saved configuration preview' }).disabled).toBe(true)
-  fireEvent.click(screen.getByRole('button', { name: 'Save new immutable version' }))
+  publication()
+  await waitFor(() => expect(screen.getByRole('button', { name: /Publish version/ }).disabled).toBe(false))
+  tab('Brain'); fireEvent.change(screen.getByLabelText('Saved Agent instructions'), { target: { value: 'New instructions require a new tested version.' } }); publication()
+  expect(screen.getByRole('button', { name: /Publish version/ }).disabled).toBe(true)
+  pane('Preview'); expect(screen.getByRole('button', { name: 'Send' }).disabled).toBe(true)
+  tab('Brain'); fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
   await screen.findByText('hash-2')
-  expect(screen.getByRole('button', { name: 'Publish this tested configuration' }).disabled).toBe(true)
-  fireEvent.click(screen.getByRole('button', { name: 'Run saved configuration preview' }))
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Publish this tested configuration' }).disabled).toBe(false))
-  fireEvent.click(screen.getByRole('button', { name: 'Publish this tested configuration' }))
-  await waitFor(() => expect(screen.getByRole('button', { name: 'Assign this Agent' }).disabled).toBe(false))
-  fireEvent.change(screen.getByLabelText('Student account ID'), { target: { value: '7' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Assign this Agent' }))
-  fireEvent.click(await screen.findByRole('button', { name: 'Revoke assignment' }))
+  publication()
+  expect(screen.getByRole('button', { name: /Publish version/ }).disabled).toBe(true)
+  pane('Preview'); fireEvent.click(screen.getByRole('button', { name: 'Send' })); publication()
+  await waitFor(() => expect(screen.getByRole('button', { name: /Publish version/ }).disabled).toBe(false))
+  fireEvent.click(screen.getByRole('button', { name: /Publish version/ }))
+  fireEvent.click(screen.getByRole('button', { name: 'Confirm publish' }))
+  await screen.findByText('Publication saved. No Students were assigned automatically.')
+  fireEvent.change(screen.getByLabelText('Eligible Student'), { target: { value: '7' } })
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Assign selected Student' }).disabled).toBe(false))
+  expect(screen.getByLabelText('Agent status').value).toBe('ACTIVE')
+  fireEvent.click(screen.getByRole('button', { name: 'Assign selected Student' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Confirm assignment' }))
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Revoke assignment' }).disabled).toBe(false))
+  fireEvent.click(screen.getByRole('button', { name: 'Revoke assignment' }))
+  fireEvent.click(screen.getByRole('button', { name: 'Confirm revoke' }))
   await waitFor(() => expect(screen.queryByRole('button', { name: 'Revoke assignment' })).toBeNull())
   expect(apiRequest.mock.calls.filter(([path, request]) => path.endsWith('/previews') && request?.method === 'POST')).toHaveLength(2)
 })
-it('preserves invalid policy edits without crashing or authorizing an old successful preview', async () => {
+it('preserves invalid policy form edits without authorizing an old successful preview', async () => {
   builderFixture(); page(<AgentBuilderPage />, '/admin/agents?agent=agent-1'); await saveAndPreview()
-  fireEvent.click(screen.getByText('Advanced validated policies'))
-  fireEvent.change(screen.getByLabelText('Tool execution policy'), { target: { value: '{"enabled":' } })
-  expect(screen.getByLabelText('Tool execution policy').getAttribute('aria-invalid')).toBe('true')
-  expect(screen.getByRole('button', { name: 'Publish this tested configuration' }).disabled).toBe(true)
-  expect(screen.getByLabelText('Tool execution policy').value).toBe('{"enabled":')
-  fireEvent.change(screen.getByLabelText('Tool execution policy'), { target: { value: '{}' } })
-  expect(screen.getByRole('checkbox', { name: 'kb.search' }).checked).toBe(false)
-  expect(screen.getByRole('button', { name: 'Run saved configuration preview' }).disabled).toBe(true)
-  expect(JSON.parse(localStorage.getItem(draftKey('5', 'agent-config', 'agent-1'))).draft.toolPolicy).toEqual({})
+  tab('Advanced'); publication()
+  fireEvent.change(screen.getByLabelText('Model rounds'), { target: { value: '5' } })
+  expect(screen.getByRole('button', { name: /Publish version/ }).disabled).toBe(true)
+  fireEvent.click(screen.getByRole('button', { name: 'Save changes' }))
+  expect(screen.getByLabelText('Model rounds').getAttribute('aria-invalid')).toBe('true')
+  expect(screen.getByLabelText('Model rounds').value).toBe('5')
+  pane('Preview')
+  expect(screen.getByRole('button', { name: 'Send' }).disabled).toBe(true)
+  expect(JSON.parse(localStorage.getItem(draftKey('5', 'agent-config', 'agent-1'))).draft.toolPolicy.maxRounds).toBe(5)
+  expect(apiRequest.mock.calls.filter(([path, request]) => path.endsWith('/configurations') && request?.method === 'POST')).toHaveLength(1)
 })
 it('shows assigned public Agent identity only and distinguishes a permission failure from an empty list', async () => {
   apiRequest.mockResolvedValue([{ id: 'a', name: 'Assigned guide', purpose: 'Public exploration', promptTemplate: 'Never render this accidental private field' }])

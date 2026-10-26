@@ -176,6 +176,49 @@ public class AgentRegistryServiceImpl implements AgentRegistryService {
         return x;
     }
 
+    @Transactional(readOnly = true)
+    public EligibleStudents eligibleStudents(
+            long admin, UUID agent, String query, long afterId, int limit) {
+        admin(admin);
+        dao.get(agent, false);
+        if (query == null || query.length() > 80 || afterId < 0 || limit < 1 || limit > 50)
+            CoreValues.invalid(
+                    "Student search requires at most 80 characters, a nonnegative cursor and a limit from 1 to 50.");
+        var rows = actors.eligibleStudents(query.trim(), afterId, limit + 1);
+        var items = rows.stream().limit(limit).toList();
+        return new EligibleStudents(
+                items, rows.size() > limit ? items.get(items.size() - 1).id() : null);
+    }
+
+    @Transactional(readOnly = true)
+    public PublicationReadiness publicationReadiness(long admin, UUID agent, UUID config) {
+        admin(admin);
+        var a = dao.get(agent, false);
+        var c = dao.configuration(agent, config, false);
+        boolean available = true;
+        try {
+            knowledge.requireAvailable(
+                    admin,
+                    config,
+                    c.knowledgeBaseIds().stream()
+                            .map(UUID::fromString)
+                            .collect(java.util.stream.Collectors.toSet()));
+        } catch (ApiException unavailable) {
+            available = false;
+        }
+        boolean editable = !"ARCHIVED".equals(a.status());
+        boolean previewed = dao.previewed(config, c.contentHash());
+        return new PublicationReadiness(
+                c.id(),
+                c.contentHash(),
+                a.revision(),
+                c.status(),
+                editable,
+                available,
+                previewed,
+                editable && available && previewed && !"RETIRED".equals(c.status()));
+    }
+
     @Transactional
     public Assignment revoke(long admin, UUID agent, UUID assignment) {
         lock(admin);

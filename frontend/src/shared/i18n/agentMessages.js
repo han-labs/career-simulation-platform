@@ -1,5 +1,178 @@
 // Presentation only: original documents, quoted evidence and model replies remain unchanged.
 export const agentMessages = Object.fromEntries(`
+Publish & Assign ⇢ Công bố & phân công
+Publication ⇢ Công bố
+Refresh status ⇢ Tải lại trạng thái
+Not saved ⇢ Chưa lưu
+Published version unavailable ⇢ Không tải được phiên bản đã công bố
+Save a configuration before publication. ⇢ Lưu cấu hình trước khi công bố.
+Unsaved changes must be saved and previewed before publication. ⇢ Cần lưu và xem trước thay đổi trước khi công bố.
+Checking publication readiness... ⇢ Đang kiểm tra điều kiện công bố...
+Publication readiness ⇢ Điều kiện công bố
+Configuration saved ⇢ Cấu hình đã lưu
+No unsaved changes ⇢ Không có thay đổi chưa lưu
+Agent is not archived ⇢ Agent chưa bị lưu trữ
+Knowledge grants available ⇢ Kho tri thức được cấp quyền khả dụng
+Successful Preview of this exact saved configuration ⇢ Xem trước thành công đúng cấu hình đã lưu này
+Version eligible for publication ⇢ Phiên bản đủ điều kiện công bố
+Satisfied ⇢ Đạt
+Blocked ⇢ Bị chặn
+Not verified ⇢ Chưa xác minh
+Run a successful Admin Preview for this exact version. Failed or unavailable Preview does not qualify. ⇢ Cần xem trước thành công đúng phiên bản này. Lượt xem trước lỗi hoặc không khả dụng không đủ điều kiện.
+The backend rechecks publication readiness and revision at confirmation. Publishing does not assign Students. ⇢ Máy chủ kiểm tra lại điều kiện và phiên bản cập nhật khi xác nhận. Công bố không tự phân công sinh viên.
+Publish version ⇢ Công bố phiên bản
+This saved version is published. ⇢ Phiên bản đã lưu này đã được công bố.
+Assignments ⇢ Phân công
+Search active Students with a Student profile. AI consent is not an assignment requirement. Access requires an active, published Agent and an explicit assignment. ⇢ Tìm sinh viên đang hoạt động và có hồ sơ sinh viên. Đồng ý AI không phải điều kiện phân công. Truy cập cần Agent đang hoạt động, đã công bố và được phân công rõ ràng.
+Publish and activate this Agent before assigning Students. ⇢ Công bố và kích hoạt Agent trước khi phân công sinh viên.
+Search Students by name ⇢ Tìm sinh viên theo tên
+Search Students ⇢ Tìm sinh viên
+Loading eligible Students... ⇢ Đang tải sinh viên đủ điều kiện...
+Retry Student search ⇢ Tìm lại sinh viên
+No eligible Students match this search. ⇢ Không có sinh viên đủ điều kiện khớp tìm kiếm.
+Eligible Student ⇢ Sinh viên đủ điều kiện
+Choose a Student ⇢ Chọn sinh viên
+Account ID ⇢ Mã tài khoản
+Load more Students ⇢ Tải thêm sinh viên
+This Student already has an active assignment. ⇢ Sinh viên này đã có phân công đang hoạt động.
+Assign selected Student ⇢ Phân công sinh viên đã chọn
+Assigned Students ⇢ Sinh viên được phân công
+Loading assignments... ⇢ Đang tải phân công...
+Retry assignments ⇢ Tải lại phân công
+No Student assignments yet. ⇢ Chưa phân công sinh viên.
+Assigned at ⇢ Thời điểm phân công
+Assignments grant Agent access; they do not pin a separate configuration version. The published Agent version is shown above. ⇢ Phân công cấp quyền truy cập Agent, không ghim riêng một phiên bản cấu hình. Phiên bản Agent đã công bố hiển thị ở trên.
+Confirm publication ⇢ Xác nhận công bố
+Confirm Student assignment ⇢ Xác nhận phân công sinh viên
+Confirm assignment revocation ⇢ Xác nhận thu hồi phân công
+Confirm publish ⇢ Xác nhận công bố
+Confirm assignment ⇢ Xác nhận phân công
+Confirm revoke ⇢ Xác nhận thu hồi
+Publish this exact saved version? No Student access is granted automatically. ⇢ Công bố đúng phiên bản đã lưu này? Không tự cấp quyền truy cập cho sinh viên.
+Grant this Student access to the published Agent? No Student conversation will be created. ⇢ Cấp cho sinh viên này quyền truy cập Agent đã công bố? Không tạo hội thoại sinh viên.
+Revoke this Student’s Agent access? Assignment history will remain available. ⇢ Thu hồi quyền truy cập Agent của sinh viên này? Lịch sử phân công được giữ lại.
+Publication state changed. Refresh readiness before publishing. ⇢ Trạng thái công bố đã thay đổi. Tải lại điều kiện trước khi công bố.
+Publication saved. No Students were assigned automatically. ⇢ Đã công bố. Không tự động phân công sinh viên.
+Assignment is active. No Student conversation was created. ⇢ Phân công đang hoạt động. Không tạo hội thoại sinh viên.
+Assignment revoked. History is preserved. ⇢ Đã thu hồi phân công. Lịch sử được giữ lại.
+Student Experience Preview ⇢ Xem trước trải nghiệm sinh viên
+PRESENTATION ONLY ⇢ CHỈ MINH HỌA GIAO DIỆN
+A visual example only. No Student is impersonated and no Student conversation, message or memory is created. ⇢ Chỉ minh họa giao diện. Không đóng vai sinh viên, không tạo hội thoại, tin nhắn hay bộ nhớ sinh viên.
+Student access requires publication, an active Agent and an active assignment. This preview grants no access. ⇢ Sinh viên cần Agent đã công bố, đang hoạt động và phân công đang hoạt động để truy cập. Bản xem trước này không cấp quyền truy cập.
+Granted knowledge bases ⇢ Kho tri thức được cấp quyền
+Enabled capabilities ⇢ Khả năng được bật
+No domain tools enabled ⇢ Chưa bật công cụ nghiệp vụ
+Example Agent answer ⇢ Câu trả lời minh họa của Agent
+Example from a successful Admin Preview of the selected saved version. This is not a personalized Student response. ⇢ Ví dụ từ lượt xem trước thành công của quản trị viên cho phiên bản đã lưu đang chọn. Đây không phải phản hồi cá nhân hóa cho sinh viên.
+No successful answer for this exact version is available. Run Admin Preview to see an example here. ⇢ Chưa có câu trả lời thành công cho đúng phiên bản này. Chạy xem trước dành cho quản trị viên để xem ví dụ tại đây.
+Enter an Agent name. ⇢ Nhập tên Agent.
+Enter an Agent purpose. ⇢ Nhập mục đích của Agent.
+PREVIEW · SAVED CONFIGURATION ⇢ XEM TRƯỚC · CẤU HÌNH ĐÃ LƯU
+Chat Preview ⇢ Hội thoại xem trước
+Saved configuration ⇢ Cấu hình đã lưu
+Unsaved changes are not used in Preview. Save the configuration to test the new settings. ⇢ Thay đổi chưa lưu không được dùng khi xem trước. Hãy lưu cấu hình để thử các thiết lập mới.
+Agent workspace view ⇢ Chế độ xem Agent
+Agent configuration ⇢ Cấu hình Agent
+Configuration ⇢ Cấu hình
+Knowledge search ⇢ Tìm kiếm tri thức
+Assessment evidence ⇢ Minh chứng đánh giá
+Simulation catalogue ⇢ Danh mục mô phỏng
+My simulation evidence ⇢ Minh chứng mô phỏng của tôi
+View run details ⇢ Xem chi tiết lượt chạy
+Preview ⇢ Xem trước
+Sending Preview... ⇢ Đang gửi yêu cầu xem trước...
+Send ⇢ Gửi
+Save changes ⇢ Lưu thay đổi
+Agent Studio ⇢ Studio Agent
++ Create Agent ⇢ + Tạo Agent
+Description / purpose ⇢ Mô tả / mục đích
+Admin Preview chat ⇢ Hội thoại xem trước của quản trị viên
+Admin Preview ⇢ Xem trước dành cho quản trị viên
+Each Preview is an independent run of the selected saved version. No Student session or personal Student evidence is used. ⇢ Mỗi lần xem trước là một lượt chạy độc lập của phiên bản đã lưu đang chọn. Không sử dụng phiên sinh viên hay minh chứng cá nhân của sinh viên.
+Save a configuration in Brain before opening a Preview. ⇢ Lưu cấu hình trong tab Bộ não trước khi xem trước.
+Preview messages ⇢ Tin nhắn xem trước
+Try your saved Agent ⇢ Thử Agent đã lưu
+Ask a question to test its instructions, granted knowledge and authorized tools. ⇢ Đặt câu hỏi để thử chỉ dẫn, tri thức và công cụ đã được cấp quyền.
+Admin message ⇢ Tin nhắn quản trị viên
+You ⇢ Bạn
+Agent response ⇢ Phản hồi của Agent
+Publication and assignments ⇢ Công bố và phân công
+Agent configuration workspace ⇢ Không gian cấu hình Agent
+Brain ⇢ Bộ não
+Chat ⇢ Hội thoại
+Integrations ⇢ Tích hợp
+Advanced ⇢ Nâng cao
+Agent name and purpose are required. ⇢ Cần nhập tên và mục đích của Agent.
+Configure a career exploration Agent, save an immutable version and preview exactly what you saved. ⇢ Cấu hình Agent khám phá nghề nghiệp, lưu phiên bản bất biến rồi xem trước đúng phiên bản đã lưu.
+Loading Agent Builder... ⇢ Đang tải trình cấu hình Agent...
+No Agents yet. Create one to configure its first version. ⇢ Chưa có Agent. Tạo Agent để cấu hình phiên bản đầu tiên.
+Selected saved version ⇢ Phiên bản đã lưu đang chọn
+Published version ⇢ Phiên bản đang công bố
+None selected ⇢ Chưa chọn
+Not published ⇢ Chưa công bố
+Unsaved changes — Save a new version before Preview. ⇢ Có thay đổi chưa lưu — hãy lưu phiên bản mới trước khi xem trước.
+Reload latest Agent ⇢ Tải lại Agent mới nhất
+Discard unsaved changes ⇢ Bỏ thay đổi chưa lưu
+Identity ⇢ Thông tin Agent
+Agent description / purpose ⇢ Mô tả / mục đích của Agent
+No saved version yet. Complete the settings below and Save. ⇢ Chưa có phiên bản đã lưu. Hoàn tất cấu hình bên dưới rồi lưu.
+Supported model ⇢ Mô hình được hỗ trợ
+Choose a supported model. ⇢ Chọn một mô hình được hỗ trợ.
+Models come from server configuration. Availability does not guarantee a successful provider call. ⇢ Danh sách mô hình lấy từ cấu hình máy chủ. Trạng thái khả dụng không bảo đảm lời gọi nhà cung cấp thành công.
+This model can be saved, but Preview may fail while the provider is unavailable. ⇢ Có thể lưu mô hình này, nhưng xem trước có thể thất bại khi nhà cung cấp chưa khả dụng.
+Instructions ⇢ Chỉ dẫn
+Describe career exploration, when to use tools, reply language, evidence handling and safe refusals. Your text is versioned and is never replaced automatically. ⇢ Mô tả cách khám phá nghề nghiệp, khi nào dùng công cụ, ngôn ngữ trả lời, xử lý minh chứng và từ chối an toàn. Chỉ dẫn của bạn được lưu theo phiên bản và không bị tự động thay thế.
+Policies ⇢ Chính sách thực thi
+Model rounds ⇢ Số vòng mô hình
+Maximum tool calls ⇢ Số lượt gọi công cụ tối đa
+Execution timeout (seconds) ⇢ Giới hạn thời gian thực thi (giây)
+Maximum answer characters ⇢ Số ký tự trả lời tối đa
+Grounding policy ⇢ Chính sách minh chứng
+Require knowledge base evidence ⇢ Yêu cầu minh chứng từ kho tri thức
+Allow general exploration guidance ⇢ Cho phép hướng dẫn khám phá tổng quát
+General guidance does not turn missing evidence into a grounded answer. Citations must always match evidence from the current run. ⇢ Hướng dẫn tổng quát không biến câu trả lời thiếu minh chứng thành câu trả lời có căn cứ. Trích dẫn luôn phải khớp minh chứng của lượt chạy hiện tại.
+One model round is reserved for the final answer. With rounds set to 1, tools cannot run; increase rounds to allow tool use. ⇢ Một vòng mô hình được dành cho câu trả lời cuối. Khi đặt 1 vòng, công cụ không thể chạy; hãy tăng số vòng để cho phép dùng công cụ.
+Selected knowledge bases define this Agent’s knowledge scope. Only authorized, published content can be retrieved; empty evidence is not successful grounding. ⇢ Các kho được chọn xác định phạm vi tri thức của Agent. Chỉ truy xuất nội dung đã công bố và được cấp quyền; không có minh chứng không phải là trả lời có căn cứ thành công.
+Unavailable knowledge base ⇢ Kho tri thức không khả dụng
+No authorized knowledge bases are available. ⇢ Chưa có kho tri thức được cấp quyền khả dụng.
+Domain tool grants ⇢ Quyền sử dụng công cụ nghiệp vụ
+Search published passages from explicitly granted knowledge bases. ⇢ Tìm đoạn tài liệu đã công bố trong các kho tri thức được cấp quyền rõ ràng.
+Interpret the Student’s own authorized assessment results. Private evidence is unavailable in Admin Preview. ⇢ Diễn giải kết quả đánh giá của chính sinh viên trong phạm vi được cấp quyền. Minh chứng riêng tư không khả dụng khi quản trị viên xem trước.
+Explore the public simulation catalogue without changing enrollment or results. ⇢ Khám phá danh mục mô phỏng công khai mà không thay đổi việc tham gia hoặc kết quả.
+Read the Student’s own authorized simulation progress and results. Unavailable in Admin Preview. ⇢ Đọc tiến độ và kết quả mô phỏng của chính sinh viên trong phạm vi được cấp quyền. Không khả dụng khi quản trị viên xem trước.
+Conversation and bounded context ⇢ Hội thoại và ngữ cảnh có giới hạn
+Enable bounded Student context ⇢ Bật ngữ cảnh sinh viên có giới hạn
+Uses supported, scoped Student history/context in Student runtime. This is not training, autonomous learning or unlimited permanent memory. Admin Preview has no Student history. ⇢ Sử dụng lịch sử/ngữ cảnh sinh viên trong phạm vi và giới hạn được hỗ trợ ở luồng sinh viên. Đây không phải huấn luyện, tự học hay trí nhớ vĩnh viễn không giới hạn. Xem trước của quản trị viên không có lịch sử sinh viên.
+Safety ⇢ An toàn
+The backend enforces current identity, permissions, read-only tools, execution limits and citation validation. Safety cannot be disabled here. ⇢ Backend kiểm tra danh tính hiện tại, quyền truy cập, công cụ chỉ đọc, giới hạn thực thi và trích dẫn. Không thể tắt các bảo vệ tại đây.
+Authorized Students may interpret their own assessment and simulation evidence. Admin Preview never impersonates a Student or reads personal Student evidence. ⇢ Sinh viên được cấp quyền có thể diễn giải minh chứng đánh giá và mô phỏng của chính mình. Xem trước của quản trị viên không giả danh sinh viên hoặc đọc minh chứng cá nhân.
+Save creates a version only. It does not publish, assign Students or call the AI provider. ⇢ Lưu chỉ tạo phiên bản. Không công bố, không gán sinh viên và không gọi nhà cung cấp AI.
+Save your revised configuration before running Preview. Any displayed result belongs to the previously saved version. ⇢ Lưu cấu hình đã sửa trước khi xem trước. Kết quả đang hiển thị thuộc phiên bản đã lưu trước đó.
+Executed preview question ⇢ Câu hỏi đã dùng để xem trước
+Retry preview ⇢ Thử xem trước lại
+This execution belongs to another saved configuration. Select its version to inspect it. ⇢ Lượt chạy này thuộc cấu hình đã lưu khác. Chọn phiên bản tương ứng để kiểm tra.
+Discard unsaved configuration changes? ⇢ Bỏ các thay đổi cấu hình chưa lưu?
+The selected saved configuration is unchanged. Discarding restores saved settings. ⇢ Cấu hình đã lưu đang chọn không bị thay đổi. Bỏ thay đổi sẽ khôi phục các thiết lập đã lưu.
+Keep editing ⇢ Tiếp tục chỉnh sửa
+Discard and restore ⇢ Bỏ thay đổi và khôi phục
+Preview result ⇢ Kết quả xem trước
+Actual tool calls ⇢ Số lượt gọi công cụ thực tế
+Evidence events ⇢ Sự kiện có minh chứng
+Safe run details ⇢ Chi tiết thực thi an toàn
+Saved configuration ID ⇢ Mã cấu hình đã lưu
+Observable execution metadata only. Private model reasoning and provider protocol are never displayed. ⇢ Chỉ hiển thị metadata thực thi quan sát được. Không hiển thị suy luận riêng của mô hình hoặc giao thức nội bộ nhà cung cấp.
+Your preserved local draft has been restored. Save before Preview. ⇢ Bản nháp trên máy đã được khôi phục. Hãy lưu trước khi xem trước.
+A new immutable version was saved. Nothing was published or assigned; no provider was called. ⇢ Đã lưu phiên bản bất biến mới. Không công bố hoặc gán sinh viên; không gọi nhà cung cấp.
+Latest Agent revision loaded. Your unsaved input is preserved. ⇢ Đã tải revision Agent mới nhất. Nội dung chưa lưu của bạn được giữ nguyên.
+This Agent has changed. Reload the latest Agent before saving. Your draft is preserved. ⇢ Agent này đã thay đổi. Tải Agent mới nhất trước khi lưu. Bản nháp của bạn được giữ nguyên.
+Complete the required agent settings before saving. ⇢ Hoàn tất các thiết lập Agent bắt buộc trước khi lưu.
+Enter instructions between 1 and 12000 characters. ⇢ Nhập chỉ dẫn từ 1 đến 12000 ký tự.
+Enter a whole number within the displayed bounds. ⇢ Nhập số nguyên trong giới hạn được hiển thị.
+Select only supported domain tools. ⇢ Chỉ chọn công cụ nghiệp vụ được hỗ trợ.
+Enabled tools require a positive tool-call budget. ⇢ Công cụ đã bật yêu cầu ngân sách gọi công cụ lớn hơn 0.
+Choose a supported grounding policy. ⇢ Chọn chính sách minh chứng được hỗ trợ.
+Choose whether bounded Student context is enabled. ⇢ Chọn có bật ngữ cảnh sinh viên có giới hạn hay không.
+Choose at most ten distinct authorized active knowledge bases. ⇢ Chọn tối đa mười kho tri thức hoạt động, được cấp quyền và không trùng nhau.
 Other ⇢ Khác
 Source usage rights ⇢ Quyền sử dụng nguồn
 Choose source usage rights ⇢ Chọn quyền sử dụng nguồn

@@ -223,6 +223,21 @@ class NativeStudentStreamingTest {
                             "simulation_explore",
                             "simulation_myEvidence",
                             "kb_search");
+            for (int i = 0; i < definitions.size(); i++) {
+                var canonical = definitions.get(i).parameters();
+                var transported =
+                        provider.equals("gemini")
+                                ? requests.get(0)
+                                        .at("/tools/0/functionDeclarations/" + i + "/parameters")
+                                : requests.get(0).at("/tools/" + i + "/function/parameters");
+                JsonNode expected = canonical.deepCopy();
+                if (provider.equals("gemini"))
+                    ((com.fasterxml.jackson.databind.node.ObjectNode) expected)
+                            .remove("additionalProperties");
+                assertThat(transported).isEqualTo(expected);
+                assertThat(canonical.has("additionalProperties")).isTrue();
+                assertThat(canonical.path("additionalProperties").asBoolean()).isFalse();
+            }
             assertThat(requests.get(1).toString()).contains("call-one");
             if (provider.equals("gemini"))
                 assertThat(requests.get(1).toString()).contains("opaque-fixture");

@@ -12,6 +12,11 @@ public interface ActorAccess {
     /** Read-only selection for the isolated local development principal. Never provisions users. */
     java.util.Optional<Actor> findActiveAdministrator();
 
+    /** Minimal active Student candidates; excludes accounts without the required profile. */
+    java.util.List<StudentIdentity> eligibleStudents(String query, long afterId, int limit);
+
+    record StudentIdentity(String id, String displayName) {}
+
     default Actor student(Principal p) {
         Actor a = require(p);
         requireRole(a, "STUDENT");
