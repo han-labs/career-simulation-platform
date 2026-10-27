@@ -135,8 +135,9 @@ it('preserves a denied KB response and does not enable writes or manufacture con
     return { models: [] }
   })
   page('/admin/knowledge')
-  await screen.findByText('Access or CSRF validation denied.')
-  expect(screen.getByRole('button', { name: 'Create knowledge base' }).disabled).toBe(true)
+  await screen.findByText('Administrator access is required.')
+  expect(screen.queryByRole('button', { name: 'Create knowledge base' })).toBeNull()
+  expect(apiRequest.mock.calls.some(([path]) => path === '/v2/admin/knowledge-bases')).toBe(false)
   expect(apiRequest.mock.calls.every(([, options]) => !options?.method)).toBe(true)
 })
 

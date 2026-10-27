@@ -105,6 +105,9 @@ class LocalDemoAuthenticationFilterTest {
     void onlyLocalProfileCanEnableAndProductionAlwaysWins() {
         var env = new org.springframework.mock.env.MockEnvironment();
         assertThat(SecurityConfig.localAdminEnabled(env)).isFalse();
+        env.setActiveProfiles("local");
+        assertThat(SecurityConfig.localAdminEnabled(env)).isFalse();
+        env.setProperty("app.local-demo-mode", "true");
         for (String[] profiles :
                 List.of(
                         new String[] {"prod"},

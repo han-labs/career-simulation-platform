@@ -8,7 +8,7 @@ import { streamExecution } from './studentAgentApi.js'
 import StudentAgentPage from './StudentAgentPage.jsx'
 import AgentUsagePage from '../admin/agentPlatform/AgentUsagePage.jsx'
 import { usageFixture } from '../admin/usage/usageFixture.js'
-vi.mock('../../shared/api/httpClient.js', () => ({ apiRequest: vi.fn(), getAccountGeneration: () => 0 }))
+vi.mock('../../shared/api/httpClient.js', () => ({ apiRequest: vi.fn(), getAccountGeneration: () => 0, invalidateAccount: vi.fn() }))
 vi.mock('./studentAgentApi.js', () => ({ sessionPath: id => `/v2/agent-sessions/${id}`, runPath: id => `/v2/agent-executions/${id}`, streamExecution: vi.fn() }))
 beforeEach(() => { vi.resetAllMocks(); localStorage.clear() }); afterEach(cleanup)
 function page() { return render(<I18nProvider><MemoryRouter initialEntries={['/agents/a1?session=s1']}><Routes><Route path="/agents/:agentId" element={<StudentAgentPage />} /></Routes></MemoryRouter></I18nProvider>) }
@@ -59,4 +59,26 @@ it('renders unknown Admin metrics honestly and only requests the safe dashboard 
  expect(screen.getAllByText('Not available').length).toBeGreaterThan(0)
  expect(apiRequest.mock.calls[0][0]).toMatch(/^\/v2\/admin\/agent-usage\?view=dashboard&/)
  expect(apiRequest.mock.calls.some(([p]) => p.includes('insight-reports') || p.includes('interactions'))).toBe(false)
+})
+it('Student Quick Actions preserves an editable account-scoped draft without auto-send', async()=>{
+ fixture();page();await screen.findByText(/Pinned configuration version/);fireEvent.click(screen.getByText('Quick Actions'))
+ const suggestion='Có simulation nào phù hợp để tôi thử tiếp không?';fireEvent.click(screen.getByText(suggestion))
+ expect(screen.getByLabelText('Message to Agent').value).toBe(suggestion)
+ expect(JSON.parse(localStorage.getItem('careersim_core_7_agent-message_s1')).text).toBe(suggestion)
+ expect(apiRequest.mock.calls.filter(([,request])=>request?.method==='POST')).toHaveLength(0)
+})
+it('shows alternating readable bubbles and permits explicit Student messages without a separate consent form', async()=>{
+ fixture();const original=apiRequest.getMockImplementation()
+ apiRequest.mockImplementation(async(path,options)=>{
+  if(path==='/v2/agent-sessions/s1')return {title:'My conversation',configurationVersion:6,provider:'gemini'}
+  if(path.endsWith('/interactions'))return [{id:'q1',actorType:'USER',content:{text:'My question'}},{id:'a1',actorType:'ASSISTANT',content:{text:'My authorized answer',citations:[{referenceId:'K1',quote:'Exact supporting text'}]}}]
+  return original(path,options)
+ });page();const user=await screen.findByText('My question'),answer=screen.getByText('My authorized answer')
+ expect(user.closest('li').className).toContain('student-chat-turn--user');expect(answer.closest('li').className).toContain('student-chat-turn--agent')
+ expect(screen.getByRole('region',{name:'Messages'})).toBeTruthy()
+ expect(screen.getByText('Exact supporting text').closest('details').open).toBe(false)
+ fireEvent.change(screen.getByLabelText('Message to Agent'),{target:{value:'My new question'}})
+ expect(screen.getByRole('button',{name:'Send message'}).disabled).toBe(false)
+ expect(apiRequest.mock.calls.some(([path])=>path.includes('/consents'))).toBe(false)
+ expect(screen.queryByText('Allow AI assistance')).toBeNull()
 })

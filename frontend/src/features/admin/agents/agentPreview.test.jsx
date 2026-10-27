@@ -36,7 +36,20 @@ function page(props={}){const onExecution=vi.fn();const renderPage=extra=><I18nP
 const post=suffix=>apiRequest.mock.calls.filter(([path,r])=>path.endsWith(suffix)&&r?.method==='POST')
 const input=value=>fireEvent.change(screen.getByLabelText('Message'),{target:{value}})
 async function newChat(){fireEvent.click(screen.getByRole('button',{name:'New chat'}));await screen.findByRole('article',{name:'Configured greeting'});await waitFor(()=>expect(screen.getByLabelText('Message').disabled).toBe(false))}
+it('Quick Actions fills the same Preview composer without creating an execution',async()=>{
+ const state=fixture();page();await newChat();fireEvent.click(screen.getByText('Quick Actions'))
+ const suggestion='Trong tài liệu, checklist incident summary có bao nhiêu mục?'
+ fireEvent.click(screen.getByText(suggestion));expect(screen.getByLabelText('Message').value).toBe(suggestion)
+ expect(document.activeElement).toBe(screen.getByLabelText('Message'));expect(post('/messages')).toHaveLength(0);expect(state.runs).toHaveLength(0)
+})
 async function send(value='First question'){input(value);fireEvent.click(screen.getByRole('button',{name:'Send',exact:true}));await waitFor(()=>expect(screen.getByLabelText('Message').value).toBe(''));await waitFor(()=>expect(screen.getByRole('button',{name:'Send',exact:true}).disabled).toBe(true))}
+
+it('distinguishes rejected model output from provider outage without rendering the invalid answer',async()=>{
+ const state=fixture();state.status='FAILED';page();await newChat();
+ const original=apiRequest.getMockImplementation();apiRequest.mockImplementation(async(path,r)=>{const result=await original(path,r);if(state.runs.length)state.runs.forEach(run=>{run.errorCode='MALFORMED_OUTPUT'});return result})
+ await send();await screen.findByText('The model response did not pass validation. No answer was accepted.')
+ expect(screen.queryByText('Validated answer 1')).toBeNull();expect(screen.queryByText('The provider could not complete this request.')).toBeNull()
+})
 
 it('New pins selected SAVED config, shows deterministic greeting and never dispatches a model',async()=>{const state=fixture();page({hasEdits:true});expect(screen.getByRole('button',{name:'Send'}).disabled).toBe(true);await newChat();expect(JSON.parse(post('/preview-conversations')[0][1].body)).toEqual({requestId:expect.any(String),configurationId:'c1'});expect(state.runs).toHaveLength(0);expect(screen.getByRole('article',{name:'Configured greeting'}).textContent).toContain('Configured hello Lan');expect(screen.getByText(/Unsaved changes are not used/)).toBeTruthy();expect(screen.getByText(/Chat pinned to.*v1/)).toBeTruthy()})
 it('New request identity survives a lost acceptance response',async()=>{const state=fixture();state.failNewOnce=true;page();fireEvent.click(screen.getByRole('button',{name:'New chat'}));await screen.findByText('New response lost');await newChat();expect(state.chats).toHaveLength(1);expect(post('/preview-conversations')[0][1].body).toBe(post('/preview-conversations')[1][1].body)})

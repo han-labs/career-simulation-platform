@@ -231,3 +231,69 @@ enrollments;5legacy simulations do not populate the versioned catalogue. Do not 
 Core flags, seed third-party content, or silently reinterpret empty catalogue as a code
 failure. Profile/cookie changes and original demo data require explicit Owner approval.
 See [recovery evidence](../../.agent/reports/final-integrated-system-recovery-2026-10-27.md).
+
+### Explicit normal-local authentication correction and approved V32 — 2026-10-27
+
+Team Lead superseded the historical local-auto-Admin behavior: normal `local` now uses
+real anonymous/password/JWT/CSRF/role boundaries. The developer shortcut is explicitly
+opt-in via `LOCAL_DEMO_MODE=true` (defaultfalse, disabled for production). `auth-test`
+is not required for normal local use. No .env/profile/credential change was made.
+Direct login and logout go Home; validated pending Student simulation destinations
+remain supported. Student-only Dashboard navigation points to `/guidance`; logo points
+to `/` for every role, with server-side Admin protection independent of navigation.
+
+PR15's approved V32 applied normally without source changes:9active published IT
+scenarios,16total versions. All9catalogue/detail APIs and live-DTO React catalogue
+rendering pass. Existing assessment data remains4types/4published versions/75questions;
+actual Student RIASEC and two-task simulation completion/results were verified through
+the gateway. No tenth scenario, assessment seed or AI/provider call was created.
+
+V32 has0model_answer and0task_resource rows. Model-answer access is denied before
+FINAL and authorized afterward, but there is no answer content to display; this is
+an explicit dataset limitation, not a fabricated content PASS. Owner confirmed the
+real Admin login/logout/relogin flow PASS. Sol browser control is disabled, so visual
+and interactive browser acceptance remain NOT RUN by Sol. This dated correction
+supersedes earlier profile/empty-catalogue blockers without rewriting their evidence.
+See [current verification](../../.agent/reports/final-local-auth-uat-2026-10-27.md).
+
+## 2026-10-27 — Agent real-model recovery evidence boundary
+
+The previous singleton environment-model catalog prevented selecting valid alternative
+Gemini models before dispatch. A bounded server-side inference matrix now establishes
+3.6-flash and3.5-flash-lite text generation for the current project;3.8 timed out and
+legacy3.1-lite returned503. This does not prove RAG, tool selection or live structured
+quality. No credential replacement is justified by the observed503.
+
+The existing immutable experience_config gains optional ordered fallback keys without
+DDL or rewriting legacy hashes. Existing tools, authorization, role publication and
+usage storage remain authoritative. Retry/failover cannot dispatch a business write;
+plan confirmation retains exact-source/hash authorization and idempotency. Invalid
+structured artifacts remain unsaved. UC-09 adds safe requested/effective-model evidence
+through the existing execution projection, not a parallel event system.
+
+Owner UAT pack24 cases are reconciled as deterministic controller/schema fixtures,
+with a separately labelled pre-repair22/24→24/24 comparison. Live Admin cited RAG,
+source viewing, exact publication and real Student answer/tool/artifact checks require
+their own runtime observations. Human final AI UAT is not inferred from test green.
+See [measured model decision](../architecture/agent-model-reliability.md) and
+[real UAT procedure](../testing/ai-agent-real-runtime-uat.md).
+
+Owner follow-up now supplies real cited3.5-lite Preview evidence (including FOUR-item
+checklist); source-dialog observation and published Student execution remain separate.
+Comparison failure reached local output validation, not network. Saved2round/30s/
+KB_ONLY configuration and an empty fallback in the later3.8 version explain distinct
+limits; none is silently rewritten. A reproduced Agent stream-body budget bug is
+corrected. Prompt v2/new-save defaults clarify conversation and source selection,
+while pinned v1 bytes/hashes remain valid. One native-adapter comparison diagnostic
+with real inference validated3citations; it is not substituted for Admin/Student UAT.
+
+### 2026-10-27 — Owner correction: no separate Student AI consent step
+
+Owner reproduced EXTERNAL_AI_CONSENT_REQUIRED on every Student message and explicitly
+requested removal of that prerequisite. STUDENT_CHAT now admits an explicit request
+without consent_grant; no grant is auto-created. This is an approved product-policy
+change relative to earlier consent-first rules, recorded rather than silently
+inferred. Other purposes/consumers remain unchanged. Account/role/session ownership,
+privacy revision, publication, evidence/tool authorization and explicit plan-write
+confirmation remain enforced. Tests cover no-grant inference admission and privacy
+revision cancellation/redaction. Historical refusal records remain unchanged.

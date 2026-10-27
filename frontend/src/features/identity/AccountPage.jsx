@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { apiRequest } from '../../shared/api/httpClient.js'
-import { command, coreEnabled } from '../../shared/api/coreApi.js'
+import { command } from '../../shared/api/coreApi.js'
 import { useI18n } from '../../shared/i18n/useI18n.js'
 import { Link, Navigate, useSearchParams } from 'react-router-dom'
 import AuthenticationForm from './AuthenticationForm.jsx'
@@ -63,11 +63,10 @@ export default function AccountPage() {
   // The authenticated server account is the only source for role routing.
   // After login, restore /me before consuming pending navigation. Account-generation
   // remounts may discard this instance; only the active restoration effect consumes it.
-  const destination = account && (account.role === 'STUDENT' ? (pendingDestination || '/assessment')
-    : account.role === 'ENTERPRISE' && coreEnabled ? '/enterprise'
-      : account.role === 'ADMIN' ? '/admin' : null)
+  const destination = account && (account.role === 'STUDENT' ? (pendingDestination || '/')
+    : ['ENTERPRISE', 'ADMIN'].includes(account.role) ? '/' : null)
   if (destination) return <Navigate to={destination} replace />
-  return <section className="feature-page section-shell core-flow"><h1>{t('Account access')}</h1>
+  return <section className="feature-page section-shell core-flow identity-page"><h1>{t('Account access')}</h1>
     {error && <p role="alert">{t(error)}</p>}
     {oauthError && <p role="alert">{t(oauthError)}</p>}
     {loading ? <p role="status">{t(oauthSuccess ? 'Restoring your Google sign-in session…' : 'Checking your session…')}</p> : loadError ? <><p role="alert">{t(loadError)}</p><button onClick={() => { setLoadError(''); setLoading(true); setRetry(value => value + 1) }}>{t('Try again')}</button>{oauthSuccess && <Link to="/account" onClick={() => setLoadError('')}>{t('Sign in')}</Link>}</> : !account ? <AuthenticationForm google={google} providerError={providerError} onRetryProvider={() => { setGoogle(null); setProviderError(false); setProviderRetry(value => value + 1) }} onAuthenticated={() => { setLoading(true); setRetry(value => value + 1) }} /> : <>

@@ -20,12 +20,23 @@ function page(path = '/assessment') {
     {['/', '/assessment', '/simulations', '/simulations/demo', '/simulations/demo/results', '/guidance', '/enterprise', '/admin', '/account'].map(route => <Route key={route} path={route} element={<Destination />} />)}
   </Route></Routes></MemoryRouter></I18nProvider>)
 }
+it.each(['/admin','/account','/simulations'])('always returns Home through the institutional logo from %s', async path => {
+  apiRequest.mockResolvedValue({ id:'7', role:'ADMIN' })
+  page(path)
+  const logo=screen.getByRole('link',{name:'HCM-UTE Career Simulation Platform Home'})
+  expect(logo.getAttribute('href')).toBe('/')
+  fireEvent.click(logo)
+  expect(await screen.findByRole('heading',{name:'/'})).toBeTruthy()
+})
 it.each(['STUDENT', 'ENTERPRISE', 'ADMIN'])('uses the server role for navigation and offers shared logout for %s', async role => {
   apiRequest.mockResolvedValue({ id: '7', role })
   page()
   await screen.findByRole('button', { name: 'Sign out' })
   expect(Boolean(screen.queryByRole('link', { name: 'Admin Studio' }))).toBe(role === 'ADMIN')
-  for (const name of ['Home', 'Career Quizzes', 'Career Simulations', 'Guidance']) expect(within(document.querySelector('header')).getByRole('link', { name })).toBeTruthy()
+  for (const name of ['Home', 'Career Quizzes', 'Career Simulations']) expect(within(document.querySelector('header')).getByRole('link', { name })).toBeTruthy()
+  expect(Boolean(within(document.querySelector('header')).queryByRole('link', { name: 'Dashboard', exact: true }))).toBe(role === 'STUDENT')
+  if (role === 'STUDENT') expect(within(document.querySelector('header')).getByRole('link', { name: 'Dashboard', exact: true }).getAttribute('href')).toBe('/guidance')
+  expect(document.querySelector('header a[href="/dashboard"]')).toBeNull()
   expect(document.querySelector('a[href="/admin/assessments"], .syn-widget, .syn-launcher')).toBeNull()
 })
 it('never exposes privileged navigation while anonymous or when session lookup fails', async () => {
@@ -34,8 +45,9 @@ it('never exposes privileged navigation while anonymous or when session lookup f
   await waitFor(() => expect(apiRequest).toHaveBeenCalledTimes(2))
   expect(screen.queryByRole('link', { name: 'Admin Studio' })).toBeNull()
   expect(screen.queryByRole('button', { name: 'Sign out' })).toBeNull()
+  expect(within(document.querySelector('header')).queryByRole('link', { name: 'Dashboard', exact: true })).toBeNull()
 })
-it.each(['/assessment', '/enterprise', '/admin'])('logs out through the existing API, isolates account state and returns to /account from %s', async path => {
+it.each(['/assessment', '/enterprise', '/admin'])('logs out through the existing API, isolates account state and returns to Home from %s', async path => {
   let signedIn = true
   apiRequest.mockImplementation(async (url, options) => {
     if (url === '/v2/auth/logout') {
@@ -48,7 +60,7 @@ it.each(['/assessment', '/enterprise', '/admin'])('logs out through the existing
   const before = getAccountGeneration()
   page(path)
   fireEvent.click(await screen.findByRole('button', { name: 'Sign out' }))
-  await screen.findByRole('heading', { name: '/account' })
+  await screen.findByRole('heading', { name: '/' })
   expect(getAccountGeneration()).toBeGreaterThan(before)
   expect(screen.queryByRole('button', { name: 'Sign out' })).toBeNull()
   expect(apiRequest).toHaveBeenCalledWith('/v2/auth/logout', expect.objectContaining({ method: 'POST', body: '{}' }))
@@ -77,7 +89,7 @@ it('preserves simulation catalogue/detail/results navigation without privileged 
 
 it('labels local workspace and never offers misleading logout or posts logout',async()=>{
  apiRequest.mockImplementation(path=>Promise.resolve(path==='/v2/auth/providers'?{google:false,localWorkspace:true}:{id:'7',role:'ADMIN'}))
- page('/admin');await screen.findByText('Local workspace');expect(screen.queryByRole('button',{name:'Sign out'})).toBeNull();expect(screen.getByText('Local workspace').getAttribute('title')).toContain('auth-test');expect(apiRequest.mock.calls.some(([path])=>path==='/v2/auth/logout')).toBe(false)
+ page('/admin');await screen.findByText('Local demo');expect(screen.queryByRole('button',{name:'Sign out'})).toBeNull();expect(screen.getByText('Local demo').getAttribute('title')).toContain('LOCAL_DEMO_MODE');expect(apiRequest.mock.calls.some(([path])=>path==='/v2/auth/logout')).toBe(false)
 })
 it('keeps mobile navigation controls and returns focus to its trigger on Escape', async () => {
   apiRequest.mockRejectedValue(Object.assign(new Error('Sign in is required.'), { status: 401 }))
@@ -86,13 +98,13 @@ it('keeps mobile navigation controls and returns focus to its trigger on Escape'
   fireEvent.click(trigger)
   expect(trigger.getAttribute('aria-expanded')).toBe('true')
   expect(document.getElementById(trigger.getAttribute('aria-controls')).classList.contains('site-nav--open')).toBe(true)
-  const guidance = within(document.querySelector('header')).getByRole('link', { name: 'Guidance' })
+  const guidance = within(document.querySelector('header')).getByRole('link', { name: 'Home' })
   guidance.focus()
   fireEvent.keyDown(guidance, { key: 'Escape' })
   expect(trigger.getAttribute('aria-expanded')).toBe('false')
   expect(document.activeElement).toBe(trigger)
   fireEvent.click(trigger)
   fireEvent.click(guidance)
-  await screen.findByRole('heading', { name: '/guidance' })
+  await screen.findByRole('heading', { name: '/' })
   expect(trigger.getAttribute('aria-expanded')).toBe('false')
 })

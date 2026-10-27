@@ -166,4 +166,59 @@ class AgentConfigurationPolicyTest {
                                         output, List.of(), input().outputPolicy()))
                 .isInstanceOf(RuntimeException.class);
     }
+
+    @Test
+    void unknownCitationReturnsOnlySafeValidationCategoryAndGreetingRespectsGrounding() {
+        var answer =
+                CoreValues.tree(
+                        Map.of(
+                                "schemaVersion",
+                                1,
+                                "outcome",
+                                "ANSWER",
+                                "text",
+                                "Hello. What career would you like to explore?",
+                                "citations",
+                                List.of(),
+                                "suggestions",
+                                List.of()));
+        assertThat(AgentOutputValidator.validate(answer, List.of(), input().outputPolicy()))
+                .isEqualTo(answer);
+        var strict =
+                CoreValues.tree(
+                        Map.of("schemaVersion", 1, "grounding", "KB_ONLY", "maxCharacters", 4000));
+        assertThatThrownBy(() -> AgentOutputValidator.validate(answer, List.of(), strict))
+                .isInstanceOfSatisfying(
+                        edu.hcmute.careersim.guidance.service.SynGuidanceProvider.ProviderException
+                                .class,
+                        e ->
+                                assertThat(e.kind())
+                                        .isEqualTo(
+                                                edu.hcmute.careersim.guidance.service
+                                                        .SynGuidanceProvider.FailureKind
+                                                        .EMPTY_EVIDENCE));
+        ((com.fasterxml.jackson.databind.node.ObjectNode) answer)
+                .set(
+                        "citations",
+                        CoreValues.tree(
+                                List.of(
+                                        Map.of(
+                                                "referenceId",
+                                                "K999",
+                                                "quote",
+                                                "Synthetic quote"))));
+        assertThatThrownBy(
+                        () ->
+                                AgentOutputValidator.validate(
+                                        answer, List.of(), input().outputPolicy()))
+                .isInstanceOfSatisfying(
+                        edu.hcmute.careersim.guidance.service.SynGuidanceProvider.ProviderException
+                                .class,
+                        e ->
+                                assertThat(e.diagnostics())
+                                        .containsExactlyEntriesOf(
+                                                Map.of(
+                                                        "validationCheck",
+                                                        "CITATION_NOT_DELIVERED")));
+    }
 }

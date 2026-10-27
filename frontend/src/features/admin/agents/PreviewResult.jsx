@@ -11,6 +11,8 @@ export default function PreviewResult({ id, execution, error, reload, showStop =
   const passages = [...new Map((execution?.toolStepsAndSources ?? []).flatMap(step => step.sources ?? []).map(p => [p.referenceId, p])).values()]
   const steps = (execution?.toolStepsAndSources ?? []).filter(step=>step.type||step.name||step.status).map(step => ({ type: step.type, name: step.name, status: step.status, errorCode: step.errorCode, elapsedMs: step.elapsedMs }))
   const answer = execution?.status === 'SUCCEEDED' && execution.outputSnapshot?.outcome === 'ANSWER'
+  const attempts = (execution?.toolStepsAndSources ?? []).filter(step=>step.type==='MODEL_ATTEMPT')
+  const validationChecks = (execution?.toolStepsAndSources ?? []).filter(step=>step.type==='OUTPUT_VALIDATION'&&['OUTPUT_SCHEMA_OR_LIMIT','DUPLICATE_CITATION','CITATION_NOT_DELIVERED','CITATION_QUOTE_MISMATCH'].includes(step.validationCheck)).map(step=>step.validationCheck)
   async function stop() {
     if (pendingStop.current || !pending) return
     pendingStop.current = true; setStopping(true); setStopError('')
@@ -23,7 +25,7 @@ export default function PreviewResult({ id, execution, error, reload, showStop =
     {(error || stopError) && <FeedbackPanel kind="error">{t(error || stopError)}</FeedbackPanel>}
     {!execution && !error && <FeedbackPanel kind="loading">{t('Loading saved execution...')}</FeedbackPanel>}
     {answer && <section aria-label={t('Generated answer')}><p className="cs-prose">{execution.outputSnapshot.text}</p><SourcePassages key={id} presentation="citations" showExcerpts={showExcerpts} passages={passages} citations={execution.outputSnapshot.citations ?? []} onUnavailable={reload} /></section>}
-    {execution?.status === 'FAILED' && <FeedbackPanel kind="error" title={t('Request failed')}>{t('The provider could not complete this request.')}</FeedbackPanel>}
+    {execution?.status === 'FAILED' && <FeedbackPanel kind="error" title={t('Request failed')}>{t(execution.errorCode==='MALFORMED_OUTPUT'?'The model response did not pass validation. No answer was accepted.':'The provider could not complete this request.')}</FeedbackPanel>}
     {execution?.status === 'REFUSED' && <FeedbackPanel kind="warning" title={t('Request refused')}>{t(execution.outputSnapshot?.text ?? 'This request could not be answered within the permitted scope.')}</FeedbackPanel>}
     {execution?.status === 'CANCELLED' && <p className="cs-caption">{t('This run was cancelled. You can send another message.')}</p>}
     <details className="cs-disclosure agent-run-details"><summary>{t('View run details')}</summary>
@@ -33,9 +35,12 @@ export default function PreviewResult({ id, execution, error, reload, showStop =
         ['Reported input tokens', execution.inputTokens], ['Reported output tokens', execution.outputTokens],
         ['Estimated generation cost', execution.estimatedCost == null ? t('Not available') : 'USD ' + execution.estimatedCost], ['Cost status', execution.costStatus],
         ['Safe error category', execution.errorCode],
+        ['Validation check', validationChecks.length?validationChecks.join(' · '):null],
+        ['Requested model', execution.modelKey], ['Effective model', attempts.at(-1)?.effectiveModel],
       ].filter(([,value]) => value != null).map(([label,value]) => <div key={label}><dt>{t(label)}</dt><dd>{String(value)}</dd></div>)}</dl>
         <p className="cs-caption">{t('Actual tool calls')}: {steps.filter(step => step.type === 'ACTUAL_NATIVE_CALL').length}</p>
         {steps.length>0&&<ol className="agent-safe-timeline">{steps.map((step,index) => <li key={index}>{step.type} {['kb.search','assessment.lookup','simulation.explore','simulation.myEvidence'].includes(step.name) ? step.name : ''} · {step.status}{step.elapsedMs != null ? ` · ${step.elapsedMs} ms` : ''}</li>)}</ol>}
+        {attempts.length>0&&<details className="cs-disclosure"><summary>{t('Model attempts')}</summary><ol>{attempts.map((attempt,index)=><li key={index}>{attempt.effectiveModel} · {attempt.status} · {attempt.reason} · {attempt.elapsedMs} ms</li>)}</ol></details>}
         {passages.some(p=>!execution.outputSnapshot?.citations?.some(c=>c.referenceId===p.referenceId))&&<SourcePassages presentation="studio" passages={passages.filter(p => !execution.outputSnapshot?.citations?.some(c => c.referenceId === p.referenceId))} onUnavailable={reload} />}
       </>}
       <Button onClick={reload}>{t('Reload saved execution')}</Button>

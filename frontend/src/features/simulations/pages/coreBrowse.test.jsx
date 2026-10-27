@@ -42,7 +42,7 @@ function renderRoute(element, initialEntry = '/simulations') {
 }
 
 function renderAccount() {
-  return render(<I18nProvider initialLocale="en"><MemoryRouter initialEntries={['/account']}><Routes><Route path="/account" element={<AccountPage />} /><Route path="/simulations/:slug" element={<p>Returned simulation detail</p>} /><Route path="/assessment" element={<p>Student workspace</p>} /></Routes></MemoryRouter></I18nProvider>)
+  return render(<I18nProvider initialLocale="en"><MemoryRouter initialEntries={['/account']}><Routes><Route path="/account" element={<AccountPage />} /><Route path="/simulations/:slug" element={<p>Returned simulation detail</p>} /><Route path="/" element={<p>Student workspace</p>} /><Route path="/assessment" element={<p>Assessment workspace</p>} /></Routes></MemoryRouter></I18nProvider>)
 }
 
 const published = {

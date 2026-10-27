@@ -124,11 +124,21 @@ public class AgentUsageDao {
             e.configuration_id,c.version_number,e.prompt_hash,e.model_key,e.status,e.latency_ms,
             e.input_tokens,e.output_tokens,e.estimated_cost,e.cost_status,
             CASE WHEN e.refusal_or_error_code IN ('TIMEOUT_OR_TRANSPORT','PROVIDER_REJECTED','PROVIDER_RATE_LIMITED',
-              'PROVIDER_UNAVAILABLE','MALFORMED_OUTPUT','UNAVAILABLE_TOOL','EMPTY_EVIDENCE','CONSENT_REVOKED',
+              'PROVIDER_UNAVAILABLE','PROVIDER_NOT_CONFIGURED','PROVIDER_CLIENT_UNAVAILABLE','PROVIDER_AUTH_REJECTED',
+              'PROVIDER_PERMISSION_REJECTED','PROVIDER_PAYMENT_REQUIRED','PROVIDER_MODEL_UNAVAILABLE','PROVIDER_DISABLED',
+              'PROVIDER_HTTP_UNAVAILABLE','PROVIDER_NETWORK_UNAVAILABLE','PROVIDER_TRANSPORT_DEADLINE',
+              'MALFORMED_OUTPUT','UNAVAILABLE_TOOL','EMPTY_EVIDENCE','CONSENT_REVOKED',
               'ITERATION_LIMIT','EXECUTION_FAILED','EXTERNAL_AI_CONSENT_REQUIRED','INSUFFICIENT_EVIDENCE','REFUSED')
               THEN e.refusal_or_error_code WHEN e.refusal_or_error_code IS NOT NULL THEN 'OTHER' ELSE NULL END AS failure,
             CASE WHEN jsonb_typeof(e.pricing_snapshot#>'{generation,calls}')='array'
               THEN jsonb_array_length(e.pricing_snapshot#>'{generation,calls}')::bigint ELSE NULL END AS model_attempts,
+            (SELECT s->>'effectiveModel' FROM jsonb_array_elements(e.tool_steps_and_sources) WITH ORDINALITY AS x(s,n)
+              WHERE s->>'type'='MODEL_ATTEMPT' AND s->>'effectiveModel' ~ '^(gemini|openai)/[A-Za-z0-9._-]{1,100}$'
+              ORDER BY n DESC LIMIT 1) AS effective_model,
+            (SELECT coalesce(jsonb_agg(DISTINCT s->>'reason' ORDER BY s->>'reason'),'[]'::jsonb) FROM jsonb_array_elements(e.tool_steps_and_sources) s
+              WHERE s->>'type'='MODEL_ATTEMPT' AND s->>'effectiveModel'<>s->>'requestedModel'
+              AND s->>'reason' IN ('PROVIDER_MODEL_UNAVAILABLE','PROVIDER_HTTP_UNAVAILABLE','PROVIDER_RATE_LIMITED',
+                'PROVIDER_TRANSPORT_DEADLINE','PROVIDER_NETWORK_UNAVAILABLE','PROVIDER_REJECTED','STRUCTURED_OUTPUT_INVALID')) AS fallback_reasons,
             (SELECT count(*) FROM jsonb_array_elements(e.tool_steps_and_sources) s WHERE s->>'type'='ACTUAL_NATIVE_CALL') AS native_count,
             (SELECT count(*) FROM jsonb_array_elements(e.tool_steps_and_sources) s WHERE s->>'type'='SERVER_RETRIEVAL') AS retrieval_count,
             (SELECT coalesce(jsonb_agg(t.name ORDER BY t.name COLLATE "C"),'[]'::jsonb) FROM (
@@ -147,6 +157,9 @@ public class AgentUsageDao {
                 (r, n) -> {
                     var tools = new ArrayList<String>();
                     CoreValues.json(r.getString("tools")).forEach(x -> tools.add(x.asText()));
+                    var fallbackReasons = new ArrayList<String>();
+                    CoreValues.json(r.getString("fallback_reasons"))
+                            .forEach(x -> fallbackReasons.add(x.asText()));
                     return new Execution(
                             r.getString("id"),
                             r.getTimestamp("started_at").toInstant(),
@@ -171,7 +184,9 @@ public class AgentUsageDao {
                             r.getLong("native_count"),
                             tools,
                             r.getLong("retrieval_count"),
-                            r.getObject("model_attempts", Long.class));
+                            r.getObject("model_attempts", Long.class),
+                            r.getString("effective_model"),
+                            fallbackReasons);
                 },
                 args.toArray());
     }

@@ -105,7 +105,7 @@ function AgentWorkspace({ owner, id, bases, options, onChanged }) {
     const invalid=validateConfiguration(draft,options,bases)
     if(!draft.experienceConfig.name.trim()||!draft.experienceConfig.description.trim())invalid.identity='Agent name and purpose are required.'
     setErrors(invalid)
-    if(Object.keys(invalid).length){setPane('configuration');setTab(invalid.variables||invalid.variableName?'variables':invalid.knowledgeBaseIds||invalid.tools?'integrations':invalid.identity||invalid.modelKey||invalid.promptTemplate||invalid.timezone||invalid.audience||invalid.language||invalid.greeting?'brain':'chat');setError('Complete the required agent settings before saving.');return}
+    if(Object.keys(invalid).length){setPane('configuration');setTab(invalid.variables||invalid.variableName?'variables':invalid.knowledgeBaseIds||invalid.tools?'integrations':invalid.identity||invalid.modelKey||invalid.fallbackModelKeys||invalid.promptTemplate||invalid.timezone||invalid.audience||invalid.language||invalid.greeting?'brain':'chat');setError('Complete the required agent settings before saving.');return}
     await action(async()=>{
       const config=await platformCommand(`${agentPath(id)}/configurations`,draft,expectedRevision)
       if(!alive.current)return

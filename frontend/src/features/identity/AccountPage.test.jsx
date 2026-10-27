@@ -11,16 +11,16 @@ vi.mock('../../shared/api/httpClient.js', () => ({ apiRequest: vi.fn() }))
 beforeEach(() => { vi.resetAllMocks(); localStorage.clear() })
 afterEach(cleanup)
 function LocationEvidence() { return <span aria-label="Current route">{useLocation().pathname}</span> }
-function page(url = '/account') { render(<I18nProvider><MemoryRouter initialEntries={[url]}><Routes><Route path="/account" element={<AccountPage />} />
+function page(url = '/account') { render(<I18nProvider><MemoryRouter initialEntries={[url]}><Routes><Route path="/account" element={<AccountPage />} /><Route path="/" element={<h1>Home landing</h1>} />
   <Route path="/assessment" element={<h1>Student workspace</h1>} /><Route path="/enterprise" element={<h1>Enterprise workspace landing</h1>} /><Route path="/admin" element={<h1>Admin workspace landing</h1>} />
 </Routes><LocationEvidence /></MemoryRouter></I18nProvider>) }
 
-it('checks the session before offering registration and redirects an authenticated Student to assessments', async () => {
+it('checks the session before offering registration and returns an authenticated Student to Home', async () => {
   apiRequest.mockImplementation(path => Promise.resolve(path === '/v2/auth/providers' ? { google: false } : { id: '7', role: 'STUDENT', displayName: 'Synthetic Student', consents: [] }))
   page()
   expect(screen.getByRole('status').textContent).toBe('Checking your session…')
   expect(screen.queryByRole('button', { name: 'Register' })).toBeNull()
-  expect(await screen.findByRole('heading', { name: 'Student workspace' })).toBeTruthy()
+  expect(await screen.findByRole('heading', { name: 'Home landing' })).toBeTruthy()
   expect(screen.queryByRole('button', { name: 'Register' })).toBeNull()
 })
 
@@ -42,9 +42,7 @@ it.each(['STUDENT', 'ENTERPRISE', 'ADMIN'])('restores the real account before Go
   apiRequest.mockImplementation(path => Promise.resolve(path === '/v2/auth/providers' ? { google: true } : { id: '71', role, displayName: 'Synthetic', consents: [] }))
   page('/account?oauth=success&role=ADMIN')
   expect(screen.getByRole('status').textContent).toBe('Restoring your Google sign-in session…')
-  if (role === 'STUDENT') expect(await screen.findByText('Student workspace')).toBeTruthy()
-  else if (role === 'ADMIN' || coreApi.coreEnabled) expect(await screen.findByText(`${role === 'ENTERPRISE' ? 'Enterprise' : 'Admin'} workspace landing`)).toBeTruthy()
-  else expect(await screen.findByText('Synthetic · ' + role)).toBeTruthy()
+  expect(await screen.findByText('Home landing')).toBeTruthy()
   expect(apiRequest).toHaveBeenCalledWith('/v2/me')
 })
 
@@ -71,7 +69,7 @@ it.each(['STUDENT', 'ENTERPRISE', 'ADMIN'])('redirects password authentication b
   fireEvent.change(screen.getByLabelText('Email *'), { target: { value: 'synthetic@example.test' } })
   fireEvent.change(screen.getByLabelText('Password *'), { target: { value: 'synthetic-password-only' } })
   fireEvent.submit(screen.getByLabelText('Email *').closest('form'))
-  const expected = role === 'STUDENT' ? '/assessment' : role === 'ADMIN' ? '/admin' : coreApi.coreEnabled ? '/enterprise' : '/account'
+  const expected = '/'
   await waitFor(() => expect(screen.getByLabelText('Current route').textContent).toBe(expected))
   expect(apiRequest).toHaveBeenCalledWith('/v2/auth/login', expect.objectContaining({ method: 'POST', body: JSON.stringify({ email: 'synthetic@example.test', password: 'synthetic-password-only' }) }))
 })
@@ -81,8 +79,8 @@ it('supports Enterprise role landing when the merged Core application is enabled
   try {
     apiRequest.mockImplementation(path => Promise.resolve(path === '/v2/auth/providers' ? { google: false } : { id: '73', role: 'ENTERPRISE' }))
     page('/account?oauth=success&role=ADMIN')
-    expect(await screen.findByRole('heading', { name: 'Enterprise workspace landing' })).toBeTruthy()
-    expect(screen.getByLabelText('Current route').textContent).toBe('/enterprise')
+    expect(await screen.findByRole('heading', { name: 'Home landing' })).toBeTruthy()
+    expect(screen.getByLabelText('Current route').textContent).toBe('/')
   } finally { vi.restoreAllMocks() }
 })
 

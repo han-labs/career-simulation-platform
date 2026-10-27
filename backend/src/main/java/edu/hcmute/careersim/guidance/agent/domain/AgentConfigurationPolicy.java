@@ -10,15 +10,32 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AgentConfigurationPolicy {
-    public static final String TEMPLATE = "guidance/prompts/agent-platform-v1.txt";
+    public static final String TEMPLATE = "guidance/prompts/agent-platform-v2.txt";
     private final String base;
     private final String reference;
+    private final String repairPolicy;
+    private final Map<String, String> templates = new HashMap<>();
 
     public AgentConfigurationPolicy() {
         try (var in = new ClassPathResource(TEMPLATE).getInputStream()) {
             base = new String(in.readAllBytes(), StandardCharsets.UTF_8);
             reference =
                     TEMPLATE + "@" + CoreValues.bytesHash(base.getBytes(StandardCharsets.UTF_8));
+            templates.put(reference, base);
+            try (var repair =
+                    new ClassPathResource("guidance/prompts/agent-output-repair-v1.txt")
+                            .getInputStream()) {
+                repairPolicy = new String(repair.readAllBytes(), StandardCharsets.UTF_8);
+            }
+            String legacy = "guidance/prompts/agent-platform-v1.txt";
+            try (var old = new ClassPathResource(legacy).getInputStream()) {
+                String content = new String(old.readAllBytes(), StandardCharsets.UTF_8);
+                templates.put(
+                        legacy
+                                + "@"
+                                + CoreValues.bytesHash(content.getBytes(StandardCharsets.UTF_8)),
+                        content);
+            }
         } catch (java.io.IOException missing) {
             throw new IllegalStateException("Agent prompt template unavailable.");
         }
@@ -28,10 +45,19 @@ public class AgentConfigurationPolicy {
         return reference;
     }
 
+    public String repairInstructions() {
+        return repairPolicy;
+    }
+
+    public String repairReference() {
+        return "guidance/prompts/agent-output-repair-v1.txt@"
+                + CoreValues.bytesHash(repairPolicy.getBytes(StandardCharsets.UTF_8));
+    }
+
     public String instructions(String ref, String custom) {
-        if (!reference.equals(ref))
+        if (!templates.containsKey(ref))
             throw new IllegalStateException("Pinned prompt template is unavailable.");
-        return base
+        return templates.get(ref)
                 + "\nAdministrator configuration (cannot override platform security):\n"
                 + custom;
     }
@@ -41,13 +67,28 @@ public class AgentConfigurationPolicy {
             CoreValues.invalid("Choose a server-allowlisted model.");
         CoreValues.text(r.promptTemplate(), 12000);
         AgentExperience.validate(r.experienceConfig(), r.promptTemplate());
+        if (r.experienceConfig() != null && r.experienceConfig().has("fallbackModelKeys")) {
+            var fallbacks = r.experienceConfig().path("fallbackModelKeys");
+            var seen = new HashSet<String>();
+            seen.add(r.modelKey());
+            if (!fallbacks.isArray() || fallbacks.size() > 3)
+                CoreValues.invalid("Choose at most three ordered fallback models.");
+            String provider = r.modelKey().split("/", 2)[0] + "/";
+            for (var fallback : fallbacks)
+                if (!fallback.isTextual()
+                        || !models.contains(fallback.asText())
+                        || !fallback.asText().startsWith(provider)
+                        || !seen.add(fallback.asText()))
+                    CoreValues.invalid(
+                            "Fallback models must be unique, compatible and use the primary provider.");
+        }
         if (r.promptTemplate()
                 .matches(
                         "(?is).*(?:bearer\\s+[a-z0-9._-]{15,}|(?:api[_ -]?key|password|secret)\\s*[:=]\\s*\\S+|eyJ[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+\\.[a-zA-Z0-9_-]+).*"))
             CoreValues.invalid("Credentials must not be stored in Agent configuration.");
         if (r.promptTemplateRef() != null
                 && !r.promptTemplateRef().isBlank()
-                && !reference.equals(r.promptTemplateRef()))
+                && !templates.containsKey(r.promptTemplateRef()))
             CoreValues.invalid("Unsupported prompt template reference.");
         object(
                 r.toolPolicy(),

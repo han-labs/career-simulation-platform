@@ -3,7 +3,7 @@ import StatusBadge from '../../../shared/ui/StatusBadge.jsx'
 import { executionCost, number } from './usageFormat.js'
 
 const labels = { SUCCEEDED: 'Succeeded', FAILED: 'Failed', REFUSED: 'Refused', CANCELLED: 'Cancelled', ACCEPTED: 'Accepted', RUNNING: 'Running' }
-const categories = new Set(['TIMEOUT_OR_TRANSPORT', 'PROVIDER_REJECTED', 'PROVIDER_RATE_LIMITED', 'PROVIDER_UNAVAILABLE', 'MALFORMED_OUTPUT', 'UNAVAILABLE_TOOL', 'EMPTY_EVIDENCE', 'CONSENT_REVOKED', 'ITERATION_LIMIT', 'EXECUTION_FAILED', 'EXTERNAL_AI_CONSENT_REQUIRED', 'INSUFFICIENT_EVIDENCE', 'REFUSED', 'OTHER'])
+const categories = new Set(['TIMEOUT_OR_TRANSPORT', 'PROVIDER_REJECTED', 'PROVIDER_RATE_LIMITED', 'PROVIDER_UNAVAILABLE', 'PROVIDER_NOT_CONFIGURED', 'PROVIDER_CLIENT_UNAVAILABLE', 'PROVIDER_AUTH_REJECTED', 'PROVIDER_PERMISSION_REJECTED', 'PROVIDER_PAYMENT_REQUIRED', 'PROVIDER_MODEL_UNAVAILABLE', 'PROVIDER_DISABLED', 'PROVIDER_HTTP_UNAVAILABLE', 'PROVIDER_NETWORK_UNAVAILABLE', 'PROVIDER_TRANSPORT_DEADLINE', 'MALFORMED_OUTPUT', 'UNAVAILABLE_TOOL', 'EMPTY_EVIDENCE', 'CONSENT_REVOKED', 'ITERATION_LIMIT', 'EXECUTION_FAILED', 'EXTERNAL_AI_CONSENT_REQUIRED', 'INSUFFICIENT_EVIDENCE', 'REFUSED', 'OTHER'])
 export default function UsageExecutions({ rows }) {
   const { t, locale } = useI18n()
   const n = value => value == null ? t('Not available') : number(value, locale)
@@ -20,6 +20,8 @@ export default function UsageExecutions({ rows }) {
             <div><dt>{t('Configuration version')}</dt><dd>{row.configurationVersion ?? t('Not available')}</dd></div>
             <div><dt>{t('Prompt fingerprint')}</dt><dd><code>{row.promptHash ?? t('Not available')}</code></dd></div>
             <div><dt>{t('Recorded model attempts')}</dt><dd>{n(row.modelAttempts)}</dd></div>
+            {row.effectiveModel && <div><dt>{t('Effective model')}</dt><dd>{row.effectiveModel}</dd></div>}
+            {row.fallbackReasons?.length>0 && <div><dt>{t('Fallback reason')}</dt><dd>{row.fallbackReasons.filter(reason=>['PROVIDER_MODEL_UNAVAILABLE','PROVIDER_HTTP_UNAVAILABLE','PROVIDER_RATE_LIMITED','PROVIDER_TRANSPORT_DEADLINE','PROVIDER_NETWORK_UNAVAILABLE','PROVIDER_REJECTED','STRUCTURED_OUTPUT_INVALID'].includes(reason)).join(' · ')}</dd></div>}
             <div><dt>{t('Server retrieval calls')}</dt><dd>{n(row.serverRetrievalCount)}</dd></div>
             <div><dt>{t('Native tools')}</dt><dd>{row.tools?.filter(tool => ['kb.search', 'assessment.lookup', 'simulation.explore', 'simulation.myEvidence', 'UNKNOWN'].includes(tool)).join(' · ') || t('None')}</dd></div>
             <div><dt>{t('Provider')}</dt><dd>{row.provider ?? t('Not available')}</dd></div>

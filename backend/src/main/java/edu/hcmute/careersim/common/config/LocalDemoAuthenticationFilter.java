@@ -17,7 +17,7 @@ import org.springframework.security.web.context.RequestAttributeSecurityContextR
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
- * Local profile only; reuses an existing ACTIVE Administrator, never credentials or role writes.
+ * Explicit opt-in on local profile only; reuses an ACTIVE Administrator without credential writes.
  */
 final class LocalDemoAuthenticationFilter extends OncePerRequestFilter {
     private final ActorAccess actors;

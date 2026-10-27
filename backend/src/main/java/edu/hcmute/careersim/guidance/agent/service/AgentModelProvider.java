@@ -11,11 +11,27 @@ public interface AgentModelProvider {
 
     record Call(String id, String name, JsonNode arguments) {}
 
-    record Decision(JsonNode nativeMessage, List<Call> calls, JsonNode output) {}
+    record Decision(JsonNode nativeMessage, List<Call> calls, JsonNode output, String modelKey) {
+        public Decision(JsonNode nativeMessage, List<Call> calls, JsonNode output) {
+            this(nativeMessage, calls, output, null);
+        }
+    }
 
     record Exchange(Decision decision, List<JsonNode> observations) {}
 
     record Tool(String name, String description, JsonNode parameters) {}
+
+    /** Wire schema supplements, never replaces, host evidence and business validation. */
+    default Decision streamStructured(
+            String model,
+            String instructions,
+            String query,
+            List<Exchange> exchanges,
+            List<Tool> tools,
+            JsonNode responseSchema,
+            java.util.function.Consumer<String> delta) {
+        return stream(model, instructions, query, exchanges, tools, delta);
+    }
 
     /** Real deltas when supported; compatibility providers emit no invented stream segments. */
     default Decision stream(

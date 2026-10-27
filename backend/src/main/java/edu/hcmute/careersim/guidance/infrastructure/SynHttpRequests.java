@@ -39,11 +39,13 @@ public final class SynHttpRequests {
      * Native Agent only; effective execution scope supplies its configured deadline and 2s margin.
      */
     public static Duration agentBudget() {
-        return SynExecutionScope.remaining(Duration.ofSeconds(60));
+        return SynExecutionScope.remaining(AgentTransportBudget.bound(Duration.ofSeconds(60)));
     }
 
     public static ClientHttpRequestFactory agentDeadlineAware(String provider) {
-        return deadlineFactory(Duration.ofSeconds(60), provider);
+        return (uri, method) ->
+                deadlineFactory(AgentTransportBudget.bound(Duration.ofSeconds(60)), provider)
+                        .createRequest(uri, method);
     }
 
     private static ClientHttpRequestFactory deadlineFactory(Duration maximum, String provider) {
@@ -174,7 +176,7 @@ public final class SynHttpRequests {
         final var subscription =
                 new java.util.concurrent.atomic.AtomicReference<Flow.Subscription>();
         try {
-            Duration timeout = SynExecutionScope.remaining(Duration.ofSeconds(60));
+            Duration timeout = agentBudget();
             var request =
                     HttpRequest.newBuilder(uri)
                             .timeout(timeout)
@@ -312,6 +314,10 @@ public final class SynHttpRequests {
                                     index = 0;
                                     subscription.get().request(1);
                                 }
+                                if (System.nanoTime() >= headerDeadline)
+                                    throw new IOException(
+                                            "Agent stream attempt deadline",
+                                            new TimeoutException());
                                 SynExecutionScope.checkExternal();
                                 SynExecutionScope.checkProvider(provider);
                                 if (SynExecutionScope.remaining(Duration.ofSeconds(60)).isZero())
@@ -382,6 +388,10 @@ public final class SynHttpRequests {
                     || cause instanceof java.nio.channels.UnresolvedAddressException) return "DNS";
             if (cause instanceof javax.net.ssl.SSLException) return "TLS";
             if (cause instanceof java.net.ConnectException) return "CONNECT";
+            if (cause instanceof java.net.SocketException
+                    && cause.getMessage() != null
+                    && cause.getMessage().toLowerCase(java.util.Locale.ROOT).contains("reset"))
+                return "CONNECTION_RESET";
             if (cause instanceof TimeoutException
                     || cause instanceof java.net.http.HttpTimeoutException)
                 return "TRANSPORT_DEADLINE";

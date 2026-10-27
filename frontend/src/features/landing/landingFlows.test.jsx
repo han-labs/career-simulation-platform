@@ -99,12 +99,13 @@ it('retains real assessment selection, required-answer validation, state across 
   expect(apiRequest).toHaveBeenCalledWith('/v2/assessment-attempts/attempt-1/submit',expect.objectContaining({method:'POST',headers:expect.objectContaining({'If-Match':'1'})}))
 })
 
-it('keeps the existing direct shared logout accessible on Dashboard and restores AccountPage',async()=>{
+it('logs out from Dashboard to anonymous Home without restoring privileged state',async()=>{
   actor={id:'student-1',role:'STUDENT',consents:[]}
   view('/dashboard')
   await screen.findByRole('heading',{name:'Assessment results'})
   fireEvent.click(await screen.findByRole('button',{name:'Sign out'}))
-  await screen.findByRole('heading',{name:'Welcome back'})
+  await screen.findByRole('heading',{name:/Explore real careers/})
+  expect(screen.getByRole('link',{name:'Sign In / Sign Up'})).toBeTruthy()
   expect(apiRequest).toHaveBeenCalledWith('/v2/auth/logout',expect.objectContaining({method:'POST',body:'{}'}))
   expect(screen.queryByRole('heading',{name:'Assessment results'})).toBeNull()
 })

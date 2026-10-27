@@ -164,6 +164,9 @@ class StudentAgentIntegrationTest {
                                 new AgentModelProvider.Model(
                                         MODEL, "gemini", "synthetic-student", true)));
         when(model.modelKeys()).thenReturn(Set.of(MODEL));
+        when(model.streamStructured(
+                        anyString(), anyString(), anyString(), anyList(), anyList(), any(), any()))
+                .thenCallRealMethod();
         when(model.decide(anyString(), anyString(), anyString(), anyList(), anyBoolean()))
                 .thenReturn(plain());
         when(model.stream(anyString(), anyString(), anyString(), anyList(), anyList(), any()))
@@ -394,6 +397,7 @@ class StudentAgentIntegrationTest {
     @Test
     void pinnedConfigurationSurvivesRepublishAndOwnerOnlyHistory() {
         var s = session(owner);
+        assertThat(s.provider()).isEqualTo("gemini");
         UUID next = savePublish();
         assertThat(next).isNotEqualTo(config);
         assertThat(session(owner).configurationId()).isEqualTo(next.toString());
@@ -415,7 +419,14 @@ class StudentAgentIntegrationTest {
         assertThat(r.status())
                 .as("Student execution error=%s trace=%s", r.errorCode(), r.toolStepsAndSources())
                 .isEqualTo("SUCCEEDED");
-        assertThat(r.toolStepsAndSources()).hasSize(3);
+        assertThat(r.toolStepsAndSources()).hasSize(5);
+        assertThat(r.toolStepsAndSources().findValuesAsText("type"))
+                .containsExactly(
+                        "MODEL_ATTEMPT",
+                        "ACTUAL_NATIVE_CALL",
+                        "ACTUAL_NATIVE_CALL",
+                        "ACTUAL_NATIVE_CALL",
+                        "MODEL_ATTEMPT");
         assertThat(r.toolStepsAndSources().toString())
                 .contains(
                         "ACTUAL_NATIVE_CALL",
@@ -469,22 +480,23 @@ class StudentAgentIntegrationTest {
     }
 
     @Test
-    void missingConsentRefusesLocallyWithoutProviderAndOrdinaryHistoryRemains() {
+    void explicitStudentRequestNeedsNoSeparateConsentGrantAndHistoryRemainsOwnerScoped() {
         jdbc.update("UPDATE consent_grant SET revoked_at=CURRENT_TIMESTAMP WHERE user_id=?", owner);
         var s = session(owner);
         var run = done(owner, message(s, "No consent"));
-        assertThat(run.status()).isEqualTo("REFUSED");
-        assertThat(run.errorCode()).isEqualTo("EXTERNAL_AI_CONSENT_REQUIRED");
-        assertThat(providerCalls.get()).isZero();
+        assertThat(run.status()).isEqualTo("SUCCEEDED");
+        assertThat(run.errorCode()).isNull();
+        assertThat(providerCalls.get()).isPositive();
         assertThat(students.history(owner, UUID.fromString(s.id()), 0, 100)).hasSize(2);
     }
 
     @Test
-    void revocationStopsLateOutputAndReplay() throws Exception {
+    void privacyRevisionChangeStopsLateOutputAndReplay() throws Exception {
         var s = session(owner);
         var run = message(s, "hold revoke");
         assertThat(entered.await(3, TimeUnit.SECONDS)).isTrue();
         jdbc.update("UPDATE consent_grant SET revoked_at=CURRENT_TIMESTAMP WHERE user_id=?", owner);
+        jdbc.update("UPDATE app_users SET privacy_version=privacy_version+1 WHERE id=?", owner);
         release.countDown();
         Awaitility.await()
                 .atMost(Duration.ofSeconds(5))
@@ -502,6 +514,13 @@ class StudentAgentIntegrationTest {
                                 UUID.fromString(run.id())))
                 .isTrue();
         assertThat(students.history(owner, UUID.fromString(s.id()), 0, 100)).hasSize(1);
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT tool_steps_and_sources::text FROM agent_execution WHERE id=?",
+                                String.class,
+                                UUID.fromString(run.id())))
+                .contains("MODEL_ATTEMPT", "contentRedacted")
+                .doesNotContain("arguments", "evidence", "sources");
         assertThatThrownBy(() -> students.events(owner, UUID.fromString(run.id()), 0))
                 .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
     }

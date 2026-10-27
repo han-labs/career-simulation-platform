@@ -1,5 +1,10 @@
 // Presentation only: original documents, quoted evidence and model replies remain unchanged.
 export const agentMessages = Object.fromEntries(`
+My Agents ⇢ Agent của tôi
+Processing... ⇢ Đang xử lý...
+Messages ⇢ Tin nhắn
+Start a conversation with the published Agent. ⇢ Bắt đầu cuộc trò chuyện với Agent đã được công bố.
+Ask about your assessments, published simulations or your progress. ⇢ Hỏi về assessment, simulation đã công bố hoặc tiến độ của bạn.
 Publish & Assign ⇢ Công bố & phân công
 Publication ⇢ Công bố
 Refresh status ⇢ Tải lại trạng thái
@@ -728,4 +733,17 @@ No published Agent is active for your role. ⇢ Chưa có Agent đã xuất bả
 Enterprise chat runtime is not available. Role publication does not grant Student-private tools. ⇢ Chưa hỗ trợ hội thoại cho doanh nghiệp. Xuất bản theo vai trò không cấp công cụ dữ liệu riêng của sinh viên.
 Agent is archived. ⇢ Agent đã được lưu trữ.
 Student access requires publication, an active Agent and an active role binding. This preview grants no access. ⇢ Quyền truy cập của sinh viên yêu cầu xuất bản, Agent hoạt động và liên kết vai trò đang hiệu lực. Bản xem trước này không cấp quyền truy cập.
+Quick Actions ⇢ Gợi ý nhanh
+Ordered fallback models ⇢ Model dự phòng theo thứ tự
+Fallback model ⇢ Model dự phòng
+Remove fallback ⇢ Xóa model dự phòng
++ Add fallback model ⇢ + Thêm model dự phòng
+Choose up to three unique fallback models from the same provider. ⇢ Chọn tối đa ba model dự phòng khác nhau, cùng nhà cung cấp.
+Tried in order only for eligible failures, within the execution deadline. Refusals and authentication errors are not bypassed. ⇢ Thử theo thứ tự với lỗi phù hợp và trong giới hạn thời gian. Không bỏ qua từ chối an toàn hoặc lỗi xác thực.
+Requested model ⇢ Model yêu cầu
+Effective model ⇢ Model thực tế
+Model attempts ⇢ Các lần gọi model
+Validation check ⇢ Kiểm tra phản hồi
+The model response did not pass validation. No answer was accepted. ⇢ Phản hồi model không vượt qua kiểm tra hợp lệ. Chưa có câu trả lời nào được chấp nhận.
+Fallback reason ⇢ Lý do dự phòng
 `.trim().split('\n').map(line => line.split(' ⇢ ')))

@@ -195,6 +195,7 @@ public final class StudentOutputValidator {
 
     private static void invalid() {
         throw new SynGuidanceProvider.ProviderException(
-                SynGuidanceProvider.FailureKind.MALFORMED_OUTPUT);
+                SynGuidanceProvider.FailureKind.MALFORMED_OUTPUT,
+                Map.of("validationCheck", "STUDENT_ARTIFACT_SCHEMA_OR_EVIDENCE"));
     }
 }

@@ -13,8 +13,7 @@ const navigation = [
   { label: 'Career Simulations', to: '/simulations' },
   { label: 'Career Quizzes', to: '/assessment' },
   { label: 'For Enterprise', to: '/enterprise', coreOnly: true },
-  { label: 'Dashboard', to: '/dashboard' },
-  { label: 'Guidance', to: '/guidance' },
+  { label: 'Dashboard', to: '/guidance', studentOnly: true },
 ]
 
 function AppShell() {
@@ -42,7 +41,9 @@ function AppShell() {
     try {
       await command('/v2/auth/logout', {})
       // httpClient invalidates the account generation and clears CSRF/session UI.
-      navigate('/account', { replace: true })
+      setAccount(null)
+      try { sessionStorage.removeItem('careersim_pending_simulation_path') } catch { /* Optional tab state. */ }
+      navigate('/', { replace: true })
     } catch (failure) { setLogoutError(failure.message) }
     finally { logoutPending.current = false; setLoggingOut(false) }
   }
@@ -51,13 +52,13 @@ function AppShell() {
     <div className="app-shell">
       <header className="site-header hcmute-header" onKeyDown={event => { if (event.key === 'Escape' && menuOpen) { setMenuOpen(false); menuTrigger.current?.focus() } }}>
         <div className="site-header__inner">
-          <Link className="brand-link" to={adminStudio ? "/admin" : "/"} aria-label={t("HCM-UTE Career Simulation Platform Home")}>
+          <Link className="brand-link" to="/" aria-label={t("HCM-UTE Career Simulation Platform Home")}>
             <BrandMark />
           </Link>
 
           {!adminStudio && !account && <Link className="button button--primary header-auth" to="/account" onClick={() => setMenuOpen(false)}>{t('Sign In / Sign Up')}</Link>}
           <LanguageSwitcher />
-          {account && localWorkspace === true && <span className="session-local-workspace" role="status" title={t('Local mode automatically provides Administrator access. Use auth-test to test sign-in and sign-out.')}>{t('Local workspace')}</span>}
+          {account && localWorkspace === true && <span className="session-local-workspace" role="status" title={t('Developer auto-admin is explicitly enabled. Disable LOCAL_DEMO_MODE to use real authentication.')}>{t('Local demo')}</span>}
           {account && localWorkspace === false && <button type="button" className="button button--small session-signout" disabled={loggingOut} onClick={logout}>{t('Sign out')}</button>}
 
           {!adminStudio && <button
@@ -74,7 +75,7 @@ function AppShell() {
 
           {!adminStudio && <nav id="site-navigation" aria-label={t('Main navigation')} className={`site-nav ${menuOpen ? 'site-nav--open' : ''}`}>
             {account?.role === 'ADMIN' && <NavLink to="/admin" onClick={() => setMenuOpen(false)}>{t('Admin Studio')}</NavLink>}
-            {!adminStudio && navigation.filter(item => !item.coreOnly || coreEnabled).map((item) =>
+            {!adminStudio && navigation.filter(item => (!item.coreOnly || coreEnabled) && (!item.studentOnly || account?.role === 'STUDENT')).map((item) =>
               item.to ? (
                 <NavLink
                   key={item.label}
@@ -122,7 +123,7 @@ function AppShell() {
             </div>
             <div>
               <strong>{t("Learning Journey")}</strong>
-              <Link to="/dashboard">{t("Progress Dashboard")}</Link>
+              {account?.role === 'STUDENT' && <Link to="/guidance">{t('Dashboard')}</Link>}
               <a href="/#how-it-works">{t('Four-step journey')}</a>
             </div>
           </nav>

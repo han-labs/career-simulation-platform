@@ -38,21 +38,18 @@ Nội dung EN và bản dịch VI tái sử dụng inventory/dictionary đã có
 Đây là nội dung self-report local phục vụ khám phá; không chứng nhận năng lực/tâm lý.
 Auth, UC-07 và simulation không bị fixture cập nhật.
 
-## Hai chế độ runtime
+## Runtime local hiện hành (2026-10-27)
 
-- `local`: Admin trực tiếp tại http://localhost:8080/admin như hiện có; không phải phiên
-  JWT thật. Logout chỉ thu hồi credential thật, không vô hiệu local development principal.
-- Real-auth UAT: dùng profile không phải local (ví dụ `auth-test`). Với HTTP localhost,
-  chỉ đặt cookie secure false trong process rehearsal; không thay cấu hình production.
+- `local` bình thường dùng xác thực thật: anonymous vẫn anonymous, đăng nhập đúng role,
+  logout thu hồi credential. `LOCAL_DEMO_MODE=false` là mặc định; không cần auth-test.
+- Shortcut lập trình viên chỉ bật với `LOCAL_DEMO_MODE=true` cùng profile local;
+  prod/production luôn tắt shortcut. Không bật nó khi nghiệm thu xác thực thật.
+- Không sửa `.env` chỉ để bootstrap/đổi profile. Cookie HTTP có cấu hình riêng cho local;
+  không áp dụng ngoại lệ này cho production. Giữ cùng localhost:8080 trong cả phiên.
 
 ```powershell
-$env:SPRING_PROFILES_ACTIVE = 'auth-test'
-$env:SESSION_COOKIE_SECURE = 'false'
 docker compose -p careersimfresh -f docker-compose.yml up -d --no-build --pull never
 ```
-
-Sau UAT, xóa hoặc khôi phục hai biến process trên; không ghi vào `.env` chỉ để bootstrap.
-Dùng cùng localhost:8080 trong suốt phiên; không trộn Vite/127.0.0.1 vào auth handshake.
 
 ## UAT bằng tài khoản Student thật
 

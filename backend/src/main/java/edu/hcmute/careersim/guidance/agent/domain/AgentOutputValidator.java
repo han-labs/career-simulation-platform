@@ -36,15 +36,11 @@ public final class AgentOutputValidator {
             text(citation.path("referenceId"), 80);
             text(citation.path("quote"), 600);
             String ref = citation.path("referenceId").asText();
-            if (!seen.add(ref)
-                    || delivered.stream()
-                            .noneMatch(
-                                    p ->
-                                            p.referenceId().equals(ref)
-                                                    && p.text()
-                                                            .contains(
-                                                                    citation.path("quote")
-                                                                            .asText()))) invalid();
+            if (!seen.add(ref)) invalid("DUPLICATE_CITATION");
+            var passage = delivered.stream().filter(p -> p.referenceId().equals(ref)).findFirst();
+            if (passage.isEmpty()) invalid("CITATION_NOT_DELIVERED");
+            if (!passage.get().text().contains(citation.path("quote").asText()))
+                invalid("CITATION_QUOTE_MISMATCH");
         }
         if (!"ANSWER".equals(outcome) && !citations.isEmpty()) invalid();
         if ("ANSWER".equals(outcome)
@@ -84,7 +80,11 @@ public final class AgentOutputValidator {
     }
 
     private static void invalid() {
+        invalid("OUTPUT_SCHEMA_OR_LIMIT");
+    }
+
+    private static void invalid(String check) {
         throw new SynGuidanceProvider.ProviderException(
-                SynGuidanceProvider.FailureKind.MALFORMED_OUTPUT);
+                SynGuidanceProvider.FailureKind.MALFORMED_OUTPUT, Map.of("validationCheck", check));
     }
 }

@@ -95,6 +95,8 @@ public class SecurityConfig {
                                                 "/v2/scenarios/*",
                                                 "/v2/assessment-types")
                                         .permitAll()
+                                        .requestMatchers("/v2/admin/**")
+                                        .hasRole("ADMIN")
                                         .requestMatchers("/v1/**", "/v2/**")
                                         .authenticated()
                                         .anyRequest()
@@ -162,6 +164,7 @@ public class SecurityConfig {
 
     public static boolean localAdminEnabled(Environment env) {
         return env.acceptsProfiles(Profiles.of("local"))
+                && env.getProperty("app.local-demo-mode", Boolean.class, false)
                 && !env.acceptsProfiles(Profiles.of("prod", "production"));
     }
 

@@ -78,7 +78,9 @@ class NativeAgentModelProviderTest {
     @ParameterizedTest
     @org.junit.jupiter.params.provider.CsvSource({
         "401,PROVIDER_AUTH_REJECTED",
-        "403,PROVIDER_AUTH_REJECTED",
+        "403,PROVIDER_PERMISSION_REJECTED",
+        "402,PROVIDER_PAYMENT_REQUIRED",
+        "408,PROVIDER_TRANSPORT_DEADLINE",
         "404,PROVIDER_MODEL_UNAVAILABLE",
         "429,PROVIDER_RATE_LIMITED",
         "503,PROVIDER_HTTP_UNAVAILABLE"
@@ -248,7 +250,7 @@ class NativeAgentModelProviderTest {
     @org.junit.jupiter.params.provider.CsvSource({
         "400,PROVIDER_REJECTED",
         "401,PROVIDER_AUTH_REJECTED",
-        "403,PROVIDER_AUTH_REJECTED",
+        "403,PROVIDER_PERMISSION_REJECTED",
         "429,PROVIDER_RATE_LIMITED",
         "500,PROVIDER_HTTP_UNAVAILABLE",
         "503,PROVIDER_HTTP_UNAVAILABLE"

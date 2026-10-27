@@ -6,6 +6,7 @@ import FormField from '../../../shared/ui/FormField.jsx'
 import FeedbackPanel from '../../../shared/ui/FeedbackPanel.jsx'
 import Dialog from '../../../shared/ui/Dialog.jsx'
 import PreviewResult from './PreviewResult.jsx'
+import AgentQuickActions from '../../agents/AgentQuickActions.jsx'
 import { agentPath, executionPath, platformCommand } from '../agentPlatform/platformApi.js'
 
 const active = execution => execution && ['ACCEPTED','RUNNING'].includes(execution.status)
@@ -86,6 +87,7 @@ export default function AgentPreview({ owner, agent, selected, hasEdits, onExecu
       {!transcript.canSend&&<FeedbackPanel kind="warning">{t(transcript.unavailableReason)}</FeedbackPanel>}</>}
     </div>
     {(error||listError)&&<FeedbackPanel kind="error" action={<Button disabled={busy} onClick={()=>{load();refreshList()}}>{t('Retry')}</Button>}>{t(error||listError)}</FeedbackPanel>}
+    <AgentQuickActions kind="admin" disabled={busy||Boolean(running)} onChoose={value=>{setMessage(value);root.current?.querySelector('textarea')?.focus()}}/>
     <form onSubmit={send} className="agent-chat-composer"><FormField label={t('Message')} required><textarea rows={3} maxLength={2000} disabled={busy||Boolean(running)||!transcript?.canSend} value={message} onChange={e=>setMessage(e.target.value)} onCompositionStart={()=>{composing.current=true}} onCompositionEnd={()=>{composing.current=false}} onKeyDown={event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.nativeEvent.isComposing&&!composing.current&&event.keyCode!==229){event.preventDefault();event.currentTarget.form?.requestSubmit()}}}/></FormField><div className="cs-actions"><Button type="submit" variant="primary" busy={sending} disabled={busy||!message.trim()||!transcript?.canSend||Boolean(running)}>{t(pendingMessage.current?'Retry send':'Send')}</Button>{running&&<Button disabled={busy||running.cancellationRequested} onClick={stop}>{t(running.cancellationRequested?'Stopping...':'Stop')}</Button>}</div></form>
     {confirmation&&<Dialog title={t(confirmation==='clear'?'Clear conversation?':'Delete conversation?')} closeLabel={t('Close dialog')} busy={busy} onRequestClose={()=>setConfirmation(null)} footer={<><Button disabled={busy} onClick={()=>setConfirmation(null)}>{t('Cancel')}</Button><Button variant="danger" busy={busy} onClick={lifecycle}>{t(confirmation==='clear'?'Confirm clear':'Confirm delete')}</Button></>}><p>{t('This hides the transcript and stops active work. Immutable execution audit and usage records are retained.')}</p>{error&&<FeedbackPanel kind="error">{t(error)}</FeedbackPanel>}</Dialog>}
   </dialog>

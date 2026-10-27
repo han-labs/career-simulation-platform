@@ -2,9 +2,19 @@
 
 Use a current Docker Desktop with Compose v2.17 or newer. Run these commands from
 the root of the checkout whose source you intend to build.
-For the current US-01 + US-03 integration, that is `.codex-tmp/us01-us03`, not the
-parent checkout. The Compose project name stays `career-simulation-platform` so
-existing PostgreSQL and private-asset volumes are retained.
+For the integrated application, use the existing repository checkout and project
+`careersimfresh`, retaining its PostgreSQL and private-asset volumes. Older isolated
+US-01/US-03 checkout instructions are historical, not a request to create a new project.
+
+Normal `local` runtime uses real authentication. `LOCAL_DEMO_MODE` defaults to false;
+localhost alone never grants Administrator access. Registration/login use the real
+account role; logout revokes the backend credential. `auth-test` remains an automated
+test profile, not a required everyday mode. Existing local HTTP cookie settings are
+profile-scoped; production keeps secure cookies.
+
+Developer auto-Admin requires explicit `LOCAL_DEMO_MODE=true` plus local profile,
+and never runs with prod/production. It reuses an active Admin, does not provision
+accounts and cannot replace an authenticated Student. Keep it false for real UAT.
 
 ## First setup and normal startup (PowerShell)
 
@@ -15,8 +25,8 @@ if (-not (Test-Path -LiteralPath .env)) { Copy-Item .env.example .env }
 # Edit ignored .env privately if enabling Google or selecting feature flags.
 docker compose config --quiet
 docker compose build
-docker compose up -d
-docker compose ps
+docker compose -p careersimfresh up -d
+docker compose -p careersimfresh ps
 Invoke-RestMethod http://localhost:8080/api/health
 Invoke-RestMethod http://localhost:8080/api/v2/auth/providers
 ```

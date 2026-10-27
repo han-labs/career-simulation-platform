@@ -38,6 +38,8 @@ export function validateConfiguration(draft, options, bases) {
   if (!Array.isArray(draft.knowledgeBaseIds) || draft.knowledgeBaseIds.length > (options.limits?.maxKnowledgeBases ?? 10) || new Set(draft.knowledgeBaseIds).size !== draft.knowledgeBaseIds.length || draft.knowledgeBaseIds.some(id => !bases.some(b => b.id === id && b.status === 'ACTIVE'))) errors.knowledgeBaseIds = 'Choose at most ten distinct authorized active knowledge bases.'
   const experience = draft.experienceConfig
   if (experience) {
+    const fallbacks = experience.fallbackModelKeys ?? []
+    if (!Array.isArray(fallbacks) || fallbacks.length > 3 || new Set([draft.modelKey,...fallbacks]).size !== fallbacks.length+1 || fallbacks.some(key => !options.models.some(m => m.key === key && m.provider === draft.modelKey.split('/')[0]))) errors.fallbackModelKeys = 'Choose up to three unique fallback models from the same provider.'
     if (!['personal','business'].includes(experience.audience)) errors.audience = 'Choose an audience.'
     if (!['en','vi','bilingual'].includes(experience.language)) errors.language = 'Choose a language.'
     try { new Intl.DateTimeFormat('en',{timeZone:experience.timezone}).format() } catch { errors.timezone = 'Choose a valid IANA timezone.' }

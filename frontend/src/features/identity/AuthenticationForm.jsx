@@ -88,9 +88,9 @@ export default function AuthenticationForm({ google, providerError = false, onRe
     : google == null ? 'Checking Google availability…' : !google ? 'Google sign-in is not configured in this environment. You can use email and password.' : ''
 
   return <div className="identity-layout">
-    <aside className="identity-intro"><p className="identity-eyebrow">CareerSim</p><h2>{t('Your space to explore what comes next')}</h2>
-      <p>{t('Save your career assessments and return to your exploration at your own pace.')}</p>
-      <p>{t('You can take assessments and explore simulations without enabling AI processing.')}</p>
+    <aside className="identity-intro"><h2>{t('Welcome to HCM-UTE Career Simulation Platform!')}</h2>
+      <p>{t('Experience real-world tasks, discover your strengths, and get personalized career guidance with the support of AI.')}</p>
+      <p>{t('Join us now.')}</p>
       <Link to="/simulations">{t('Explore simulations')}</Link>
     </aside>
     <div className="identity-card">
