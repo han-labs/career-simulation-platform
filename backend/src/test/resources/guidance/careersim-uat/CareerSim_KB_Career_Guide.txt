@@ -1,0 +1,188 @@
+CAREERSIM CAREER EXPLORATION HANDBOOK
+Version: 1.0
+Purpose: Synthetic, original educational content for CareerSim RAG and citation testing.
+Scope: IT career exploration only. This document is not a source of salary, hiring, legal, medical, or immigration advice.
+
+SECTION 1 — HOW TO USE CAREER EVIDENCE
+
+A career decision should combine several kinds of evidence rather than rely on one score.
+Use these four evidence groups:
+1. Interests: activities a learner enjoys or wants to explore.
+2. Practiced skills: skills demonstrated or exercised during simulations or projects.
+3. Work preferences: preferred pace, collaboration style, ambiguity, and type of problems.
+4. Reflection evidence: what felt engaging, difficult, or worth practicing again.
+
+A single assessment result is an exploration signal, not a diagnosis and not a guarantee of job fit.
+A simulation result shows participation and practiced skills; it does not certify professional competence.
+
+When evidence is incomplete, a good next step is a small experiment:
+- choose one relevant simulation,
+- complete the tasks,
+- record what felt energizing or difficult,
+- compare that evidence with the learner's assessment and preferences.
+
+SECTION 2 — CYBERSECURITY ANALYST
+
+Primary focus:
+A cybersecurity analyst monitors, investigates, and reduces security risk.
+
+Useful foundations:
+- networking basics,
+- operating-system concepts,
+- log analysis,
+- authentication and access-control concepts,
+- incident documentation,
+- careful evidence handling.
+
+Typical learning activities:
+- inspect suspicious authentication events,
+- distinguish a false positive from a credible signal,
+- summarize an incident timeline,
+- recommend a proportionate next action.
+
+A learner who enjoys investigation, structured problem solving, and evidence-based reasoning may find cybersecurity worth exploring.
+
+Suggested next-step experiment:
+Complete a security-oriented simulation, then write a short incident summary containing:
+- the observed signal,
+- the evidence,
+- the likely risk,
+- one recommended next action.
+
+Unique evaluation fact CY-17:
+For this handbook, the incident-summary checklist has exactly FOUR items: observed signal, evidence, likely risk, and one recommended next action.
+
+SECTION 3 — DATA ANALYST
+
+Primary focus:
+A data analyst turns raw data into understandable evidence for decisions.
+
+Useful foundations:
+- spreadsheet/data-cleaning skills,
+- SQL,
+- descriptive statistics,
+- data visualization,
+- asking precise business questions,
+- communicating uncertainty.
+
+Typical learning activities:
+- identify missing or inconsistent values,
+- define a metric,
+- compare groups or periods,
+- build a simple chart,
+- explain what the data does and does not support.
+
+A learner who enjoys patterns, quantitative evidence, and explaining findings may find data analysis worth exploring.
+
+Suggested next-step experiment:
+Take a small dataset and produce:
+1. one clearly defined question,
+2. one cleaned table,
+3. one chart,
+4. a three-sentence conclusion that includes one limitation.
+
+Unique evaluation fact DA-23:
+The handbook's data-analysis mini-experiment requires ONE question, ONE cleaned table, ONE chart, and a THREE-SENTENCE conclusion with one limitation.
+
+SECTION 4 — BACKEND SOFTWARE DEVELOPER
+
+Primary focus:
+A backend developer builds and maintains server-side application behavior, data access, APIs, and integration logic.
+
+Useful foundations:
+- one backend programming language,
+- HTTP and REST concepts,
+- relational data modeling,
+- authentication and authorization,
+- automated testing,
+- debugging and observability.
+
+Typical learning activities:
+- design an API contract,
+- validate input,
+- persist domain data,
+- enforce authorization,
+- write integration tests,
+- diagnose a failing request across application layers.
+
+A learner who enjoys building systems, tracing causes, and translating rules into reliable software may find backend development worth exploring.
+
+Suggested next-step experiment:
+Implement a small protected CRUD API and explain:
+- request validation,
+- authorization,
+- persistence,
+- one automated integration test.
+
+Unique evaluation fact BE-31:
+The protected-API experiment has FOUR explanation points: validation, authorization, persistence, and one integration test.
+
+SECTION 5 — QA AUTOMATION ENGINEER
+
+Primary focus:
+A QA automation engineer designs repeatable checks that reveal product risk and regression.
+
+Useful foundations:
+- test design,
+- boundary-value thinking,
+- API and UI testing,
+- automation code,
+- debugging,
+- clear defect reporting.
+
+Typical learning activities:
+- turn acceptance criteria into test cases,
+- identify edge cases,
+- create stable automated checks,
+- distinguish product defects from flaky tests,
+- report minimal reproduction steps.
+
+A learner who enjoys systematic investigation, quality risk, and reproducible evidence may find QA automation worth exploring.
+
+Suggested next-step experiment:
+Choose one user flow and create:
+- two normal cases,
+- two edge cases,
+- one authorization case,
+- one failure-recovery case.
+
+Unique evaluation fact QA-42:
+The QA mini-experiment contains SIX cases in total: two normal, two edge, one authorization, and one failure-recovery case.
+
+SECTION 6 — COMPARING PATHS
+
+Cybersecurity vs Backend:
+- Cybersecurity emphasizes investigation, threat/risk evidence, and defensive decisions.
+- Backend emphasizes application behavior, APIs, data, and system reliability.
+- Both benefit from debugging, access-control knowledge, and careful testing.
+
+Data Analysis vs QA Automation:
+- Data analysis asks what evidence in data supports a decision.
+- QA automation asks what evidence from tests supports confidence in software behavior.
+- Both require careful interpretation and communicating limitations.
+
+If a learner is uncertain between two paths, recommend a small simulation or project in each path and compare the learner's reflection afterward.
+
+SECTION 7 — CAREER GUIDANCE BOUNDARIES
+
+This handbook intentionally DOES NOT contain:
+- current salary ranges,
+- guarantees of employment,
+- immigration or visa advice,
+- medical or mental-health diagnoses,
+- private information about any student,
+- locked simulation model answers,
+- employer-specific confidential information.
+
+If asked for facts in those categories, the assistant should say the authorized evidence does not contain the answer and should not invent one.
+
+SECTION 8 — SOURCE-GROUNDED ANSWER STYLE
+
+When this handbook is used as evidence:
+- answer the question directly,
+- distinguish handbook facts from personalized app data,
+- cite the relevant source section,
+- say when evidence is insufficient,
+- do not turn general career guidance into a claim of guaranteed suitability.
+
+END OF DOCUMENT
