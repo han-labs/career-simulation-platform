@@ -15,7 +15,7 @@ import org.springframework.stereotype.Repository;
 public class AgentSessionDao {
     private final JdbcTemplate jdbc;
     private static final String SELECT =
-            "SELECT s.*,COALESCE(c.experience_config->>'name',a.name) AS agent_name,c.version_number FROM public.agent_session s JOIN public.agent a ON a.id=s.agent_id JOIN public.agent_configuration c ON c.id=s.configuration_id";
+            "SELECT s.*,COALESCE(c.experience_config->>'name',a.name) AS agent_name,c.version_number,CASE WHEN split_part(c.model_key,'/',1) IN ('gemini','openai') THEN split_part(c.model_key,'/',1) END AS provider FROM public.agent_session s JOIN public.agent a ON a.id=s.agent_id JOIN public.agent_configuration c ON c.id=s.configuration_id";
     private final RowMapper<Session> map =
             (r, n) ->
                     new Session(
@@ -30,7 +30,8 @@ public class AgentSessionDao {
                             r.getLong("next_sequence"),
                             r.getLong("context_epoch"),
                             r.getLong("row_version"),
-                            r.getTimestamp("started_at").toInstant());
+                            r.getTimestamp("started_at").toInstant(),
+                            r.getString("provider"));
 
     public List<Session> list(
             long owner, UUID agent, java.time.Instant before, UUID beforeId, int limit) {

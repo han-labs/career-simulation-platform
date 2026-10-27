@@ -535,6 +535,46 @@ class AgentPlatformIntegrationTest {
     }
 
     @Test
+    void orderedFallbackConfigurationSealsWithoutChangingEarlierVersionsOrCallingProvider() {
+        UUID kb = publishedKb();
+        var a = registry.create(admin, new AgentInput("Fallback fixture", "Safe fixture", null));
+        UUID aid = UUID.fromString(a.id());
+        var old = registry.save(admin, aid, a.revision(), experience(kb, false));
+        String originalHash = old.contentHash();
+        var next = experience(kb, true);
+        var exp =
+                (com.fasterxml.jackson.databind.node.ObjectNode) next.experienceConfig().deepCopy();
+        exp.set("fallbackModelKeys", CoreValues.tree(List.of("gemini/synthetic-fallback")));
+        when(model.modelKeys()).thenReturn(Set.of(MODEL, "gemini/synthetic-fallback"));
+        var saved =
+                registry.save(
+                        admin,
+                        aid,
+                        registry.get(admin, aid).revision(),
+                        new ConfigurationInput(
+                                next.modelKey(),
+                                next.promptTemplate(),
+                                next.promptTemplateRef(),
+                                next.toolPolicy(),
+                                next.memoryPolicy(),
+                                next.outputPolicy(),
+                                next.knowledgeBaseIds(),
+                                exp));
+        assertThat(
+                        registry.configuration(admin, aid, UUID.fromString(saved.id()))
+                                .experienceConfig()
+                                .path("fallbackModelKeys")
+                                .get(0)
+                                .asText())
+                .isEqualTo("gemini/synthetic-fallback");
+        assertThat(saved.contentHash()).isNotEqualTo(originalHash);
+        assertThat(registry.configuration(admin, aid, UUID.fromString(old.id())).contentHash())
+                .isEqualTo(originalHash);
+        verify(model, never())
+                .decide(anyString(), anyString(), anyString(), anyList(), anyBoolean());
+    }
+
+    @Test
     void kbCountsUseLogicalDocumentsAndOnlyCurrentPublishedUsableChunks() {
         UUID kb = publishedKb();
         var summary =

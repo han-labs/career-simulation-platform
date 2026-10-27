@@ -23,6 +23,13 @@ function fill() {
   fireEvent.change(screen.getByLabelText('Password *'), { target: { value: 'synthetic-password-2026' } })
 }
 function submit() { fireEvent.submit(screen.getByRole('button', { name: 'Create account', exact: true }).closest('form')) }
+it('uses the approved HCM-UTE account copy and retains the simulations destination', () => {
+  page()
+  expect(screen.getByRole('heading', { name: 'Welcome to HCM-UTE Career Simulation Platform!' })).toBeTruthy()
+  expect(screen.getByText('Experience real-world tasks, discover your strengths, and get personalized career guidance with the support of AI.')).toBeTruthy()
+  expect(screen.getByText('Join us now.')).toBeTruthy()
+  expect(screen.getByRole('link', { name: 'Explore simulations' }).getAttribute('href')).toBe('/simulations')
+})
 
 it('associates errors with required and invalid fields, focuses the first, and sends no request', () => {
   page(); register(); submit()

@@ -39,7 +39,6 @@ public class StudentAgentServiceImpl implements StudentAgentService {
     private final AgentRegistryDao registry;
     private final InsightReportDao reports;
     private final ActorAccess actors;
-    private final ConsentAccess consents;
     private final IdentityService identity;
     private final KnowledgeStudioService knowledge;
     private final AgentModelProvider model;
@@ -58,7 +57,6 @@ public class StudentAgentServiceImpl implements StudentAgentService {
             AgentRegistryDao registry,
             InsightReportDao reports,
             ActorAccess actors,
-            ConsentAccess consents,
             IdentityService identity,
             KnowledgeStudioService knowledge,
             AgentModelProvider model,
@@ -75,7 +73,6 @@ public class StudentAgentServiceImpl implements StudentAgentService {
         this.registry = registry;
         this.reports = reports;
         this.actors = actors;
-        this.consents = consents;
         this.identity = identity;
         this.knowledge = knowledge;
         this.model = model;
@@ -370,10 +367,6 @@ public class StudentAgentServiceImpl implements StudentAgentService {
         return e.modelKey().split("/", 2)[0];
     }
 
-    private boolean consent(long owner, String provider) {
-        return consents.effective(owner, "EXTERNAL_AI", "provider:" + provider);
-    }
-
     private Configuration check(long owner, Execution e, boolean lock, boolean external) {
         if (!"STUDENT_CHAT".equals(e.executionMode())
                 || !e.initiatedByUserId().equals(Long.toString(owner))) throw unavailable();
@@ -382,9 +375,8 @@ public class StudentAgentServiceImpl implements StudentAgentService {
                 || !contextAvailable(owner, sessions.executionSources(UUID.fromString(e.id()))))
             throw unavailable();
         if (external
-                && (actors.requireId(owner).privacyVersion()
-                                != executions.privacy(UUID.fromString(e.id()))
-                        || !consent(owner, provider(e)))) throw unavailable();
+                && actors.requireId(owner).privacyVersion()
+                        != executions.privacy(UUID.fromString(e.id()))) throw unavailable();
         var c = registry.configuration(UUID.fromString(s.configurationId()));
         if (!c.contentHash().equals(e.configurationHash())) throw unavailable();
         return c;
@@ -399,9 +391,8 @@ public class StudentAgentServiceImpl implements StudentAgentService {
                 var e = executions.get(i.execution(), false);
                 if (e.outputSnapshot() != null
                         && "ANSWER".equals(e.outputSnapshot().path("outcome").asText())
-                        && (actors.requireId(owner).privacyVersion()
-                                        != executions.privacy(i.execution())
-                                || !consent(owner, provider(e)))) return false;
+                        && actors.requireId(owner).privacyVersion()
+                                != executions.privacy(i.execution())) return false;
                 if (executions.epoch(i.execution()) != s.contextEpoch()) return false;
                 var c = registry.configuration(UUID.fromString(s.configurationId()));
                 if (!tools.available(owner, coreEvidence(e))) return false;
@@ -700,7 +691,12 @@ public class StudentAgentServiceImpl implements StudentAgentService {
                                                 .asInt()));
         if (remaining.isNegative()) remaining = Duration.ofMillis(1);
         try (var scope =
-                SynExecutionScope.open(remaining, () -> active(e), p -> consent(owner, p))
+                // Owner-approved Student Agent policy: explicit message/task submission needs
+                // no separate consent grant. Actor/epoch/evidence checks remain mandatory.
+                SynExecutionScope.open(
+                                remaining,
+                                () -> active(e),
+                                p -> p.equals(provider(e)) || p.equals("gemini"))
                         .withDispatchAdmission(
                                 new SynExecutionScope.DispatchAdmission() {
                                     public <T> T admit(java.util.function.Supplier<T> start) {
@@ -722,231 +718,284 @@ public class StudentAgentServiceImpl implements StudentAgentService {
                                 })) {
             try {
                 var c = check(owner, e, false, false);
-                if (!consent(owner, provider(e))) {
-                    status = "REFUSED";
-                    error = "EXTERNAL_AI_CONSENT_REQUIRED";
-                    output = fallback("REFUSED");
-                } else {
-                    tx.executeWithoutResult(
-                            t -> {
-                                check(owner, e, true, true);
-                                executions.begin(id);
-                            });
-                    var enabled = new LinkedHashSet<String>();
-                    c.toolPolicy().path("enabled").forEach(n -> enabled.add(n.asText()));
-                    int max = c.toolPolicy().path("maxToolCalls").asInt(),
-                            rounds = c.toolPolicy().path("maxRounds").asInt();
-                    String input = context(owner, e, c);
-                    output =
-                            BoundedNativeExecution.execute(
-                                    rounds,
-                                    max,
-                                    !enabled.isEmpty(),
-                                    new BoundedNativeExecution.Host() {
-                                        StringBuilder delivered;
+                tx.executeWithoutResult(
+                        t -> {
+                            check(owner, e, true, true);
+                            executions.begin(id);
+                        });
+                var enabled = new LinkedHashSet<String>();
+                c.toolPolicy().path("enabled").forEach(n -> enabled.add(n.asText()));
+                int max = c.toolPolicy().path("maxToolCalls").asInt(),
+                        rounds = c.toolPolicy().path("maxRounds").asInt();
+                String input = context(owner, e, c);
+                var failover =
+                        new AgentModelFailover(c.modelKey(), c.experienceConfig(), steps::add);
+                output =
+                        BoundedNativeExecution.execute(
+                                rounds,
+                                max,
+                                !enabled.isEmpty(),
+                                new BoundedNativeExecution.Host() {
+                                    StringBuilder delivered;
+                                    boolean repairing;
+                                    AgentTextSegments segments;
+                                    final List<String> buffered = new ArrayList<>();
 
-                                        public void checkpoint() {
-                                            if (!active(e)
-                                                    || !tools.available(owner, domain.values()))
-                                                throw unavailable();
-                                            evidenceCheck(owner, c, new ArrayList<>(kb.values()));
-                                        }
+                                    public void checkpoint() {
+                                        if (!active(e) || !tools.available(owner, domain.values()))
+                                            throw unavailable();
+                                        evidenceCheck(owner, c, new ArrayList<>(kb.values()));
+                                    }
 
-                                        public AgentModelProvider.Decision decide(
-                                                boolean allowed,
-                                                List<AgentModelProvider.Exchange> exchanges) {
-                                            delivered = new StringBuilder();
-                                            var segments =
-                                                    new AgentTextSegments(
-                                                            StudentOutputValidator.scores(
-                                                                    domain.values()),
-                                                            text -> {
-                                                                event(
-                                                                        owner,
-                                                                        e,
-                                                                        "answer.segment",
-                                                                        Map.of("text", text));
-                                                                delivered.append(text);
-                                                            });
-                                            var decision =
-                                                    SynExecutionScope.observe(
-                                                            "AGENT_MODEL",
-                                                            () ->
-                                                                    model.stream(
-                                                                            c.modelKey(),
-                                                                            instructions(
-                                                                                    c,
-                                                                                    e.taskType()),
-                                                                            input,
-                                                                            exchanges,
-                                                                            allowed
-                                                                                    ? StudentEvidenceTools
-                                                                                            .definitions(
-                                                                                                    enabled)
-                                                                                    : List.of(),
-                                                                            segments::accept));
-                                            if (!decision.calls().isEmpty() && !delivered.isEmpty())
-                                                throw new SynGuidanceProvider.ProviderException(
-                                                        SynGuidanceProvider.FailureKind
-                                                                .MALFORMED_OUTPUT);
-                                            return decision;
-                                        }
+                                    public AgentModelProvider.Decision decide(
+                                            boolean allowed,
+                                            List<AgentModelProvider.Exchange> exchanges) {
+                                        delivered = new StringBuilder();
+                                        segments =
+                                                new AgentTextSegments(
+                                                        StudentOutputValidator.scores(
+                                                                domain.values()),
+                                                        text -> {
+                                                            event(
+                                                                    owner,
+                                                                    e,
+                                                                    "answer.segment",
+                                                                    Map.of("text", text));
+                                                            delivered.append(text);
+                                                        });
+                                        var decision =
+                                                failover.call(
+                                                        effectiveModel -> {
+                                                            buffered.clear();
+                                                            return model.streamStructured(
+                                                                    effectiveModel,
+                                                                    instructions(c, e.taskType())
+                                                                            + (repairing
+                                                                                    ? "\n"
+                                                                                            + prompts
+                                                                                                    .repairInstructions()
+                                                                                    : ""),
+                                                                    allowed
+                                                                            ? input
+                                                                            : withCitationOptions(
+                                                                                    input,
+                                                                                    kb.values(),
+                                                                                    domain
+                                                                                            .values()),
+                                                                    exchanges,
+                                                                    allowed
+                                                                            ? StudentEvidenceTools
+                                                                                    .definitions(
+                                                                                            enabled)
+                                                                            : List.of(),
+                                                                    allowed
+                                                                            ? AgentResponseSchema
+                                                                                    .forTask(
+                                                                                            e
+                                                                                                    .taskType(),
+                                                                                            c
+                                                                                                    .outputPolicy())
+                                                                            : AgentResponseSchema
+                                                                                    .grounded(
+                                                                                            e
+                                                                                                    .taskType(),
+                                                                                            c
+                                                                                                    .outputPolicy(),
+                                                                                            kb
+                                                                                                    .values(),
+                                                                                            domain
+                                                                                                    .values()),
+                                                                    failover.buffered()
+                                                                            ? buffered::add
+                                                                            : segments::accept);
+                                                        },
+                                                        () -> delivered.isEmpty());
+                                        if (!decision.calls().isEmpty() && !delivered.isEmpty())
+                                            throw new SynGuidanceProvider.ProviderException(
+                                                    SynGuidanceProvider.FailureKind
+                                                            .MALFORMED_OUTPUT);
+                                        return decision;
+                                    }
 
-                                        public JsonNode output(
-                                                AgentModelProvider.Decision decision) {
-                                            var validated =
+                                    public JsonNode output(AgentModelProvider.Decision decision) {
+                                        JsonNode validated;
+                                        try {
+                                            validated =
                                                     StudentOutputValidator.validate(
                                                             decision.output(),
                                                             e.taskType(),
                                                             new ArrayList<>(kb.values()),
                                                             domain.values(),
                                                             c.outputPolicy());
-                                            if (!validated
-                                                    .path("text")
-                                                    .asText()
-                                                    .startsWith(delivered.toString()))
-                                                throw new SynGuidanceProvider.ProviderException(
-                                                        SynGuidanceProvider.FailureKind
-                                                                .MALFORMED_OUTPUT);
-                                            return validated;
+                                        } catch (SynGuidanceProvider.ProviderException invalid) {
+                                            if (invalid.kind()
+                                                    == SynGuidanceProvider.FailureKind
+                                                            .MALFORMED_OUTPUT)
+                                                steps.add(
+                                                        Map.of(
+                                                                "type",
+                                                                "OUTPUT_VALIDATION",
+                                                                "status",
+                                                                "FAILED",
+                                                                "validationCheck",
+                                                                invalid.diagnostics()
+                                                                        .getOrDefault(
+                                                                                "validationCheck",
+                                                                                "STUDENT_OUTPUT_SCHEMA_OR_LIMIT")));
+                                            throw invalid;
                                         }
+                                        if (failover.buffered()) buffered.forEach(segments::accept);
+                                        if (!validated
+                                                .path("text")
+                                                .asText()
+                                                .startsWith(delivered.toString()))
+                                            throw new SynGuidanceProvider.ProviderException(
+                                                    SynGuidanceProvider.FailureKind
+                                                            .MALFORMED_OUTPUT);
+                                        return validated;
+                                    }
 
-                                        public List<JsonNode> tools(
-                                                AgentModelProvider.Decision decision) {
-                                            var observations = new ArrayList<JsonNode>();
-                                            for (var call : decision.calls()) {
-                                                long at = System.nanoTime();
-                                                String name =
-                                                        call.name() != null
-                                                                        && StudentEvidenceTools
-                                                                                .NAMES
-                                                                                .contains(
-                                                                                        call.name())
-                                                                ? call.name()
-                                                                : "UNKNOWN";
-                                                var step = new LinkedHashMap<String, Object>();
-                                                step.put("type", "ACTUAL_NATIVE_CALL");
-                                                step.put("name", name);
-                                                JsonNode observation;
-                                                try {
-                                                    if (!enabled.contains(name))
-                                                        throw new ApiException(
-                                                                ErrorCode.FORBIDDEN,
-                                                                "Tool is not enabled.");
+                                    public boolean recoverInvalidOutput() {
+                                        if (!(failover.buffered() || delivered.isEmpty())
+                                                || !failover.repairInvalidOutput()) return false;
+                                        repairing = true;
+                                        steps.add(
+                                                Map.of(
+                                                        "type",
+                                                        "OUTPUT_REPAIR",
+                                                        "status",
+                                                        "ACCEPTED",
+                                                        "policyRef",
+                                                        prompts.repairReference()));
+                                        return true;
+                                    }
+
+                                    public boolean reserveOutputRepair() {
+                                        return true;
+                                    }
+
+                                    public List<JsonNode> tools(
+                                            AgentModelProvider.Decision decision) {
+                                        var observations = new ArrayList<JsonNode>();
+                                        for (var call : decision.calls()) {
+                                            long at = System.nanoTime();
+                                            String name =
+                                                    call.name() != null
+                                                                    && StudentEvidenceTools.NAMES
+                                                                            .contains(call.name())
+                                                            ? call.name()
+                                                            : "UNKNOWN";
+                                            var step = new LinkedHashMap<String, Object>();
+                                            step.put("type", "ACTUAL_NATIVE_CALL");
+                                            step.put("name", name);
+                                            JsonNode observation;
+                                            try {
+                                                if (!enabled.contains(name))
+                                                    throw new ApiException(
+                                                            ErrorCode.FORBIDDEN,
+                                                            "Tool is not enabled.");
+                                                tx.executeWithoutResult(
+                                                        t -> {
+                                                            check(owner, e, true, true);
+                                                            if (!active(e)) throw unavailable();
+                                                        });
+                                                var args =
+                                                        StudentEvidenceTools.arguments(
+                                                                name, call.arguments());
+                                                step.put("arguments", args);
+                                                if (name.equals("kb.search")) {
+                                                    if (args == null
+                                                            || !args.isObject()
+                                                            || args.size() > 2
+                                                            || !args.path("query").isTextual())
+                                                        CoreValues.invalid(
+                                                                "KB search requires only query.");
+                                                    // Provider admission locks only dispatch,
+                                                    // never waits on HTTP under DB locks.
+                                                    var found =
+                                                            knowledge.search(
+                                                                    owner,
+                                                                    UUID.fromString(c.id()),
+                                                                    bases(c),
+                                                                    AgentInputPolicy.minimize(
+                                                                            args.path("query")
+                                                                                    .asText(),
+                                                                            2000),
+                                                                    args.path("topK")
+                                                                            .asInt(
+                                                                                    c.toolPolicy()
+                                                                                            .path(
+                                                                                                    "topK")
+                                                                                            .asInt()),
+                                                                    SynExecutionScope
+                                                                            .mayUseProvider(
+                                                                                    "gemini"));
                                                     tx.executeWithoutResult(
                                                             t -> {
                                                                 check(owner, e, true, true);
-                                                                if (!active(e)) throw unavailable();
-                                                            });
-                                                    var args =
-                                                            StudentEvidenceTools.arguments(
-                                                                    name, call.arguments());
-                                                    step.put("arguments", args);
-                                                    if (name.equals("kb.search")) {
-                                                        if (args == null
-                                                                || !args.isObject()
-                                                                || args.size() > 2
-                                                                || !args.path("query").isTextual())
-                                                            CoreValues.invalid(
-                                                                    "KB search requires only query.");
-                                                        // Provider admission locks only dispatch,
-                                                        // never waits on HTTP under DB locks.
-                                                        var found =
-                                                                knowledge.search(
+                                                                knowledge.lockAvailable(
                                                                         owner,
                                                                         UUID.fromString(c.id()),
                                                                         bases(c),
-                                                                        AgentInputPolicy.minimize(
-                                                                                args.path("query")
-                                                                                        .asText(),
-                                                                                2000),
-                                                                        args.path("topK")
-                                                                                .asInt(
-                                                                                        c.toolPolicy()
-                                                                                                .path(
-                                                                                                        "topK")
-                                                                                                .asInt()),
-                                                                        SynExecutionScope
-                                                                                .mayUseProvider(
-                                                                                        "gemini"));
-                                                        tx.executeWithoutResult(
-                                                                t -> {
-                                                                    check(owner, e, true, true);
-                                                                    knowledge.lockAvailable(
-                                                                            owner,
-                                                                            UUID.fromString(c.id()),
-                                                                            bases(c),
-                                                                            found);
-                                                                });
-                                                        found.forEach(
-                                                                p -> kb.put(p.referenceId(), p));
-                                                        step.put("sources", found);
-                                                        observation =
-                                                                CoreValues.tree(
-                                                                        Map.of(
-                                                                                "status",
-                                                                                "SUCCEEDED",
-                                                                                "passages",
-                                                                                found));
-                                                    } else {
-                                                        var found =
-                                                                tx.execute(
-                                                                        t -> {
-                                                                            check(
-                                                                                    owner, e, true,
-                                                                                    true);
-                                                                            return tools.invoke(
-                                                                                    owner, name,
-                                                                                    args);
-                                                                        });
-                                                        found.forEach(
-                                                                d ->
-                                                                        domain.put(
-                                                                                d.referenceId(),
-                                                                                d));
-                                                        step.put("evidence", found);
-                                                        observation =
-                                                                CoreValues.tree(
-                                                                        Map.of(
-                                                                                "status",
-                                                                                "SUCCEEDED",
-                                                                                "evidence",
-                                                                                found));
-                                                    }
-                                                    step.put("status", "SUCCEEDED");
-                                                } catch (ApiException denied) {
-                                                    step.put("status", "DENIED");
-                                                    step.put(
-                                                            "errorCode",
-                                                            denied.getErrorCode().getCode());
+                                                                        found);
+                                                            });
+                                                    found.forEach(p -> kb.put(p.referenceId(), p));
+                                                    step.put("sources", found);
                                                     observation =
                                                             CoreValues.tree(
-                                                                    Map.of("status", "DENIED"));
+                                                                    Map.of(
+                                                                            "status",
+                                                                            "SUCCEEDED",
+                                                                            "passages",
+                                                                            found));
+                                                } else {
+                                                    var found =
+                                                            tx.execute(
+                                                                    t -> {
+                                                                        check(owner, e, true, true);
+                                                                        return tools.invoke(
+                                                                                owner, name, args);
+                                                                    });
+                                                    found.forEach(
+                                                            d -> domain.put(d.referenceId(), d));
+                                                    step.put("evidence", found);
+                                                    observation =
+                                                            CoreValues.tree(
+                                                                    Map.of(
+                                                                            "status",
+                                                                            "SUCCEEDED",
+                                                                            "evidence",
+                                                                            found));
                                                 }
+                                                step.put("status", "SUCCEEDED");
+                                            } catch (ApiException denied) {
+                                                step.put("status", "DENIED");
                                                 step.put(
-                                                        "elapsedMs",
-                                                        (System.nanoTime() - at) / 1_000_000);
-                                                steps.add(step);
-                                                observations.add(observation);
-                                                event(
-                                                        owner,
-                                                        e,
-                                                        "tool.status",
-                                                        Map.of(
-                                                                "name",
-                                                                name,
-                                                                "status",
-                                                                step.get("status")));
+                                                        "errorCode",
+                                                        denied.getErrorCode().getCode());
+                                                observation =
+                                                        CoreValues.tree(Map.of("status", "DENIED"));
                                             }
-                                            return observations;
+                                            step.put(
+                                                    "elapsedMs",
+                                                    (System.nanoTime() - at) / 1_000_000);
+                                            steps.add(step);
+                                            observations.add(observation);
+                                            event(
+                                                    owner,
+                                                    e,
+                                                    "tool.status",
+                                                    Map.of(
+                                                            "name",
+                                                            name,
+                                                            "status",
+                                                            step.get("status")));
                                         }
-                                    });
-                    status =
-                            "ANSWER".equals(output.path("outcome").asText())
-                                    ? "SUCCEEDED"
-                                    : "REFUSED";
-                    if ("REFUSED".equals(status)) error = output.path("outcome").asText();
-                }
+                                        return observations;
+                                    }
+                                });
+                status = "ANSWER".equals(output.path("outcome").asText()) ? "SUCCEEDED" : "REFUSED";
+                if ("REFUSED".equals(status)) error = output.path("outcome").asText();
             } catch (RuntimeException failure) {
                 status = "FAILED";
                 error =
@@ -962,12 +1011,7 @@ public class StudentAgentServiceImpl implements StudentAgentService {
                     t -> {
                         boolean available = true;
                         try {
-                            var c =
-                                    check(
-                                            owner,
-                                            e,
-                                            true,
-                                            !"EXTERNAL_AI_CONSENT_REQUIRED".equals(finalError));
+                            var c = check(owner, e, true, true);
                             evidenceCheck(owner, c, new ArrayList<>(kb.values()));
                             if (!tools.available(owner, domain.values())) throw unavailable();
                         } catch (ApiException denied) {
@@ -1065,16 +1109,33 @@ public class StudentAgentServiceImpl implements StudentAgentService {
     private List<Map<String, Object>> redact(List<Map<String, Object>> steps) {
         return steps.stream()
                 .map(
-                        s ->
-                                Map.<String, Object>of(
-                                        "type",
-                                        "ACTUAL_NATIVE_CALL",
-                                        "name",
-                                        s.get("name"),
-                                        "status",
-                                        s.get("status"),
-                                        "contentRedacted",
-                                        true))
+                        s -> {
+                            if ("MODEL_ATTEMPT".equals(s.get("type"))) {
+                                var safe = new LinkedHashMap<String, Object>();
+                                for (String key :
+                                        List.of(
+                                                "type",
+                                                "requestedModel",
+                                                "effectiveModel",
+                                                "attempt",
+                                                "fallbackFrom",
+                                                "reason",
+                                                "status",
+                                                "elapsedMs"))
+                                    if (s.containsKey(key)) safe.put(key, s.get(key));
+                                safe.put("contentRedacted", true);
+                                return (Map<String, Object>) safe;
+                            }
+                            return Map.<String, Object>of(
+                                    "type",
+                                    "ACTUAL_NATIVE_CALL",
+                                    "name",
+                                    s.getOrDefault("name", "UNKNOWN"),
+                                    "status",
+                                    s.getOrDefault("status", "UNKNOWN"),
+                                    "contentRedacted",
+                                    true);
+                        })
                 .toList();
     }
 
@@ -1117,11 +1178,29 @@ public class StudentAgentServiceImpl implements StudentAgentService {
                         "outcome",
                         outcome,
                         "text",
-                        "The Agent cannot complete this request safely. Your assessments and simulations remain available.",
+                        "AI assistance is temporarily unavailable. Please try again later. Your assessments and simulations remain available.",
                         "citations",
                         List.of(),
                         "suggestions",
                         List.of()));
+    }
+
+    private String withCitationOptions(
+            String input, Collection<Passage> kb, Collection<DomainEvidence> domain) {
+        var current =
+                (com.fasterxml.jackson.databind.node.ObjectNode)
+                        CoreValues.tree(new LinkedHashMap<>());
+        try {
+            current =
+                    (com.fasterxml.jackson.databind.node.ObjectNode)
+                            new ObjectMapper().readTree(input);
+        } catch (java.io.IOException invalid) {
+            throw new IllegalStateException("Invalid internal Agent input");
+        }
+        current.set(
+                "currentRunCitationOptionsUntrustedData",
+                CoreValues.tree(AgentResponseSchema.citationOptions(kb, domain)));
+        return CoreValues.write(current);
     }
 
     private static String trim(String value, int length) {

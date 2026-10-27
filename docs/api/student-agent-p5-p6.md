@@ -108,3 +108,45 @@ quotes, stream resume/cancel and plan confirmation. `/admin/ai-usage` consumes o
 safe aggregate API. Shared account generation aborts/rejects delayed SSE data;
 AppShell key resets all private route state. EN/VI labels, original source/model
 content, existing routes and legacy Syn are retained. No private Student upload UI.
+
+## Model reliability increment — 2026-10-27
+
+Pinned configuration v2 may include optional ordered same-provider
+`experienceConfig.fallbackModelKeys` (max3). Existing single-model configurations
+remain readable without changing their sealed hash. A new chat still pins the exact
+current published configuration; fallback is part of that tested/published version.
+
+The existing native loop retains authorized observations across bounded generation
+retry/failover. It never re-executes plan confirmation. Schema validation precedes
+report persistence; at most one bounded output repair is allowed. Configured
+multi-model streaming buffers deltas until validation, preserving authoritative
+replay/cancellation/consent/source semantics. Terminal unavailability is a failure
+with a clear message, not a fake answer. The submitted question remains in the
+account-scoped frontend draft for retry. Compact Quick Actions populate only.
+
+Safe `MODEL_ATTEMPT` metadata uses the same execution/audit storage and UC-09
+projection. See [model reliability](../architecture/agent-model-reliability.md).
+
+## Student admission correction — Owner decision, 2026-10-27
+
+Explicit STUDENT_CHAT messages, report requests and draft-plan requests no longer
+require a separate EXTERNAL_AI consent grant. This supersedes the earlier consent
+prerequisite for this feature only. No consent records are fabricated. Other
+consent purposes and consumers remain unchanged. Actor/ownership, active role
+publication, pinned configuration, privacy revision/epoch and current evidence
+authorization still fence dispatch, history, replay and late output.
+
+Session adds safe provider enum metadata from the pinned model, never credentials.
+Modern Gemini requests project the existing closed output/report/plan schemas;
+host schema/evidence validation remains authoritative. Invalid artifacts are never
+saved. OUTPUT_VALIDATION stores safe categories without rejected content.
+Plan persistence still requires explicit source/hash confirmation and idempotency.
+
+Final Student citation schemas bound current reference IDs. Literal reference/quote
+examples appear separately in currentRunCitationOptionsUntrustedData, never in
+platform instructions. Host validation still rejects unmatched/duplicate/undelivered
+references or quotations. There is no silent candidate rewrite. Max20 references
+with at most3 short quote windows each; this is transient request data, not another
+persisted event system. Student reserves one output-repair opportunity inside the existing
+round cap when possible, with tools disabled and current observations retained.
+Its versioned central repair-policy hash is safe execution audit metadata.

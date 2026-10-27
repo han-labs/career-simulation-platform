@@ -28,3 +28,7 @@
 .kb-dialog input,.kb-dialog select{max-width:100%}
 .platform-card fieldset{min-width:0}
 .platform-card input[type="file"]{max-width:100%}
+.agent-quick-actions{font-size:.875rem;padding:8px 12px;border-top:1px solid var(--line);overflow-wrap:anywhere}
+.agent-quick-actions summary{cursor:pointer;font-weight:600}
+.agent-quick-actions>div{display:flex;flex-wrap:wrap;gap:6px;padding-top:8px}
+.agent-quick-actions button{white-space:normal;text-align:start;min-width:0;max-width:100%;font-size:inherit;line-height:1.4}

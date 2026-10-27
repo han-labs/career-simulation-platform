@@ -24,7 +24,8 @@ public final class StudentAgentContracts {
             long nextSequence,
             long contextEpoch,
             long revision,
-            Instant startedAt) {}
+            Instant startedAt,
+            String provider) {}
 
     public record Interaction(
             String id,

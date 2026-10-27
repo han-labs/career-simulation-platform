@@ -327,3 +327,45 @@ failure/deadline; no provider fallback or automatic retry is added.
 `GET /api/v2/auth/providers` also returns `localWorkspace` using the existing local-demo
 profile predicate. Local workspace shows an explanatory indicator instead of misleading
 Sign out. Real-auth sign-out and JWT/session revocation semantics are unchanged.
+
+## Bounded same-provider model failover — 2026-10-27
+
+This increment supersedes the earlier "no automatic retry/fallback" statement.
+Configuration v2 optionally accepts `experienceConfig.fallbackModelKeys`, an ordered
+array of at most3 unique allowlisted same-provider keys, distinct from `modelKey`.
+The existing immutable hash includes this field; absent legacy fields/hashes remain
+unchanged. Save/Preview/Publish/role activation remain separate operations. No DDL.
+
+Admin model options now include the supported stable Gemini3.6/3.5-lite/3.8 and
+legacy3.1-lite identifiers plus the explicitly configured legacy model. `available`
+continues to mean server configuration, not a successful live inference or quota.
+
+Existing execution `toolStepsAndSources` may include safe `MODEL_ATTEMPT` rows:
+`requestedModel,effectiveModel,attempt,fallbackFrom,reason,status,elapsedMs`.
+Usage dashboard executions add nullable `effectiveModel` and bounded/allowlisted
+`fallbackReasons`; aggregate request/outcome/cost/latency definitions do not change.
+HTTP401 authentication,402 billing and403 permission are distinct safe categories;
+these and400 do not trigger fallback. Safety refusal is never bypassed.
+
+See [measured decision and retry bounds](../architecture/agent-model-reliability.md).
+
+### Owner UAT quality correction
+
+New Agent defaults are4rounds/4tool calls/60s and GENERAL_ALLOWED. Existing saved
+limits/policies are not overwritten; independent KB Test remains KB_ONLY. Admin
+Save creates a new configuration using platform prompt v2. Known v1 references
+remain valid for reading/executing existing pinned versions; old resource bytes,
+hashes and publication proofs are retained. Old known references are accepted on
+new Save, which explicitly creates a new current-template immutable version.
+
+Stream body and headers share one absolute per-attempt deadline. Eligible timeout
+switches to the next configured model without repeating the timed-out endpoint.
+While another candidate remains, an attempt receives at most12s/40% of remaining
+execution time; final fallback at most18s. Existing single-model budget is retained.
+
+Local output rejection remains MALFORMED_OUTPUT and is distinct from provider
+unavailability. Safe `OUTPUT_VALIDATION` audit may include only the enum-like
+`validationCheck`: OUTPUT_SCHEMA_OR_LIMIT, DUPLICATE_CITATION,
+CITATION_NOT_DELIVERED or CITATION_QUOTE_MISMATCH. No rejected provider response
+body is persisted/exposed. A two-round config may have no remaining repair round;
+the runtime never silently exceeds the saved limit.

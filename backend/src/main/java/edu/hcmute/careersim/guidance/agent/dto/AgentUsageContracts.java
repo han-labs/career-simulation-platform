@@ -69,7 +69,9 @@ public final class AgentUsageContracts {
             long nativeToolCount,
             List<String> tools,
             long serverRetrievalCount,
-            Long modelAttempts) {}
+            Long modelAttempts,
+            String effectiveModel,
+            List<String> fallbackReasons) {}
 
     public record AgentOption(String id, String name) {}
 

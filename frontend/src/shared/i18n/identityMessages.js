@@ -1,5 +1,10 @@
 export const identityMessages = {
   'Home': 'Trang chủ',
+  'Welcome to HCM-UTE Career Simulation Platform!': 'Chào mừng đến với Nền tảng Mô phỏng Nghề nghiệp HCM-UTE!',
+  'Join us now.': 'Tham gia cùng chúng tôi ngay.',
+  'Administrator access is required.': 'Yêu cầu quyền Quản trị viên.',
+  'Local demo': 'Demo local',
+  'Developer auto-admin is explicitly enabled. Disable LOCAL_DEMO_MODE to use real authentication.': 'Đã chủ động bật auto-admin cho lập trình viên. Tắt LOCAL_DEMO_MODE để dùng xác thực thật.',
   'Guidance': 'Hướng dẫn',
   'Display name': 'Tên hiển thị',
   'Local workspace': 'Không gian local',

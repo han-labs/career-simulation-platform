@@ -282,3 +282,195 @@ project's live-model evaluation gates remain pending.
 ## 2026-10-26 — HCM-UTE rebuild from latest main
 
 Codex (GPT-6-based agent) performed the current corrective request on a fresh main 608e812 worktree/feature branch; prior redesign887e0d1 remained untouched. It audited real flows before frontend changes, reused existing callbacks/hooks/routes/cards/state views, applied supplied visual assets and VI/EN copy, and executed baseline/final gates plus actual isolated API/browser journeys. [AI record](.agent/reports/ai/2026-10-26-hcmute-main-rebuild.md), [audit](.agent/reports/hcmute-main-functional-audit.md), [plan](.agent/plans/foundation-hcmute-frontend-flow-alignment.md) and [verification](.agent/reports/hcmute-main-rebuild-verification.md) distinguish mocks/live evidence, original-main defects and human review pending. No backend or feature-owned business implementation, auth/score authority or provider flow was replaced. No human acceptance, Google/live-model UAT or push/main merge is claimed.
+### 2026-10-27 — Final integrated system recovery (Codex Sol)
+
+- Prompt/scope: recover integrated main-derived product on `fix/final-integrated-system`
+  at `31aece45ffa2d5279a9e81ec769f9e72a9813281`; audit merged PR sources/runtime/data;
+  preserve Admin features; no AI/provider work, Git mutation, .env/profile change or seeding.
+- Findings verified before edits: PR14 landing/assets remained; PR13 integration merge
+  `86be6c2` duplicated i18n imports and omitted a closing test delimiter. Initial `npm run
+  check` failed parsing both files. These were actual merge defects; their authoring origin
+  is not asserted. Running frontend lacked campus hero/home styles and images.
+- Minimal fixes: deduplicate imports while retaining all dictionaries; close the existing
+  AppShell test; restore pending simulation only through the active /me effect after login;
+  Dashboard alias results use owned enrollment data without fetching public slug `enrolled`.
+  No scoring, completion, authorization, provider or schema behavior was rewritten.
+- Evidence: focused suites73PASS then75PASS; full frontend377PASS/38files, lint/buildPASS;
+  backend verify473total/467PASS/6existingSKIP. Tests retain account-generation remount,
+  anti-open-redirect, no automatic enrollment and denied alias-result checks.
+- Runtime: standard careersimfresh build and controlled backend/frontend/gateway recreation;
+  backend image unchanged, frontend replaced. Gateway bundles match the current enabled local
+  build byte-for-byte; HCM-UTE images match source. Database V1–V31 checksums match, no pending
+  migration; data counts and private asset hashes unchanged. Protected backup made first.
+- Owner boundary: runtime remains local; real-auth demo requires approval for auth-test and
+  localhost HTTP cookie configuration. Core scenario/version/enrollment counts are zero;
+  no seed/data insertion or Enterprise permission change performed. Quiz has4published
+  versions/75questions, so no assessment data addition is needed. Browser disabled in Work
+  settings: actual Chrome rendering/login/Student-runtime UAT NOT RUN. Human review pending.
+- Detailed current evidence and exact Git status are in
+  `.agent/reports/final-integrated-system-recovery-2026-10-27.md`.
+
+### 2026-10-27 — Normal local authentication and integrated V32 verification (Codex Sol)
+
+- Human instruction: normal local must remain anonymous until real registration/login;
+  direct login and logout return Home; preserve safe pending simulation return, HCM-UTE
+  landing and Admin features. Verify existing quizzes and the approved V32 catalogue;
+  no new dataset, provider calls, .env edit or Git publication.
+- AI assistance: opt-in default-false LOCAL_DEMO_MODE, explicit Admin API/route guards,
+  account navigation/copy/typography, role-aware header/logo, tests and deployment docs.
+  Existing JWT/CSRF/PasswordEncoder, assessment scoring and simulation rules were reused.
+- Incorrect AI-generated work actually detected and corrected: the new isolated Student
+  login fixture omitted its required student_profiles row and correctly received403;
+  the fixture was fixed without weakening account validation. A broad test replacement
+  changed the unrelated landing Journey CTA expectation; restored that assertion while
+  retaining the new Student-only header Dashboard expectation. Runtime harness reused
+  locked-task DTOs and sent no deliverable for task2 (422); fixed the harness to reload
+  after self-review, matching the existing UI. No application validation was bypassed.
+- Verification: focused frontend93PASS and backend14PASS; final npm run check385PASS
+  (39files), lint/buildPASS; mvnw.cmd verify477total/471PASS/6existing opt-inSKIP,
+  no failures. Standard careersimfresh build/startPASS, V1–V32 checksums match sources,
+  all9catalogue/detail APIsPASS, existing React catalogue renders9cards EN/VI from live
+  DTOs. Actual registered Student completed RIASEC save/resume/submit/result and a
+  two-task Cyber Security Operations draft/file/FINAL/self-review/results flow, followed
+  by logout/denial/relogin. Three synthetic UAT accounts and their audit/data remain.
+- Human verification: Owner explicitly confirmed Admin login→Home→Admin Studio→logout
+  →Home→protected Admin denial→relogin PASS. This is Owner-reported, not a Sol-observed
+  Chrome session. Browser control is disabled in Work settings; Sol browser/visual UAT
+  NOT RUN. V32 contains0model_answer/0task_resource: release authorization passed but
+  example-answer content is unavailable. No guessed content or migration edit applied.
+- Protected backup preceded deployment; original5private asset files, PostgreSQL
+  container/volumes and13pre-existing untracked Owner files were preserved. Detailed
+  evidence: [normal local/V32 report](.agent/reports/final-local-auth-uat-2026-10-27.md).
+  Human final product review remains Team Lead's responsibility; no AI quality claim.
+
+### 2026-10-27 — Real Agent model reliability recovery (Codex Sol)
+
+- Human prompt: recover the existing Agent end to end with a real LLM, authorized
+  RAG/citations, Student tools, schema-valid artifacts, confirmation/idempotency,
+  bounded model failover and existing usage audit. Preserve accepted integration,
+  sealed configurations, DB/volumes and Git state; no .env/key change or new runtime.
+- AI assistance: trace singleton model allowlist; add optional ordered fallback keys
+  to existing experience_config JSON/hash; repair modern Gemini request parameters;
+  implement per-execution retry/deadline budget, safe attempt audit, schema repair,
+  tool-observation reuse, compact composer-only Quick Actions and focused tests.
+  Existing RAG, tools, publication, role discovery, consent and plan confirmation are
+  reused. [Decision/evidence boundaries](docs/architecture/agent-model-reliability.md)
+  and [real UAT procedure](docs/testing/ai-agent-real-runtime-uat.md).
+- Measured server-side probe, one text inference per model with existing credential:
+  3.8 metadata200 but22,009ms transport timeout; 3.6 inference200/2,327ms;
+  3.5-lite inference200/5,334ms; legacy3.1-lite503/1,480ms. No Student context or
+  credential/body/header was logged. New UAT order3.6→3.5-lite is based on these
+  actual project observations; metadata is not inference, availability is not quota,
+  and no pricing/free-tier assumption is added.
+- Incorrect AI-generated work actually detected/corrected: the new usage test tried
+  to modify a terminal execution and hit TERMINAL_EXECUTION_IMMUTABLE; the fixture
+  now follows RUNNING→SUCCEEDED without disabling the trigger. Adding MODEL_ATTEMPT
+  exposed a real Student consent-redaction bug (old code assumed every row had a
+  tool name); fixed safe metadata redaction and retained CANCELLED/null-output/
+  no-replay assertions. The native-tool test now verifies three actual calls and
+  two model-attempt records separately. Quick Action constants initially violated
+  Fast Refresh lint and were moved to a plain module. Fallback validation initially
+  focused Chat instead of Brain; the focused UI test caught/fixed that routing.
+- The24-case Owner pack is reconciled with the existing deterministic Agent
+  controller/output-validator framework. Same fixtures: pre-repair single-model
+  strategy22/24; repaired bounded strategy24/24. Generated report explicitly says
+  DETERMINISTIC_CONTROLLER_SCHEMA_FIXTURES_NOT_LIVE_MODEL_QUALITY. These figures
+  do not represent24 live semantic passes or human acceptance.
+- Verification: final npm run check391PASS/40files plus lint/build; final backend
+  verify532discovered/526PASS/6existing opt-inSKIP,0fail/error. Standard Compose
+  build/startPASS; gateway serves byte-identical enabled source bundle, backend JAR
+  has the new adapter/failover. V1–V32, PostgreSQL container,7private asset hashes
+  and6old sealed configuration hashes preserved. Protected backup made first.
+- Runtime/remaining evidence: [task report](.agent/reports/ai/2026-10-27-real-agent-reliability.md).
+  Computer Use stopped because it could not confidently determine the current Windows
+  browser URL; no UI bypass attempted. Owner Admin operations and real cited KB /
+  published Student checks remain pending. No live semantic/human PASS is invented.
+
+#### Owner AI UAT follow-up — 2026-10-27
+
+- Owner supplied actual Preview output; DB audit confirms3.5-lite real answers for
+  evidence groups (4,425ms/1citation) and FOUR-item checklist (5,705ms/1citation).
+  Its comparison generated output but failed local validation. Rejected raw output
+  was not retained, so the historical exact invalid field is not asserted.
+- Verified saved settings differed from the UAT recipe: v1 had2rounds/30s/KB_ONLY;
+  v3 using3.8 had no fallback. The Data/QA question used simulation catalogue only;
+  no second retrieval opportunity remained. Uncited greetings fail strict KB_ONLY.
+- Actual AI-generated transport defect detected: header timeout used the attempt
+  budget, but stream body checked only the outer execution deadline. New stalled-body
+  deterministic test failed before the fix and passed afterward. Absolute body
+  deadline plus immediate timeout failover now preserves remaining execution time.
+- New versioned prompt v2 clarifies tool/source choice, balanced comparisons, exact
+  citation and suggestion limits, trust boundaries and actor context. V1 remains
+  byte-exact/readable; new Saves use v2 without rewriting old sealed configurations.
+  New Agent defaults4rounds/4calls/60s/GENERAL_ALLOWED; KB Test remains strict.
+- A single extra real native-adapter diagnostic, using the exact5 approved synthetic
+  passages from the failed comparison and candidate v2, returned a schema-validated
+  answer with3literal citations in2,647ms. It is explicitly not an Admin execution
+  or publication proof. No retry loop, raw body, key or private Student context logged.
+- Model recommendation updated from minimal-probe3.6→3.5 to actual Agent-evidence
+  3.5→3.6; timed-out3.8 excluded from the UAT chain. Safe validation diagnostics and
+  distinct UI error prevent incorrectly presenting malformed output as a network error.
+  Remaining live checks stay pending until their actual observations are recorded.
+- Final quality rerun: backend535discovered/529PASS/6existingSKIP; frontend392PASS,
+  lint/buildPASS. Second standard build/start and byte-identical served bundlePASS;
+  fresh protected backup first.8assets/9pre-switch sealed configs,V1–V32 and PostgreSQL
+  container preserved. Owner also supplied a real requested3.6→effective3.5-lite
+  cited checklist success (25,764ms); this proves a real failover, not stability for
+  every request. Revised-version P1/P2 and Student acceptance remain pending.
+- Owner then verified actual P1/P2 on prompt-v2 version5:4,275ms/1citation and
+  4,157ms/5citations respectively. Comparison improved from prior v1 local rejection
+  to accepted real output. Audit still showed2rounds/30s/KB_ONLY, so those successes
+  are not falsely attributed to4rounds orGENERAL_ALLOWED. Identity later hit the old
+  round limit; no correct saved conversational version existed yet.
+- To avoid repeated manual draft/pinned-chat confusion, prepared an Owner-operated
+  localhost API runner preserving instructions/variables/KB while creating the approved
+  immutable configuration, pinning a new chat, bounded6-case UAT/source revalidation,
+  conditional exact-version publication/role activation. It uses normal Admin login
+  and CSRF, hidden local password input, RAM-only auth, safe ID/status evidence and
+  stops on failure/no automatic question retry. No credential is read by Sol.
+  The first command incorrectly assumed pwsh was in Owner PATH; Owner reported the
+  error. Runner was made compatible with Windows PowerShell5.1/7, UTF8-BOM for
+  Vietnamese text; its offline self-test passed on actual Windows PowerShell5.1.
+  No provider call occurred from that command-not-found error. Runner live result
+  remains pending and must not be represented as PASS from its offline self-test.
+
+### 2026-10-27 — real Student follow-through and Owner correction
+
+Codex Sol continued after Owner's six-case real Admin runner PASS and exact version6
+publication to STUDENT. Three actual Student turns used assessment.lookup,
+simulation.explore and simulation.myEvidence against own/current application data
+and returned validated cited answers. A composition turn failed local validation;
+live calls stopped before the next deterministic repair. Existing output/artifact
+schemas now constrain modern Gemini generation while host validation remains strict.
+
+Owner then explicitly requested no separate Student consent step and alternating
+chat bubbles consistent with the system. Only STUDENT_CHAT admission changes; no
+consent rows are auto-created, and authorization/privacy revision fences remain.
+User-provided historical refusals are retained. No unrelated auth/data changes.
+
+Actual AI-generated errors caught: the new default streamStructured method was not
+delegated by Mockito, failing integration fixtures; explicit real-default delegation
+fixed the fixture without weakening assertions. A consent UI draft failed effect
+lint, then was removed entirely after Owner changed the product policy. Full Admin
+UI tests hit the existing 5s timeout under concurrent test load; isolated unchanged
+tests passed, so final full checks run without that contention. No timeout assertion
+was relaxed. Final API/test evidence is reported separately from human visual UAT.
+
+The first real combined Student test after JSON-schema wiring still failed
+CITATION_QUOTE_MISMATCH: all provider decisions and read tools succeeded. This
+showed the initial AI-generated repair was incomplete: JSON conformance does not
+prove a quote is literal, and the final round left no repair opportunity. Calls
+stopped. The correction constrains final citation pairs to short verbatim windows
+of already authorized evidence and reserves one repair within the same round cap.
+It never rewrites a bad model quote or weakens the local validator. Deterministic
+tests cover Unicode/exact pairing, fabricated quote rejection and no tool replay.
+
+The hard-quote anyOf implementation then caused HTTP400 for the actual authorized
+fixture schema despite a small synthetic control succeeding. Live execution stopped.
+One direct schema diagnostic reproduced400; one changed flat-schema diagnostic with
+the same fixture returned200. This caught another actual AI-generated integration
+mistake: assuming schema keyword support proves every concrete schema is accepted.
+Long quote enums were removed from the wire schema; short current reference bounds
+remain, with literal quote examples passed only as untrusted current-run data.
+The unchanged host validator still rejects paraphrases and wrong reference/quote
+pairs. No raw provider error/body, key or private Owner data was printed.

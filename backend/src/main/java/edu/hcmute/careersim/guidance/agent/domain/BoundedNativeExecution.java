@@ -20,6 +20,14 @@ public final class BoundedNativeExecution {
         JsonNode output(Decision decision);
 
         List<JsonNode> tools(Decision decision);
+
+        default boolean recoverInvalidOutput() {
+            return false;
+        }
+
+        default boolean reserveOutputRepair() {
+            return false;
+        }
     }
 
     public static JsonNode execute(int rounds, int maxCalls, boolean toolsEnabled, Host host) {
@@ -27,13 +35,26 @@ public final class BoundedNativeExecution {
             throw new IllegalArgumentException("Invalid execution budget");
         var exchanges = new ArrayList<Exchange>();
         int calls = 0;
+        boolean repairing = false;
         for (int round = 0; round < rounds; round++) {
             host.checkpoint();
-            boolean allowed = toolsEnabled && calls < maxCalls && round < rounds - 1;
+            int finalSlots = host.reserveOutputRepair() && rounds >= 3 ? 2 : 1;
+            boolean allowed =
+                    !repairing && toolsEnabled && calls < maxCalls && round < rounds - finalSlots;
             var decision = host.decide(allowed, List.copyOf(exchanges));
             host.checkpoint();
             if (decision == null || decision.calls() == null) throw failure();
-            if (decision.calls().isEmpty()) return host.output(decision);
+            if (decision.calls().isEmpty()) {
+                try {
+                    return host.output(decision);
+                } catch (SynGuidanceProvider.ProviderException invalid) {
+                    if (invalid.kind() != SynGuidanceProvider.FailureKind.MALFORMED_OUTPUT
+                            || round + 1 >= rounds
+                            || !host.recoverInvalidOutput()) throw invalid;
+                    repairing = true;
+                    continue;
+                }
+            }
             if (!allowed
                     || decision.calls().size() > 8
                     || (calls += decision.calls().size()) > maxCalls) throw failure();

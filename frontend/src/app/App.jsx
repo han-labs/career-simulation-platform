@@ -23,6 +23,7 @@ import StudentAgentPage from '../features/agents/StudentAgentPage.jsx'
 import AgentUsagePage from '../features/admin/agentPlatform/AgentUsagePage.jsx'
 import { useI18n } from '../shared/i18n/useI18n.js'
 import AdminStudioLayout from '../features/admin/agentPlatform/AdminStudioLayout.jsx'
+import AdminAccessGate from '../features/admin/agentPlatform/AdminAccessGate.jsx'
 import AccountPage from '../features/identity/AccountPage.jsx'
 
 function LegacyUsageRedirect() {
@@ -72,7 +73,7 @@ function App() {
       <Route element={<ApplicationLayout />}>
         <Route index element={<LandingPage />} />
         <Route path="account" element={<AccountPage />} />
-        {agentPlatformEnabled && <Route path="admin" element={<AdminStudioLayout />}>
+        {agentPlatformEnabled && <Route path="admin" element={<AdminAccessGate><AdminStudioLayout /></AdminAccessGate>}>
           <Route index element={<Navigate to="/admin/knowledge" replace />} />
           <Route path="knowledge" element={<KnowledgeStudioPage />} />
           <Route path="agents" element={<AgentBuilderPage />} />

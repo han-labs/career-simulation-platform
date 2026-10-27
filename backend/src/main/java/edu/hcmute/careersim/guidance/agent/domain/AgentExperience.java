@@ -11,18 +11,20 @@ public final class AgentExperience {
 
     public static void validate(JsonNode n, String instructions) {
         if (n == null || n.isNull()) return;
-        AgentConfigurationPolicy.object(
-                n,
-                Set.of(
-                        "schemaVersion",
-                        "name",
-                        "description",
-                        "audience",
-                        "language",
-                        "greeting",
-                        "timezone",
-                        "variables",
-                        "chat"));
+        var supported =
+                new HashSet<>(
+                        Set.of(
+                                "schemaVersion",
+                                "name",
+                                "description",
+                                "audience",
+                                "language",
+                                "greeting",
+                                "timezone",
+                                "variables",
+                                "chat"));
+        if (n.has("fallbackModelKeys")) supported.add("fallbackModelKeys");
+        AgentConfigurationPolicy.object(n, supported);
         if (n.path("schemaVersion").asInt() != 2 || !n.path("schemaVersion").isIntegralNumber())
             CoreValues.invalid("Unsupported experience schema.");
         text(n, "name", 180, true);

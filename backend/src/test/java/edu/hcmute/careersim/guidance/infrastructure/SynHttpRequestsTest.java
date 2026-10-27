@@ -11,6 +11,67 @@ import org.springframework.web.client.RestClient;
 
 class SynHttpRequestsTest {
     @Test
+    void agentAttemptBudgetAlsoBoundsAStreamBodyAfterSuccessfulHeaders() throws Exception {
+        var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        var executor = Executors.newCachedThreadPool();
+        var release = new CountDownLatch(1);
+        server.setExecutor(executor);
+        server.createContext(
+                "/stream",
+                e -> {
+                    e.getResponseHeaders().set("Content-Type", "text/event-stream");
+                    e.sendResponseHeaders(200, 0);
+                    e.getResponseBody()
+                            .write(
+                                    ": connected\n\n"
+                                            .getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                    e.getResponseBody().flush();
+                    try {
+                        release.await(3, TimeUnit.SECONDS);
+                    } catch (InterruptedException interrupted) {
+                        Thread.currentThread().interrupt();
+                    } finally {
+                        e.close();
+                    }
+                });
+        server.start();
+        try (var scope =
+                edu.hcmute.careersim.guidance.service.SynExecutionScope.open(
+                        Duration.ofSeconds(10), () -> true)) {
+            long started = System.nanoTime();
+            assertThatThrownBy(
+                            () ->
+                                    AgentTransportBudget.within(
+                                            Duration.ofMillis(500),
+                                            () -> {
+                                                SynHttpRequests.stream(
+                                                        java.net.URI.create(
+                                                                "http://127.0.0.1:"
+                                                                        + server.getAddress()
+                                                                                .getPort()
+                                                                        + "/stream"),
+                                                        "gemini",
+                                                        java.util.Map.of(),
+                                                        "{}".getBytes(),
+                                                        ignored -> {});
+                                                return null;
+                                            }))
+                    .isInstanceOfSatisfying(
+                            edu.hcmute.careersim.guidance.service.SynGuidanceProvider
+                                    .ProviderException.class,
+                            failure ->
+                                    assertThat(failure.diagnostics().get("networkCategory"))
+                                            .isEqualTo("TRANSPORT_DEADLINE"));
+            assertThat(Duration.ofNanos(System.nanoTime() - started))
+                    .isLessThan(Duration.ofSeconds(2));
+        } finally {
+            release.countDown();
+            server.stop(0);
+            executor.shutdownNow();
+        }
+    }
+
+    @Test
     void agentBudgetUsesRemainingExecutionWithMarginWithoutChangingLegacyCap() {
         try (var scope =
                 edu.hcmute.careersim.guidance.service.SynExecutionScope.open(

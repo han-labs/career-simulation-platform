@@ -145,7 +145,8 @@ describe('Landing Page components & institutional identity', () => {
     expect(html).toContain('Career Simulation Platform')
     expect(html).toContain('href="/assessment"')
     expect(html).toContain('href="/simulations"')
-    expect(html).toContain('href="/dashboard"')
+    expect(html).not.toContain('href="/dashboard"')
+    expect(html).not.toContain('href="/guidance"')
     expect(html).toContain('Developed for OOSE / Scientific Research Project')
   })
 

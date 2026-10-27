@@ -113,17 +113,17 @@ public class ExecutionServiceImpl implements ExecutionService {
                         "enabled",
                         List.of(),
                         "maxRounds",
-                        2,
+                        4,
                         "maxToolCalls",
-                        8,
+                        4,
                         "topK",
                         5,
                         "timeoutSeconds",
-                        30),
+                        60),
                 "defaultMemoryPolicy",
                 Map.of("enabled", false),
                 "defaultOutputPolicy",
-                Map.of("schemaVersion", 1, "grounding", "KB_ONLY", "maxCharacters", 4000),
+                Map.of("schemaVersion", 1, "grounding", "GENERAL_ALLOWED", "maxCharacters", 4000),
                 "limits",
                 Map.of(
                         "maxKnowledgeBases",
@@ -520,6 +520,13 @@ public class ExecutionServiceImpl implements ExecutionService {
                                                     n ->
                                                             StudentEvidenceTools.NAMES.contains(
                                                                     n.asText()));
+                    var failover =
+                            new AgentModelFailover(
+                                    c.modelKey(),
+                                    c.configuration() == null
+                                            ? null
+                                            : c.configuration().experienceConfig(),
+                                    steps::add);
                     output =
                             BoundedNativeExecution.execute(
                                     rounds,
@@ -569,9 +576,8 @@ public class ExecutionServiceImpl implements ExecutionService {
                                                                                                             "timeoutSeconds")
                                                                                                     .asInt())));
                                             String actualRequest = request;
-                                            return SynExecutionScope.observe(
-                                                    "AGENT_MODEL",
-                                                    () ->
+                                            return failover.call(
+                                                    effectiveModel ->
                                                             c.configuration() != null
                                                                             && java
                                                                                     .util
@@ -590,7 +596,7 @@ public class ExecutionServiceImpl implements ExecutionService {
                                                                                                             .equals(
                                                                                                                     "kb.search"))
                                                                     ? model.stream(
-                                                                            c.modelKey(),
+                                                                            effectiveModel,
                                                                             prompt
                                                                                     + "\nADMIN_PREVIEW has public catalogue context only. Student identity/evidence/history is unavailable and private tools are denied.",
                                                                             actualRequest,
@@ -616,26 +622,46 @@ public class ExecutionServiceImpl implements ExecutionService {
                                                                                     : List.of(),
                                                                             delta -> {})
                                                                     : model.decide(
-                                                                            c.modelKey(),
+                                                                            effectiveModel,
                                                                             prompt,
                                                                             actualRequest,
                                                                             List.copyOf(exchanges),
                                                                             allowTool));
                                         }
 
+                                        public boolean recoverInvalidOutput() {
+                                            return failover.repairInvalidOutput();
+                                        }
+
                                         public JsonNode output(
                                                 AgentModelProvider.Decision decision) {
-                                            JsonNode validated =
-                                                    StudentOutputValidator.validate(
-                                                            decision.output(),
-                                                            "CHAT",
-                                                            new ArrayList<>(evidence.values()),
-                                                            domainEvidence.values(),
-                                                            "KB_TEST".equals(c.mode())
-                                                                    ? defaultOutput()
-                                                                    : c.configuration()
-                                                                            .outputPolicy());
-                                            return validated;
+                                            try {
+                                                return StudentOutputValidator.validate(
+                                                        decision.output(),
+                                                        "CHAT",
+                                                        new ArrayList<>(evidence.values()),
+                                                        domainEvidence.values(),
+                                                        "KB_TEST".equals(c.mode())
+                                                                ? defaultOutput()
+                                                                : c.configuration().outputPolicy());
+                                            } catch (
+                                                    SynGuidanceProvider.ProviderException invalid) {
+                                                if (invalid.kind()
+                                                        == SynGuidanceProvider.FailureKind
+                                                                .MALFORMED_OUTPUT)
+                                                    steps.add(
+                                                            Map.of(
+                                                                    "type",
+                                                                    "OUTPUT_VALIDATION",
+                                                                    "status",
+                                                                    "FAILED",
+                                                                    "validationCheck",
+                                                                    invalid.diagnostics()
+                                                                            .getOrDefault(
+                                                                                    "validationCheck",
+                                                                                    "OUTPUT_SCHEMA_OR_LIMIT")));
+                                                throw invalid;
+                                            }
                                         }
 
                                         public List<JsonNode> tools(
@@ -893,7 +919,17 @@ public class ExecutionServiceImpl implements ExecutionService {
                         step -> {
                             var safe = new LinkedHashMap<String, Object>();
                             for (String key :
-                                    List.of("type", "name", "status", "errorCode", "elapsedMs"))
+                                    List.of(
+                                            "type",
+                                            "name",
+                                            "status",
+                                            "errorCode",
+                                            "elapsedMs",
+                                            "requestedModel",
+                                            "effectiveModel",
+                                            "attempt",
+                                            "fallbackFrom",
+                                            "reason"))
                                 if (step.containsKey(key)) safe.put(key, step.get(key));
                             safe.put("contentRedacted", true);
                             return Map.copyOf(safe);
@@ -1012,7 +1048,7 @@ public class ExecutionServiceImpl implements ExecutionService {
                         "text",
                         "INSUFFICIENT_EVIDENCE".equals(kind)
                                 ? "There is insufficient authorized knowledge to answer this question."
-                                : "The Agent could not complete this request safely. Core assessments and simulations remain available.",
+                                : "AI assistance is temporarily unavailable. Please try again later. Core assessments and simulations remain available.",
                         "citations",
                         List.of(),
                         "suggestions",

@@ -61,7 +61,7 @@ it('connects the one guest account action to the existing AccountPage form', asy
   expect(screen.getByRole('button',{name:'Register',exact:true})).toBeTruthy()
 })
 
-it('retains guest Start/account pending handoff and main login behavior without automatic enrollment (baseline redirect gap recorded)',async()=>{
+it('returns guest Start to the exact simulation after account-generation remount without automatic enrollment',async()=>{
   view()
   fireEvent.click(await screen.findByRole('link',{name:'View Simulation: Audited API simulation'}))
   fireEvent.click(await screen.findByRole('button',{name:'Start free simulation'}))
@@ -70,9 +70,9 @@ it('retains guest Start/account pending handoff and main login behavior without 
   fireEvent.change(screen.getByLabelText('Email *'),{target:{value:'synthetic@example.test'}})
   fireEvent.change(screen.getByLabelText('Password *'),{target:{value:'Synthetic-password-123'}})
   fireEvent.submit(screen.getAllByRole('button',{name:'Sign in',exact:true}).find(button=>button.closest('form')).closest('form'))
-  // Main remount consumes pending navigation twice; live baseline confirms assessment landing.
-  // Account/HTTP/router implementations remain unchanged; tracked as D13.
-  await screen.findByRole('heading',{name:'Career Assessments'})
+  await screen.findByRole('heading',{name:'Audited API simulation',level:1})
+  expect(sessionStorage.getItem('careersim_pending_simulation_path')).toBeNull()
+  expect(screen.getByRole('button',{name:'Start free simulation'})).toBeTruthy()
   expect(apiRequest.mock.calls.some(([path])=>path.includes('/enrollments'))).toBe(false)
   expect(screen.getByRole('button',{name:'Sign out'})).toBeTruthy()
 })
@@ -99,12 +99,13 @@ it('retains real assessment selection, required-answer validation, state across 
   expect(apiRequest).toHaveBeenCalledWith('/v2/assessment-attempts/attempt-1/submit',expect.objectContaining({method:'POST',headers:expect.objectContaining({'If-Match':'1'})}))
 })
 
-it('keeps the existing direct shared logout accessible on Dashboard and restores AccountPage',async()=>{
+it('logs out from Dashboard to anonymous Home without restoring privileged state',async()=>{
   actor={id:'student-1',role:'STUDENT',consents:[]}
   view('/dashboard')
   await screen.findByRole('heading',{name:'Assessment results'})
   fireEvent.click(await screen.findByRole('button',{name:'Sign out'}))
-  await screen.findByRole('heading',{name:'Welcome back'})
+  await screen.findByRole('heading',{name:/Explore real careers/})
+  expect(screen.getByRole('link',{name:'Sign In / Sign Up'})).toBeTruthy()
   expect(apiRequest).toHaveBeenCalledWith('/v2/auth/logout',expect.objectContaining({method:'POST',body:'{}'}))
   expect(screen.queryByRole('heading',{name:'Assessment results'})).toBeNull()
 })

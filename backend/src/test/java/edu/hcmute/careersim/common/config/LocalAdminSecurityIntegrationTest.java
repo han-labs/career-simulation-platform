@@ -15,7 +15,12 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.*;
 
-@SpringBootTest(properties = {"app.core-v2-enabled=true", "app.agent-platform-enabled=true"})
+@SpringBootTest(
+        properties = {
+            "app.local-demo-mode=true",
+            "app.core-v2-enabled=true",
+            "app.agent-platform-enabled=true"
+        })
 @ActiveProfiles("local")
 @AutoConfigureMockMvc
 @Testcontainers

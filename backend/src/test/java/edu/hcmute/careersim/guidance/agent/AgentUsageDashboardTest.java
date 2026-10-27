@@ -296,6 +296,30 @@ class AgentUsageDashboardTest {
     }
 
     @Test
+    void modelFailoverProjectionIncludesOnlyAllowlistedOperationalMetadata() {
+        UUID id = row("RUNNING", "UNKNOWN", null, 100L, FROM, true, "gemini/fixture");
+        jdbc.update(
+                "UPDATE agent_execution SET tool_steps_and_sources=?::jsonb WHERE id=?",
+                """
+                [{"type":"MODEL_ATTEMPT","requestedModel":"gemini/fixture","effectiveModel":"gemini/fixture","reason":"PRIMARY","privatePrompt":"PRIVATE_PROMPT"},
+                 {"type":"MODEL_ATTEMPT","requestedModel":"gemini/fixture","effectiveModel":"gemini/fallback","reason":"PROVIDER_HTTP_UNAVAILABLE","rawResponse":"PRIVATE_RESPONSE"},
+                 {"type":"MODEL_ATTEMPT","requestedModel":"gemini/fixture","effectiveModel":"PRIVATE_RAW_MODEL","reason":"PRIVATE_RAW_REASON","credential":"PRIVATE_KEY"}]
+                """,
+                id);
+        jdbc.update(
+                "UPDATE agent_execution SET status='SUCCEEDED',finished_at=? WHERE id=?",
+                Timestamp.from(FROM.plusSeconds(1)),
+                id);
+        var dashboard = read();
+        var execution = dashboard.executions().get(0);
+        assertThat(execution.model()).isEqualTo("gemini/fixture");
+        assertThat(execution.effectiveModel()).isEqualTo("gemini/fallback");
+        assertThat(execution.fallbackReasons()).containsExactly("PROVIDER_HTTP_UNAVAILABLE");
+        assertThat(CoreValues.write(dashboard))
+                .doesNotContain("PRIVATE_", "privatePrompt", "rawResponse", "credential");
+    }
+
+    @Test
     void rejectsInvalidBoundsAndInputsIncludingOversizedWindowByOneNanosecond() {
         for (var f :
                 List.of(
