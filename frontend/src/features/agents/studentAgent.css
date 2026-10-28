@@ -6,10 +6,10 @@
 .student-agent-widget .student-agent-launcher > span { display:grid; place-items:center; position:relative; }
 .student-agent-widget .student-agent-launcher .student-agent-sparkle { position:absolute; right:-7px; top:-6px; }
 .student-agent-widget .student-agent-launcher:hover:not(:disabled) { background:var(--cs-primary-hover,#29589e); }
-.student-agent-popup { position:fixed; right:16px; bottom:max(86px,calc(env(safe-area-inset-bottom) + 80px)); width:460px; height:min(680px,82dvh,calc(100dvh - 104px - env(safe-area-inset-bottom))); max-width:calc(100vw - 16px); border:1px solid var(--student-chat-line); border-radius:16px; background:#fff; box-shadow:0 12px 40px #172b4d26; overflow:hidden; transition:width 200ms ease,height 200ms ease; animation:student-agent-open 200ms ease; }
+.student-agent-popup { position:fixed; right:16px; bottom:max(86px,calc(env(safe-area-inset-bottom) + 80px)); width:460px; height:min(680px,82dvh,calc(100dvh - 104px - env(safe-area-inset-bottom))); max-width:calc(100vw - 16px); border:1px solid var(--student-chat-line); border-radius:16px; background:#fff; box-shadow:0 12px 40px #172b4d26; overflow:hidden; transform-origin:bottom right; transition:width 200ms ease,height 200ms ease,opacity 200ms ease,transform 200ms ease,visibility 0s; animation:student-agent-open 200ms ease; }
 .student-agent-popup--expanded { width:780px; }
 .student-agent-widget .student-agent-chat { position:relative; display:flex; flex-direction:column; height:100%; min-width:0; overflow:hidden; color:var(--cs-text,#172b4d); font-size:14px; line-height:1.55; background:#fff; }
-.student-agent-chat .student-chat-header { flex:none; display:flex; flex-wrap:nowrap; align-items:center; gap:8px; height:56px; padding:8px 12px; border-bottom:1px solid var(--student-chat-line); background:#fff; }
+.student-agent-chat .student-chat-header { flex:none; display:flex; flex-wrap:nowrap; align-items:center; gap:8px; height:56px; padding:8px 12px; border-bottom:1px solid #d4e2f5; background:#eaf2fd; color:#244a80; }
 .student-agent-chat .student-chat-header h2 { flex:1; min-width:0; margin:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:14px; font-weight:650; line-height:1.4; letter-spacing:0; }
 .student-agent-chat .student-header-actions { flex:none; display:flex; gap:2px; }
 .student-agent-widget .cs-button.student-icon-button { display:inline-flex; align-items:center; justify-content:center; flex:none; width:32px; height:32px; min-width:32px; min-height:32px; padding:0; border:0; border-radius:8px; background:transparent; color:#64748b; line-height:1; }
@@ -95,3 +95,7 @@
 @media(prefers-reduced-motion:reduce) { .student-agent-popup,.student-agent-chat .student-history-drawer,.student-agent-chat .student-chat-citation[open],.student-agent-chat .student-message-run[open] { animation:none; transition:none; scroll-behavior:auto; } }
 
 .student-agent-chat .chat-viewport-tail { flex:none; }
+
+.student-agent-popup[data-state="closed"] { animation:none; opacity:0; transform:translateY(12px) scale(.98); visibility:hidden; pointer-events:none; transition-delay:0s,0s,0s,0s,200ms; }
+.student-agent-widget .student-chat-header .cs-button.student-icon-button { color:#305b90; }
+.student-agent-widget .student-chat-header .cs-button.student-icon-button:hover:not(:disabled) { background:#d9e7fa; color:#193f73; }

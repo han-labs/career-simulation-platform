@@ -12,6 +12,7 @@ import Button from '../../shared/ui/Button.jsx'
 import Dialog from '../../shared/ui/Dialog.jsx'
 import FormField from '../../shared/ui/FormField.jsx'
 import FeedbackPanel from '../../shared/ui/FeedbackPanel.jsx'
+import AgentActivity from '../../shared/ui/AgentActivity.jsx'
 import './studentAgent.css'
 
 export default function StudentAgentChat({ owner, agent, id, onSessionChange, onClose, visible = true, expanded = false, onExpand }) {
@@ -144,7 +145,7 @@ function Conversation({ owner, id, agentName, visible, expanded, onSessionLoaded
         {item.actorType === 'USER' ? <article className="student-chat-bubble"><strong className="student-chat-speaker">{t('You')}</strong><p>{item.content.text}</p></article> : <AssistantMessage name={name} item={item} reportId={item.executionId === run?.id ? run?.reportId : null} />}
       </li>)}</ol>
       {sent && !history.some(item => item.actorType === 'USER' && item.executionId && item.executionId === sent.executionId) && <div data-chat-anchor={sent.key} className="student-chat-turn student-chat-turn--user"><article className="student-chat-bubble"><strong className="student-chat-speaker">{t('You')}</strong><p>{sent.text}</p>{!sent.executionId && <small role="status">{t('Sending...')}</small>}</article></div>}
-      {working && <div className="student-chat-turn student-chat-turn--agent"><div className="student-chat-bubble" role="status"><strong className="student-chat-speaker">{name}</strong><p>{segments || t('Processing...')}</p><Button className="student-icon-button student-stop" aria-label={t('Cancel execution')} title={t('Cancel execution')} icon={<Square size={12} fill="currentColor" />} onClick={async () => { try { setRun(await command(`${runPath(run.id)}/cancel`, {})) } catch (failure) { setError(failure.message) } }} /></div></div>}
+      {working && <div className="student-chat-turn student-chat-turn--agent"><div className="student-chat-bubble"><strong className="student-chat-speaker">{name}</strong>{segments && <p>{segments}</p>}<AgentActivity /><Button className="student-icon-button student-stop" aria-label={t('Cancel execution')} title={t('Cancel execution')} icon={<Square size={12} fill="currentColor" />} onClick={async () => { try { setRun(await command(`${runPath(run.id)}/cancel`, {})) } catch (failure) { setError(failure.message) } }} /></div></div>}
       {!running && run && !hasAssistant && <div className="student-chat-turn student-chat-turn--agent"><AssistantMessage name={name} item={{ id: run.id, executionId: run.id, content: run.output ?? { text: '' } }} reportId={run.reportId} /></div>}
       {run?.status === 'FAILED' && <FeedbackPanel kind="error" title={t('Request failed')}>{t(run.errorCode === 'MALFORMED_OUTPUT' ? 'The model response did not pass validation. No answer was accepted.' : 'AI assistance is temporarily unavailable. Please try again later.')}</FeedbackPanel>}
       {streamId && error && !busy && <Button onClick={() => setRetry(value => value + 1)}>{t('Reconnect saved execution')}</Button>}
@@ -184,7 +185,7 @@ function MessageRunDetails({ executionId }) {
   const fields = result ? [['Run', result.status], ['Execution ID', executionId], ['Requested model', result.requestedModelKey], ['Effective model', result.effectiveModelKey], ['Safe error category', result.errorCode], ['Measured latency', result.latencyMs == null ? null : `${result.latencyMs} ms`], ['Input tokens', result.inputTokens ?? t('Unknown')], ['Output tokens', result.outputTokens ?? t('Unknown')], ['Cost status', result.costStatus]] : []
   return <details className="student-message-run" onToggle={event => { if (event.currentTarget.open && !result && !pending.current) load() }}><summary>{t('View run details')}</summary>
     {loading && <p role="status">{t('Loading saved execution...')}</p>}{error && <FeedbackPanel kind="error">{t(error)}</FeedbackPanel>}
-    {result && <><dl>{fields.filter(([, value]) => value != null && typeof value !== 'object').map(([label, value]) => <div key={label}><dt>{t(label)}</dt><dd>{value}</dd></div>)}</dl><ul>{result.toolStepsAndSources?.map((step, index) => <li key={index}>{[step.type, step.name, step.status, step.errorCode, step.validationCheck].filter(value => typeof value === 'string').join(' · ')}{typeof step.elapsedMs === 'number' ? ` · ${step.elapsedMs} ms` : ''}</li>)}</ul></>}
+    {result && <><dl>{fields.filter(([, value]) => value != null && typeof value !== 'object').map(([label, value]) => <div key={label}><dt>{t(label)}</dt><dd>{t(value)}</dd></div>)}</dl><ul>{result.toolStepsAndSources?.map((step, index) => <li key={index}>{[step.type, step.name, step.status, step.errorCode, step.validationCheck].filter(value => typeof value === 'string').map(value => t(value)).join(' · ')}{typeof step.elapsedMs === 'number' ? ` · ${step.elapsedMs} ms` : ''}</li>)}</ul></>}
     {(result || error) && <Button disabled={loading} onClick={load}>{t('Reload saved execution')}</Button>}
   </details>
 }

@@ -7,6 +7,8 @@ import Dialog from './Dialog.jsx'
 import FormField from './FormField.jsx'
 import Tabs from './Tabs.jsx'
 import FeedbackPanel from './FeedbackPanel.jsx'
+import AgentActivity from './AgentActivity.jsx'
+import I18nProvider from '../i18n/I18nProvider.jsx'
 
 beforeEach(() => {
   // DOM double only; actual Chrome supplies top-layer modality and inertness.
@@ -14,6 +16,14 @@ beforeEach(() => {
   HTMLDialogElement.prototype.close = function () { this.removeAttribute('open') }
 })
 afterEach(cleanup)
+
+it.each([['en','Agent is preparing a response'],['vi','Trợ lý đang chuẩn bị phản hồi']])('provides an accessible animated Agent activity indicator in %s', (locale,label) => {
+  render(<I18nProvider initialLocale={locale}><AgentActivity /></I18nProvider>)
+  const activity=screen.getByRole('status',{name:label})
+  expect(activity.querySelector('svg').getAttribute('aria-hidden')).toBe('true')
+  expect(activity.textContent).toBe(label)
+  expect(screen.queryByText('Processing...')).toBeNull()
+})
 
 it('prevents duplicate dispatch while busy/disabled and does not implicitly submit forms', () => {
   const click = vi.fn(), submit = vi.fn()

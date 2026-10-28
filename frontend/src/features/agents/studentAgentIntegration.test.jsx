@@ -198,6 +198,7 @@ it('preserves the reading position across hidden streaming and reopening without
  apiRequest.mockImplementation(async(path,request)=>path.endsWith('/messages')||path.endsWith('/hidden-stream')?run:original(path,request));streamExecution.mockImplementation((_,options)=>{receive=options.onEvent;return new Promise(()=>{})})
  const renderChat=visible=><I18nProvider><Chat visible={visible}/></I18nProvider>,view=render(renderChat(true));await screen.findByText(/My conversation ·/)
  fireEvent.change(screen.getByLabelText('Message to Agent'),{target:{value:'Question'}});fireEvent.keyDown(screen.getByLabelText('Message to Agent'),{key:'Enter'});await waitFor(()=>expect(receive).toBeTypeOf('function'))
+ expect(screen.getByRole('status',{name:'Agent is preparing a response'})).toBeTruthy();expect(screen.queryByText('Processing...')).toBeNull()
  const transcript=screen.getByRole('region',{name:'Messages'});Object.defineProperties(transcript,{scrollHeight:{value:1200,configurable:true},clientHeight:{value:200,configurable:true}});transcript.scrollTop=300;fireEvent.scroll(transcript)
  view.rerender(renderChat(false));transcript.scrollTop=0;const {act}=await import('@testing-library/react');await act(()=>receive({sequenceNumber:1,type:'answer.segment',payload:{text:'While closed'}}));view.rerender(renderChat(true));expect(transcript.scrollTop).toBe(300)
  expect(streamExecution).toHaveBeenCalledTimes(1);expect(apiRequest.mock.calls.filter(([path])=>path.endsWith('/messages'))).toHaveLength(1)

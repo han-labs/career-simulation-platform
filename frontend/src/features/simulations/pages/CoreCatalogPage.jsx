@@ -130,7 +130,7 @@ export default function CoreCatalogPage() {
         <label htmlFor="career-track">{t('Career track')}</label>
         <select id="career-track" name="careerTrack" defaultValue={query.careerTrack} key={`${query.careerTrack}:${tracks.status}`} aria-describedby={tracks.status === 'error' ? 'career-track-error' : undefined}>
           <option value="">{t('All career tracks')}</option>
-          {query.careerTrack && !tracks.values.includes(query.careerTrack) && <option value={query.careerTrack}>{query.careerTrack}</option>}
+          {query.careerTrack && !tracks.values.includes(query.careerTrack) && <option value={query.careerTrack}>{t(query.careerTrack)}</option>}
           {tracks.values.map(track => <option key={track} value={track}>{t(track)}</option>)}
         </select>
         {tracks.status === 'loading' && <span role="status">{t('Loading career tracks…')}</span>}

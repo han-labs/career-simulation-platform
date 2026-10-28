@@ -3,6 +3,8 @@ import { expect, it } from 'vitest'
 import { createTranslator } from './translate.js'
 import { messages } from './messages.js'
 import { contentMessages } from './contentMessages.js'
+import { simulationMessages } from './simulationMessages.js'
+import { workspaceMessages } from './workspaceMessages.js'
 
 const sourceFiles = import.meta.glob('../../**/*.jsx', { query: '?raw', import: 'default', eager: true })
 const t = createTranslator('vi')
@@ -37,7 +39,7 @@ it('preserves future unknown content, technical code, numbers and data objects',
   expect(t('Show all 12')).toBe('Xem tất cả 12')
 })
 it('contains valid non-empty translations without combining-mark corruption', () => {
-  for (const [source, target] of Object.entries({ ...messages, ...contentMessages })) {
+  for (const [source, target] of Object.entries({ ...messages, ...contentMessages, ...simulationMessages, ...workspaceMessages })) {
     expect(source.length).toBeGreaterThan(0)
     expect(typeof target).toBe('string')
     expect(target.length).toBeGreaterThan(0)
