@@ -62,6 +62,11 @@ class StudentAgentIntegrationTest {
     @Autowired edu.hcmute.careersim.guidance.knowledge.service.KnowledgeStudioService knowledge;
     @Autowired JdbcTemplate jdbc;
     @Autowired StudentAgentService students;
+
+    @Autowired
+    edu.hcmute.careersim.assessment.service.VersionedAssessmentService assessmentCatalogue;
+
+    @Autowired StudentEvidenceTools publicTools;
     @Autowired AgentRegistryService registry;
     @Autowired ExecutionService executions;
     @Autowired AgentUsageQuery usage;
@@ -76,6 +81,7 @@ class StudentAgentIntegrationTest {
     long admin, owner, other;
     UUID agent, config;
     AtomicInteger providerCalls;
+    String naturalAction;
     CountDownLatch entered, release;
 
     long user(String role) {
@@ -149,6 +155,7 @@ class StudentAgentIntegrationTest {
 
     @BeforeEach
     void fixture() {
+        naturalAction = null;
         admin = user("ADMINISTRATOR");
         owner = user("STUDENT");
         other = user("STUDENT");
@@ -227,7 +234,8 @@ class StudentAgentIntegrationTest {
                                                                             200))))));
                             if (json.readTree(query).path("request").asText().contains("hold"))
                                 out.put("text", "First streamed sentence. " + FACT);
-                            if (prompt.contains("Explicit report request"))
+                            if (prompt.contains("Explicit report request")
+                                    || "INSIGHT_REPORT".equals(naturalAction))
                                 out.set(
                                         "report",
                                         CoreValues.tree(
@@ -258,7 +266,8 @@ class StudentAgentIntegrationTest {
                                                         "Exploration support only; this report does not certify professional competence or determine a career.",
                                                         "evidenceRefs",
                                                         List.of(ref))));
-                            if (prompt.contains("Explicit draft suggestion"))
+                            if (prompt.contains("Explicit draft suggestion")
+                                    || "PLAN_SUGGESTION".equals(naturalAction))
                                 out.set(
                                         "planSuggestion",
                                         CoreValues.tree(
@@ -273,6 +282,7 @@ class StudentAgentIntegrationTest {
                                                         List.of("Draft for Student review."),
                                                         "evidenceRefs",
                                                         List.of(ref))));
+                            if (naturalAction != null) out.put("requestedAction", naturalAction);
                             if (json.readTree(query)
                                     .path("request")
                                     .asText()
@@ -349,8 +359,12 @@ class StudentAgentIntegrationTest {
     }
 
     UUID savePublish() {
+        return savePublish(configuration());
+    }
+
+    UUID savePublish(ConfigurationInput input) {
         var a = registry.get(admin, agent);
-        var c = registry.save(admin, agent, a.revision(), configuration());
+        var c = registry.save(admin, agent, a.revision(), input);
         var e =
                 executions.preview(
                         admin,
@@ -395,6 +409,306 @@ class StudentAgentIntegrationTest {
     }
 
     @Test
+    void newSessionStoresPinnedConfiguredGreetingOnceWithoutProviderCall() {
+        var base = configuration();
+        var experience = new AgentExperienceTest().valid();
+        var selected =
+                savePublish(
+                        new ConfigurationInput(
+                                base.modelKey(),
+                                base.promptTemplate(),
+                                null,
+                                base.toolPolicy(),
+                                base.memoryPolicy(),
+                                base.outputPolicy(),
+                                base.knowledgeBaseIds(),
+                                experience));
+        activateRole(true);
+        int before = providerCalls.get();
+        var request = new CreateSession(UUID.randomUUID(), "Greeting test", List.of());
+        var created = students.create(owner, agent, request);
+        assertThat(created.configurationId()).isEqualTo(selected.toString());
+        assertThat(students.create(owner, agent, request).id()).isEqualTo(created.id());
+        var history = students.history(owner, UUID.fromString(created.id()), 0, 100);
+        assertThat(history).hasSize(1);
+        assertThat(history.get(0).actorType()).isEqualTo("ASSISTANT");
+        assertThat(history.get(0).content().path("text").asText())
+                .isEqualTo("Xin chào Lan Nguyễn 🧪");
+        assertThat(history.get(0).executionId()).isNull();
+        assertThat(providerCalls.get()).isEqualTo(before);
+        assertThatThrownBy(() -> students.history(other, UUID.fromString(created.id()), 0, 100))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.NotFoundException.class);
+    }
+
+    @Test
+    void insufficientBeforeLookupIsReconsideredOnceWithoutStreamingThePrematureAbstention() {
+        var base = configuration();
+        var policy =
+                ((com.fasterxml.jackson.databind.node.ObjectNode) base.toolPolicy())
+                        .deepCopy()
+                        .put("maxRounds", 4);
+        savePublish(
+                new ConfigurationInput(
+                        base.modelKey(),
+                        base.promptTemplate(),
+                        null,
+                        policy,
+                        base.memoryPolicy(),
+                        base.outputPolicy(),
+                        base.knowledgeBaseIds()));
+        activateRole(true);
+        var attempts = new AtomicInteger();
+        when(model.stream(anyString(), anyString(), anyString(), anyList(), anyList(), any()))
+                .thenAnswer(
+                        call -> {
+                            int attempt = attempts.incrementAndGet();
+                            if (attempt == 1) {
+                                var output =
+                                        ((com.fasterxml.jackson.databind.node.ObjectNode)
+                                                        plain().output())
+                                                .deepCopy()
+                                                .put("outcome", "INSUFFICIENT_EVIDENCE")
+                                                .put("text", "Premature missing evidence");
+                                call.getArgument(5, java.util.function.Consumer.class)
+                                        .accept(CoreValues.write(output));
+                                return new AgentModelProvider.Decision(null, List.of(), output);
+                            }
+                            if (attempt == 2) {
+                                assertThat(call.getArgument(1, String.class))
+                                        .contains(
+                                                "No evidence lookup has been attempted",
+                                                "Public catalogue discovery");
+                                assertThat(call.getArgument(4, List.class)).isNotEmpty();
+                                return new AgentModelProvider.Decision(
+                                        CoreValues.tree(Map.of("role", "model")),
+                                        List.of(
+                                                new AgentModelProvider.Call(
+                                                        "public",
+                                                        "assessment.lookup",
+                                                        CoreValues.tree(Map.of()))),
+                                        null);
+                            }
+                            assertThat(call.getArgument(1, String.class))
+                                    .doesNotContain("No evidence lookup has been attempted");
+                            return plain();
+                        });
+        var s = session(owner);
+        var result = done(owner, message(s, "Explain available career quizzes"));
+        assertThat(result.status()).isEqualTo("SUCCEEDED");
+        assertThat(attempts).hasValue(3);
+        assertThat(result.toolStepsAndSources().findValuesAsText("type"))
+                .contains("EVIDENCE_RECONSIDERATION", "ACTUAL_NATIVE_CALL");
+        assertThat(CoreValues.write(students.events(owner, UUID.fromString(result.id()), 0)))
+                .doesNotContain("Premature missing evidence");
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(strings = {"ANSWER", "REFUSED"})
+    void greetingsAndSecurityRefusalsDoNotTriggerEvidenceReconsideration(String outcome) {
+        var count = new AtomicInteger();
+        when(model.stream(anyString(), anyString(), anyString(), anyList(), anyList(), any()))
+                .thenAnswer(
+                        call -> {
+                            count.incrementAndGet();
+                            var answer =
+                                    ((com.fasterxml.jackson.databind.node.ObjectNode)
+                                                    plain().output())
+                                            .deepCopy()
+                                            .put("outcome", outcome);
+                            return new AgentModelProvider.Decision(null, List.of(), answer);
+                        });
+        var result = done(owner, message(session(owner), "Direct response fixture"));
+        assertThat(result.status()).isEqualTo(outcome.equals("ANSWER") ? "SUCCEEDED" : "REFUSED");
+        assertThat(count).hasValue(1);
+        assertThat(result.toolStepsAndSources().findValuesAsText("type"))
+                .doesNotContain("EVIDENCE_RECONSIDERATION", "ACTUAL_NATIVE_CALL");
+    }
+
+    @Test
+    void publicAssessmentEvidenceCountsThePublishedVersionAndExcludesDraftOrArchivedTypes() {
+        var listed = assessmentCatalogue.publicCatalog();
+        var sample = listed.get(listed.size() - 1);
+        int count =
+                jdbc.queryForObject(
+                        "SELECT count(*) FROM assessment_question WHERE assessment_version_id=?",
+                        Integer.class,
+                        Long.parseLong(sample.activeVersionId()));
+        assertThat(sample.questionCount()).isEqualTo(count).isPositive();
+        var publicEvidence =
+                publicTools.preview(
+                        "assessment.lookup",
+                        CoreValues.tree(Map.of("assessmentType", sample.code())));
+        assertThat(publicEvidence).hasSize(1);
+        assertThat(publicEvidence.get(0).data().path("questionCount").asInt()).isEqualTo(count);
+        assertThat(CoreValues.write(publicEvidence))
+                .doesNotContain(
+                        "scoringConfig", "responseConfig", "answerData", "ASSESSMENT_RESULT");
+        var draft =
+                assessmentAuthor.createType(
+                        admin,
+                        new edu.hcmute.careersim.assessment.dto.VersionedAssessmentContracts
+                                .TypeRequest("DRAFT_" + UUID.randomUUID(), "Unpublished test"));
+        assertThat(assessmentCatalogue.publicCatalog())
+                .extracting(
+                        edu.hcmute.careersim.assessment.dto.VersionedAssessmentContracts.PublicType
+                                ::id)
+                .doesNotContain(draft);
+        jdbc.update(
+                "UPDATE assessment_type SET status='ARCHIVED' WHERE id=?",
+                Long.parseLong(sample.id()));
+        assertThat(assessmentCatalogue.publicCatalog())
+                .extracting(
+                        edu.hcmute.careersim.assessment.dto.VersionedAssessmentContracts.PublicType
+                                ::id)
+                .doesNotContain(sample.id());
+        assertThat(
+                        publicTools.preview(
+                                "assessment.lookup",
+                                CoreValues.tree(Map.of("assessmentType", sample.code()))))
+                .isEmpty();
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(
+            strings = {
+                "tôi hình như có làm 1 bài rồi, bạn tìm trong cơ sở dữ liệu và phân tích kết quả của bài quizz tôi đã làm với",
+                "I think I completed a quiz; look up my saved result and explain it."
+            })
+    void naturalSelfResultRequestRepairsDuplicateCitationWithoutReplayingTools(String message) {
+        var run = duplicateCitationRun(message, false);
+        assertThat(run.status()).isEqualTo("SUCCEEDED");
+        assertThat(run.output().path("citations")).hasSize(1);
+        assertThat(run.toolStepsAndSources().findValuesAsText("validationCheck"))
+                .contains("DUPLICATE_CITATION");
+        assertThat(
+                        run.toolStepsAndSources().findValuesAsText("type").stream()
+                                .filter("ACTUAL_NATIVE_CALL"::equals)
+                                .count())
+                .isEqualTo(1);
+    }
+
+    @Test
+    void providerOutageDuringRepairRemainsFailedWithSafeStatusAndNoFakeAnswer() {
+        var run = duplicateCitationRun("Explain my saved quiz result", true);
+        assertThat(run.status()).isEqualTo("FAILED");
+        assertThat(run.errorCode()).isEqualTo("PROVIDER_HTTP_UNAVAILABLE");
+        assertThat(run.toolStepsAndSources().findValuesAsText("httpStatusClass")).contains("5xx");
+        assertThat(run.toolStepsAndSources().findValues("providerHttpStatus"))
+                .allSatisfy(n -> assertThat(n.asInt()).isEqualTo(503));
+        assertThat(CoreValues.write(run.output())).doesNotContain("Rejected candidate draft");
+        assertThat(
+                        run.toolStepsAndSources().findValuesAsText("type").stream()
+                                .filter("ACTUAL_NATIVE_CALL"::equals)
+                                .count())
+                .isEqualTo(1);
+    }
+
+    Run duplicateCitationRun(String request, boolean unavailable) {
+        var v = assessmentCatalogue.publicCatalog().get(0);
+        var attempt =
+                assessmentCatalogue.start(
+                        owner, Long.parseLong(v.activeVersionId()), UUID.randomUUID());
+        assessmentCatalogue.submit(
+                owner,
+                Long.parseLong(attempt.id()),
+                attempt.revision(),
+                new edu.hcmute.careersim.assessment.dto.VersionedAssessmentContracts.Responses(
+                        attempt.questions().stream()
+                                .map(
+                                        q ->
+                                                new edu.hcmute.careersim.assessment.dto
+                                                        .VersionedAssessmentContracts.Answer(
+                                                        q.id(),
+                                                        CoreValues.tree(
+                                                                Map.of(
+                                                                        "schemaVersion",
+                                                                        1,
+                                                                        "value",
+                                                                        3))))
+                                .toList()));
+        var calls = new AtomicInteger();
+        when(model.stream(anyString(), anyString(), anyString(), anyList(), anyList(), any()))
+                .thenAnswer(
+                        call -> {
+                            int round = calls.incrementAndGet();
+                            if (round == 1)
+                                return new AgentModelProvider.Decision(
+                                        CoreValues.tree(Map.of("role", "model")),
+                                        List.of(
+                                                new AgentModelProvider.Call(
+                                                        "self",
+                                                        "assessment.lookup",
+                                                        CoreValues.tree(
+                                                                Map.of("scope", "PERSONAL")))),
+                                        null);
+                            List<AgentModelProvider.Exchange> history = call.getArgument(3);
+                            assertThat(history).hasSize(1);
+                            assertThat(call.getArgument(4, List.class)).isEmpty();
+                            var evidence = history.get(0).observations().get(0).path("evidence");
+                            var result =
+                                    java.util.stream.StreamSupport.stream(
+                                                    evidence.spliterator(), false)
+                                            .filter(
+                                                    d ->
+                                                            d.path("kind")
+                                                                    .asText()
+                                                                    .equals("ASSESSMENT_RESULT"))
+                                            .findFirst()
+                                            .orElseThrow();
+                            String text = result.path("text").asText();
+                            var citation =
+                                    Map.of(
+                                            "referenceId",
+                                            result.path("referenceId").asText(),
+                                            "quote",
+                                            text.substring(0, Math.min(180, text.length())));
+                            if (round >= 3) {
+                                assertThat(call.getArgument(1, String.class))
+                                        .contains("DUPLICATE_CITATION", "ONE citation")
+                                        .doesNotContain("Rejected candidate draft");
+                                assertThat(
+                                                json.readTree(call.getArgument(2, String.class))
+                                                        .path(
+                                                                "currentRunCitationOptionsUntrustedData")
+                                                        .get(0)
+                                                        .has("quoteOptions"))
+                                        .isTrue();
+                                if (unavailable)
+                                    throw new edu.hcmute.careersim.guidance.service
+                                            .SynGuidanceProvider.ProviderException(
+                                            edu.hcmute.careersim.guidance.service
+                                                    .SynGuidanceProvider.FailureKind
+                                                    .PROVIDER_HTTP_UNAVAILABLE,
+                                            Map.of("providerHttpStatus", 503));
+                            }
+                            var output =
+                                    ((com.fasterxml.jackson.databind.node.ObjectNode)
+                                                    plain().output())
+                                            .deepCopy()
+                                            .put("requestedAction", "NONE")
+                                            .put(
+                                                    "text",
+                                                    round == 2
+                                                            ? "Rejected candidate draft"
+                                                            : "Your saved quiz result is available for exploration.");
+                            output.set(
+                                    "citations",
+                                    CoreValues.tree(
+                                            round == 2
+                                                    ? List.of(citation, citation)
+                                                    : List.of(citation)));
+                            return new AgentModelProvider.Decision(null, List.of(), output);
+                        });
+        var session = session(owner);
+        var result = done(owner, message(session, request));
+        assertThat(calls.get()).isEqualTo(unavailable ? 4 : 3);
+        assertThat(students.history(owner, UUID.fromString(session.id()), 0, 100))
+                .noneMatch(
+                        i -> i.content().path("text").asText().equals("Rejected candidate draft"));
+        return result;
+    }
+
+    @Test
     void pinnedConfigurationSurvivesRepublishAndOwnerOnlyHistory() {
         var s = session(owner);
         assertThat(s.provider()).isEqualTo("gemini");
@@ -408,7 +722,7 @@ class StudentAgentIntegrationTest {
                 .isInstanceOf(edu.hcmute.careersim.common.exception.NotFoundException.class);
         assertThat(students.history(owner, UUID.fromString(s.id()), 0, 100))
                 .extracting(Interaction::sequenceNumber)
-                .containsExactly(1L, 2L);
+                .containsExactly(1L, 2L, 3L);
         assertThat(providerCalls.get()).isEqualTo(2);
     }
 
@@ -454,7 +768,7 @@ class StudentAgentIntegrationTest {
         students.cancel(owner, UUID.fromString(run.id()));
         release.countDown();
         assertThat(done(owner, run).status()).isEqualTo("CANCELLED");
-        assertThat(students.history(owner, sid, 0, 100)).hasSize(1);
+        assertThat(students.history(owner, sid, 0, 100)).hasSize(2);
     }
 
     @Test
@@ -487,7 +801,7 @@ class StudentAgentIntegrationTest {
         assertThat(run.status()).isEqualTo("SUCCEEDED");
         assertThat(run.errorCode()).isNull();
         assertThat(providerCalls.get()).isPositive();
-        assertThat(students.history(owner, UUID.fromString(s.id()), 0, 100)).hasSize(2);
+        assertThat(students.history(owner, UUID.fromString(s.id()), 0, 100)).hasSize(3);
     }
 
     @Test
@@ -513,7 +827,7 @@ class StudentAgentIntegrationTest {
                                 Boolean.class,
                                 UUID.fromString(run.id())))
                 .isTrue();
-        assertThat(students.history(owner, UUID.fromString(s.id()), 0, 100)).hasSize(1);
+        assertThat(students.history(owner, UUID.fromString(s.id()), 0, 100)).hasSize(2);
         assertThat(
                         jdbc.queryForObject(
                                 "SELECT tool_steps_and_sources::text FROM agent_execution WHERE id=?",
@@ -611,6 +925,103 @@ class StudentAgentIntegrationTest {
         assertThatThrownBy(() -> students.report(admin, UUID.fromString(run.reportId())))
                 .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
         assertThat(students.reports(owner)).hasSize(1);
+    }
+
+    @org.junit.jupiter.params.ParameterizedTest
+    @org.junit.jupiter.params.provider.ValueSource(
+            strings = {
+                "bạn tạo cho tôi insight report để tôi tải về",
+                "Please prepare a downloadable career insight report",
+                "Tổng hợp minh chứng nghề nghiệp thành một báo cáo giúp mình"
+            })
+    void naturalReportCommandUsesSameAuthorizedEvidenceAndPersistsOnce(String request) {
+        naturalAction =
+                "INSIGHT_REPORT"; // Controlled model decision, not a production phrase matcher.
+        var s = session(owner);
+        var input = new Message(UUID.randomUUID(), request);
+        var run = done(owner, students.submit(owner, UUID.fromString(s.id()), "CHAT", input));
+        assertThat(run.status()).isEqualTo("SUCCEEDED");
+        assertThat(run.taskType()).isEqualTo("CHAT");
+        assertThat(run.output().path("requestedAction").asText()).isEqualTo("INSIGHT_REPORT");
+        assertThat(run.reportId()).isNotNull();
+        assertThat(students.report(owner, UUID.fromString(run.reportId())).sourceExecutionId())
+                .isEqualTo(run.id());
+        assertThat(students.submit(owner, UUID.fromString(s.id()), "CHAT", input).id())
+                .isEqualTo(run.id());
+        assertThat(students.reports(owner)).hasSize(1);
+        assertThatThrownBy(() -> students.report(other, UUID.fromString(run.reportId())))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        assertThat(
+                        students.history(owner, UUID.fromString(s.id()), 0, 100)
+                                .get(1)
+                                .content()
+                                .path("text")
+                                .asText())
+                .isEqualTo(request);
+        verify(model, atLeastOnce())
+                .streamStructured(
+                        anyString(),
+                        contains("Student application actions contract v4"),
+                        anyString(),
+                        anyList(),
+                        anyList(),
+                        argThat(schema -> schema.path("properties").has("requestedAction")),
+                        any());
+    }
+
+    @Test
+    void ordinaryChatCannotSaveAnUnrequestedReportAndUnknownActionsFailClosed() {
+        var s = session(owner);
+        naturalAction = "NONE";
+        var chat = done(owner, message(s, "Explain what an insight report is; do not create one"));
+        assertThat(chat.status()).isEqualTo("SUCCEEDED");
+        assertThat(chat.reportId()).isNull();
+        assertThat(students.reports(owner)).isEmpty();
+        assertThatThrownBy(
+                        () ->
+                                jdbc.update(
+                                        "INSERT INTO insight_report(id,owner_user_id,requested_interaction_id,source_execution_id,schema_version,structured_insights,evidence_refs) SELECT ?,?,input_interaction_id,id,'careersim-insight-v1','{}'::jsonb,'[]'::jsonb FROM agent_execution WHERE id=?",
+                                        UUID.randomUUID(),
+                                        owner,
+                                        UUID.fromString(chat.id())))
+                .isInstanceOf(org.springframework.dao.DataAccessException.class)
+                .hasMessageContaining("EXPLICIT_VALID_OWNED_REPORT_EXECUTION_REQUIRED");
+        naturalAction = "DELETE_ACCOUNT";
+        assertThat(done(owner, message(s, "unsupported action fixture")).status())
+                .isEqualTo("FAILED");
+        assertThat(students.reports(owner)).isEmpty();
+    }
+
+    @Test
+    void naturalPlanIsOnlyADraftUntilExactOwnerConfirmation() {
+        naturalAction = "PLAN_SUGGESTION";
+        var s = session(owner);
+        var run = done(owner, message(s, "Gợi ý cho tôi một kế hoạch khám phá nghề nghiệp"));
+        assertThat(run.status()).isEqualTo("SUCCEEDED");
+        assertThat(run.planContentHash()).isNotBlank();
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT count(*) FROM exploration_plan WHERE student_id=?",
+                                Integer.class,
+                                owner))
+                .isZero();
+        var input =
+                new ConfirmSuggestion(
+                        UUID.fromString(run.id()),
+                        UUID.randomUUID(),
+                        run.planContentHash(),
+                        null,
+                        null);
+        assertThatThrownBy(() -> students.confirm(other, input))
+                .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
+        var saved = students.confirm(owner, input);
+        assertThat(students.confirm(owner, input).id()).isEqualTo(saved.id());
+        assertThat(
+                        jdbc.queryForObject(
+                                "SELECT count(*) FROM exploration_plan WHERE student_id=?",
+                                Integer.class,
+                                owner))
+                .isEqualTo(1);
     }
 
     @Test
@@ -711,7 +1122,7 @@ class StudentAgentIntegrationTest {
                 .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
         assertThatThrownBy(() -> message(s, "Denied"))
                 .isInstanceOf(edu.hcmute.careersim.common.exception.ApiException.class);
-        assertThat(students.history(owner, UUID.fromString(s.id()), 0, 100).get(1).unavailable())
+        assertThat(students.history(owner, UUID.fromString(s.id()), 0, 100).get(2).unavailable())
                 .isTrue();
         jdbc.update("UPDATE app_users SET status='LOCKED' WHERE id=?", owner);
         assertThatThrownBy(() -> students.history(owner, UUID.fromString(s.id()), 0, 100))

@@ -9,6 +9,13 @@ import java.util.*;
 public final class ScenarioContracts {
     private ScenarioContracts() {}
 
+    public record OwnActivity(
+            long totalEnrollments,
+            long distinctSimulations,
+            long notStarted,
+            long inProgress,
+            long completed) {}
+
     public record Metadata(
             @NotBlank @Size(max = 180) String title,
             @NotBlank @Size(max = 120) String targetRole,

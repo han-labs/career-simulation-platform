@@ -1,5 +1,51 @@
 // Presentation only: original documents, quoted evidence and model replies remain unchanged.
 export const agentMessages = Object.fromEntries(`
+Sending... ⇢ Đang gửi...
+Close preview ⇢ Đóng xem trước
+Preview conversation history ⇢ Lịch sử hội thoại xem trước
+Continue in the Career Agent popup. Closing it does not stop a response. ⇢ Tiếp tục trong cửa sổ Agent nghề nghiệp. Đóng cửa sổ không dừng phản hồi.
+Explore my results ⇢ Khám phá kết quả
+Find a simulation ⇢ Tìm mô phỏng
+My progress ⇢ Tiến độ của tôi
+Compare careers ⇢ So sánh nghề nghiệp
+Draft plan ⇢ Kế hoạch nháp
+Saved reports ⇢ Báo cáo đã lưu
+Reload reports ⇢ Tải lại báo cáo
+Loading reports... ⇢ Đang tải báo cáo...
+No saved reports yet. Request an insight report from the conversation. ⇢ Chưa có báo cáo đã lưu. Hãy yêu cầu báo cáo trong cuộc trò chuyện.
+The report is not available. Please try again. ⇢ Báo cáo hiện chưa khả dụng. Vui lòng thử lại.
+No report was saved for this request. Open saved reports or edit your request to try again. ⇢ Yêu cầu này chưa tạo được báo cáo đã lưu. Hãy mở báo cáo đã lưu hoặc sửa yêu cầu để thử lại.
+Show next messages ⇢ Xem tin nhắn tiếp theo
+Career Agent conversation ⇢ Hội thoại Agent nghề nghiệp
+Close ⇢ Đóng
+History ⇢ Lịch sử
+New Chat ⇢ Chat mới
+New conversation ⇢ Cuộc trò chuyện mới
+Expand ⇢ Mở rộng
+Restore ⇢ Thu gọn
+Conversation history ⇢ Lịch sử hội thoại
+Close history ⇢ Đóng lịch sử
+Loading conversations... ⇢ Đang tải hội thoại...
+No conversations yet. ⇢ Chưa có hội thoại.
+Resume ⇢ Tiếp tục
+Delete ⇢ Xóa
+sources ⇢ nguồn
+Requested model ⇢ Mô hình được yêu cầu
+Effective model ⇢ Mô hình thực tế
+Insight report ⇢ Báo cáo khám phá nghề nghiệp
+Open report ⇢ Mở báo cáo
+Download report ⇢ Tải báo cáo
+Directions and evidence ⇢ Hướng khám phá và minh chứng
+Source references ⇢ Tham chiếu nguồn
+Jump to latest ⇢ Đến tin nhắn mới nhất
+Summarize four types of evidence useful for career exploration. ⇢ Tóm tắt 4 nhóm bằng chứng nên dùng khi chọn hướng nghề nghiệp.
+Compare Cybersecurity Analyst and Backend Developer. ⇢ So sánh Cybersecurity Analyst và Backend Developer.
+How many items are in the incident summary checklist in the source? ⇢ Trong tài liệu, checklist incident summary có bao nhiêu mục?
+What could I try if I am unsure between Data Analyst and QA Automation? ⇢ Nếu tôi chưa chắc giữa Data Analyst và QA Automation thì nên thử gì?
+Which direction could I explore first based on my assessment results? ⇢ Dựa trên kết quả assessment của tôi, tôi nên khám phá hướng nào trước?
+Which simulation could I try next? ⇢ Có simulation nào phù hợp để tôi thử tiếp không?
+How am I progressing in my simulations? ⇢ Tôi đang tiến triển thế nào trong các simulation của mình?
+Help me compare two career directions using my evidence. ⇢ Giúp tôi so sánh hai hướng nghề nghiệp dựa trên minh chứng của tôi.
 My Agents ⇢ Agent của tôi
 Processing... ⇢ Đang xử lý...
 Messages ⇢ Tin nhắn

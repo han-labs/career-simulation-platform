@@ -103,4 +103,32 @@ class VersionedAssessmentServiceTest {
         verify(dao, never()).typeActive(anyLong());
         verify(dao, never()).responses(any(), any());
     }
+
+    @Test
+    void
+            publicDiscoveryUsesLiveCountsAndReviewedExplanationsWithoutLoadingQuestionsOrPrivateResults() {
+        when(dao.publicCatalog())
+                .thenReturn(
+                        List.of(
+                                new PublicType("1", "RIASEC", "Interests", "11", 42, null),
+                                new PublicType("2", "ABILITIES", "Confidence", "12", 30, null),
+                                new PublicType("3", "CUSTOM", "Custom", "13", 7, null)));
+        var entries = service.publicCatalog();
+        assertThat(entries.get(0).questionCount()).isEqualTo(42);
+        assertThat(entries.get(0).overview().path("durationEstimate").path("minMinutes").asInt())
+                .isEqualTo(5);
+        assertThat(entries.get(0).overview().path("durationEstimate").path("basis").asText())
+                .isEqualTo("EXISTING_UI_ESTIMATE_NOT_MEASURED");
+        assertThat(entries.get(1).questionCount()).isEqualTo(30);
+        assertThat(entries.get(1).overview().has("durationEstimate")).isFalse();
+        assertThat(entries.get(1).overview().path("resultMeaning").asText())
+                .contains("Self-reported confidence");
+        assertThat(entries.get(2).overview().has("purpose")).isFalse();
+        assertThat(CoreValues.write(entries))
+                .doesNotContain("scoringConfig", "responseConfig", "answerData");
+        verify(dao, never()).questions(anyLong());
+        verify(dao, never()).version(anyLong(), anyBoolean());
+        verify(dao, never()).results(anyLong());
+        verifyNoInteractions(actors);
+    }
 }

@@ -43,6 +43,23 @@ public final class VersionedAssessmentContracts {
 
     public record Type(String id, String code, String name, String activeVersionId) {}
 
+    public record OwnActivity(
+            String assessmentType,
+            long totalAttempts,
+            long inProgressAttempts,
+            long submittedAttempts,
+            long savedResults,
+            long completedTypes) {}
+
+    /** Public discovery only: no questions, scoring configuration, answers or private results. */
+    public record PublicType(
+            String id,
+            String code,
+            String name,
+            String activeVersionId,
+            int questionCount,
+            JsonNode overview) {}
+
     public record AttemptSummary(
             String id,
             String assessmentTypeCode,

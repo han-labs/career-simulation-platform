@@ -5,8 +5,13 @@ import { useSyncExternalStore } from 'react'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import I18nProvider from '../i18n/I18nProvider.jsx'
 import AppShell from './AppShell.jsx'
+import AssignedAgentsPage from '../../features/agents/AssignedAgentsPage.jsx'
+import StudentAgentPage from '../../features/agents/StudentAgentPage.jsx'
+import { streamExecution } from '../../features/agents/studentAgentApi.js'
 import { apiRequest, getAccountGeneration, invalidateAccount, subscribeAccount } from '../api/httpClient.js'
 
+vi.mock('../../features/admin/agentPlatform/platformApi.js',()=>({agentPlatformEnabled:true}))
+vi.mock('../../features/agents/studentAgentApi.js',async original=>({...await original(),streamExecution:vi.fn()}))
 vi.mock('../api/httpClient.js', async original => ({ ...await original(), apiRequest: vi.fn() }))
 beforeEach(() => { vi.clearAllMocks(); localStorage.clear() })
 afterEach(cleanup)
@@ -17,7 +22,7 @@ function Shell() {
 function Destination() { return <h1>{useLocation().pathname}</h1> }
 function page(path = '/assessment') {
   return render(<I18nProvider><MemoryRouter initialEntries={[path]}><Routes><Route element={<Shell />}>
-    {['/', '/assessment', '/simulations', '/simulations/demo', '/simulations/demo/results', '/guidance', '/enterprise', '/admin', '/account'].map(route => <Route key={route} path={route} element={<Destination />} />)}
+    <Route path="/agents" element={<AssignedAgentsPage/>}/><Route path="/agents/:agentId" element={<StudentAgentPage/>}/>{['/', '/assessment', '/simulations', '/simulations/demo', '/simulations/demo/results', '/guidance', '/enterprise', '/admin', '/account'].map(route => <Route key={route} path={route} element={<Destination />} />)}
   </Route></Routes></MemoryRouter></I18nProvider>)
 }
 it.each(['/admin','/account','/simulations'])('always returns Home through the institutional logo from %s', async path => {
@@ -107,4 +112,46 @@ it('keeps mobile navigation controls and returns focus to its trigger on Escape'
   fireEvent.click(guidance)
   await screen.findByRole('heading', { name: '/' })
   expect(trigger.getAttribute('aria-expanded')).toBe('false')
+})
+
+it.each(['STUDENT','ADMIN','ENTERPRISE',null])('renders the global Agent launcher only for authenticated STUDENT, role=%s', async role=>{
+ apiRequest.mockImplementation(async path=>{
+  if(path==='/v2/auth/providers')return {localWorkspace:false}
+  if(path==='/v2/me'){if(!role)throw new Error('Unauthorized');return {id:'7',role}}
+  if(path==='/v2/agents')return [{id:'a1',name:'Career Explorer',runtimeAvailable:true}]
+  throw new Error('Unexpected route')
+ });page('/');await waitFor(()=>expect(apiRequest.mock.calls.some(([p])=>p==='/v2/me')).toBe(true))
+ if(role==='STUDENT'){const launcher=await screen.findByRole('button',{name:'Career Agent'});expect(launcher.textContent).toBe('');expect(launcher.querySelectorAll('svg')).toHaveLength(2)}
+ else expect(screen.queryByRole('button',{name:'Career Agent'})).toBeNull()
+})
+it('safely hides the launcher when no published Agent is active',async()=>{
+ apiRequest.mockImplementation(async path=>path==='/v2/agents'?[]:path==='/v2/auth/providers'?{localWorkspace:false}:{id:'7',role:'STUDENT'})
+ page('/');await waitFor(()=>expect(apiRequest.mock.calls.some(([p])=>p==='/v2/agents')).toBe(true));expect(screen.queryByRole('button',{name:'Career Agent'})).toBeNull()
+})
+it('shares one live popup with the Agent route; closing, locale change and reopening never repost or reconnect twice',async()=>{
+ let release;const run={id:'active-run',status:'RUNNING'}
+ apiRequest.mockImplementation(async(path,options={})=>{
+  if(path==='/v2/auth/providers')return {localWorkspace:false}
+  if(path==='/v2/me')return {id:'7',role:'STUDENT'}
+  if(path==='/v2/agents')return [{id:'a1',name:'Career Explorer',runtimeAvailable:true}]
+  if(path.startsWith('/v2/agent-sessions?'))return [{id:'s1',title:'Existing conversation',configurationVersion:1}]
+  if(path==='/v2/agent-sessions/s1')return {id:'s1',agentName:'Configured Coach',title:'Existing conversation',configurationVersion:1}
+  if(path.endsWith('/interactions'))return []
+  if(path.endsWith('/messages')){expect(options.method).toBe('POST');return run}
+  if(path.endsWith('/active-run'))return run
+  throw new Error('Unexpected route '+path)
+ })
+ streamExecution.mockImplementation(()=>new Promise(resolve=>{release=resolve}))
+ page('/agents/a1?session=s1');await screen.findByRole('heading',{name:'Configured Coach'})
+ expect(screen.getAllByRole('dialog',{name:'Career Agent'})).toHaveLength(1)
+ fireEvent.change(screen.getByLabelText('Message to Agent'),{target:{value:'My question'}});fireEvent.keyDown(screen.getByLabelText('Message to Agent'),{key:'Enter'})
+ await waitFor(()=>expect(streamExecution).toHaveBeenCalledTimes(1))
+ const signal=streamExecution.mock.calls[0][1].signal
+ fireEvent.click(screen.getByRole('button',{name:'Expand'}));expect(document.querySelector('.student-agent-popup--expanded')).toBeTruthy()
+ fireEvent.click(screen.getByRole('button',{name:'Close',exact:true}));expect(signal.aborted).toBe(false);expect(screen.queryByRole('dialog',{name:'Career Agent'})).toBeNull()
+ fireEvent.click(screen.getByRole('button',{name:'Career Agent'}));expect(screen.getByLabelText('Message to Agent').value).toBe('')
+ fireEvent.change(screen.getByRole('combobox',{name:'Website language'}),{target:{value:'vi'}})
+ await screen.findByRole('button',{name:'Lịch sử'});expect(streamExecution).toHaveBeenCalledTimes(1)
+ expect(apiRequest.mock.calls.filter(([p])=>p.endsWith('/messages'))).toHaveLength(1);expect(apiRequest.mock.calls.some(([p])=>p.endsWith('/cancel'))).toBe(false)
+ release()
 })

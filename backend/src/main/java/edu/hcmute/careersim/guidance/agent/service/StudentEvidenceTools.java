@@ -32,11 +32,11 @@ public class StudentEvidenceTools {
                                         n,
                                         switch (n) {
                                             case "assessment.lookup" ->
-                                                    "Read public assessment choices and current student's multiple own results; optional assessment type filter. No answer keys or diagnosis.";
+                                                    "Read career quizzes with scope PERSONAL (this Student: exact activity counts, latest saved results), CATALOG (public quiz details/counts/duration, no private data), or ALL (default). Use PERSONAL for any wording of I did a quiz, find/analyse my results, have I completed any, including Vietnamese paraphrases. Optional assessmentType code filter applies before result limits. Details are bounded; activity counts are totals, not the length of the detail list. No answers, grading keys or other users.";
                                             case "simulation.explore" ->
-                                                    "Search published accessible simulation catalogue with public task outlines; no model answers.";
+                                                    "Discover published simulations and explain public details, objectives, duration and task outlines. No enrollment or completion required. Use query:'' or {} for broad discovery; short literal search terms otherwise. No answers or private results.";
                                             case "simulation.myEvidence" ->
-                                                    "Read own enrollment progress, valid final quiz results, practiced skills and completion; never certify proficiency.";
+                                                    "Read this Student's exact accessible enrollment counts (not started/in progress/completed, distinct simulations) and bounded progress, final quiz results, practised skills and completions. Use for have I tried/completed simulations, how many and how did I do. ENROLLED is not completed. Never certify proficiency.";
                                             default ->
                                                     "Retrieve only explicitly granted published KB passages.";
                                         },
@@ -49,9 +49,13 @@ public class StudentEvidenceTools {
         for (String k : argumentKeys(name))
             fields.put(
                     k,
-                    k.equals("topK")
-                            ? Map.of("type", "integer", "minimum", 1, "maximum", 10)
-                            : Map.of("type", "string", "maxLength", k.equals("query") ? 2000 : 80));
+                    k.equals("scope")
+                            ? Map.of(
+                                    "type", "string", "enum", List.of("ALL", "CATALOG", "PERSONAL"))
+                            : k.equals("topK")
+                                    ? Map.of("type", "integer", "minimum", 1, "maximum", 10)
+                                    : Map.of(
+                                            "type", "string", "maxLength", argumentLimit(name, k)));
         return CoreValues.tree(
                 Map.of(
                         "type",
@@ -64,9 +68,17 @@ public class StudentEvidenceTools {
                         false));
     }
 
+    private static int argumentLimit(String name, String key) {
+        if (name.equals("simulation.explore")) {
+            if (key.equals("query")) return 200;
+            if (key.equals("careerTrack")) return 60;
+        }
+        return key.equals("query") ? 2000 : 80;
+    }
+
     private static Set<String> argumentKeys(String name) {
         return switch (name) {
-            case "assessment.lookup" -> Set.of("assessmentType");
+            case "assessment.lookup" -> Set.of("assessmentType", "scope");
             case "simulation.explore" -> Set.of("query", "careerTrack", "difficulty");
             case "kb.search" -> Set.of("query", "topK");
             default -> Set.of();
@@ -93,13 +105,23 @@ public class StudentEvidenceTools {
                             } else {
                                 if (!f.getValue().isTextual())
                                     CoreValues.invalid("Tool filter must be text.");
+                                if (name.equals("simulation.explore")
+                                        && f.getValue().asText().isEmpty()) {
+                                    // Empty optional catalogue filters mean broad public discovery.
+                                    // KB search still requires a nonblank query.
+                                    if (f.getKey().equals("query")) clean.put("query", "");
+                                    return;
+                                }
                                 clean.put(
                                         f.getKey(),
                                         AgentInputPolicy.minimize(
                                                 f.getValue().asText(),
-                                                f.getKey().equals("query") ? 2000 : 80));
+                                                argumentLimit(name, f.getKey())));
                             }
                         });
+        if (clean.has("scope")
+                && !Set.of("ALL", "CATALOG", "PERSONAL").contains(clean.path("scope").asText()))
+            CoreValues.invalid("Invalid assessment scope.");
         if (name.equals("kb.search") && !clean.has("query"))
             CoreValues.invalid("KB search query required.");
         return clean;
@@ -122,25 +144,23 @@ public class StudentEvidenceTools {
         String filter = args.has("assessmentType") ? args.path("assessmentType").asText() : null;
         var result = new ArrayList<DomainEvidence>();
         if (name.equals("assessment.lookup")) {
-            for (var t : catalogue.catalog())
-                if (!args.has("assessmentType")
-                        || t.code().equals(args.path("assessmentType").asText()))
-                    add(
-                            result,
-                            "AT:" + t.id(),
-                            "ASSESSMENT_CATALOG",
-                            "PUBLIC",
-                            t.activeVersionId(),
-                            t);
-            if (personal)
-                for (var a :
-                        assessments.readOwned(owner).stream()
-                                .filter(
-                                        a ->
-                                                filter == null
-                                                        || a.assessmentTypeCode().equals(filter))
-                                .limit(20)
-                                .toList())
+            String scope = args.path("scope").asText("ALL");
+            if (!personal && scope.equals("PERSONAL"))
+                throw new edu.hcmute.careersim.common.exception.ApiException(
+                        edu.hcmute.careersim.common.exception.ErrorCode.FORBIDDEN,
+                        "No Student context exists in Admin preview.");
+            if (personal && !scope.equals("CATALOG")) {
+                add(
+                        result,
+                        "OV:assessment:"
+                                + (filter == null
+                                        ? "all"
+                                        : CoreValues.hash(filter).substring(0, 12)),
+                        "OWN_ASSESSMENT_ACTIVITY",
+                        "OWNER",
+                        "CURRENT",
+                        Objects.requireNonNull(assessments.activity(owner, filter)));
+                for (var a : assessments.readOwned(owner, filter).stream().limit(20).toList())
                     add(
                             result,
                             "AR:" + a.attemptId(),
@@ -148,11 +168,22 @@ public class StudentEvidenceTools {
                             "OWNER",
                             a.assessmentVersionId(),
                             a);
+            }
+            if (!scope.equals("PERSONAL"))
+                for (var t : catalogue.publicCatalog())
+                    if (filter == null || t.code().equals(filter))
+                        add(
+                                result,
+                                "AT:" + t.id(),
+                                "ASSESSMENT_CATALOG",
+                                "PUBLIC",
+                                t.activeVersionId(),
+                                t);
         } else if (name.equals("simulation.explore")) {
             if (args.has("query") && !args.path("query").isTextual())
                 CoreValues.invalid("Query must be text.");
             String q = args.path("query").asText("");
-            if (q.length() > 500) CoreValues.invalid("Query too long.");
+            if (q.length() > 200) CoreValues.invalid("Query too long.");
             for (var s :
                     scenarios
                             .search(
@@ -171,22 +202,15 @@ public class StudentEvidenceTools {
                         "PUBLISHED_SCENARIO",
                         "PUBLIC",
                         s.scenarioVersionId(),
-                        Map.of(
-                                "scenarioVersionId",
-                                s.scenarioVersionId(),
-                                "slug",
-                                s.slug(),
-                                "title",
-                                s.metadata().title(),
-                                "careerTrack",
-                                s.metadata().careerTrack(),
-                                "difficulty",
-                                s.metadata().difficulty(),
-                                "summary",
-                                s.metadata().summary(),
-                                "taskOutline",
-                                s.taskOutline().stream().limit(12).toList()));
+                        publicScenario(s));
         } else if (name.equals("simulation.myEvidence")) {
+            add(
+                    result,
+                    "OV:simulations",
+                    "OWN_SIMULATION_ACTIVITY",
+                    "OWNER",
+                    "CURRENT",
+                    Objects.requireNonNull(enrollments.activity(owner)));
             int i = 0;
             for (var p : evidence.readOwned(owner, 20))
                 add(
@@ -270,16 +294,47 @@ public class StudentEvidenceTools {
         int size = 0;
         var bounded = new ArrayList<DomainEvidence>();
         for (var d : result) {
-            if ((size += CoreValues.write(d).length()) > 8000) break;
+            int length = CoreValues.write(d).length();
+            if (size + length > 8000) continue;
+            size += length;
             bounded.add(d);
         }
         return List.copyOf(bounded);
+    }
+
+    private Map<String, Object> publicScenario(
+            edu.hcmute.careersim.simulation.dto.ScenarioContracts.Summary s) {
+        // Explicit public allowlist, never serialize the full version/task (answers/rubrics).
+        var fields = new LinkedHashMap<String, Object>();
+        fields.put("scenarioVersionId", s.scenarioVersionId());
+        fields.put("slug", s.slug());
+        fields.put("title", s.metadata().title());
+        fields.put("careerTrack", s.metadata().careerTrack());
+        fields.put("difficulty", s.metadata().difficulty());
+        fields.put("summary", s.metadata().summary());
+        fields.put("targetRole", s.metadata().targetRole());
+        fields.put("introduction", s.metadata().introduction());
+        fields.put("learningObjectives", s.metadata().learningObjectives());
+        fields.put("estimatedMinutes", s.metadata().estimatedMinutes());
+        fields.put("taskOutline", s.taskOutline().stream().limit(12).toList());
+        return fields;
     }
 
     /** Current private Core authority is checked again before publishing or replaying evidence. */
     public boolean available(long owner, Collection<DomainEvidence> delivered) {
         try {
             for (var d : delivered) {
+                if (d.kind().equals("OWN_ASSESSMENT_ACTIVITY")) {
+                    String filter =
+                            d.data().path("assessmentType").isNull()
+                                    ? null
+                                    : d.data().path("assessmentType").asText();
+                    // Recheck current owner authority. Counts are an execution-time snapshot:
+                    // starting another quiz must not make earlier conversations unreadable.
+                    Objects.requireNonNull(assessments.activity(owner, filter));
+                }
+                if (d.kind().equals("OWN_SIMULATION_ACTIVITY"))
+                    Objects.requireNonNull(enrollments.activity(owner));
                 if (d.kind().equals("PRACTICED_SKILL")
                         && !evidence.ownsFinal(
                                 owner,

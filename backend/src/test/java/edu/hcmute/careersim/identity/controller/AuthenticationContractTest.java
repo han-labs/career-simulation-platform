@@ -355,7 +355,7 @@ class AuthenticationContractTest {
         assertThat(cookie.isHttpOnly()).isTrue();
         assertThat(cookie.getSecure()).isTrue();
         assertThat(cookie.getAttribute("SameSite")).isEqualTo("Lax");
-        assertThat(cookie.getMaxAge()).isBetween(895, 900);
+        assertThat(cookie.getMaxAge()).isBetween(7195, 7200);
         assertThat(session.getAttribute("SPRING_SECURITY_CONTEXT")).isNull();
         mvc.perform(get("/v2/me").session(session)).andExpect(status().isUnauthorized());
         mvc.perform(get("/v2/me").cookie(cookie)).andExpect(status().isOk());

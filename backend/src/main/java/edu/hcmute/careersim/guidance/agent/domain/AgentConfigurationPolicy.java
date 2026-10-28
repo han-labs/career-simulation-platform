@@ -14,6 +14,7 @@ public class AgentConfigurationPolicy {
     private final String base;
     private final String reference;
     private final String repairPolicy;
+    private final String studentActions;
     private final Map<String, String> templates = new HashMap<>();
 
     public AgentConfigurationPolicy() {
@@ -26,6 +27,11 @@ public class AgentConfigurationPolicy {
                     new ClassPathResource("guidance/prompts/agent-output-repair-v1.txt")
                             .getInputStream()) {
                 repairPolicy = new String(repair.readAllBytes(), StandardCharsets.UTF_8);
+            }
+            try (var actions =
+                    new ClassPathResource("guidance/prompts/student-actions-v4.txt")
+                            .getInputStream()) {
+                studentActions = new String(actions.readAllBytes(), StandardCharsets.UTF_8);
             }
             String legacy = "guidance/prompts/agent-platform-v1.txt";
             try (var old = new ClassPathResource(legacy).getInputStream()) {
@@ -43,6 +49,10 @@ public class AgentConfigurationPolicy {
 
     public String reference() {
         return reference;
+    }
+
+    public String studentActionInstructions() {
+        return studentActions;
     }
 
     public String repairInstructions() {

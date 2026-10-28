@@ -19,6 +19,15 @@ public final class StudentOutputValidator {
             JsonNode policy) {
         if (raw == null || !raw.isObject()) invalid();
         var output = (ObjectNode) raw.deepCopy();
+        String requestedAction = null;
+        if ("CHAT".equals(task) && output.has("requestedAction")) {
+            var action = output.remove("requestedAction");
+            if (!action.isTextual()
+                    || !Set.of("NONE", "INSIGHT_REPORT", "PLAN_SUGGESTION")
+                            .contains(action.asText())) invalid();
+            requestedAction = action.asText();
+            if (!"NONE".equals(requestedAction)) task = requestedAction;
+        }
         String extra =
                 switch (task) {
                     case "INSIGHT_REPORT" -> "report";
@@ -52,16 +61,22 @@ public final class StudentOutputValidator {
         var validated = AgentOutputValidator.validate(output, passages, policy, scores(domain));
         if (!"ANSWER".equals(validated.path("outcome").asText())) {
             if (artifact != null) invalid();
+            if (requestedAction != null)
+                ((ObjectNode) validated).put("requestedAction", requestedAction);
             return validated;
         }
         Set<String> inlineRefs = new HashSet<>();
         passages.forEach(p -> inlineRefs.add(p.referenceId()));
         var inline =
                 java.util.regex.Pattern.compile(
-                                "\\[(K[0-9]+|(?:AR|AT|SC|EN|SE|CO|QR):[a-zA-Z0-9:-]+)\\]")
+                                "\\[(K[0-9]+|(?:AR|AT|SC|EN|SE|CO|QR|OV):[a-zA-Z0-9:-]+)\\]")
                         .matcher(validated.path("text").asText());
         while (inline.find()) if (!inlineRefs.contains(inline.group(1))) invalid();
-        if (extra == null) return validated;
+        if (extra == null) {
+            if (requestedAction != null)
+                ((ObjectNode) validated).put("requestedAction", requestedAction);
+            return validated;
+        }
         if (artifact == null || !artifact.isObject()) invalid();
         Set<String> references = new HashSet<>();
         kb.forEach(p -> references.add(p.referenceId()));
@@ -133,6 +148,7 @@ public final class StudentOutputValidator {
         safety(artifact, scores(domain));
         var result = (ObjectNode) validated;
         result.set(extra, artifact);
+        if (requestedAction != null) result.put("requestedAction", requestedAction);
         if (task.equals("PLAN_SUGGESTION"))
             result.put("planContentHash", CoreValues.hash(artifact));
         return result;
@@ -142,9 +158,10 @@ public final class StudentOutputValidator {
         var scores = new LinkedHashSet<Integer>();
         for (var d : evidence) {
             if ("ASSESSMENT_RESULT".equals(d.kind()))
-                for (var dimension : d.data().path("resultData").path("dimensions"))
-                    if (dimension.path("raw").isIntegralNumber())
-                        scores.add(dimension.path("raw").asInt());
+                for (String group : List.of("dimensions", "categories"))
+                    for (var dimension : d.data().path("resultData").path(group))
+                        if (dimension.path("raw").isIntegralNumber())
+                            scores.add(dimension.path("raw").asInt());
             if ("FINAL_QUIZ_RESULT".equals(d.kind())
                     && d.data().path("quizResult").path("percentage").isIntegralNumber())
                 scores.add(d.data().path("quizResult").path("percentage").asInt());

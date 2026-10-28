@@ -9,6 +9,20 @@ import java.util.*;
 public final class AgentOutputValidator {
     private AgentOutputValidator() {}
 
+    /** Backend-owned guidance only; never interpolate rejected model output or provider bodies. */
+    public static String repairHint(String check) {
+        return switch (check == null ? "" : check) {
+            case "DUPLICATE_CITATION" ->
+                    "Validation check: DUPLICATE_CITATION. The same referenceId occurred more than once. Return ONE citation entry for each distinct source. Quote options are alternatives for that source, not separate citations. One citation may support several sentences or facts; choose one exact quote, do not merge, paraphrase or rewrite quotes.";
+            case "CITATION_NOT_DELIVERED" ->
+                    "Validation check: CITATION_NOT_DELIVERED. Use only references present in the current authorized observations.";
+            case "CITATION_QUOTE_MISMATCH" ->
+                    "Validation check: CITATION_QUOTE_MISMATCH. Copy one exact literal quote from that same reference; never paraphrase or join excerpts.";
+            default ->
+                    "Regenerate only the final output using the supplied schema and current authorized evidence.";
+        };
+    }
+
     public static JsonNode validate(JsonNode output, List<Passage> delivered, JsonNode policy) {
         return validate(output, delivered, policy, List.of());
     }

@@ -84,7 +84,7 @@ public final class AgentModelFailover {
                 record(key, reason, "SUCCEEDED", started);
                 return result;
             } catch (SynGuidanceProvider.ProviderException failure) {
-                record(key, failure.kind().name(), "FAILED", started);
+                record(key, failure.kind().name(), "FAILED", started, failure.diagnostics());
                 if (!safeToRetry.getAsBoolean()) throw failure;
                 if (failure.kind() == SynGuidanceProvider.FailureKind.MALFORMED_OUTPUT
                         && repairInvalidOutput()) {
@@ -149,24 +149,41 @@ public final class AgentModelFailover {
     }
 
     private void record(String effective, String reason, String status, long at) {
-        audit.accept(
-                Map.of(
-                        "type",
-                        "MODEL_ATTEMPT",
-                        "requestedModel",
-                        models.get(0),
-                        "effectiveModel",
-                        effective,
-                        "attempt",
-                        attempts,
-                        "fallbackFrom",
-                        index == 0 ? "" : models.get(index - 1),
-                        "reason",
-                        reason,
-                        "status",
-                        status,
-                        "elapsedMs",
-                        (System.nanoTime() - at) / 1000000));
+        record(effective, reason, status, at, Map.of());
+    }
+
+    private void record(
+            String effective,
+            String reason,
+            String status,
+            long at,
+            Map<String, Object> diagnostics) {
+        var step =
+                new LinkedHashMap<String, Object>(
+                        Map.of(
+                                "type",
+                                "MODEL_ATTEMPT",
+                                "requestedModel",
+                                models.get(0),
+                                "effectiveModel",
+                                effective,
+                                "attempt",
+                                attempts,
+                                "fallbackFrom",
+                                index == 0 ? "" : models.get(index - 1),
+                                "reason",
+                                reason,
+                                "status",
+                                status,
+                                "elapsedMs",
+                                (System.nanoTime() - at) / 1000000));
+        if (diagnostics.get("providerHttpStatus") instanceof Number n
+                && n.intValue() >= 100
+                && n.intValue() <= 599) {
+            step.put("providerHttpStatus", n.intValue());
+            step.put("httpStatusClass", (n.intValue() / 100) + "xx");
+        }
+        audit.accept(step);
     }
 
     private static SynGuidanceProvider.ProviderException failure(
