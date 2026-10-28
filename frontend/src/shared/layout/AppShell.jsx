@@ -60,23 +60,6 @@ function AppShell() {
             <BrandMark />
           </Link>
 
-          {!adminStudio && !account && <Link className="button button--primary header-auth" to="/account" onClick={() => setMenuOpen(false)}>{t('Sign In / Sign Up')}</Link>}
-          <LanguageSwitcher />
-          {account && localWorkspace === true && <span className="session-local-workspace" role="status" title={t('Developer auto-admin is explicitly enabled. Disable LOCAL_DEMO_MODE to use real authentication.')}>{t('Local demo')}</span>}
-          {account && localWorkspace === false && <button type="button" className="button button--small session-signout" disabled={loggingOut} onClick={logout}>{t('Sign out')}</button>}
-
-          {!adminStudio && <button
-            ref={menuTrigger}
-            className="menu-button"
-            aria-controls="site-navigation"
-            type="button"
-            aria-label={t(menuOpen ? 'Close menu' : 'Open menu')}
-            aria-expanded={menuOpen}
-            onClick={() => setMenuOpen((current) => !current)}
-          >
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>}
-
           {!adminStudio && <nav id="site-navigation" aria-label={t('Main navigation')} className={`site-nav ${menuOpen ? 'site-nav--open' : ''}`}>
             {account?.role === 'ADMIN' && <NavLink to="/admin" onClick={() => setMenuOpen(false)}>{t('Admin Studio')}</NavLink>}
             {!adminStudio && navigation.filter(item => (!item.coreOnly || coreEnabled) && (!item.studentOnly || account?.role === 'STUDENT')).map((item) =>
@@ -99,6 +82,25 @@ function AppShell() {
               ),
             )}
           </nav>}
+
+          <div className="header-actions">
+            {!adminStudio && !account && <Link className="button button--primary header-auth" to="/account" onClick={() => setMenuOpen(false)}>{t('Sign In / Sign Up')}</Link>}
+            <LanguageSwitcher />
+            {account && localWorkspace === true && <span className="session-local-workspace" role="status" title={t('Developer auto-admin is explicitly enabled. Disable LOCAL_DEMO_MODE to use real authentication.')}>{t('Local demo')}</span>}
+            {account && localWorkspace === false && <button type="button" className="button button--small session-signout" disabled={loggingOut} onClick={logout}>{t('Sign out')}</button>}
+
+            {!adminStudio && <button
+              ref={menuTrigger}
+              className="menu-button"
+              aria-controls="site-navigation"
+              type="button"
+              aria-label={t(menuOpen ? 'Close menu' : 'Open menu')}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((current) => !current)}
+            >
+              {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>}
+          </div>
         </div>
       </header>
 

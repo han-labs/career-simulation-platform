@@ -48,7 +48,7 @@ export default function CoreSimulationResultsPage() {
         <p className="core-eyebrow">{t('Your results')}</p>
         <h2 id="simulation-results-title">{t('Simulation results')}</h2>
         <div className="core-results__grid">{results.tasks?.map(result => { const task = enrollment.tasks?.find(item => item.id === result.taskId); return <article key={result.taskId}><CheckCircle2 aria-hidden="true" /><div><h3>{localized(task, locale, 'title')}</h3><p>{t(result.status === 'FINAL' ? 'Final submission' : result.status === 'DRAFT' ? 'Draft' : 'Not started')}{result.quizResult && <span> · {t('Quiz score')}: {result.quizResult.correct}/{result.quizResult.total}</span>}</p></div></article> })}</div>
-        <section className="core-results__skills"><h3>{t('Practiced skills')}</h3>{results.practicedSkills?.length ? <ul>{results.practicedSkills.map(skill => <li key={skill}>{skill}</li>)}</ul> : <p>{t('No practiced skills recorded yet.')}</p>}</section>
+        <section className="core-results__skills"><h3>{t('Practiced skills')}</h3>{results.practicedSkills?.length ? <ul>{results.practicedSkills.map(skill => <li key={skill}>{t(skill)}</li>)}</ul> : <p>{t('No practiced skills recorded yet.')}</p>}</section>
       </section>
       {completion && <article className="core-results__artifact"><h2>{t('Completion record')}</h2><p>{t('This records simulation participation, not professional competence.')}</p>{completion.certificateCode && <a className="button" href={`${API_BASE_URL}/v2/completions/${completion.id}/certificate`} target="_blank" rel="noreferrer">{t('View certificate')}</a>}</article>}
     </>}

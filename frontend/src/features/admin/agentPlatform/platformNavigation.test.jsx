@@ -74,3 +74,13 @@ it('keeps authentication controls out of Admin navigation without making API cal
   expect(screen.queryByText(/Sign in|Sign out|Account/)).toBeNull()
   expect(apiRequest).not.toHaveBeenCalled()
 })
+
+it('uses consistent Vietnamese Admin areas without changing routes or making requests', () => {
+  viewport(false)
+  render(<I18nProvider initialLocale="vi"><MemoryRouter initialEntries={['/admin/knowledge']}><AdminStudioLayout /></MemoryRouter></I18nProvider>)
+  expect(screen.getByRole('link',{name:'Kho tri thức'}).getAttribute('aria-current')).toBe('page')
+  expect(screen.getByRole('link',{name:'Trợ lý AI'}).getAttribute('href')).toBe('/admin/agents')
+  expect(screen.getByRole('link',{name:'Sử dụng AI'}).getAttribute('href')).toBe('/admin/usage')
+  expect(screen.getAllByRole('link')).toHaveLength(3)
+  expect(apiRequest).not.toHaveBeenCalled()
+})

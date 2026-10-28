@@ -128,7 +128,7 @@
 /* Shared Student chat interaction pattern; Admin execution/authorization stays separate. */
 .agent-chat.cs-surface { position:relative; display:flex; flex-direction:column; gap:0; width:100%; max-width:none; height:min(720px,82dvh,calc(100dvh - 128px)); min-height:min(480px,82dvh,calc(100dvh - 128px)); max-height:none; margin:0; padding:0; overflow:hidden; background:#fff; color:var(--cs-text); font:inherit; font-size:14px; }
 .agent-chat:not([open]) { display:none; }
-.agent-chat .agent-chat-header { flex:none; display:grid; gap:4px; padding:10px 12px; border-bottom:1px solid #e2e8f0; }
+.agent-chat .agent-chat-header { flex:none; display:grid; gap:4px; padding:10px 12px; border-bottom:1px solid #d4e2f5; background:#eaf2fd; color:#244a80; }
 .agent-chat header p,.agent-chat header h2,.agent-chat header h3 { margin:0; }
 .agent-chat .agent-eyebrow { font-size:9px; }
 .agent-chat .agent-chat-title-row { display:flex; align-items:center; gap:6px; min-width:0; }

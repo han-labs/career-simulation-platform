@@ -83,3 +83,12 @@
   .cs-ui .cs-dialog-header,.cs-ui .cs-dialog-body,.cs-ui .cs-dialog-footer { padding: var(--cs-space-4); }
   .cs-ui .cs-dialog-footer > .cs-button { flex: 1 1 100%; }
 }
+
+.agent-activity { display:inline-flex; align-items:center; gap:7px; min-height:28px; color:var(--cs-primary,#3769b5); vertical-align:middle; }
+.agent-activity > svg { animation:agent-response-breathe 1.2s ease-in-out infinite; }
+.agent-activity-dots { display:inline-flex; gap:3px; }
+.agent-activity-dots i { display:block; width:4px; height:4px; border-radius:50%; background:currentColor; animation:agent-response-breathe 1.2s ease-in-out infinite; }
+.agent-activity-dots i:nth-child(2) { animation-delay:160ms; }
+.agent-activity-dots i:nth-child(3) { animation-delay:320ms; }
+@keyframes agent-response-breathe { 0%,100% { opacity:.4; } 50% { opacity:1; } }
+@media(prefers-reduced-motion:reduce) { .agent-activity > svg,.agent-activity-dots i { animation:none; } }
