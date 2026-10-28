@@ -5,7 +5,7 @@ import FeedbackPanel from '../../../shared/ui/FeedbackPanel.jsx'
 import SourcePassages from '../agentPlatform/SourcePassages.jsx'
 import { executionPath, platformCommand } from '../agentPlatform/platformApi.js'
 
-export default function PreviewResult({ id, execution, error, reload, showStop = true, showExcerpts = true }) {
+export default function PreviewResult({ id, execution, error, reload, showStop = true, showExcerpts = true, compactSources = false }) {
   const { t } = useI18n(), [stopError, setStopError] = useState(''), [stopping, setStopping] = useState(false), pendingStop = useRef(false)
   const pending = !execution || ['ACCEPTED', 'RUNNING'].includes(execution.status)
   const passages = [...new Map((execution?.toolStepsAndSources ?? []).flatMap(step => step.sources ?? []).map(p => [p.referenceId, p])).values()]
@@ -24,7 +24,7 @@ export default function PreviewResult({ id, execution, error, reload, showStop =
     <p className="cs-caption" role="status">{t('Run')}: {t(({ SUCCEEDED: 'Completed', FAILED: 'Failed', REFUSED: 'Refused', CANCELLED: 'Cancelled', ACCEPTED: 'Accepted', RUNNING: 'Running' })[execution?.status] ?? 'Accepted')}</p>
     {(error || stopError) && <FeedbackPanel kind="error">{t(error || stopError)}</FeedbackPanel>}
     {!execution && !error && <FeedbackPanel kind="loading">{t('Loading saved execution...')}</FeedbackPanel>}
-    {answer && <section aria-label={t('Generated answer')}><p className="cs-prose">{execution.outputSnapshot.text}</p><SourcePassages key={id} presentation="citations" showExcerpts={showExcerpts} passages={passages} citations={execution.outputSnapshot.citations ?? []} onUnavailable={reload} /></section>}
+    {answer && <section aria-label={t('Generated answer')}><p className="cs-prose">{execution.outputSnapshot.text}</p>{compactSources ? execution.outputSnapshot.citations?.length>0&&<details className="agent-answer-sources"><summary>{execution.outputSnapshot.citations.length} {t('sources')}</summary><SourcePassages key={id} presentation="citations" inlineExcerpts={compactSources} showExcerpts={showExcerpts} passages={passages} citations={execution.outputSnapshot.citations ?? []} onUnavailable={reload} /></details> : <SourcePassages key={id} presentation="citations" inlineExcerpts={compactSources} showExcerpts={showExcerpts} passages={passages} citations={execution.outputSnapshot.citations ?? []} onUnavailable={reload} />}</section>}
     {execution?.status === 'FAILED' && <FeedbackPanel kind="error" title={t('Request failed')}>{t(execution.errorCode==='MALFORMED_OUTPUT'?'The model response did not pass validation. No answer was accepted.':'The provider could not complete this request.')}</FeedbackPanel>}
     {execution?.status === 'REFUSED' && <FeedbackPanel kind="warning" title={t('Request refused')}>{t(execution.outputSnapshot?.text ?? 'This request could not be answered within the permitted scope.')}</FeedbackPanel>}
     {execution?.status === 'CANCELLED' && <p className="cs-caption">{t('This run was cancelled. You can send another message.')}</p>}

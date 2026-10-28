@@ -337,4 +337,31 @@ class AgentModelFailoverTest {
         assertThat(tools).hasValue(1);
         assertThat(outputs).hasValue(2);
     }
+
+    @Test
+    void auditKeepsOnlyNumericHttpCategoryAndNeverCopiesPrivateDiagnostics() {
+        var count = new AtomicInteger();
+        var model = policy();
+        try (var scope = SynExecutionScope.open(Duration.ofSeconds(60), () -> true)) {
+            model.call(
+                    key -> {
+                        if (count.incrementAndGet() == 1)
+                            throw new SynGuidanceProvider.ProviderException(
+                                    SynGuidanceProvider.FailureKind.PROVIDER_HTTP_UNAVAILABLE,
+                                    Map.of(
+                                            "providerHttpStatus",
+                                            503,
+                                            "rawBody",
+                                            "PRIVATE_DIAGNOSTIC",
+                                            "Authorization",
+                                            "PRIVATE_DIAGNOSTIC"));
+                        return finalDecision();
+                    });
+        }
+        assertThat(audit.get(0))
+                .containsEntry("providerHttpStatus", 503)
+                .containsEntry("httpStatusClass", "5xx");
+        assertThat(CoreValues.write(audit))
+                .doesNotContain("PRIVATE_DIAGNOSTIC", "rawBody", "Authorization");
+    }
 }

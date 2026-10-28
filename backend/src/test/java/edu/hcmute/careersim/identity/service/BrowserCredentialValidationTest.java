@@ -103,4 +103,56 @@ class BrowserCredentialValidationTest {
                                         900))
                 .isInstanceOf(IllegalStateException.class);
     }
+
+    @Test
+    void twoHourCredentialStillRequiresCurrentAuthorityAndSupportsRevocation() {
+        when(actors.requireId(7))
+                .thenReturn(
+                        new ActorAccess.Actor(
+                                7, "fixture@example.test", "Fixture", "STUDENT", 0, 0));
+        auth =
+                new BrowserAuthenticationImpl(
+                        dao, actors, audit, Base64.getEncoder().encodeToString(key), false, 7200);
+        var started = Instant.now();
+        var issued = auth.issue(7);
+        assertThat(issued.expiresAt())
+                .isBetween(started.plusSeconds(7199), started.plusSeconds(7201));
+        assertThat(auth.verify(issued.value())).isNotNull();
+        when(dao.revoked(any())).thenReturn(true);
+        assertThatThrownBy(() -> auth.verify(issued.value())).isInstanceOf(ApiException.class);
+        verify(actors, atLeast(2)).requireId(7);
+    }
+
+    @Test
+    void lifetimeRemainsBoundedAndOversizedSignedCredentialIsRejected() {
+        assertThatThrownBy(
+                        () ->
+                                new BrowserAuthenticationImpl(
+                                        dao,
+                                        actors,
+                                        audit,
+                                        Base64.getEncoder().encodeToString(key),
+                                        false,
+                                        7201))
+                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(
+                        () ->
+                                new BrowserAuthenticationImpl(
+                                        dao,
+                                        actors,
+                                        audit,
+                                        Base64.getEncoder().encodeToString(key),
+                                        false,
+                                        59))
+                .isInstanceOf(IllegalStateException.class);
+        assertThatThrownBy(
+                        () ->
+                                auth.verify(
+                                        token(
+                                                "careersim",
+                                                "careersim-browser",
+                                                Instant.now().plusSeconds(7200))))
+                .isInstanceOf(ApiException.class);
+        verifyNoInteractions(dao, actors, audit);
+    }
 }

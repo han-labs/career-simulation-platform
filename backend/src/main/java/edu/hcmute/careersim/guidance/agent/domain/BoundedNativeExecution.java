@@ -28,6 +28,10 @@ public final class BoundedNativeExecution {
         default boolean reserveOutputRepair() {
             return false;
         }
+
+        default boolean reconsiderWithoutEvidence(Decision decision) {
+            return false;
+        }
     }
 
     public static JsonNode execute(int rounds, int maxCalls, boolean toolsEnabled, Host host) {
@@ -36,6 +40,7 @@ public final class BoundedNativeExecution {
         var exchanges = new ArrayList<Exchange>();
         int calls = 0;
         boolean repairing = false;
+        boolean reconsidered = false;
         for (int round = 0; round < rounds; round++) {
             host.checkpoint();
             int finalSlots = host.reserveOutputRepair() && rounds >= 3 ? 2 : 1;
@@ -45,6 +50,16 @@ public final class BoundedNativeExecution {
             host.checkpoint();
             if (decision == null || decision.calls() == null) throw failure();
             if (decision.calls().isEmpty()) {
+                // One opportunity within the original budget, with a tool-enabled round left.
+                // Hosts opt in; greetings/refusals and already executed tools are not replayed.
+                if (!reconsidered
+                        && allowed
+                        && calls == 0
+                        && round + 1 < rounds - finalSlots
+                        && host.reconsiderWithoutEvidence(decision)) {
+                    reconsidered = true;
+                    continue;
+                }
                 try {
                     return host.output(decision);
                 } catch (SynGuidanceProvider.ProviderException invalid) {

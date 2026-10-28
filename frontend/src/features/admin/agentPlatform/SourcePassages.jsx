@@ -6,7 +6,7 @@ import Button from '../../../shared/ui/Button.jsx'
 import FeedbackPanel from '../../../shared/ui/FeedbackPanel.jsx'
 import StatusBadge from '../../../shared/ui/StatusBadge.jsx'
 import Dialog from '../../../shared/ui/Dialog.jsx'
-export default function SourcePassages({ passages = [], citations = [], onUnavailable, presentation = 'legacy', showExcerpts = true }) {
+export default function SourcePassages({ passages = [], citations = [], onUnavailable, presentation = 'legacy', showExcerpts = true, inlineExcerpts = false }) {
   const { t } = useI18n(), [inspected, setInspected] = useState(null), [error, setError] = useState(''), [unavailable, setUnavailable] = useState([])
   const alive = useRef(true), sequence = useRef(0)
   const [opened, setOpened] = useState(null), selectedSource = useRef(null)
@@ -34,7 +34,7 @@ export default function SourcePassages({ passages = [], citations = [], onUnavai
     {citations.map(citation => {
       const p = passages.find(p => p.referenceId === citation.referenceId)
       const available = p && !unavailable.includes(p.chunkId)
-      return <div key={citation.referenceId} className="agent-citation"><Button variant="quiet" disabled={!available} onClick={() => { selectedSource.current = p; setOpened(p); inspect(p) }}>{available ? p.title + ' · ' + citation.referenceId : t('Source unavailable')}</Button>{available && showExcerpts && <details className="agent-citation-excerpt"><summary>{t('Supporting excerpt')}</summary><blockquote><q>{citation.quote}</q></blockquote></details>}</div>
+      return <div key={citation.referenceId} className="agent-citation"><Button variant="quiet" disabled={!available} onClick={() => { selectedSource.current = p; setOpened(p); inspect(p) }}>{available ? p.title + ' · ' + citation.referenceId : t('Source unavailable')}</Button>{available && showExcerpts && (inlineExcerpts ? <blockquote><q>{citation.quote}</q></blockquote> : <details className="agent-citation-excerpt"><summary>{t('Supporting excerpt')}</summary><blockquote><q>{citation.quote}</q></blockquote></details>)}</div>
     })}
     {opened && <Dialog title={t('Source evidence')} closeLabel={t('Close dialog')} onRequestClose={() => { setOpened(null); setInspected(null); selectedSource.current = null; sequence.current += 1 }}>
       {error ? <FeedbackPanel kind="error" title={t('Source unavailable')}>{t('This knowledge source is no longer available.')}</FeedbackPanel> : !currentInspection ? <FeedbackPanel kind="loading">{t('Resolving the current source...')}</FeedbackPanel> : <article className="cs-stack"><h3>{currentInspection.title}</h3><p className="cs-caption">{t('Source version')}: {currentInspection.versionId} · {currentInspection.section}</p><p className="cs-prose">{currentInspection.text}</p><dl className="cs-metadata">{Object.entries(currentInspection.sourceLocator ?? {}).filter(([,value]) => typeof value !== 'object').map(([key,value]) => <div key={key}><dt>{t(key)}</dt><dd>{String(value)}</dd></div>)}</dl><p className="cs-caption">{t('Embedding profile')}: {currentInspection.embeddingProfile ?? t('Not reported')}</p></article>}

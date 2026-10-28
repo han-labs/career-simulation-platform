@@ -99,6 +99,88 @@ class AgentResponseSchemaTest {
     }
 
     @Test
+    void studentChatAdvertisesOnlySupportedActionsWithoutChangingAdminChat() {
+        var p = CoreValues.tree(Map.of());
+        var student = AgentResponseSchema.forTask("STUDENT_CHAT", p).path("properties");
+        assertThat(student.size()).isEqualTo(8);
+        assertThat(student.path("requestedAction").path("enum").toString())
+                .contains("NONE", "INSIGHT_REPORT", "PLAN_SUGGESTION")
+                .doesNotContain("PUBLISH", "ASSIGN");
+        assertThat(student.has("report")).isTrue();
+        assertThat(student.has("planSuggestion")).isTrue();
+        assertThat(AgentResponseSchema.forTask("CHAT", p).path("properties").size()).isEqualTo(5);
+    }
+
+    @Test
+    void studentActionCannotBypassClosedArtifactsEvidenceOrRefusalRules() {
+        var policy = CoreValues.tree(Map.of("grounding", "GENERAL_ALLOWED", "maxCharacters", 4000));
+        var base =
+                (com.fasterxml.jackson.databind.node.ObjectNode)
+                        CoreValues.tree(
+                                Map.of(
+                                        "schemaVersion",
+                                        1,
+                                        "outcome",
+                                        "INSUFFICIENT_EVIDENCE",
+                                        "text",
+                                        "Complete an assessment or share a relevant question first.",
+                                        "citations",
+                                        java.util.List.of(),
+                                        "suggestions",
+                                        java.util.List.of()));
+        base.put("requestedAction", "INSIGHT_REPORT");
+        assertThat(
+                        edu.hcmute.careersim.guidance.agent.domain.StudentOutputValidator.validate(
+                                        base,
+                                        "CHAT",
+                                        java.util.List.of(),
+                                        java.util.List.of(),
+                                        policy)
+                                .has("report"))
+                .isFalse();
+        base.put("outcome", "ANSWER");
+        assertThatThrownBy(
+                        () ->
+                                edu.hcmute.careersim.guidance.agent.domain.StudentOutputValidator
+                                        .validate(
+                                                base,
+                                                "CHAT",
+                                                java.util.List.of(),
+                                                java.util.List.of(),
+                                                policy))
+                .isInstanceOf(
+                        edu.hcmute.careersim.guidance.service.SynGuidanceProvider.ProviderException
+                                .class);
+        base.put("requestedAction", "NONE");
+        base.set("report", CoreValues.tree(Map.of()));
+        assertThatThrownBy(
+                        () ->
+                                edu.hcmute.careersim.guidance.agent.domain.StudentOutputValidator
+                                        .validate(
+                                                base,
+                                                "CHAT",
+                                                java.util.List.of(),
+                                                java.util.List.of(),
+                                                policy))
+                .isInstanceOf(
+                        edu.hcmute.careersim.guidance.service.SynGuidanceProvider.ProviderException
+                                .class);
+        base.remove("report");
+        base.put("outcome", "REFUSED");
+        base.put("requestedAction", "NONE");
+        assertThat(
+                        edu.hcmute.careersim.guidance.agent.domain.StudentOutputValidator.validate(
+                                        base,
+                                        "CHAT",
+                                        java.util.List.of(),
+                                        java.util.List.of(),
+                                        policy)
+                                .path("outcome")
+                                .asText())
+                .isEqualTo("REFUSED");
+    }
+
+    @Test
     void artifactSchemasMatchExistingReportAndDraftValidators() {
         var p = CoreValues.tree(Map.of());
         var report =
@@ -118,5 +200,83 @@ class AgentResponseSchemaTest {
         assertThat(plan.path("properties").size()).isEqualTo(5);
         assertThat(plan.path("properties").path("steps").path("maxItems").asInt()).isEqualTo(5);
         assertThat(plan.toString()).contains("UNSAVED").doesNotContain("confirmed", "writeTool");
+    }
+
+    @Test
+    void groupedWindowsDoNotSuggestMultipleCitationsForTheSameSourceAndDuplicatesStillFail() {
+        var data =
+                CoreValues.tree(
+                        Map.of(
+                                "title",
+                                "Career result",
+                                "status",
+                                "SUBMITTED",
+                                "resultData",
+                                Map.of("categories", java.util.List.of(Map.of("raw", 13)))));
+        String source = CoreValues.write(data);
+        var d =
+                new edu.hcmute.careersim.guidance.agent.domain.DomainEvidence(
+                        "AR:7", "ASSESSMENT_RESULT", "OWNER", "1", source, data);
+        var grouped =
+                AgentResponseSchema.groupedCitationOptions(
+                        java.util.List.of(), java.util.List.of(d));
+        assertThat(grouped).hasSize(1);
+        assertThat(grouped.get(0).get("referenceId")).isEqualTo("AR:7");
+        var windows = (java.util.List<String>) grouped.get(0).get("quoteOptions");
+        assertThat(windows).allSatisfy(q -> assertThat(source).contains(q));
+        var cite = Map.of("referenceId", "AR:7", "quote", windows.get(0));
+        var raw =
+                CoreValues.tree(
+                        Map.of(
+                                "schemaVersion",
+                                1,
+                                "outcome",
+                                "ANSWER",
+                                "text",
+                                "Your score is 13.",
+                                "citations",
+                                java.util.List.of(cite, cite),
+                                "suggestions",
+                                java.util.List.of()));
+        var policy = CoreValues.tree(Map.of("grounding", "GENERAL_ALLOWED", "maxCharacters", 4000));
+        assertThatThrownBy(
+                        () ->
+                                edu.hcmute.careersim.guidance.agent.domain.StudentOutputValidator
+                                        .validate(
+                                                raw,
+                                                "CHAT",
+                                                java.util.List.of(),
+                                                java.util.List.of(d),
+                                                policy))
+                .isInstanceOf(
+                        edu.hcmute.careersim.guidance.service.SynGuidanceProvider.ProviderException
+                                .class)
+                .satisfies(
+                        e ->
+                                assertThat(
+                                                ((edu.hcmute.careersim.guidance.service
+                                                                        .SynGuidanceProvider
+                                                                        .ProviderException)
+                                                                e)
+                                                        .diagnostics()
+                                                        .get("validationCheck"))
+                                        .isEqualTo("DUPLICATE_CITATION"));
+        ((com.fasterxml.jackson.databind.node.ObjectNode) raw)
+                .set("citations", CoreValues.tree(java.util.List.of(cite)));
+        assertThat(
+                        edu.hcmute.careersim.guidance.agent.domain.StudentOutputValidator.validate(
+                                raw, "CHAT", java.util.List.of(), java.util.List.of(d), policy))
+                .isNotNull();
+        ((com.fasterxml.jackson.databind.node.ObjectNode) raw).put("text", "Your score is 99.");
+        assertThatThrownBy(
+                        () ->
+                                edu.hcmute.careersim.guidance.agent.domain.StudentOutputValidator
+                                        .validate(
+                                                raw,
+                                                "CHAT",
+                                                java.util.List.of(),
+                                                java.util.List.of(d),
+                                                policy))
+                .isInstanceOf(RuntimeException.class);
     }
 }

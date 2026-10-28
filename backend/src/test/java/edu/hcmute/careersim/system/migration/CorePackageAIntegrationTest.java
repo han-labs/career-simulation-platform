@@ -2419,6 +2419,83 @@ class CorePackageAIntegrationTest {
     }
 
     @Test
+    void agentAssessmentActivityCountsAllAttemptsAndFiltersBeforeTheRecentResultWindow() {
+        var first = assessment();
+        var a = assessments.start(student, Long.parseLong(first.id()), UUID.randomUUID());
+        var old =
+                assessments.submit(
+                        student,
+                        Long.parseLong(a.id()),
+                        a.revision(),
+                        new VersionedAssessmentContracts.Responses(responses(a)));
+        var next = assessment();
+        for (int i = 0; i < 21; i++) {
+            var recent = assessments.start(student, Long.parseLong(next.id()), UUID.randomUUID());
+            assessments.submit(
+                    student,
+                    Long.parseLong(recent.id()),
+                    recent.revision(),
+                    new VersionedAssessmentContracts.Responses(responses(recent)));
+        }
+        assessments.start(student, Long.parseLong(next.id()), UUID.randomUUID());
+        var foreign = assessments.start(other, Long.parseLong(first.id()), UUID.randomUUID());
+        assessments.submit(
+                other,
+                Long.parseLong(foreign.id()),
+                foreign.revision(),
+                new VersionedAssessmentContracts.Responses(responses(foreign)));
+        var summary = assessmentResults.activity(student, null);
+        assertThat(summary.totalAttempts()).isEqualTo(23);
+        assertThat(summary.inProgressAttempts()).isEqualTo(1);
+        assertThat(summary.savedResults()).isEqualTo(22);
+        assertThat(summary.completedTypes()).isEqualTo(2);
+        assertThat(assessmentResults.activity(other, null).savedResults()).isEqualTo(1);
+        assertThat(assessmentResults.readOwned(student, old.assessmentTypeCode()))
+                .extracting(VersionedAssessmentContracts.Result::attemptId)
+                .containsExactly(old.attemptId());
+        assertThat(assessmentResults.activity(student, old.assessmentTypeCode()).savedResults())
+                .isEqualTo(1);
+        assertThatThrownBy(() -> assessmentResults.activity(admin, null))
+                .isInstanceOf(ApiException.class);
+    }
+
+    @Test
+    void agentSimulationActivitySeparatesEnrollmentProgressCompletionAndSuspendedResources() {
+        var baseline = enrollments.activity(student);
+        assertThat(baseline.totalEnrollments()).isZero();
+        var v = scenario(1, false);
+        var e = enrollments.enroll(student, Long.parseLong(v.id()));
+        enrollments.enroll(other, Long.parseLong(v.id()));
+        assertThat(enrollments.activity(student).notStarted()).isEqualTo(1);
+        var task = v.tasks().get(0);
+        var draft =
+                submissions.save(
+                        student,
+                        Long.parseLong(e.id()),
+                        Long.parseLong(task.id()),
+                        0,
+                        new Items(items(task)));
+        assertThat(enrollments.activity(student).inProgress()).isEqualTo(1);
+        submissions.finalizeTask(
+                student,
+                Long.parseLong(e.id()),
+                Long.parseLong(task.id()),
+                draft.revision(),
+                new Finalize(UUID.randomUUID(), items(task)));
+        submissions.selfReview(student, Long.parseLong(e.id()), Long.parseLong(task.id()));
+        assertThat(enrollments.activity(student).completed()).isEqualTo(1);
+        assertThat(enrollments.activity(other).completed()).isZero();
+        var second = scenario(1, false);
+        enrollments.enroll(student, Long.parseLong(second.id()));
+        assertThat(enrollments.activity(student).distinctSimulations()).isEqualTo(2);
+        jdbc.update(
+                "UPDATE scenario SET availability_status='SUSPENDED' WHERE id=?",
+                Long.parseLong(second.scenarioId()));
+        assertThat(enrollments.activity(student).totalEnrollments()).isEqualTo(1);
+        assertThatThrownBy(() -> enrollments.activity(admin)).isInstanceOf(ApiException.class);
+    }
+
+    @Test
     void parallelVersionsEnrollmentFinalizationAndFixedCompletion() throws Exception {
         var v = scenario(2, false);
         var enrollment = parallel(() -> enrollments.enroll(student, Long.parseLong(v.id())));

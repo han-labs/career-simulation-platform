@@ -53,6 +53,22 @@ public class VersionedAssessmentServiceImpl
     }
 
     @Transactional(readOnly = true)
+    public List<PublicType> publicCatalog() {
+        return dao.publicCatalog().stream()
+                .map(
+                        t ->
+                                new PublicType(
+                                        t.id(),
+                                        t.code(),
+                                        t.name(),
+                                        t.activeVersionId(),
+                                        t.questionCount(),
+                                        edu.hcmute.careersim.assessment.domain.AssessmentCatalogInfo
+                                                .describe(t.code(), t.questionCount())))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public List<AttemptSummary> history(long actor) {
         student(actor);
         return dao.history(actor);
@@ -199,5 +215,17 @@ public class VersionedAssessmentServiceImpl
     public List<Result> readOwned(long actor) {
         student(actor);
         return dao.results(actor);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Result> readOwned(long actor, String type) {
+        student(actor);
+        return dao.results(actor, type);
+    }
+
+    @Transactional(readOnly = true)
+    public OwnActivity activity(long actor, String type) {
+        student(actor);
+        return dao.activity(actor, type);
     }
 }

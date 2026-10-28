@@ -40,28 +40,7 @@
 .agent-tool-choice .cs-caption { display:block; line-height:1.5; }
 .agent-safety > summary,.agent-publication > summary { cursor:pointer; min-height:32px; font-weight:600; }
 .agent-publication > .cs-stack { padding-top:16px; }
-.agent-chat { display:flex; flex-direction:column; gap:0; height:min(780px,calc(100dvh - 128px)); min-height:min(520px,calc(100dvh - 128px)); overflow:hidden; }
-.agent-chat.cs-surface { padding:16px; }
-.agent-chat h3,.agent-chat h4,.agent-chat header p { margin:0; }
-.agent-chat-header { flex:0 0 auto; display:grid; gap:8px; max-height:42%; overflow-y:auto; padding-bottom:12px; border-bottom:1px solid var(--cs-border); }
 .agent-eyebrow { font-size:.7rem; font-weight:600; letter-spacing:.08em; color:var(--cs-text-secondary); }
-.agent-chat-header .cs-feedback { padding:10px; font-size:.875rem; }
-.agent-chat-messages { flex:1 1 auto; display:flex; flex-direction:column; gap:16px; min-height:100px; overflow:auto; padding:16px 0; overscroll-behavior:contain; }
-.agent-chat-empty { margin:auto; max-width:38ch; text-align:center; color:var(--cs-text-secondary); padding:20px 12px; }
-.agent-message { flex:none; min-width:0; max-width:100%; overflow-wrap:anywhere; border-radius:10px; padding:12px; }
-.agent-message--user { align-self:flex-end; width:fit-content; max-width:92%; background:var(--cs-primary-soft); }
-.agent-message--agent { align-self:flex-start; width:fit-content; max-width:92%; border:1px solid var(--cs-border); background:var(--cs-surface); }
-.agent-message > .cs-stack { margin-top:10px; }
-.agent-message .cs-surface { box-shadow:none; border:0; padding:0; }
-.agent-message .cs-section-header { margin:0; gap:8px; }
-.agent-message h2 { font-size:1rem; }
-.agent-message h3 { font-size:.9375rem; }
-.agent-message .cs-stack { gap:12px; }
-.agent-message pre { max-width:100%; overflow:auto; white-space:pre-wrap; }
-.agent-message .cs-metadata { grid-template-columns:minmax(0,1fr); }
-.agent-chat-composer { flex:0 0 auto; display:grid; gap:8px; border-top:1px solid var(--cs-border); padding-top:12px; background:var(--cs-surface); }
-.agent-chat-composer textarea.cs-control { min-height:72px; max-height:140px; }
-.agent-chat-composer .cs-actions { justify-content:flex-end; }
 .agent-pane-toggle { display:none; }
 .agent-builder select,.agent-builder textarea { max-width:100%; }
 .agent-builder pre,.agent-builder code { overflow-wrap:anywhere; }
@@ -73,7 +52,6 @@
   .agent-preview-pane { position:static; }
   .agent-save-bar { grid-column:1 / -1; grid-row:auto; align-items:flex-start; }
   .agent-save-bar .cs-caption { max-width:none; text-align:start; }
-  .agent-chat { height:78dvh; min-height:min(520px,78dvh); }
   .agent-configuration-pane .cs-fields { grid-template-columns:repeat(2,minmax(0,1fr)); }
 }
 @media(max-width:1000px) {
@@ -85,8 +63,6 @@
   .agent-version-controls { align-items:stretch; }
   .agent-version-controls .cs-field { width:100%; }
   .agent-configuration-pane .cs-fields { grid-template-columns:minmax(0,1fr); }
-  .agent-chat { height:80dvh; }
-  .agent-message { padding:10px; }
   .agent-save-bar .cs-actions { width:100%; }
   .agent-save-bar .cs-actions > button { flex:1 1 120px; }
 }
@@ -125,26 +101,9 @@
 .agent-language-helper .cs-field { flex:1 1 170px; }
 .agent-kb-chips { display:flex; flex-wrap:wrap; gap:8px; }
 .agent-kb-chips .cs-badge { white-space:normal; overflow-wrap:anywhere; }
-.agent-chat-turn { display:flex; flex-direction:column; gap:10px; min-width:0; }
-.agent-chat .agent-chat-header h2 { font-size:1.125rem; }
-.agent-chat .agent-chat-header .cs-section-header { align-items:center; margin:0; }
-.agent-chat .agent-chat-header .cs-button { font-size:.8125rem; padding:6px 8px; }
-.agent-chat .agent-run-details { margin-top:8px; font-size:.8125rem; border:0; padding:0; }
-.agent-chat .agent-run-details > summary { padding-block:8px; color:var(--cs-text-secondary); }
-.agent-chat .preview-run { margin-top:6px; display:grid; gap:10px; }
-.agent-chat .preview-run .cs-feedback { padding:10px; font-size:.875rem; }
-.agent-chat .agent-citations { display:grid; gap:8px; }
-.agent-chat .agent-citation > .cs-button { min-height:36px; border:1px solid var(--cs-border); font-size:.8125rem; padding:6px 8px; text-align:left; }
-.agent-chat .agent-citation-excerpt { font-size:.8125rem; color:var(--cs-text-secondary); }
-.agent-chat .agent-citation-excerpt summary { cursor:pointer; min-height:32px; }
-.agent-chat blockquote { margin:6px 0; padding-left:10px; border-left:2px solid var(--cs-primary); }
-.agent-chat--expanded.cs-surface { position:fixed; inset:24px; height:auto; min-height:0; max-height:none; box-shadow:0 12px 50px #203c6a33; }
-.agent-chat--expanded .agent-chat-messages { padding-inline:clamp(0px,8vw,180px); }
 .agent-safe-timeline { padding-left:18px; }
 @media(max-width:560px) {
-  .agent-chat--expanded.cs-surface { inset:8px; }
   .agent-workspace-header .cs-section-header { flex-wrap:wrap; }
-  .agent-chat .agent-message { max-width:95%; }
   .agent-workspace .agent-save-bar { grid-column:1; grid-row:auto; }
   .cs-ui.agent-builder .agent-workspace-header > .agent-save-bar,
   .cs-ui.agent-builder .agent-workspace-header > .agent-version-controls,
@@ -152,35 +111,85 @@
 }
 
 /* Native dialog keeps the same Preview tree, using the browser top layer when expanded. */
-.agent-chat { position:static; width:100%; max-width:none; max-height:none; margin:0; color:var(--cs-text); font:inherit; height:min(820px,calc(100dvh - 128px)); min-height:540px; }
-.agent-chat:not([open]) { display:none; }
-.agent-chat .agent-chat-header { max-height:38%; }
-.agent-chat .agent-chat-messages { min-height:120px; font-size:15px; line-height:1.5; }
-.agent-chat .agent-chat-composer textarea.cs-control { min-height:64px; max-height:120px; }
-.agent-chat.agent-chat--expanded { position:fixed; inset:24px; margin:0; width:calc(100vw - 48px); height:calc(100dvh - 48px); max-width:none; max-height:none; min-height:0; }
-.agent-chat::backdrop { background:rgb(15 23 42 / .4); }
-.agent-chat--expanded .agent-chat-messages { padding-inline:clamp(0px,5vw,100px); }
-.agent-configured-greeting { border-style:dashed; color:var(--cs-text-secondary); }
 .agent-form-columns { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; min-width:0; }
 .agent-form-columns > * { min-width:0; }
 .agent-draft-warning { color:var(--cs-warning-text,var(--cs-text-secondary)); }
 @media(max-width:560px) {
  .agent-form-columns { grid-template-columns:minmax(0,1fr); }
- .agent-chat.agent-chat--expanded { inset:8px; width:calc(100vw - 16px); height:calc(100dvh - 16px); }
- .agent-chat { min-height:min(540px,80dvh); }
 }
 
 .agent-studio-panes > .agent-preview-pane:has(.agent-chat--expanded) { display:block; }
 
 /* UC-08 only: reference-like transcript and message contrast. */
-.agent-chat .agent-chat-messages { background:#f3f6fa; border:1px solid #dce4ef; border-radius:8px; margin:12px 0; padding:14px 10px; gap:20px; color:#172b4d; }
-.agent-chat .agent-message { font-size:15px; line-height:1.55; max-width:min(92%,640px); width:fit-content; }
-.agent-chat .agent-message--user { align-self:flex-end; background:#eaf3ff; border:1px solid #b9d2f4; border-bottom-right-radius:3px; }
-.agent-chat .agent-message--agent { align-self:flex-start; background:#fff; border:1px solid #ccd7e5; border-bottom-left-radius:3px; }
-.agent-chat .agent-configured-greeting { background:#eaf0f5; border-style:dashed; color:#344861; }
-.agent-chat .preview-run > [role="status"] { color:#586b82; font-size:.8125rem; }
-.agent-chat .preview-run .cs-feedback--error { background:#fff0f0; border:1px solid #d6a2a2; color:#722626; }
-.agent-chat-turn { gap:10px; }
 .agent-variables { display:grid; gap:14px; }
 .agent-variable-row { display:grid; grid-template-columns:minmax(100px,.7fr) minmax(130px,1.3fr) auto; gap:10px; align-items:end; }
 @media(max-width:560px){.agent-variable-row { grid-template-columns:minmax(0,1fr); padding-bottom:12px; border-bottom:1px solid var(--cs-border); }.agent-variable-row .cs-button { justify-self:start; }}
+
+/* Shared Student chat interaction pattern; Admin execution/authorization stays separate. */
+.agent-chat.cs-surface { position:relative; display:flex; flex-direction:column; gap:0; width:100%; max-width:none; height:min(720px,82dvh,calc(100dvh - 128px)); min-height:min(480px,82dvh,calc(100dvh - 128px)); max-height:none; margin:0; padding:0; overflow:hidden; background:#fff; color:var(--cs-text); font:inherit; font-size:14px; }
+.agent-chat:not([open]) { display:none; }
+.agent-chat .agent-chat-header { flex:none; display:grid; gap:4px; padding:10px 12px; border-bottom:1px solid #e2e8f0; }
+.agent-chat header p,.agent-chat header h2,.agent-chat header h3 { margin:0; }
+.agent-chat .agent-eyebrow { font-size:9px; }
+.agent-chat .agent-chat-title-row { display:flex; align-items:center; gap:6px; min-width:0; }
+.agent-chat .agent-chat-title-row h2 { flex:1; min-width:0; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:14px; font-weight:650; }
+.agent-chat .agent-chat-header-actions { flex:none; display:flex; gap:2px; }
+.agent-chat .agent-chat-header .cs-caption { font-size:11px; line-height:1.5; }
+.agent-chat .cs-button.agent-chat-icon { flex:none; display:inline-flex; justify-content:center; align-items:center; width:32px; height:32px; min-width:32px; min-height:32px; border:0; border-radius:8px; padding:0; background:transparent; color:#64748b; }
+.agent-chat .cs-button.agent-chat-icon:hover:not(:disabled) { background:#f1f5f9; color:#1e293b; }
+.agent-chat .agent-chat-viewport { flex:1 1 0px; min-height:0; display:flex; position:relative; }
+.agent-chat .agent-chat-messages { flex:1; min-width:0; min-height:0; overflow-y:auto; overflow-x:hidden; overflow-anchor:none; overscroll-behavior:contain; display:flex; flex-direction:column; gap:18px; padding:16px 16px 32px; scrollbar-width:thin; scrollbar-color:#cbd5e1 transparent; }
+.agent-chat .agent-chat-messages::-webkit-scrollbar { width:5px; }
+.agent-chat .agent-chat-messages::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:8px; }
+.agent-chat .agent-chat-empty { margin:auto; max-width:34ch; padding:18px 8px; text-align:center; color:#64748b; }
+.agent-chat .agent-chat-empty h3 { font-size:15px; }
+.agent-chat .agent-chat-turn { display:flex; flex-direction:column; gap:18px; min-width:0; flex:none; }
+.agent-chat .agent-message { flex:none; width:fit-content; min-width:0; max-width:95%; padding:0; border:0; background:transparent; font-size:14px; line-height:1.65; overflow-wrap:anywhere; }
+.agent-chat .agent-message strong { display:block; margin-bottom:4px; color:#64748b; font-size:10px; font-weight:600; }
+.agent-chat .agent-message p { margin:0; font-size:14px; line-height:1.65; white-space:pre-wrap; }
+.agent-chat .agent-message--user { align-self:flex-end; max-width:85%; padding:8px 12px; border-radius:16px 16px 4px 16px; background:#edf3fc; }
+.agent-chat .agent-message--agent { align-self:flex-start; }
+.agent-chat .agent-message--agent .cs-prose { text-align:justify; text-align-last:start; hyphens:auto; }
+.agent-chat .agent-message pre,.agent-chat .agent-message code { max-width:100%; white-space:pre-wrap; overflow-wrap:anywhere; }
+.agent-chat .agent-message .cs-metadata { grid-template-columns:minmax(0,1fr); }
+.agent-chat .preview-run { display:grid; gap:6px; }
+.agent-chat .preview-run > [role=status] { font-size:10px; color:#94a3b8; }
+.agent-chat .agent-run-details,.agent-chat .agent-answer-sources { margin:6px 0 0; padding:0; border:0; font-size:11px; }
+.agent-chat .agent-run-details > summary,.agent-chat .agent-answer-sources > summary { width:fit-content; padding:3px 0; cursor:pointer; color:#64748b; line-height:1.5; }
+.agent-chat .agent-citations { display:grid; gap:6px; margin:6px 0; }
+.agent-chat .agent-citation .cs-button { min-height:28px; padding:3px 6px; font-size:12px; }
+.agent-chat .agent-citation-excerpt { font-size:12px; }
+.agent-chat blockquote { margin:6px 0; padding-left:10px; border-left:2px solid #dbe7f8; }
+.agent-chat .cs-feedback { margin:8px; padding:10px 12px; font-size:12px; }
+.agent-chat .cs-feedback h3 { font-size:13px; }
+.agent-chat .agent-chat-bottom { flex:none; padding:8px 12px 12px; border-top:1px solid #e2e8f0; background:#fff; }
+.agent-chat .agent-chat-composer { display:flex; align-items:flex-end; gap:8px; padding:4px; border:1px solid #d5deeb; border-radius:14px; background:#f8fafc; }
+.agent-chat .agent-chat-composer:focus-within { border-color:var(--cs-primary); }
+.agent-chat .agent-chat-composer .cs-field { flex:1; min-width:0; gap:0; }
+.agent-chat .agent-chat-composer .cs-field-label { position:absolute; width:1px; height:1px; margin:-1px; overflow:hidden; clip-path:inset(50%); white-space:nowrap; }
+.agent-chat .agent-chat-composer textarea.cs-control { width:100%; min-height:40px; height:40px; max-height:104px; resize:none; border:0; padding:9px 10px; outline:0; box-shadow:none; background:transparent; font:inherit; font-size:14px; line-height:22px; }
+.agent-chat .agent-chat-composer .cs-actions { flex:none; padding:4px; gap:2px; }
+.agent-chat .cs-button.agent-chat-send { background:var(--cs-primary); color:white; border-radius:50%; }
+.agent-chat .cs-button.agent-chat-send:disabled { background:#e2e8f0; color:#94a3b8; }
+.agent-chat .cs-button.agent-chat-jump { position:absolute; right:16px; bottom:12px; width:30px; height:30px; min-width:30px; min-height:30px; border:1px solid #e2e8f0; border-radius:50%; background:#fff; box-shadow:0 2px 8px #172b4d18; }
+.agent-chat .agent-quick-actions { padding:0 0 7px; border:0; margin:0; }
+.agent-chat .agent-quick-action-chips { display:flex; flex-wrap:nowrap; gap:5px; overflow-x:auto; max-width:100%; padding-bottom:3px; scrollbar-width:thin; scrollbar-color:#dce3ed transparent; }
+.agent-chat .agent-quick-action-chips button { flex:0 0 auto; min-height:28px; max-width:170px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border:1px solid #e2e8f0; border-radius:16px; padding:4px 9px; background:#fff; color:#526178; font:inherit; font-size:11px; line-height:18px; }
+.agent-chat .agent-chat-history-overlay { position:absolute; inset:0; z-index:2; display:flex; justify-content:flex-end; background:#172b4d26; }
+.agent-chat .agent-chat-history-drawer { display:flex; flex-direction:column; gap:8px; width:min(300px,92%); height:100%; padding:8px; overflow-y:auto; background:#fff; box-shadow:-4px 0 20px #172b4d15; animation:agent-preview-drawer-open 200ms ease; }
+.agent-chat .agent-chat-history-drawer header { display:flex; align-items:center; padding:4px 4px 8px 8px; }
+.agent-chat .agent-chat-history-drawer h3 { flex:1; font-size:14px; }
+.agent-chat .agent-chat-history-drawer ul { list-style:none; padding:0; margin:0; display:grid; gap:3px; }
+.agent-chat .cs-button.agent-chat-resume { display:flex; width:100%; justify-content:flex-start; min-width:0; min-height:36px; border:0; padding:6px 8px; border-radius:8px; background:transparent; font-size:12px; text-align:start; }
+.agent-chat .agent-chat-resume > span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.agent-chat .agent-chat-resume[aria-pressed=true],.agent-chat .agent-chat-resume:hover { background:#f1f5f9; }
+.agent-chat .agent-chat-history-drawer footer { display:grid; gap:4px; margin-top:auto; padding-top:12px; border-top:1px solid #e2e8f0; }
+.agent-chat .cs-button.agent-chat-history-action { justify-content:flex-start; min-height:32px; border:0; padding:4px 8px; font-size:12px; background:transparent; }
+.agent-chat .agent-chat-history-action:last-child { color:#b42318; }
+.agent-chat .chat-viewport-tail { flex:none; }
+.agent-chat.agent-chat--expanded { position:fixed; inset:0; margin:auto; width:min(780px,calc(100vw - 16px)); max-width:calc(100vw - 16px); height:82dvh; max-height:82dvh; min-height:0; box-shadow:0 12px 40px #172b4d26; }
+.agent-chat::backdrop { background:#172b4d40; }
+@media(max-width:560px) { .agent-chat .agent-chat-header { padding:8px 10px; }.agent-chat .agent-chat-messages { padding-inline:12px; }.agent-chat .agent-chat-bottom { padding:7px 8px 10px; } }
+@media(prefers-reduced-motion:reduce) { .agent-chat .agent-chat-history-drawer { animation:none; transition:none; } }
+
+@keyframes agent-preview-drawer-open { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }

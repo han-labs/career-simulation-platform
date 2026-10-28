@@ -29,6 +29,12 @@ public class EnrollmentServiceImpl implements EnrollmentService, ParticipationEv
     private final ActorAccess actors;
     private final AuditWriter audit;
 
+    @Transactional(readOnly = true)
+    public OwnActivity activity(long actor) {
+        ActorAccess.requireRole(actors.requireId(actor), "STUDENT");
+        return dao.activity(actor);
+    }
+
     @Transactional
     public Enrollment enroll(long actor, long version) {
         ActorAccess.requireRole(actors.lock(actor), "STUDENT");

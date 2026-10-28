@@ -129,4 +129,103 @@ class BoundedNativeExecutionTest {
                 .isInstanceOf(RuntimeException.class);
         assertThat(dispatched).hasValue(0);
     }
+
+    @Test
+    void prematureAbstentionGetsOneToolEnabledOpportunityWithinExistingBudget() {
+        var flags = new ArrayList<Boolean>();
+        var executed = new AtomicInteger();
+        var reviews = new AtomicInteger();
+        var host =
+                new BoundedNativeExecution.Host() {
+                    public void checkpoint() {}
+
+                    public boolean reserveOutputRepair() {
+                        return true;
+                    }
+
+                    public Decision decide(boolean allowed, List<Exchange> history) {
+                        flags.add(allowed);
+                        if (flags.size() == 1)
+                            return new Decision(
+                                    null,
+                                    List.of(),
+                                    CoreValues.tree(Map.of("outcome", "INSUFFICIENT_EVIDENCE")));
+                        if (allowed)
+                            return new Decision(
+                                    null,
+                                    List.of(
+                                            new Call(
+                                                    "lookup",
+                                                    "simulation.explore",
+                                                    CoreValues.tree(Map.of()))),
+                                    null);
+                        assertThat(history).hasSize(1);
+                        return new Decision(
+                                null, List.of(), CoreValues.tree(Map.of("outcome", "ANSWER")));
+                    }
+
+                    public boolean reconsiderWithoutEvidence(Decision d) {
+                        reviews.incrementAndGet();
+                        return true;
+                    }
+
+                    public JsonNode output(Decision d) {
+                        return d.output();
+                    }
+
+                    public List<JsonNode> tools(Decision d) {
+                        executed.incrementAndGet();
+                        return List.of(CoreValues.tree(Map.of("evidence", "published catalogue")));
+                    }
+                };
+        assertThat(BoundedNativeExecution.execute(4, 4, true, host).path("outcome").asText())
+                .isEqualTo("ANSWER");
+        assertThat(flags).containsExactly(true, true, false);
+        assertThat(executed).hasValue(1);
+        assertThat(reviews).hasValue(1);
+    }
+
+    @Test
+    void reconsiderationCannotRepeatForeverOrExpandAShortBudget() {
+        for (int budget : List.of(1, 2, 3, 4)) {
+            var dispatched = new AtomicInteger();
+            var reviewed = new AtomicInteger();
+            var host =
+                    new BoundedNativeExecution.Host() {
+                        public void checkpoint() {}
+
+                        public boolean reserveOutputRepair() {
+                            return true;
+                        }
+
+                        public Decision decide(boolean allowed, List<Exchange> history) {
+                            dispatched.incrementAndGet();
+                            return new Decision(
+                                    null,
+                                    List.of(),
+                                    CoreValues.tree(Map.of("outcome", "INSUFFICIENT_EVIDENCE")));
+                        }
+
+                        public boolean reconsiderWithoutEvidence(Decision d) {
+                            reviewed.incrementAndGet();
+                            return true;
+                        }
+
+                        public JsonNode output(Decision d) {
+                            return d.output();
+                        }
+
+                        public List<JsonNode> tools(Decision d) {
+                            throw new AssertionError("No tool was proposed");
+                        }
+                    };
+            assertThat(
+                            BoundedNativeExecution.execute(budget, 4, true, host)
+                                    .path("outcome")
+                                    .asText())
+                    .isEqualTo("INSUFFICIENT_EVIDENCE");
+            assertThat(dispatched.get()).isEqualTo(budget == 4 ? 2 : 1);
+            assertThat(reviewed.get()).isEqualTo(budget == 4 ? 1 : 0);
+        }
+    }
 }

@@ -103,7 +103,7 @@ class AgentExperienceUpgradeTest {
                 Flyway.configure()
                         .dataSource(pg.getJdbcUrl(), pg.getUsername(), pg.getPassword())
                         .load();
-        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(4);
+        assertThat(flyway.migrate().migrationsExecuted).isEqualTo(5);
         flyway.validate();
         assertThat(
                         db.queryForObject(

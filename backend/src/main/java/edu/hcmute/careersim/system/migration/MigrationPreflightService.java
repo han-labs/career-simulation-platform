@@ -34,10 +34,12 @@ public class MigrationPreflightService {
                 || !"public".equals(manifest.expectedSchema())
                 || !"public".equals(dao.schema()))
             throw new IllegalArgumentException("Intended database/schema must match exactly");
-        if (!Set.of("20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32")
+        if (!Set.of(
+                        "20", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31",
+                        "32", "33")
                 .contains(dao.head()))
             throw new IllegalStateException(
-                    "This release's reviewed import adapters require Core V20 through V32");
+                    "This release's reviewed import adapters require Core V20 through V33");
         if (manifest.entries() == null || manifest.entries().size() > 100)
             throw new IllegalArgumentException("Batch limit is 100 reviewed records");
         var outcomes = new ArrayList<Outcome>();

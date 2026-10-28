@@ -1,4 +1,10 @@
+export const studentQuickActions = [
+  { label: 'Explore my results', prompt: 'Which direction could I explore first based on my assessment results?' },
+  { label: 'Find a simulation', prompt: 'Which simulation could I try next?' },
+  { label: 'My progress', prompt: 'How am I progressing in my simulations?' },
+  { label: 'Compare careers', prompt: 'Help me compare two career directions using my evidence.' },
+]
 export const quickActions = {
-  admin: ['Tóm tắt 4 nhóm bằng chứng nên dùng khi chọn hướng nghề nghiệp.', 'So sánh Cybersecurity Analyst và Backend Developer.', 'Trong tài liệu, checklist incident summary có bao nhiêu mục?', 'Nếu tôi chưa chắc giữa Data Analyst và QA Automation thì nên thử gì?'],
-  student: ['Dựa trên kết quả assessment của tôi, tôi nên khám phá hướng nào trước?', 'Có simulation nào phù hợp để tôi thử tiếp không?', 'Tôi đang tiến triển thế nào trong các simulation của mình?', 'Tạo cho tôi một bản career insight ngắn từ bằng chứng hiện có.'],
+  admin: ['Summarize four types of evidence useful for career exploration.', 'Compare Cybersecurity Analyst and Backend Developer.', 'How many items are in the incident summary checklist in the source?', 'What could I try if I am unsure between Data Analyst and QA Automation?'],
+  student: studentQuickActions.map(action => action.prompt),
 }

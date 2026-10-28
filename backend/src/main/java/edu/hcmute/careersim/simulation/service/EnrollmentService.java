@@ -11,4 +11,6 @@ public interface EnrollmentService {
     edu.hcmute.careersim.simulation.dto.ScenarioContracts.Results results(long actor, long id);
 
     List<Enrollment> list(long actor, long after, int limit);
+
+    edu.hcmute.careersim.simulation.dto.ScenarioContracts.OwnActivity activity(long actor);
 }

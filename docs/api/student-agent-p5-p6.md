@@ -34,8 +34,8 @@ consent/assignment loss; unavailable AI replies become a labeled placeholder.
 | GET `/v2/agent-sessions` | `agentId?`, keyset `before` ISO Instant + `beforeId` UUID together, `limit=1..100` |
 | GET / DELETE `/v2/agent-sessions/{sid}` | Owner-authorized session / idempotent soft-delete, invalidation and cancellation intent |
 | GET `/v2/agent-sessions/{sid}/interactions` | `afterSequence=0&limit=100`; server sequence ascending; content and unavailable flag |
-| POST `/v2/agent-sessions/{sid}/messages` | `{requestId,text}`;202 `Run`, task CHAT |
-| POST `/v2/agent-sessions/{sid}/insight-reports` | Same payload, explicit action;202 INSIGHT_REPORT; no implicit report from chat |
+| POST `/v2/agent-sessions/{sid}/messages` | `{requestId,text}`;202 `Run`, task CHAT; natural explicit artifact requests may return validated `requestedAction` plus report/draft |
+| POST `/v2/agent-sessions/{sid}/insight-reports` | Same payload, explicit action;202 INSIGHT_REPORT; ordinary chat creates no unsolicited report |
 | POST `/v2/agent-sessions/{sid}/plan-suggestions` | Same payload;202 PLAN_SUGGESTION; draft execution output only |
 | GET `/v2/agent-executions/{eid}` | Owner/current-authority Run projection; no internal input/prompt/native protocol |
 | POST `/v2/agent-executions/{eid}/cancel` | CSRF protected, same-owner cancellation intent |
@@ -150,3 +150,48 @@ with at most3 short quote windows each; this is transient request data, not anot
 persisted event system. Student reserves one output-repair opportunity inside the existing
 round cap when possible, with tools disabled and current observations retained.
 Its versioned central repair-policy hash is safe execution audit metadata.
+
+### Student natural action contract — 2026-10-28
+
+The Student host now supplies versioned `student-actions-v1.txt` alongside the unchanged pinned Agent prompt. The model interprets EN/VI requests and chooses a closed `requestedAction` (`NONE`, `INSIGHT_REPORT`, `PLAN_SUGGESTION`) inside the existing CHAT final output; there is no keyword router, additional model pass, new endpoint or new domain tool. Informational/negated requests use NONE; missing evidence and security refusal remain distinct.
+
+A matching artifact is checked by the existing report/plan validator against current authorized evidence before persistence. V33 adds only CHAT-with-matching-action alternatives to the existing owned-input/report and exact-source/confirmation DB guards. Original task/input/configuration and request identity remain immutable. Reports require a successful validated execution; plans remain drafts until the existing explicit owner/hash confirmation. Admin Preview and KB schemas are unchanged. Client buttons send their own explicit task text, never unrelated composer contents; retry keeps the original request payload even across locale changes.
+
+
+### Student chat usability and discovery follow-up — 2026-10-28
+
+New sessions persist exactly one opening greeting from their pinned experience configuration (including existing variable rendering/defaults), without a model execution. Idempotent session creation does not duplicate that greeting. The popup initially restores the last selected session if it is still in the accessible history, otherwise resumes the latest returned accessible session, or creates one clean session when history is empty. Accepted messages clear only the submitted composer draft; newer edits and unsent account/session-scoped drafts survive navigation/reload.
+
+The Student-only host policy is now `student-actions-v2.txt`; pinned Agent templates/configuration hashes remain unchanged. Public simulation/assessment discovery requires no prior participation. `simulation.explore` exposes only allowlisted public metadata (including target role, introduction, objectives and duration), with query/track bounds matching the existing catalogue service. Personal progress/results remain separate owner-scoped evidence. Draft plans may use current public evidence with honest limitations when no personal results exist, and still require explicit exact-source/hash confirmation.
+
+A premature INSUFFICIENT_EVIDENCE final before any lookup may be reconsidered once only when another tool-enabled round remains within the original saved budget. The unaccepted preliminary text is buffered; no fake tool observation is added, no tool is forced, and actual tool execution/authority/citations remain enforced. Greetings, security refusals, spent tool budgets and completed lookups do not trigger this correction. Admin Preview/KB execution behavior is unchanged.
+
+
+### Published assessment discovery / chat alignment — 2026-10-28
+
+`assessment.lookup` now uses the assessment subsystem's internal `publicCatalog()` projection, preserving the existing REST catalogue contract and tool arguments. It returns each ACTIVE type's current PUBLISHED version, SQL-counted question inventory and a reviewed public overview (purpose, when to try it, result meaning and limitations). Explanations/indicative durations align with existing `assessmentCatalog.js` / `profileMetadata.js`; estimates are explicitly NOT measured and omitted when the published inventory differs from the reviewed count. Unknown/custom types retain real counts with unavailable explanatory metadata. No question prompts, response/scoring config, keys or other owners' results are projected. Public discovery works without prior attempts, in Admin public Preview as well as authorized Student runtime. Student host policy `student-actions-v3.txt` distinguishes these active catalogue facts from general handbook examples.
+
+Student and Admin Preview share a transcript-only viewport hook: a newly submitted user turn is positioned once near the top, with temporary tail space for the response; generation/completion never follows automatically. Admin Preview uses the same compact composer, hidden history drawer, per-answer collapsed evidence/run details and bounded expanded panel. Its existing saved-configuration conversations, polling, Clear/Delete confirmation/revision and Stop/idempotency remain Admin-only; no Student runtime/session is used. The UI does not simulate streaming for an API that returns validated turns by polling.
+
+### Student self-evidence and citation repair — 2026-10-28
+
+`assessment.lookup` accepts optional `scope: ALL|CATALOG|PERSONAL` (default ALL).
+PERSONAL returns the requesting active Student's exact attempt/result/type totals,
+then recent saved results; optional assessmentType filtering happens before the
+bounded result window. CATALOG reads only the existing public projection and does
+not fetch personal results. Admin Preview remains public-only and rejects PERSONAL.
+`simulation.myEvidence` also supplies exact accessible enrollment totals by status
+and distinct simulation count, excluding suspended resources as in the existing
+owner service. Detail lists remain bounded; their length is not a total. Aggregate
+counts are execution-time snapshots, not a reason to hide an old conversation when
+its owner starts another quiz. Current role/owner and underlying-source checks remain.
+
+Student host policy `student-actions-v4.txt` explains natural EN/VI self-data requests,
+submitted-versus-started and enrollment-versus-completion distinctions, and minimal
+relevant tool use. Citation examples group alternative literal windows once per
+referenceId. Duplicate citations still fail validation; the one existing bounded
+repair receives the backend-owned validation category instead of replaying tools or
+receiving rejected output/private diagnostics. Profile-quiz category raw scores are
+recognized only from delivered own results. Model-attempt audit records allow only
+numeric provider HTTP status/class, never raw provider bodies or headers. No new
+REST endpoint, migration, provider setting, model grant or Student identity is added.

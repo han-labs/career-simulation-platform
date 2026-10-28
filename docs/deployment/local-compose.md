@@ -39,8 +39,10 @@ are generated. Protect .env using local OS access controls; never commit it.
 
 Compose rejects an empty `JWT_SIGNING_KEY` before creating containers. Spring
 independently rejects malformed base64, decoded keys shorter than 32 bytes and
-invalid JWT lifetimes (60–1800 seconds). `JWT_ALLOW_EPHEMERAL_KEY=false` remains
-the Compose policy. Production keys belong in approved secret storage.
+invalid JWT lifetimes (60–7200 seconds; default 7200 / two hours). Existing
+credentials keep their original expiry; sign in again to receive the configured
+lifetime. An explicit `JWT_LIFETIME_SECONDS` override still takes precedence over
+the default. `JWT_ALLOW_EPHEMERAL_KEY=false` remains the Compose policy. Production keys belong in approved secret storage.
 
 PostgreSQL must become healthy before backend startup. Backend readiness checks
 `/api/health`; frontend and gateway wait for it. Allow about a minute for a cold

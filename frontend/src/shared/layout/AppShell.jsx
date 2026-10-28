@@ -1,7 +1,9 @@
 import { useI18n } from '../i18n/useI18n.js'
 import { Menu, X, ShieldCheck } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import StudentAgentLauncher from '../../features/agents/StudentAgentLauncher.jsx'
+import { agentPlatformEnabled } from '../../features/admin/agentPlatform/platformApi.js'
 import BrandMark from '../ui/BrandMark.jsx'
 import LanguageSwitcher from '../i18n/LanguageSwitcher.jsx'
 import { apiRequest } from '../api/httpClient.js'
@@ -19,6 +21,8 @@ const navigation = [
 function AppShell() {
   const { t } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [studentAgentRequest, setStudentAgentRequest] = useState({ open: false })
+  const openStudentAgent = useCallback(target => setStudentAgentRequest(current => ({ ...current, ...(target?.agentId && target.agentId !== current.agentId ? { sessionId: null } : {}), ...target, open: true, activated: true })), [])
   const [account, setAccount] = useState(null)
   const [localWorkspace,setLocalWorkspace]=useState(null)
   const [logoutError, setLogoutError] = useState('')
@@ -100,9 +104,10 @@ function AppShell() {
 
       <main id="main-content" tabIndex={-1}>
         {logoutError && <p role="alert">{t(logoutError)}</p>}
-        <Outlet />
+        <Outlet context={{ openStudentAgent: account?.role === 'STUDENT' ? openStudentAgent : null }} />
       </main>
 
+      {agentPlatformEnabled && account?.role === 'STUDENT' && <StudentAgentLauncher key={account.id} account={account} request={studentAgentRequest} onOpen={openStudentAgent} onClose={() => setStudentAgentRequest(current => ({ ...current, open: false }))} onSessionChange={(sessionId, agentId) => setStudentAgentRequest(current => ({ ...current, sessionId, agentId }))} />}
       {!adminStudio && <footer className="site-footer">
         <div className="site-footer__inner">
           <div className="site-footer__brand">

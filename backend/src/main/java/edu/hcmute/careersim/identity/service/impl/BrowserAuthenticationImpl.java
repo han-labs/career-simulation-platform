@@ -35,13 +35,13 @@ public class BrowserAuthenticationImpl implements BrowserAuthentication {
             AuditWriter audit,
             @Value("${app.auth.jwt.signing-key:}") String encodedKey,
             @Value("${app.auth.jwt.allow-ephemeral-key:false}") boolean ephemeral,
-            @Value("${app.auth.jwt.lifetime-seconds:900}") long lifetime) {
+            @Value("${app.auth.jwt.lifetime-seconds:7200}") long lifetime) {
         this.dao = dao;
         this.actors = actors;
         this.audit = audit;
         this.lifetime = lifetime;
-        if (lifetime < 60 || lifetime > 1800)
-            throw new IllegalStateException("JWT lifetime must be 60–1800 seconds.");
+        if (lifetime < 60 || lifetime > 7200)
+            throw new IllegalStateException("JWT lifetime must be 60–7200 seconds.");
         byte[] key;
         if (encodedKey.isBlank() && ephemeral) {
             key = new byte[32];
@@ -102,7 +102,7 @@ public class BrowserAuthenticationImpl implements BrowserAuthentication {
             var jwt = decoder.decode(token);
             if (jwt.getExpiresAt() == null
                     || jwt.getIssuedAt() == null
-                    || jwt.getExpiresAt().isAfter(jwt.getIssuedAt().plusSeconds(1800))
+                    || jwt.getExpiresAt().isAfter(jwt.getIssuedAt().plusSeconds(7200))
                     || !(jwt.getClaim("authVersion") instanceof Number version)
                     || version.longValue() < 0) throw new IllegalArgumentException();
             UUID.fromString(jwt.getId());

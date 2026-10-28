@@ -110,7 +110,7 @@ it('saves and previews exact versions, blocks dirty publication, then publishes 
   await screen.findAllByText('hash-2')
   publication()
   expect(screen.getByRole('button', { name: /Publish version/ }).disabled).toBe(true)
-  pane('Preview'); fireEvent.click(screen.getByRole('button',{name:'New chat'})); await waitFor(()=>expect(screen.getByLabelText('Resume conversation').value).toBe('chat-2')); await waitFor(()=>expect(screen.getByLabelText('Message').disabled).toBe(false)); fireEvent.change(screen.getByLabelText('Message'), { target:{ value:'Test the newly saved configuration' } }); fireEvent.click(screen.getByRole('button', { name: 'Send' })); publication()
+  pane('Preview'); fireEvent.click(screen.getByRole('button',{name:'New chat'})); await screen.findByText(/Chat pinned to v2/); await waitFor(()=>expect(screen.getByLabelText('Message').disabled).toBe(false)); fireEvent.change(screen.getByLabelText('Message'), { target:{ value:'Test the newly saved configuration' } }); fireEvent.click(screen.getByRole('button', { name: 'Send' })); publication()
   await waitFor(() => expect(screen.getByRole('button', { name: /Publish version/ }).disabled).toBe(false))
   fireEvent.click(screen.getByRole('button', { name: /Publish version/ }))
   fireEvent.click(screen.getByRole('button', { name: 'Confirm publish' }))

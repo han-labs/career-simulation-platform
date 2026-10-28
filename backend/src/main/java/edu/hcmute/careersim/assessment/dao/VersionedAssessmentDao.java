@@ -41,6 +41,19 @@ public class VersionedAssessmentDao {
                                 Long.toString(r.getLong(4))));
     }
 
+    public List<PublicType> publicCatalog() {
+        return jdbc.query(
+                "SELECT t.id,t.code,t.name,t.active_version_id,(SELECT count(*) FROM public.assessment_question q WHERE q.assessment_version_id=v.id) AS question_count FROM public.assessment_type t JOIN public.assessment_version v ON v.id=t.active_version_id WHERE t.status='ACTIVE' AND v.status='PUBLISHED' ORDER BY t.id",
+                (r, n) ->
+                        new PublicType(
+                                r.getString(1),
+                                r.getString(2),
+                                r.getString(3),
+                                r.getString(4),
+                                r.getInt(5),
+                                null));
+    }
+
     public List<Type> administrationTypes() {
         return jdbc.query(
                 "SELECT id::text,code,name,active_version_id::text FROM public.assessment_type ORDER BY id",
@@ -316,11 +329,33 @@ public class VersionedAssessmentDao {
     }
 
     public List<Result> results(long owner) {
+        return results(owner, null);
+    }
+
+    public OwnActivity activity(long owner, String type) {
+        return jdbc.queryForObject(
+                "SELECT count(*),count(*) FILTER(WHERE a.status='IN_PROGRESS'),count(*) FILTER(WHERE a.status='SUBMITTED'),count(r.attempt_id),count(DISTINCT v.assessment_type_id) FILTER(WHERE r.attempt_id IS NOT NULL) FROM public.assessment_attempt a JOIN public.assessment_version v ON v.id=a.assessment_version_id JOIN public.assessment_type t ON t.id=v.assessment_type_id LEFT JOIN public.assessment_result r ON r.attempt_id=a.id WHERE a.student_id=? AND (?::text IS NULL OR t.code=?)",
+                (r, n) ->
+                        new OwnActivity(
+                                type,
+                                r.getLong(1),
+                                r.getLong(2),
+                                r.getLong(3),
+                                r.getLong(4),
+                                r.getLong(5)),
+                owner,
+                type,
+                type);
+    }
+
+    public List<Result> results(long owner, String type) {
         return jdbc
                 .query(
-                        "SELECT a.id FROM public.assessment_attempt a WHERE student_id=? AND status='SUBMITTED' ORDER BY submitted_at DESC,id DESC LIMIT 100",
+                        "SELECT a.id FROM public.assessment_attempt a JOIN public.assessment_version v ON v.id=a.assessment_version_id JOIN public.assessment_type t ON t.id=v.assessment_type_id WHERE a.student_id=? AND a.status='SUBMITTED' AND (?::text IS NULL OR t.code=?) ORDER BY a.submitted_at DESC,a.id DESC LIMIT 100",
                         (r, n) -> r.getLong(1),
-                        owner)
+                        owner,
+                        type,
+                        type)
                 .stream()
                 .map(id -> result(owner, id))
                 .toList();

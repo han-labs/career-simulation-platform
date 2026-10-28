@@ -100,6 +100,19 @@ public class EnrollmentDao {
                 limit);
     }
 
+    public OwnActivity activity(long owner) {
+        return jdbc.queryForObject(
+                "SELECT count(*),count(DISTINCT v.scenario_id),count(*) FILTER(WHERE e.status='ENROLLED'),count(*) FILTER(WHERE e.status='IN_PROGRESS'),count(*) FILTER(WHERE e.status='COMPLETED') FROM public.simulation_enrollment e JOIN public.scenario_version v ON v.id=e.scenario_version_id JOIN public.scenario c ON c.id=v.scenario_id WHERE e.student_id=? AND c.availability_status<>'SUSPENDED'",
+                (r, n) ->
+                        new OwnActivity(
+                                r.getLong(1),
+                                r.getLong(2),
+                                r.getLong(3),
+                                r.getLong(4),
+                                r.getLong(5)),
+                owner);
+    }
+
     public Optional<SubmissionRow> submission(long enrollment, long task, boolean lock) {
         return jdbc
                 .query(

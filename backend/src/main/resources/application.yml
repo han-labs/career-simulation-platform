@@ -47,7 +47,7 @@ app:
     jwt:
       signing-key: ${JWT_SIGNING_KEY:}
       allow-ephemeral-key: ${JWT_ALLOW_EPHEMERAL_KEY:false}
-      lifetime-seconds: ${JWT_LIFETIME_SECONDS:900}
+      lifetime-seconds: ${JWT_LIFETIME_SECONDS:7200}
     google:
       enabled: ${GOOGLE_OAUTH_ENABLED:false}
       client-id: ${GOOGLE_CLIENT_ID:}
