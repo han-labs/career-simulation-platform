@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, expect, it, vi } from 'vitest'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { MemoryRouter, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import I18nProvider from '../../../shared/i18n/I18nProvider.jsx'
 import { apiRequest } from '../../../shared/api/httpClient.js'
@@ -264,4 +264,34 @@ it('clears and ignores an invalid stored destination after authentication', asyn
   expect(await screen.findByText('Student workspace')).toBeTruthy()
   expect(sessionStorage.getItem('careersim_pending_simulation_path')).toBeNull()
   expect(screen.queryByText('Returned simulation detail')).toBeNull()
+})
+
+it.each(['en', 'vi'])('shows only the current task references in Resources without changing submission state (%s)', async locale => {
+  const tasks = [
+    { id: 't1', position: 1, title: 'Create a Proposal for a RESTful Web Service', instructions: 'Prepare your own proposal.', resources: [], definitions: [], translations: {} },
+    { id: 't2', position: 2, title: 'Build a Basic RESTful Web Service', instructions: 'Build your own service.', resources: [], definitions: [], translations: {} },
+  ]
+  const enrollment = {
+    id: 'e1', scenarioVersionId: 'old-pinned-version', metadata: { ...published.metadata, title: 'Software Engineering', targetRole: 'Software Engineer', careerTrack: 'Software Engineering', learningObjectives: '', provenance: {} },
+    tasks, requiredTasks: 2, finalRequiredTasks: 0, progression: tasks.map(task => ({ taskId: task.id, accessible: true })),
+  }
+  apiRequest.mockImplementation(path => {
+    if (path === '/v2/me') return Promise.resolve({ id: 'student', role: 'STUDENT' })
+    if (path === '/v2/enrollments/e1') return Promise.resolve(enrollment)
+    if (path.endsWith('/results')) return Promise.resolve({ tasks: [], practicedSkills: [] })
+    if (path.endsWith('/submission')) return Promise.resolve({ status: 'DRAFT', revision: 0, items: [] })
+    return Promise.reject(new Error('Unexpected request'))
+  })
+  render(<I18nProvider initialLocale={locale}><MemoryRouter initialEntries={['/simulations/hpe-software-engineering?enrollment=e1']}><Routes><Route path="/simulations/:slug" element={<CoreSimulationPage />} /></Routes></MemoryRouter></I18nProvider>)
+  const region = await screen.findByRole('region', { name: locale === 'vi' ? 'Tài nguyên' : 'Resources' })
+  const spring = within(region).getByRole('link', { name: /Learn about Java Spring Boot/ })
+  expect(spring.getAttribute('href')).toBe('https://www.ibm.com/cloud/learn/java-spring-boot#toc-what-is-ja-WZk7U3ur')
+  expect(spring.getAttribute('target')).toBe('_blank')
+  expect(spring.getAttribute('rel')).toContain('noreferrer')
+  expect(within(region).queryByRole('link', { name: /Gradle Install/ })).toBeNull()
+  expect(within(region).queryByRole('link', { name: /Example Answer|Model Answer/ })).toBeNull()
+  fireEvent.click(screen.getByRole('button', { name: /2\. Build a Basic RESTful Web Service/ }))
+  await waitFor(() => expect(within(region).getByRole('link', { name: /Gradle Install/ })).toBeTruthy())
+  expect(within(region).queryByRole('link', { name: /HPE Greenlake Video/ })).toBeNull()
+  expect(apiRequest.mock.calls.every(([, options]) => !options?.method || options.method === 'GET')).toBe(true)
 })
