@@ -20,6 +20,111 @@ import org.springframework.web.client.RestClient;
 class NativeGeminiCompatibilityTest {
     final ObjectMapper json = new ObjectMapper();
 
+    @Test
+    void twoRoundPreviewExplicitlyClosesFunctionsAfterRealObservation() throws Exception {
+        var requests = new ArrayList<JsonNode>();
+        var executed = new java.util.concurrent.atomic.AtomicInteger();
+        var server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
+        server.createContext(
+                "/",
+                e -> {
+                    JsonNode request = json.readTree(e.getRequestBody());
+                    requests.add(request);
+                    // Reproduce a model continuing native tool use from history unless explicitly
+                    // closed.
+                    boolean closed =
+                            request.at("/toolConfig/functionCallingConfig/mode")
+                                    .asText()
+                                    .equals("NONE");
+                    Object part =
+                            closed
+                                    ? Map.of(
+                                            "text",
+                                            "{\"schemaVersion\":1,\"outcome\":\"ANSWER\",\"text\":\"Compare the supplied evidence.\",\"citations\":[{\"referenceId\":\"K1\",\"quote\":\"Backend builds APIs.\"}],\"suggestions\":[]}")
+                                    : Map.of(
+                                            "thoughtSignature",
+                                            "synthetic-signature",
+                                            "functionCall",
+                                            Map.of(
+                                                    "id",
+                                                    "lookup",
+                                                    "name",
+                                                    "kb_search",
+                                                    "args",
+                                                    Map.of("query", "compare roles")));
+                    byte[] body =
+                            json.writeValueAsBytes(
+                                    Map.of(
+                                            "candidates",
+                                            List.of(
+                                                    Map.of(
+                                                            "content",
+                                                            Map.of(
+                                                                    "role",
+                                                                    "model",
+                                                                    "parts",
+                                                                    List.of(part))))));
+                    e.getResponseHeaders().set("Content-Type", "application/json");
+                    e.sendResponseHeaders(200, body.length);
+                    e.getResponseBody().write(body);
+                    e.close();
+                });
+        server.start();
+        try (var scope = SynExecutionScope.open(Duration.ofSeconds(10), () -> true)) {
+            var provider = adapter("http://127.0.0.1:" + server.getAddress().getPort());
+            var result =
+                    edu.hcmute.careersim.guidance.agent.domain.BoundedNativeExecution.execute(
+                            2,
+                            8,
+                            true,
+                            new edu.hcmute.careersim.guidance.agent.domain.BoundedNativeExecution
+                                    .Host() {
+                                public void checkpoint() {}
+
+                                public Decision decide(boolean allowed, List<Exchange> history) {
+                                    return provider.decide(
+                                            "gemini/gemini-3.5-flash-lite",
+                                            "Platform security",
+                                            "Compare two roles",
+                                            history,
+                                            allowed);
+                                }
+
+                                public JsonNode output(Decision d) {
+                                    return d.output();
+                                }
+
+                                public List<JsonNode> tools(Decision d) {
+                                    executed.incrementAndGet();
+                                    return List.of(
+                                            CoreValues.tree(
+                                                    Map.of(
+                                                            "referenceId",
+                                                            "K1",
+                                                            "text",
+                                                            "Backend builds APIs.")));
+                                }
+                            });
+            assertThat(result.path("outcome").asText()).isEqualTo("ANSWER");
+            assertThat(executed).hasValue(1);
+            assertThat(requests).hasSize(2);
+            assertThat(requests.get(0).has("tools")).isTrue();
+            assertThat(requests.get(0).has("toolConfig")).isFalse();
+            assertThat(requests.get(1).has("tools")).isFalse();
+            assertThat(requests.get(1).at("/toolConfig/functionCallingConfig/mode").asText())
+                    .isEqualTo("NONE");
+            assertThat(requests.get(1).at("/generationConfig/responseMimeType").asText())
+                    .isEqualTo("application/json");
+            assertThat(requests.get(1).path("systemInstruction").toString())
+                    .contains("No further tool calls", "INSUFFICIENT_EVIDENCE");
+            assertThat(requests.get(1).path("contents").toString())
+                    .contains("synthetic-signature", "functionResponse", "Backend builds APIs.");
+            assertThat(result.toString()).doesNotContain("synthetic-signature");
+        } finally {
+            server.stop(0);
+        }
+    }
+
     NativeAgentModelProvider adapter(String url) {
         return new NativeAgentModelProvider(
                 json,

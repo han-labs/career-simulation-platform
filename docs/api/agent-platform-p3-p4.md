@@ -369,3 +369,18 @@ unavailability. Safe `OUTPUT_VALIDATION` audit may include only the enum-like
 CITATION_NOT_DELIVERED or CITATION_QUOTE_MISMATCH. No rejected provider response
 body is persisted/exposed. A two-round config may have no remaining repair round;
 the runtime never silently exceeds the saved limit.
+
+### Bounded conclusion correction — 2026-10-29
+
+Gemini requests that conclude a run with prior native observations explicitly use
+`toolConfig.functionCallingConfig.mode=NONE`, without new declarations, and request
+a final JSON answer or honest insufficient-evidence response. Existing function
+signatures/responses, source validation, authorization and saved round/call/time
+limits remain intact. Tool-enabled rounds retain native model choice. OpenAI
+transport and pinned prompt files are unchanged; no extra retry is added.
+
+Rounds are a per-execution budget, not a conversation-message limit. Every new
+execution gets fresh counters. Admin Preview conversations retain their exact saved
+configuration: editing the form does not change an existing conversation. Save the
+new configuration and start a new Preview conversation to test the revised limits.
+The frontend distinguishes execution-limit failures from generic provider failures.

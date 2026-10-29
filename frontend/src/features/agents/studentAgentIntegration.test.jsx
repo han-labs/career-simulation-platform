@@ -193,6 +193,14 @@ it('does not pretend a failed report execution is a downloadable report',async()
  expect(screen.queryByRole('button',{name:'Download report'})).toBeNull();expect(screen.getByRole('button',{name:'Saved reports'})).toBeTruthy()
 })
 
+it('explains a per-request execution limit and does not automatically repost the question',async()=>{
+ fixture();const original=apiRequest.getMockImplementation();const run={id:'limited-run',taskType:'CHAT',status:'FAILED',errorCode:'ITERATION_LIMIT',toolStepsAndSources:[]}
+ apiRequest.mockImplementation(async(path,request)=>path.endsWith('/messages')||path.endsWith('/limited-run')?run:original(path,request))
+ page();await screen.findByText(/My conversation ·/);fireEvent.change(screen.getByLabelText('Message to Agent'),{target:{value:'Compare two careers'}});fireEvent.click(screen.getByRole('button',{name:'Send message'}))
+ await screen.findByText('This request reached the Agent execution limit. Try a more focused question; your conversation is still saved.')
+ expect(apiRequest.mock.calls.filter(([path])=>path.endsWith('/messages'))).toHaveLength(1);expect(streamExecution).not.toHaveBeenCalled()
+})
+
 it('preserves the reading position across hidden streaming and reopening without a second message or stream',async()=>{
  fixture();let receive;const run={id:'hidden-stream',status:'RUNNING'};const original=apiRequest.getMockImplementation()
  apiRequest.mockImplementation(async(path,request)=>path.endsWith('/messages')||path.endsWith('/hidden-stream')?run:original(path,request));streamExecution.mockImplementation((_,options)=>{receive=options.onEvent;return new Promise(()=>{})})
