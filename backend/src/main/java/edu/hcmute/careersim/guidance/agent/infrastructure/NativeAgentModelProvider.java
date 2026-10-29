@@ -267,6 +267,11 @@ public class NativeAgentModelProvider implements AgentModelProvider {
             contents.add(Map.of("role", "user", "parts", responses));
         }
         var body = new LinkedHashMap<String, Object>();
+        boolean conclude =
+                !search && (definitions == null || definitions.isEmpty()) && !exchanges.isEmpty();
+        if (conclude)
+            instructions +=
+                    "\nThis is the conclusion step of the current bounded execution. No further tool calls are permitted. Return the final JSON using only the authorized observations already supplied. If they are insufficient, return INSUFFICIENT_EVIDENCE and explain the limitation; never invent evidence or claim a provider failure.";
         body.put("systemInstruction", Map.of("parts", List.of(Map.of("text", instructions))));
         body.put("contents", contents);
         var generation = new LinkedHashMap<String, Object>();
@@ -311,7 +316,13 @@ public class NativeAgentModelProvider implements AgentModelProvider {
                                                                                 t.parameters())))
                                                 .toList())));
         }
-        if (!body.containsKey("tools")) generation.put("responseMimeType", "application/json");
+        if (!body.containsKey("tools")) {
+            generation.put("responseMimeType", "application/json");
+            // Native call history can otherwise induce another functionCall even without
+            // declarations. Close dispatch explicitly; keep signatures/observations intact.
+            if (conclude)
+                body.put("toolConfig", Map.of("functionCallingConfig", Map.of("mode", "NONE")));
+        }
         if (responseSchema != null
                 && Set.of("gemini-3.8-flash", "gemini-3.6-flash", "gemini-3.5-flash-lite")
                         .contains(model.model())) {

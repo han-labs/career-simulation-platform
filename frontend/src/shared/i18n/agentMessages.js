@@ -1,5 +1,9 @@
 // Presentation only: original documents, quoted evidence and model replies remain unchanged.
 export const agentMessages = Object.fromEntries(`
+This chat uses a different saved version. Start a new chat to test the selected configuration and limits. ⇢ Cuộc trò chuyện này dùng phiên bản đã lưu khác. Hãy tạo cuộc trò chuyện mới để thử cấu hình và giới hạn đang chọn.
+This run reached its execution limit. Check the saved configuration or ask a more focused question. Start a new preview after saving any changes. ⇢ Lượt chạy đã chạm giới hạn thực thi. Hãy kiểm tra cấu hình đã lưu hoặc hỏi cụ thể hơn. Bắt đầu lượt xem trước mới sau khi lưu thay đổi.
+This request reached the Agent execution limit. Try a more focused question; your conversation is still saved. ⇢ Yêu cầu đã chạm giới hạn thực thi của Agent. Bạn có thể hỏi cụ thể hơn; cuộc trò chuyện vẫn được lưu.
+Model rounds limit one request, not the number of chat messages. One round is reserved for the final answer. Save changes and start a new preview to use the revised limits; existing chats keep their saved version. ⇢ Số vòng gọi model giới hạn từng yêu cầu, không giới hạn số tin nhắn trong cuộc trò chuyện. Một vòng được dành để kết luận. Hãy lưu thay đổi và mở lượt xem trước mới để dùng giới hạn mới; các cuộc trò chuyện cũ giữ phiên bản đã lưu.
 Sending... ⇢ Đang gửi...
 Close preview ⇢ Đóng xem trước
 Preview conversation history ⇢ Lịch sử hội thoại xem trước

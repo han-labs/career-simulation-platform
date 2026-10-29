@@ -12,6 +12,45 @@ import org.junit.jupiter.api.Test;
 
 class BoundedNativeExecutionTest {
     @Test
+    void eachMessageGetsFreshBudgetsWithoutAConversationTurnLimit() {
+        var executed = new AtomicInteger();
+        var host =
+                new BoundedNativeExecution.Host() {
+                    public void checkpoint() {}
+
+                    public Decision decide(boolean allowed, List<Exchange> history) {
+                        if (allowed) {
+                            assertThat(history).isEmpty();
+                            return new Decision(
+                                    null,
+                                    List.of(
+                                            new Call(
+                                                    "lookup",
+                                                    "kb.search",
+                                                    CoreValues.tree(Map.of("query", "guide")))),
+                                    null);
+                        }
+                        assertThat(history).hasSize(1);
+                        return new Decision(
+                                null, List.of(), CoreValues.tree(Map.of("outcome", "ANSWER")));
+                    }
+
+                    public JsonNode output(Decision d) {
+                        return d.output();
+                    }
+
+                    public List<JsonNode> tools(Decision d) {
+                        executed.incrementAndGet();
+                        return List.of(CoreValues.tree(Map.of("status", "SUCCEEDED")));
+                    }
+                };
+        for (int message = 0; message < 20; message++)
+            assertThat(BoundedNativeExecution.execute(2, 1, true, host).path("outcome").asText())
+                    .isEqualTo("ANSWER");
+        assertThat(executed).hasValue(20);
+    }
+
+    @Test
     void studentReservesOneRepairWithinFourRoundsWithoutReplayingTools() {
         var flags = new ArrayList<Boolean>();
         var executed = new AtomicInteger();

@@ -92,6 +92,7 @@ export default function AgentPreview({ owner, agent, selected, hasEdits, onExecu
     </div></div>
       <p className="cs-caption">{t('Saved configuration')} {selected?`v${selected.versionNumber}`:'—'}{version?` · ${t('Chat pinned to')} v${version}`:''}</p>
       {hasEdits&&<p className="cs-caption agent-draft-warning">{t('Unsaved changes are not used in Preview. Save the configuration to test the new settings.')}</p>}
+      {transcript?.conversation?.configurationId&&selected&&transcript.conversation.configurationId!==selected.id&&<p className="cs-caption agent-draft-warning" role="status">{t('This chat uses a different saved version. Start a new chat to test the selected configuration and limits.')}</p>}
     </header>
     <div className="agent-chat-viewport">
     <div ref={messages} className="agent-chat-messages" role="log" aria-label={t('Preview messages')} aria-live="polite" aria-relevant="additions text" onScroll={observeScroll}>

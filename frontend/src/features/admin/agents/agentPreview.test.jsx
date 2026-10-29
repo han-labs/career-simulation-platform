@@ -79,3 +79,20 @@ it('anchors an Admin turn once and keeps the viewport locked through polling and
  page();await newChat();const viewport=screen.getByRole('log');Object.defineProperties(viewport,{clientHeight:{value:300,configurable:true},scrollHeight:{get:()=>end+parseFloat(viewport.querySelector('.chat-viewport-tail').style.height||0)+32,configurable:true}})
  input('Pending Admin question');fireEvent.click(screen.getByRole('button',{name:'Send',exact:true}));await screen.findByText('Pending Admin question');expect(viewport.scrollTop).toBe(880);await screen.findByRole('button',{name:'Stop'});end=1500;state.runs[0].status='SUCCEEDED';await act(()=>fireEvent.focus(window));await screen.findByText('Validated answer 1');expect(viewport.scrollTop).toBe(880);expect(post('/messages')).toHaveLength(1);expect(apiRequest.mock.calls.some(([path])=>path.includes('/v2/agent-sessions')||path.startsWith('/v2/agents/'))).toBe(false)
 })
+
+it('distinguishes an execution limit from provider quota failure without retrying automatically', async()=>{
+ const state=fixture();state.status='FAILED';const original=apiRequest.getMockImplementation();
+ apiRequest.mockImplementation(async(path,request)=>{const result=await original(path,request);if(result?.turns)result.turns.forEach(turn=>{turn.execution.errorCode='ITERATION_LIMIT'});return result});
+ page();await newChat();await send();
+ await screen.findByText('This run reached its execution limit. Check the saved configuration or ask a more focused question. Start a new preview after saving any changes.');
+ expect(screen.queryByText('The provider could not complete this request.')).toBeNull();
+ expect(post('/messages')).toHaveLength(1);expect(screen.getByText('View run details').closest('details').open).toBe(false);
+});
+
+it('warns when a resumed chat keeps older limits until a new chat pins the selected version',async()=>{
+ const state=fixture();const view=page();await newChat();view.update({selected:{id:'c2',versionNumber:2,contentHash:'hash2'}});
+ await screen.findByText('This chat uses a different saved version. Start a new chat to test the selected configuration and limits.');
+ expect(state.chats[0].configurationId).toBe('c1');expect(post('/messages')).toHaveLength(0);
+ await newChat();expect(state.chats[1].configurationId).toBe('c2');
+ expect(screen.queryByText('This chat uses a different saved version. Start a new chat to test the selected configuration and limits.')).toBeNull();
+});
