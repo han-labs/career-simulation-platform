@@ -15,6 +15,7 @@ import CoreSimulationResultsPage from '../features/simulations/pages/CoreSimulat
 import CoreDashboardPage from '../features/guidance/pages/CoreDashboardPage.jsx'
 import CoreCatalogPage from '../features/simulations/pages/CoreCatalogPage.jsx'
 import EnterpriseWorkspace from '../features/enterprise/EnterpriseWorkspace.jsx'
+import EnterpriseAnalyticsPage from '../features/enterprise/EnterpriseAnalyticsPage.jsx'
 import { agentPlatformEnabled } from '../features/admin/agentPlatform/platformApi.js'
 import KnowledgeStudioPage from '../features/admin/knowledge/KnowledgeStudioPage.jsx'
 import AgentBuilderPage from '../features/admin/agents/AgentBuilderPage.jsx'
@@ -88,6 +89,7 @@ function App() {
         <Route path="simulation" element={<LegacySimulationRedirect />} />
         <Route path="simulation/:slug" element={<LegacySimulationRedirect detail />} />
         {coreEnabled && <Route path="enterprise" element={<EnterpriseWorkspace />} />}
+        {coreEnabled && <Route path="enterprise/analytics" element={<EnterpriseAnalyticsPage />} />}
         <Route path="simulations/:slug" element={coreEnabled ? <CoreSimulationPage /> : <SimulationDetailPage />} />
         {coreEnabled && <Route path="simulations/:slug/results" element={<CoreSimulationResultsPage />} />}
         <Route

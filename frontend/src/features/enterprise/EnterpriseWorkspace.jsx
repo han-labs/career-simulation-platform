@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { apiRequest } from '../../shared/api/httpClient.js'
 import { command, draftKey, readDraft, writeDraft } from '../../shared/api/coreApi.js'
 import { useI18n } from '../../shared/i18n/useI18n.js'
@@ -11,11 +12,11 @@ const blankTask = position => ({ id: null, position, title: '', workplaceContext
 
 export default function EnterpriseWorkspace() {
   const { t } = useI18n()
-  const [me, setMe] = useState(null), [membership, setMembership] = useState(null), [versions, setVersions] = useState([]), [stats, setStats] = useState([])
+  const [me, setMe] = useState(null), [membership, setMembership] = useState(null), [versions, setVersions] = useState([])
   const [skills, setSkills] = useState([])
   const [version, setVersion] = useState(null), [draft, setDraft] = useState({ metadata: blankMetadata, tasks: [] }), [slug, setSlug] = useState('')
   const [busy, setBusy] = useState(false), [error, setError] = useState(''), [preview, setPreview] = useState(false), [dirty, setDirty] = useState(false)
-  useEffect(() => { let active = true; Promise.all([apiRequest('/v2/me'), apiRequest('/v2/enterprises/me'), apiRequest('/v2/enterprise/scenario-versions'), apiRequest('/v2/career-skills')]).then(async ([user, member, list, vocabulary]) => { const summary = await apiRequest(`/v2/enterprises/${member.enterpriseId}/participation-summary`); if (active) { setMe(user); setMembership(member); setVersions(list); setStats(summary); setSkills(vocabulary.filter(s => s.status === 'ACTIVE')); setDraft(readDraft(draftKey(user.id, 'enterprise-scenario', 'new')) || { metadata: blankMetadata, tasks: [] }); setSlug(readDraft(draftKey(user.id, 'enterprise-slug', 'new')) || '') } }).catch(e => { if (active) setError(e.message) }); return () => { active = false } }, [])
+  useEffect(() => { let active = true; Promise.all([apiRequest('/v2/me'), apiRequest('/v2/enterprises/me'), apiRequest('/v2/enterprise/scenario-versions'), apiRequest('/v2/career-skills')]).then(([user, member, list, vocabulary]) => { if (active) { setMe(user); setMembership(member); setVersions(list); setSkills(vocabulary.filter(s => s.status === 'ACTIVE')); setDraft(readDraft(draftKey(user.id, 'enterprise-scenario', 'new')) || { metadata: blankMetadata, tasks: [] }); setSlug(readDraft(draftKey(user.id, 'enterprise-slug', 'new')) || '') } }).catch(e => { if (active) setError(e.message) }); return () => { active = false } }, [])
   const key = me && draftKey(me.id, 'enterprise-scenario', version?.id ?? 'new')
   function edit(next) { setDraft(next); setDirty(true); setPreview(false); if (key) writeDraft(key, next) }
   function select(v) {
@@ -37,6 +38,7 @@ export default function EnterpriseWorkspace() {
   const field = (name, label, multiline = false) => <label key={name}>{t(label)}{multiline ? <textarea required value={draft.metadata[name]} onChange={e => edit({ ...draft, metadata: { ...draft.metadata, [name]: e.target.value } })} /> : <input required value={draft.metadata[name]} onChange={e => edit({ ...draft, metadata: { ...draft.metadata, [name]: e.target.value } })} />}</label>
   function taskField(index, values) { edit({ ...draft, tasks: draft.tasks.map((task, i) => i === index ? { ...task, ...values } : task) }) }
   return <section className="section-shell core-flow"><h1>{t('Enterprise workspace')}</h1>{error && <p role="alert">{t(error)}</p>}
+    <p><Link to="/enterprise/analytics" className="button button--primary">{t('View analytics')}</Link></p>
     {membership && <><p>{membership.name} · {membership.verificationStatus} · {membership.publishingStatus}</p><p>{t('Publishing permission is separate from enterprise registration.')}</p>
       <label>{t('Scenario version')}<select value={version?.id ?? ''} onChange={e => { if (e.target.value) select(versions.find(v => v.id === e.target.value)); else { setVersion(null); setDraft(readDraft(draftKey(me.id, 'enterprise-scenario', 'new')) || { metadata: blankMetadata, tasks: [] }); setPreview(false); setDirty(true) } }}><option value="">{t('New scenario draft')}</option>{versions.map(v => <option key={v.id} value={v.id}>{v.metadata.title} · V{v.versionNumber} · {v.status}</option>)}</select></label>
       <button disabled={busy || !version} onClick={() => action('clone')}>{t('Clone as new draft')}</button>
@@ -56,7 +58,6 @@ export default function EnterpriseWorkspace() {
       <button disabled={busy || dirty || !version} onClick={() => setPreview(v => !v)}>{t('Preview saved version')}</button>
       {preview && <article><h2>{draft.metadata.title}</h2><p>{draft.metadata.introduction}</p>{draft.tasks.map(task => <section key={task.id}><h3>{task.position}. {task.title}</h3><p>{task.workplaceContext}</p><p>{task.instructions}</p><ul>{task.definitions.map(d => <li key={d.id}>{d.name} · {d.format}</li>)}</ul><p>{task.modelAnswer?.content}</p></section>)}</article>}
       <button disabled={busy || dirty || !preview || version?.status !== 'DRAFT' || !membership.publishingPermission} onClick={() => action('publish')}>{t('Publish reviewed version')}</button>
-      <h2>{t('Aggregate participation')}</h2><p>{t('Only aggregate counts are shown; private student evidence requires separate consent.')}</p><ul>{stats.map(s => <li key={s.scenarioVersionId}>{s.title} · V{s.versionNumber}: {s.enrollments} {t('Enrollments')} · {s.participants} {t('Participants')} · {s.completions} {t('Completions')}</li>)}</ul>
     </>}
   </section>
 }

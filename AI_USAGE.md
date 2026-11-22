@@ -15,6 +15,13 @@
 
 ## 2. Main AI-assisted work — team review required
 
+### 2026-11-22 — Enterprise participation analytics
+
+- Codex Astra provided the handoff for UC-10, mapped to repository UC-13. Codex Sol implemented and tested the enterprise dashboard, published-version aggregates, and consent-scoped completion evidence. UI UX Pro Max informed the narrow-screen task rows and filter layout.
+- PostgreSQL fixtures confirmed the 6 enrolled / 4 started / 2 completed example, date boundaries, version-specific task counts, tenant isolation and consent withdrawal. Focused backend 9 PASS; frontend check 463 PASS with lint and build. Real local gateway smoke used synthetic accounts and standard login, confirming empty data, evidence on demand, authoring access and role/tenant denials. Browser review covered EN/VI and 375/1280px.
+- The proposed five-learner threshold and human UAT await Team Lead review. No new migration, external provider call, commit or push.
+- Full backend verify after the frontend build found 579 tests: 572 passed, 6 opt-in skips and one existing Student Agent test exceeded its three-second await. The same test passed in the earlier suite and in an isolated verify. Full-suite PASS is not claimed.
+
 2026-10-24 Docker startup repair (Codex; responsible human/reviewer to confirm):
 diagnosed the observed empty-JWT-key constructor failure separately from Google,
 preserved private configuration/data, added Compose readiness and safe local setup

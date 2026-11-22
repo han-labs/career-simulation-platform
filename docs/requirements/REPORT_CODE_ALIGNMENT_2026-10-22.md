@@ -297,3 +297,9 @@ inferred. Other purposes/consumers remain unchanged. Account/role/session owners
 privacy revision, publication, evidence/tool authorization and explicit plan-write
 confirmation remain enforced. Tests cover no-grant inference admission and privacy
 revision cancellation/redaction. Historical refusal records remain unchanged.
+
+## Enterprise analytics handoff — 2026-11-22
+
+The Team Lead's UC-10 View analytics handoff corresponds to catalogue UC-13.
+See the [as-built contract and UAT cases](../api/enterprise-analytics.md).
+The selected use case allocation and historical numbering are unchanged.

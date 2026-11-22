@@ -71,4 +71,23 @@ public class CompletionDao {
                 (r, n) -> r.getString(1),
                 enrollment);
     }
+
+    public List<Completion> listShared(long owner, long enterprise) {
+        return jdbc
+                .query(
+                        """
+                        SELECT c.id FROM public.simulation_completion c
+                        JOIN public.simulation_enrollment e ON e.id = c.enrollment_id
+                        JOIN public.scenario_version v ON v.id = e.scenario_version_id
+                        JOIN public.scenario s ON s.id = v.scenario_id
+                        WHERE e.student_id = ? AND s.enterprise_id = ? AND v.status = 'PUBLISHED'
+                        ORDER BY c.completed_at DESC, c.id DESC LIMIT 100
+                        """,
+                        (r, n) -> r.getLong(1),
+                        owner,
+                        enterprise)
+                .stream()
+                .map(id -> read(owner, id))
+                .toList();
+    }
 }

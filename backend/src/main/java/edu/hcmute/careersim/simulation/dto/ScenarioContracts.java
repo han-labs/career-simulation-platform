@@ -9,6 +9,39 @@ import java.util.*;
 public final class ScenarioContracts {
     private ScenarioContracts() {}
 
+    public record AnalyticsProgram(String scenarioId, String title) {}
+
+    public record AnalyticsCounts(
+            long enrollments, long started, long completed, long participants) {}
+
+    public record AnalyticsTask(
+            String scenarioVersionId,
+            String programTitle,
+            int versionNumber,
+            String taskId,
+            int position,
+            String taskTitle,
+            long notSubmitted,
+            long drafts,
+            long submitted) {}
+
+    public enum AnalyticsDetail {
+        EMPTY,
+        INSUFFICIENT,
+        AVAILABLE
+    }
+
+    public record Analytics(
+            List<AnalyticsProgram> programs,
+            AnalyticsCounts counts,
+            AnalyticsDetail detailStatus,
+            List<AnalyticsTask> tasks) {}
+
+    public record AnalyticsEvidence(
+            String reference, String programTitle, int versionNumber, Instant completedAt) {}
+
+    public record AnalyticsEvidencePage(List<AnalyticsEvidence> items, String nextBefore) {}
+
     public record OwnActivity(
             long totalEnrollments,
             long distinctSimulations,

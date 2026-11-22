@@ -1,0 +1,77 @@
+.enterprise-analytics {
+  padding-block: clamp(24px, 4vw, 56px);
+}
+.enterprise-analytics header h1 {
+  margin-top: 12px;
+}
+.enterprise-analytics-filters {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: end;
+}
+.enterprise-analytics-filters fieldset {
+  min-width: 0;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+.enterprise-analytics-dates {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.enterprise-analytics-filters :is(select, input) {
+  width: 100%;
+  min-width: 0;
+  min-height: 44px;
+  padding: 7px 8px;
+  border: 1px solid var(--cs-control-border);
+  border-radius: var(--cs-radius-control);
+  background: var(--cs-surface);
+  color: var(--cs-text);
+  font: inherit;
+}
+.enterprise-analytics-kpis {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin: 0;
+}
+.enterprise-analytics-kpis > div {
+  border-top: 3px solid var(--cs-primary);
+}
+.enterprise-analytics-kpis dt, .enterprise-task dt {
+  color: var(--cs-text-secondary);
+}
+.enterprise-analytics-kpis dd {
+  margin: 4px 0 0;
+  color: var(--hcmute-blue-dark);
+  font-size: clamp(1.35rem, 4vw, 2rem);
+  font-weight: 700;
+}
+.enterprise-task, .enterprise-evidence-list li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  padding-block: 14px;
+  border-bottom: 1px solid var(--cs-border);
+}
+.enterprise-task h3 { font-size: 1rem; }
+.enterprise-task dl {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.enterprise-task dd { margin: 0; font-weight: 700; }
+.enterprise-evidence-list { padding: 0; margin: 0; list-style: none; }
+.enterprise-evidence-list li { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) auto; }
+@media (max-width: 760px) {
+  .enterprise-analytics-filters, .enterprise-task, .enterprise-evidence-list li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .enterprise-analytics-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .enterprise-analytics-kpis > div { padding: 12px; }
+}
