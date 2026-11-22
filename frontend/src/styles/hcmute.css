@@ -1,4 +1,18 @@
 /* HCM-UTE presentation; existing routes, state and feature layouts are retained. */
+:root {
+  --hcmute-blue: #0072bd;
+  --hcmute-blue-hover: #005e9f;
+  --experience-tag-bg: #dcefff;
+  --experience-tag-ink: #075485;
+  --experience-hero-bg: #ffdf84;
+  --experience-hero-ink: #103458;
+  --experience-hero-border: #dfb548;
+  --experience-teal-bg: #d5f4e9;
+  --experience-teal-ink: #165a50;
+  --experience-gold-bg: #ffedb5;
+  --experience-gold-ink: #704b0b;
+  --experience-border: #c6dbea;
+}
 .site-header.hcmute-header { background: #fff; backdrop-filter: none; box-shadow: none; }
 .site-header.hcmute-header .site-header__inner { display:grid; grid-template-columns:minmax(180px,250px) minmax(0,1fr) auto; grid-template-areas:"brand navigation actions"; width:min(1600px,calc(100% - 48px)); min-height:76px; column-gap:clamp(12px,1.5vw,28px); padding-block:0; }
 .hcmute-header .brand-link { grid-area:brand; margin:0; min-width:0; }
@@ -143,3 +157,200 @@
  .site-footer .site-footer__nav { justify-content:flex-start; flex-wrap:wrap; gap:20px 32px; }
  .site-footer .site-footer__bottom-inner { width:calc(100% - 32px); }
 }
+
+/* Career experiences: stronger hierarchy within the existing HCM-UTE layout. */
+.hcmute-home .hero__label,
+.core-catalog__header > .eyebrow,
+.core-simulation-public__hero .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  padding: 7px 13px;
+  border-radius: var(--radius-sm);
+  background: var(--experience-tag-bg);
+  color: var(--experience-tag-ink) !important;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.45;
+  letter-spacing: .055em;
+  text-wrap: balance;
+}
+.hero__label svg { flex: 0 0 auto; }
+.hcmute-home .hero__label {
+  padding: 9px 15px;
+  border: 1px solid var(--experience-hero-border);
+  background: var(--experience-hero-bg);
+  color: var(--experience-hero-ink) !important;
+  box-shadow: 0 3px 0 rgba(223, 181, 72, .22);
+}
+.hcmute-home .hero__label svg { color: var(--experience-tag-ink); }
+.hcmute-home .hero h1 span {
+  box-shadow: inset 0 -.15em var(--experience-gold-bg);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.hcmute-home .hero__lede { color: var(--ink-secondary); }
+.hcmute-home .hero__actions .button,
+.hcmute-home .home-mission .button {
+  border-radius: 12px;
+  font-weight: 700;
+  box-shadow: 0 3px 0 var(--hcmute-blue-hover);
+}
+.hcmute-home .text-link,
+.core-catalog .text-link { font-weight: 700; }
+.hcmute-header .site-nav > a[aria-current="page"]:not(.button) {
+  color: var(--hcmute-blue-hover);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 7px;
+}
+.hcmute-header .site-nav > a:not(.button):hover { color: var(--hcmute-blue-hover); }
+.home-catalog__heading h2 { padding-left: 14px; border-left: 4px solid var(--hcmute-blue); }
+.home-journey > h2 {
+  display: table; margin-inline: auto; padding-bottom: 12px;
+  border-bottom: 3px solid var(--hcmute-blue);
+}
+.home-companies { border-bottom-color: var(--experience-border); }
+.hcmute-home .home-companies h2 { color: var(--ink-secondary); font-weight: 650; }
+.home-journey__icon { border: 1px solid var(--experience-border); }
+.home-journey__steps > li:nth-child(2) .home-journey__icon {
+  color: var(--experience-teal-ink); background: var(--experience-teal-bg); border-color: #b8dace;
+}
+.home-journey__steps > li:nth-child(3) .home-journey__icon {
+  color: var(--experience-gold-ink); background: var(--experience-gold-bg); border-color: #e4cf94;
+}
+.simulation-card .pill--blue {
+  background: var(--experience-tag-bg); color: var(--experience-tag-ink); font-weight: 700;
+}
+.home-carousel .simulation-card--compact { border-color: var(--experience-border); }
+.home-carousel .simulation-card--compact .simulation-card__body { padding-top: 14px; }
+.home-carousel .simulation-card--compact h3 { font-size: 14px; line-height: 1.4; }
+.home-carousel .simulation-card--compact:focus-within { border-color: var(--hcmute-blue); }
+.core-catalog__header h1 {
+  font-family: inherit; font-size: clamp(30px, 3.5vw, 46px);
+  font-weight: 750; letter-spacing: -.035em; color: var(--hcmute-blue-dark);
+}
+.core-catalog__header > p:last-child { color: var(--ink-secondary); }
+.catalog-card--link {
+  border-color: var(--experience-border);
+  border-bottom: 3px solid var(--experience-border);
+  box-shadow: none;
+  transition: border-color 180ms ease, background-color 180ms ease;
+}
+.catalog-card--link h2 { font-family: inherit; color: var(--hcmute-blue-dark); font-weight: 750; line-height: 1.35; }
+.catalog-card--link .catalog-card__summary { color: var(--ink-secondary); line-height: 1.6; }
+.catalog-card__media { background: var(--hcmute-blue-soft); }
+.catalog-card__topline > span:last-child {
+  align-self: start; padding: 3px 8px; border-radius: 5px;
+  color: var(--experience-teal-ink); background: var(--experience-teal-bg); white-space: nowrap;
+}
+.catalog-card--link .catalog-meta { flex-wrap: wrap; padding-top: 8px; }
+.catalog-card--link .catalog-meta > span {
+  overflow: visible; white-space: normal; overflow-wrap: anywhere;
+  color: var(--hcmute-blue-dark); font-size: 12px; line-height: 1.45;
+}
+.catalog-card--link .catalog-meta > .catalog-card__difficulty { background: var(--experience-gold-bg); color: var(--experience-gold-ink); }
+.catalog-card--link[data-difficulty="INTRODUCTORY"] .catalog-card__difficulty { background: var(--experience-teal-bg); color: var(--experience-teal-ink); }
+.catalog-card--link[data-difficulty="ADVANCED"] .catalog-card__difficulty { background: var(--violet); color: var(--violet-ink); }
+.catalog-state { border-color: var(--experience-border); background: var(--paper); }
+.catalog-state > svg { color: var(--hcmute-blue); }
+.catalog-skeleton { border: 1px solid var(--experience-border); border-radius: var(--radius-md); }
+.core-simulation-public__skills li { border: 1px solid var(--experience-border); }
+.site-footer { border-top: 3px solid var(--hcmute-blue); background: #f0f6fb; }
+.site-footer__nav strong { color: var(--hcmute-blue-dark); }
+.site-footer__nav a:hover { color: var(--hcmute-blue-hover); text-decoration: underline; text-underline-offset: 3px; }
+@media (hover: hover) {
+  .catalog-card--link:hover { border-color: var(--hcmute-blue); background: #fafdff; }
+  .home-carousel .simulation-card--compact:hover { border-color: var(--hcmute-blue); box-shadow: none; }
+}
+@media (max-width: 700px) {
+  .hcmute-home .hero__label { font-size: 11px; letter-spacing: .03em; }
+  .home-catalog__heading h2 { padding-left: 10px; }
+  .catalog-card--link .catalog-meta { gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .catalog-card--link,
+  .hcmute-home .button { transition: none; }
+}
+
+/* ── Additional Polish: career-experience-ui ───────────────── */
+
+/* Track card: distinct per-track icon colours */
+.track--backend  .track-card__icon { color: #0068b5; background: #dcefff; border-color: rgba(0,104,181,.2); }
+.track--frontend .track-card__icon { color: #6d28d9; background: #ede9fe; border-color: rgba(109,40,217,.2); }
+.track--data     .track-card__icon { color: #0369a1; background: #e0f2fe; border-color: rgba(3,105,161,.2); }
+.track--testing  .track-card__icon { color: #15803d; background: #dcfce7; border-color: rgba(21,128,61,.2); }
+.track--cyber    .track-card__icon { color: #b91c1c; background: #fee2e2; border-color: rgba(185,28,28,.2); }
+
+/* Track card: hover = stronger lift */
+.hcmute-home .track-card:hover,
+.track-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 18px 42px -6px rgba(0, 104, 181, 0.16);
+  border-color: var(--hcmute-blue);
+}
+
+/* Skill pill on track cards: coloured per track */
+.track--backend  .skill-pill { background: #dcefff; color: #075485; border-color: #aad4f5; }
+.track--frontend .skill-pill { background: #ede9fe; color: #4c1d95; border-color: #c4b5fd; }
+.track--data     .skill-pill { background: #e0f2fe; color: #0c4a6e; border-color: #93c5fd; }
+.track--testing  .skill-pill { background: #dcfce7; color: #14532d; border-color: #86efac; }
+.track--cyber    .skill-pill { background: #fee2e2; color: #7f1d1d; border-color: #fca5a5; }
+
+/* Simulation card: coloured left accent bar on hover */
+.hcmute-home .simulation-card,
+.simulation-card {
+  border-left: 3px solid transparent;
+}
+.hcmute-home .simulation-card:hover,
+.simulation-card:hover {
+  border-left-color: var(--hcmute-blue);
+  box-shadow: 0 12px 32px -4px rgba(0, 104, 181, 0.16);
+}
+
+/* Simulation card compact: carousel items keep flat on hover (existing rule) */
+.home-carousel .simulation-card--compact {
+  border-left: 0;
+}
+
+/* Pill highlight: white text on blue BG for track pills */
+.simulation-card .pill--blue {
+  /* Keep existing hcmute experience-tag style (lighter), only add ring */
+  box-shadow: 0 0 0 1px rgba(7,84,133,.18);
+}
+
+/* Journey icon: coloured gradient ring (supplement existing) */
+.home-journey__steps > li:nth-child(1) .home-journey__icon {
+  color: var(--hcmute-blue); background: var(--experience-tag-bg); border-color: #aad4f5;
+}
+
+/* CTA mission section: gradient bg instead of flat */
+.home-mission {
+  background: linear-gradient(135deg, #ddeefa 0%, #eaf5fd 55%, #f5f9fd 100%);
+  border: 1px solid var(--experience-border);
+}
+
+/* Catalog heading: left accent bar (boost existing) */
+.home-catalog__heading h2 {
+  border-left-color: var(--hcmute-blue);
+  border-left-width: 4px;
+  color: var(--hcmute-blue-dark);
+}
+
+/* text-link hover: colour shift + underline */
+.hcmute-home .text-link:hover {
+  color: var(--hcmute-blue-dark);
+}
+.hcmute-home .text-link:hover span {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Button shimmer on hover */
+.hcmute-home .button--primary:hover {
+  background: linear-gradient(135deg, var(--hcmute-blue-hover) 0%, #004f99 100%);
+  box-shadow: 0 6px 20px rgba(0, 104, 181, 0.32), 0 3px 0 rgba(0, 78, 153, 1);
+}
+
+/* ── END Additional Polish ─────────────────────────────────── */

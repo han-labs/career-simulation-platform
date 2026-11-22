@@ -168,7 +168,7 @@ it('keeps compact Vietnamese navigation between the logo and right-aligned actio
  fireEvent.change(screen.getByRole('combobox',{name:'Website language'}),{target:{value:'vi'}})
  const header=document.querySelector('.site-header__inner'),nav=header.querySelector('.site-nav'),actions=header.querySelector('.header-actions')
  expect([...header.children]).toEqual([header.querySelector('.brand-link'),nav,actions])
- expect(within(nav).getByRole('link',{name:'Mô phỏng',exact:true}).getAttribute('href')).toBe('/simulations')
+ expect(within(nav).getByRole('link',{name:'Trải nghiệm nghề',exact:true}).getAttribute('href')).toBe('/simulations')
  expect(within(nav).getByRole('link',{name:'Trắc nghiệm',exact:true})).toBeTruthy()
  expect(actions.contains(screen.getByRole('combobox',{name:'Ngôn ngữ website'}))).toBe(true)
  expect(document.querySelector('.site-footer a[href="/simulations"]')).toBeTruthy()

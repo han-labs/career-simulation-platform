@@ -54,7 +54,12 @@
 .cs-ui .cs-feedback h3 { font-size: 1rem; color: inherit; }
 .cs-ui .cs-tablist { display: flex; gap: var(--cs-space-2); border-bottom: 1px solid var(--cs-border); padding-bottom: var(--cs-space-2); margin-bottom: var(--cs-space-6); flex-wrap: wrap; }
 .cs-ui .cs-tablist > button { border: 1px solid transparent; border-radius: var(--cs-radius-control); padding: 10px 16px; min-height: 44px; background: transparent; color: var(--cs-text-secondary); font: inherit; font-weight: 600; cursor: pointer; }
-.cs-ui .cs-tablist > button[aria-selected="true"] { color: var(--cs-primary); background: var(--cs-selected-bg); border-color: var(--cs-primary); }
+.cs-ui .cs-tablist > button[aria-selected="true"] { color: #fff; background: var(--cs-primary); border-color: var(--cs-primary); font-weight: 700; }
+.cs-ui .cs-tablist > button:hover:not([aria-selected="true"]) { color: var(--cs-primary); background: var(--cs-selected-bg); }
+.cs-ui .cs-button, .cs-ui .cs-tablist > button { transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease; }
+@media (prefers-reduced-motion: reduce) {
+  .cs-ui .cs-button, .cs-ui .cs-tablist > button { transition: none; }
+}
 .cs-ui .cs-tabpanel { min-width: 0; }
 .cs-ui.cs-dialog { width: min(560px,calc(100vw - 48px)); max-width: none; max-height: calc(100dvh - 48px); padding: 0; border: 1px solid var(--cs-border); border-radius: var(--cs-radius-dialog); background: var(--cs-surface); box-shadow: var(--cs-shadow-dialog); overflow: auto; }
 .cs-ui.cs-dialog--wide { width: min(960px,calc(100vw - 48px)); }

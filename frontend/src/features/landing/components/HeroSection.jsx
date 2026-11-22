@@ -1,6 +1,6 @@
 import { useI18n } from '../../../shared/i18n/useI18n.js'
 import { Link } from 'react-router-dom'
-import { ArrowRight } from 'lucide-react'
+import { ArrowRight, BriefcaseBusiness } from 'lucide-react'
 import { riasecDescriptions } from '../../assessment/data/mockQuestions.js'
 
 const riasecNames = {
@@ -27,7 +27,7 @@ function HeroSection({ status, result }) {
     <section className="hero hero--campus" aria-labelledby="hero-title">
       <div className="section-shell hero__layout">
         <div className="hero__copy">
-          <p className="hero__label">{t('Career Simulation Platform')}</p>
+          <p className="hero__label"><BriefcaseBusiness size={14} aria-hidden="true" />{t('Career Simulation Platform')}</p>
           <h1 id="hero-title" className="hero__title">{t('Explore real careers.')}<br /><span>{t('Build your brighter future.')}</span></h1>
           <p className="hero__lede">{t('Experience real-world tasks, discover your strengths, and get personalized career guidance with the support of AI.')}</p>
           <div className="hero__actions">

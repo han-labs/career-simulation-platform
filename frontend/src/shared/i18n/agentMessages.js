@@ -9,7 +9,7 @@ Close preview ⇢ Đóng xem trước
 Preview conversation history ⇢ Lịch sử hội thoại xem trước
 Continue in the Career Agent popup. Closing it does not stop a response. ⇢ Tiếp tục trong cửa sổ Agent nghề nghiệp. Đóng cửa sổ không dừng phản hồi.
 Explore my results ⇢ Khám phá kết quả
-Find a simulation ⇢ Tìm mô phỏng
+Find a simulation ⇢ Tìm bài trải nghiệm
 My progress ⇢ Tiến độ của tôi
 Compare careers ⇢ So sánh nghề nghiệp
 Draft plan ⇢ Kế hoạch nháp
@@ -131,8 +131,8 @@ Agent configuration ⇢ Cấu hình Agent
 Configuration ⇢ Cấu hình
 Knowledge search ⇢ Tìm kiếm tri thức
 Assessment evidence ⇢ Minh chứng đánh giá
-Simulation catalogue ⇢ Danh mục mô phỏng
-My simulation evidence ⇢ Minh chứng mô phỏng của tôi
+Simulation catalogue ⇢ Danh mục bài trải nghiệm
+My simulation evidence ⇢ Minh chứng bài trải nghiệm của tôi
 View run details ⇢ Xem chi tiết lượt chạy
 Preview ⇢ Xem trước
 Sending Preview... ⇢ Đang gửi yêu cầu xem trước...
@@ -193,14 +193,14 @@ No authorized knowledge bases are available. ⇢ Chưa có kho tri thức đư�
 Domain tool grants ⇢ Quyền sử dụng công cụ nghiệp vụ
 Search published passages from explicitly granted knowledge bases. ⇢ Tìm đoạn tài liệu đã công bố trong các kho tri thức được cấp quyền rõ ràng.
 Interpret the Student’s own authorized assessment results. Private evidence is unavailable in Admin Preview. ⇢ Diễn giải kết quả đánh giá của chính sinh viên trong phạm vi được cấp quyền. Minh chứng riêng tư không khả dụng khi quản trị viên xem trước.
-Explore the public simulation catalogue without changing enrollment or results. ⇢ Khám phá danh mục mô phỏng công khai mà không thay đổi việc tham gia hoặc kết quả.
-Read the Student’s own authorized simulation progress and results. Unavailable in Admin Preview. ⇢ Đọc tiến độ và kết quả mô phỏng của chính sinh viên trong phạm vi được cấp quyền. Không khả dụng khi quản trị viên xem trước.
+Explore the public simulation catalogue without changing enrollment or results. ⇢ Khám phá danh mục bài trải nghiệm công khai mà không thay đổi việc tham gia hoặc kết quả.
+Read the Student’s own authorized simulation progress and results. Unavailable in Admin Preview. ⇢ Đọc tiến độ và kết quả bài trải nghiệm của chính sinh viên trong phạm vi được cấp quyền. Không khả dụng khi quản trị viên xem trước.
 Conversation and bounded context ⇢ Hội thoại và ngữ cảnh có giới hạn
 Enable bounded Student context ⇢ Bật ngữ cảnh sinh viên có giới hạn
 Uses supported, scoped Student history/context in Student runtime. This is not training, autonomous learning or unlimited permanent memory. Admin Preview has no Student history. ⇢ Sử dụng lịch sử/ngữ cảnh sinh viên trong phạm vi và giới hạn được hỗ trợ ở luồng sinh viên. Đây không phải huấn luyện, tự học hay trí nhớ vĩnh viễn không giới hạn. Xem trước của quản trị viên không có lịch sử sinh viên.
 Safety ⇢ An toàn
 The backend enforces current identity, permissions, read-only tools, execution limits and citation validation. Safety cannot be disabled here. ⇢ Backend kiểm tra danh tính hiện tại, quyền truy cập, công cụ chỉ đọc, giới hạn thực thi và trích dẫn. Không thể tắt các bảo vệ tại đây.
-Authorized Students may interpret their own assessment and simulation evidence. Admin Preview never impersonates a Student or reads personal Student evidence. ⇢ Sinh viên được cấp quyền có thể diễn giải minh chứng đánh giá và mô phỏng của chính mình. Xem trước của quản trị viên không giả danh sinh viên hoặc đọc minh chứng cá nhân.
+Authorized Students may interpret their own assessment and simulation evidence. Admin Preview never impersonates a Student or reads personal Student evidence. ⇢ Sinh viên được cấp quyền có thể diễn giải minh chứng đánh giá và bài trải nghiệm của chính mình. Xem trước của quản trị viên không giả danh sinh viên hoặc đọc minh chứng cá nhân.
 Save creates a version only. It does not publish, assign Students or call the AI provider. ⇢ Lưu chỉ tạo phiên bản. Không công bố, không gán sinh viên và không gọi nhà cung cấp AI.
 Save your revised configuration before running Preview. Any displayed result belongs to the previously saved version. ⇢ Lưu cấu hình đã sửa trước khi xem trước. Kết quả đang hiển thị thuộc phiên bản đã lưu trước đó.
 Executed preview question ⇢ Câu hỏi đã dùng để xem trước
@@ -459,11 +459,11 @@ Safe fallback or refusal ⇢ Phản hồi dự phòng hoặc từ chối an toà
 Source staged privately. Run ingestion, inspect it, then publish explicitly. ⇢ Nguồn đã được lưu riêng trong vùng chuẩn bị. Hãy xử lý, kiểm tra rồi chủ động công bố.
 Restore preserved local draft ⇢ Khôi phục bản nháp cục bộ đã giữ
 There is insufficient authorized knowledge to answer this question. ⇢ Không có đủ tri thức trong phạm vi được phép để trả lời câu hỏi này.
-The Agent could not complete this request safely. Core assessments and simulations remain available. ⇢ Agent chưa thể hoàn tất yêu cầu này một cách an toàn. Bạn vẫn có thể sử dụng các bài đánh giá và mô phỏng.
+The Agent could not complete this request safely. Core assessments and simulations remain available. ⇢ Agent chưa thể hoàn tất yêu cầu này một cách an toàn. Bạn vẫn có thể sử dụng các bài đánh giá và bài trải nghiệm.
 Ranked passages retrieved; no answer model called. ⇢ Đã truy xuất các đoạn nguồn theo xếp hạng; không gọi mô hình tạo câu trả lời.
 
 Student Agent ⇢ Agent dành cho sinh viên
-Exploration support does not certify professional competence. Your assessments and simulations remain independent of AI. ⇢ Hỗ trợ khám phá không chứng nhận năng lực chuyên môn. Đánh giá và mô phỏng của bạn hoạt động độc lập với AI.
+Exploration support does not certify professional competence. Your assessments and simulations remain independent of AI. ⇢ Hỗ trợ khám phá không chứng nhận năng lực chuyên môn. Đánh giá và bài trải nghiệm của bạn hoạt động độc lập với AI.
 Conversations ⇢ Các cuộc hội thoại
 New conversation title ⇢ Tiêu đề hội thoại mới
 Optional context from my conversations ⇢ Ngữ cảnh tùy chọn từ hội thoại của tôi
@@ -659,7 +659,7 @@ Search knowledge bases ⇢ Tìm kho tri thức
 selected ⇢ đã chọn
 Search published passages from granted knowledge bases. ⇢ Tìm đoạn đã xuất bản trong kho được cấp quyền.
 Authorized Student assessment. Public catalogue only in Admin Preview. ⇢ Kết quả đánh giá được phép của sinh viên. Xem thử Admin chỉ có danh mục công khai.
-Explore public simulations. ⇢ Khám phá mô phỏng công khai.
+Explore public simulations. ⇢ Khám phá bài trải nghiệm công khai.
 Student-owned results. Unavailable in Admin Preview. ⇢ Kết quả thuộc sinh viên. Không có trong xem thử Admin.
 Run ⇢ Lượt chạy
 Completed ⇢ Hoàn tất

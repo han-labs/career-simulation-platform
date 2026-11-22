@@ -1,6 +1,6 @@
 export const identityMessages = {
   'Home': 'Trang chủ',
-  'Welcome to HCM-UTE Career Simulation Platform!': 'Chào mừng đến với Nền tảng Mô phỏng Nghề nghiệp HCM-UTE!',
+  'Welcome to HCM-UTE Career Simulation Platform!': 'Chào mừng đến với Nền tảng Trải nghiệm Nghề nghiệp HCM-UTE!',
   'Join us now.': 'Tham gia cùng chúng tôi ngay.',
   'Administrator access is required.': 'Yêu cầu quyền Quản trị viên.',
   'Local demo': 'Demo local',
@@ -24,7 +24,7 @@ export const identityMessages = {
   'Restoring your Google sign-in session…': 'Đang khôi phục phiên đăng nhập Google của bạn…',
   'Your space to explore what comes next': 'Không gian khám phá hướng đi tiếp theo của bạn',
   'Save your career assessments and return to your exploration at your own pace.': 'Lưu kết quả đánh giá nghề nghiệp và tiếp tục khám phá theo nhịp độ của bạn.',
-  'You can take assessments and explore simulations without enabling AI processing.': 'Bạn có thể làm đánh giá và khám phá mô phỏng mà không cần bật xử lý AI.',
+  'You can take assessments and explore simulations without enabling AI processing.': 'Bạn có thể làm đánh giá và khám phá bài trải nghiệm mà không cần bật xử lý AI.',
   'Account access': 'Truy cập tài khoản',
   'Create your account': 'Tạo tài khoản của bạn',
   'Welcome back': 'Chào mừng bạn trở lại',
@@ -45,6 +45,6 @@ export const identityMessages = {
   'Cancel registration': 'Hủy đăng ký',
   'Google sign-in is not available in this environment. You can use email and password.': 'Môi trường này chưa hỗ trợ đăng nhập Google. Bạn có thể dùng email và mật khẩu.',
   'Checking your session…': 'Đang kiểm tra phiên đăng nhập…',
-  'Explore simulations': 'Khám phá mô phỏng',
+  'Explore simulations': 'Khám phá bài trải nghiệm',
   'Enterprise name': 'Tên doanh nghiệp',
 }
