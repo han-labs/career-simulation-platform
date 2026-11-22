@@ -9,6 +9,7 @@ Base context is `/api`. Core/Auth/Agent contracts use `/api/v2`; legacy catalogu
 - [P3/P4 KB Studio / Builder / Preview / Assignment](agent-platform-p3-p4.md).
 - [P5/P6 Student sessions / SSE / reports / plan confirmation / safe usage](student-agent-p5-p6.md).
 - [UC-09 AI Usage dashboard](ai-usage-uc09.md): safe execution metadata, nullable cost/latency coverage, UTC trends, server filters and bounded pagination.
+- [UC-13 Enterprise analytics](enterprise-analytics.md): published participation counts, task progress and consent-scoped completion evidence.
 - [EN/VI contract](site-localization.md).
 - [Current UC/US](../requirements/README.md), [report/code discrepancies](../requirements/REPORT_CODE_ALIGNMENT_2026-10-22.md).
 

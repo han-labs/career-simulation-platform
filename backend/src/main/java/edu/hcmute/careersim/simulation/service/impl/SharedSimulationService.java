@@ -29,7 +29,7 @@ public class SharedSimulationService implements SharedSimulationAccess, FileUseA
         long tenant = recipient.requireEnterprise(actor);
         ActorAccess.requireRole(actors.requireId(student), "STUDENT");
         consent.require(student, "COMPLETION_SHARE", "enterprise:" + tenant);
-        return completions.list(student);
+        return completions.listShared(student, tenant);
     }
 
     private void shared(long actor, SimulationAccessDao.Work w) {

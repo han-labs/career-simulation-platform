@@ -19,11 +19,13 @@ import edu.hcmute.careersim.guidance.service.*;
 import edu.hcmute.careersim.identity.access.*;
 import edu.hcmute.careersim.identity.dto.IdentityContracts;
 import edu.hcmute.careersim.identity.service.*;
+import edu.hcmute.careersim.simulation.domain.AnalyticsFilter;
 import edu.hcmute.careersim.simulation.dto.ScenarioContracts.*;
 import edu.hcmute.careersim.simulation.service.*;
 import edu.hcmute.careersim.simulation.service.CompletionService;
 import java.nio.file.Path;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.*;
 import org.junit.jupiter.api.*;
@@ -51,6 +53,223 @@ import org.testcontainers.utility.DockerImageName;
 @AutoConfigureMockMvc
 @Testcontainers
 class CorePackageAIntegrationTest {
+    @Test
+    void analyticsCountsDistinctLearnersAndPreservesPublishedVersionTaskBoundaries() {
+        var first = scenario(2, false);
+        long root = Long.parseLong(first.scenarioId());
+        var clone = scenarios.cloneVersion(representative, root, Long.parseLong(first.id()));
+        var second =
+                scenarios.publish(representative, Long.parseLong(clone.id()), clone.revision());
+        scenarios.cloneVersion(representative, root, Long.parseLong(second.id()));
+        var all = AnalyticsFilter.of(first.scenarioId(), null, null, null);
+        assertThat(analytics.analytics(representative, tenant, all).detailStatus())
+                .isEqualTo(AnalyticsDetail.EMPTY);
+
+        var one = enrollments.enroll(student, Long.parseLong(first.id()));
+        enrollments.enroll(student, Long.parseLong(second.id()));
+        assertThat(analytics.analytics(representative, tenant, all).counts().participants())
+                .isEqualTo(1);
+        var two = enrollments.enroll(other, Long.parseLong(first.id()));
+        var three = enrollments.enroll(analyticsStudent(), Long.parseLong(first.id()));
+        long fourth = analyticsStudent();
+        var four = enrollments.enroll(fourth, Long.parseLong(second.id()));
+        var tooSmall = analytics.analytics(representative, tenant, all);
+        assertThat(tooSmall.counts()).isEqualTo(new AnalyticsCounts(5, 0, 0, 4));
+        assertThat(tooSmall.detailStatus()).isEqualTo(AnalyticsDetail.INSUFFICIENT);
+        assertThat(tooSmall.tasks()).isEmpty();
+        long fifth = analyticsStudent();
+        var five = enrollments.enroll(fifth, Long.parseLong(second.id()));
+        long sixth = analyticsStudent();
+        var six = enrollments.enroll(sixth, Long.parseLong(second.id()));
+        completeAnalyticsEnrollment(student, one);
+        completeAnalyticsEnrollment(fourth, four);
+        saveAnalyticsDraft(other, two);
+        saveAnalyticsDraft(fifth, five);
+        for (var e : List.of(one, two, three, four, five, six))
+            jdbc.update(
+                    "UPDATE public.simulation_enrollment SET enrolled_at='2026-10-12T23:59:59+07' WHERE id=?",
+                    Long.parseLong(e.id()));
+        var dashboard =
+                analytics.analytics(
+                        representative,
+                        tenant,
+                        AnalyticsFilter.of(
+                                first.scenarioId(),
+                                LocalDate.parse("2026-10-12"),
+                                LocalDate.parse("2026-10-12"),
+                                null));
+        assertThat(dashboard.counts()).isEqualTo(new AnalyticsCounts(6, 4, 2, 6));
+        assertThat(dashboard.detailStatus()).isEqualTo(AnalyticsDetail.AVAILABLE);
+        assertThat(dashboard.programs())
+                .extracting(AnalyticsProgram::scenarioId)
+                .containsExactly(first.scenarioId());
+        assertThat(dashboard.tasks()).hasSize(4);
+        assertThat(dashboard.tasks().stream().filter(task -> task.position() == 1))
+                .allSatisfy(
+                        task -> {
+                            assertThat(task.notSubmitted()).isEqualTo(1);
+                            assertThat(task.drafts()).isEqualTo(1);
+                            assertThat(task.submitted()).isEqualTo(1);
+                        })
+                .extracting(AnalyticsTask::scenarioVersionId)
+                .containsExactly(first.id(), second.id());
+        assertThat(
+                        analytics
+                                .analytics(
+                                        representative,
+                                        tenant,
+                                        AnalyticsFilter.of(
+                                                first.scenarioId(),
+                                                null,
+                                                LocalDate.parse("2026-10-11"),
+                                                "COMPLETED"))
+                                .counts()
+                                .enrollments())
+                .isZero();
+        assertThat(
+                        analytics
+                                .analytics(
+                                        representative,
+                                        tenant,
+                                        AnalyticsFilter.of(
+                                                first.scenarioId(),
+                                                LocalDate.parse("2026-10-12"),
+                                                LocalDate.parse("2026-10-12"),
+                                                "COMPLETED"))
+                                .counts()
+                                .enrollments())
+                .isEqualTo(2);
+        assertThat(scenarios.participation(representative, tenant)).hasSize(3);
+        completeAnalyticsEnrollment(sixth, six);
+        assertThat(analytics.analytics(representative, tenant, all).counts().completed())
+                .isEqualTo(3);
+    }
+
+    @Test
+    void analyticsRequiresActiveMembershipAndFreshRecipientConsentForMinimalEvidence() {
+        var a = scenario(1, false);
+        long repB =
+                Long.parseLong(
+                        identity.register(
+                                        new IdentityContracts.Registration(
+                                                "analytics-rep-"
+                                                        + UUID.randomUUID()
+                                                        + "@example.test",
+                                                PASSWORD,
+                                                "Second company rep",
+                                                "ENTERPRISE",
+                                                "Second company"))
+                                .id());
+        long tenantB = Long.parseLong(memberships.mine(repB).enterpriseId());
+        enterprises.verification(admin, tenantB, 0, "VERIFIED");
+        enterprises.publishing(admin, tenantB, 1, "ENABLED");
+        enterprises.member(admin, tenantB, repB, 0, "ACTIVE", true);
+        var b = scenario(repB, 1, false);
+        var filter = AnalyticsFilter.of(null, null, null, null);
+        assertThatThrownBy(() -> analytics.analytics(repB, tenant, filter))
+                .isInstanceOf(ApiException.class);
+        assertThatThrownBy(() -> analytics.analytics(student, tenant, filter))
+                .isInstanceOf(ApiException.class);
+        assertThatThrownBy(
+                        () ->
+                                analytics.evidence(
+                                        representative,
+                                        tenant,
+                                        AnalyticsFilter.of(b.scenarioId(), null, null, null),
+                                        null,
+                                        20))
+                .isInstanceOf(ApiException.class);
+        completeAnalyticsEnrollment(student, enrollments.enroll(student, Long.parseLong(a.id())));
+        completeAnalyticsEnrollment(student, enrollments.enroll(student, Long.parseLong(b.id())));
+        completeAnalyticsEnrollment(other, enrollments.enroll(other, Long.parseLong(a.id())));
+        assertThat(analytics.evidence(representative, tenant, filter, null, 20).items()).isEmpty();
+
+        var grant =
+                consent.grant(
+                        student,
+                        new IdentityContracts.Grant(
+                                "COMPLETION_SHARE",
+                                Long.toString(tenant),
+                                "enterprise:" + tenant,
+                                "careersim-purpose-v1",
+                                true));
+        var secondGrant =
+                consent.grant(
+                        other,
+                        new IdentityContracts.Grant(
+                                "COMPLETION_SHARE",
+                                Long.toString(tenant),
+                                "enterprise:" + tenant,
+                                "careersim-purpose-v1",
+                                true));
+        var page = analytics.evidence(representative, tenant, filter, null, 1);
+        assertThat(page.items()).hasSize(1);
+        assertThat(page.nextBefore()).isEqualTo(page.items().get(0).reference());
+        assertThat(analytics.evidence(representative, tenant, filter, page.nextBefore(), 1).items())
+                .hasSize(1)
+                .noneMatch(item -> item.reference().equals(page.nextBefore()));
+        assertThat(analytics.evidence(repB, tenantB, filter, null, 20).items()).isEmpty();
+        assertThat(sharedSimulation.readCompletions(representative, student)).hasSize(1);
+        assertThat(
+                        analytics
+                                .evidence(
+                                        representative,
+                                        tenant,
+                                        AnalyticsFilter.of(a.scenarioId(), null, null, "ENROLLED"),
+                                        null,
+                                        20)
+                                .items())
+                .isEmpty();
+        consent.revoke(student, Long.parseLong(grant));
+        jdbc.update(
+                "UPDATE public.consent_grant SET expires_at=confirmed_at WHERE id=?",
+                Long.parseLong(secondGrant));
+        assertThat(analytics.evidence(representative, tenant, filter, null, 20).items()).isEmpty();
+        assertThat(analytics.analytics(representative, tenant, filter).counts().completed())
+                .isEqualTo(2);
+        assertThatThrownBy(() -> analytics.evidence(representative, tenant, filter, null, 51))
+                .isInstanceOf(ApiException.class);
+        enterprises.member(admin, tenant, representative, 1, "ACTIVE", false);
+        assertThat(analytics.analytics(representative, tenant, filter).counts().completed())
+                .isEqualTo(2);
+        enterprises.member(admin, tenant, representative, 2, "SUSPENDED", false);
+        assertThatThrownBy(() -> analytics.evidence(representative, tenant, filter, null, 20))
+                .isInstanceOf(ApiException.class);
+    }
+
+    private long analyticsStudent() {
+        return Long.parseLong(
+                identity.register(
+                                new IdentityContracts.Registration(
+                                        "analytics-" + UUID.randomUUID() + "@example.test",
+                                        PASSWORD,
+                                        "Analytics fixture",
+                                        "STUDENT",
+                                        null))
+                        .id());
+    }
+
+    private void saveAnalyticsDraft(long learner, Enrollment enrollment) {
+        var task = enrollment.tasks().get(0);
+        submissions.save(
+                learner,
+                Long.parseLong(enrollment.id()),
+                Long.parseLong(task.id()),
+                0,
+                new Items(items(task)));
+    }
+
+    private void completeAnalyticsEnrollment(long learner, Enrollment enrollment) {
+        long id = Long.parseLong(enrollment.id());
+        for (int i = 0; i < enrollment.tasks().size(); i++) {
+            var task = enrollments.read(learner, id).tasks().get(i);
+            long taskId = Long.parseLong(task.id());
+            submissions.finalizeTask(
+                    learner, id, taskId, 0, new Finalize(UUID.randomUUID(), items(task)));
+            submissions.selfReview(learner, id, taskId);
+        }
+    }
+
     @Test
     void orderedQuizZeroScoreRequiresRealSelfReviewAndFreeformCompletesWithoutGrading()
             throws Exception {
@@ -1931,6 +2150,7 @@ class CorePackageAIntegrationTest {
     @Autowired AssessmentAuthoringService assessmentAuthor;
     @Autowired VersionedAssessmentService assessments;
     @Autowired ScenarioAuthoringService scenarios;
+    @Autowired ScenarioAnalyticsService analytics;
     @Autowired EnrollmentService enrollments;
     @Autowired TaskSubmissionService submissions;
     @Autowired ModelAnswerAccess answers;
@@ -2036,6 +2256,10 @@ class CorePackageAIntegrationTest {
     }
 
     Version scenario(int required, boolean optional) {
+        return scenario(representative, required, optional);
+    }
+
+    Version scenario(long owner, int required, boolean optional) {
         var metadata =
                 new Metadata(
                         "Synthetic work",
@@ -2056,7 +2280,7 @@ class CorePackageAIntegrationTest {
                                         "license",
                                         "Original synthetic test fixture",
                                         "reviewedByUserId",
-                                        Long.toString(representative),
+                                        Long.toString(owner),
                                         "reviewedAt",
                                         Instant.now().toString())));
         List<Task> tasks = new ArrayList<>();
@@ -2093,9 +2317,9 @@ class CorePackageAIntegrationTest {
                                             Map.of("vi", Map.of("content", "Đáp án mẫu"))))));
         var v =
                 scenarios.create(
-                        representative,
+                        owner,
                         new Create("fixture-" + UUID.randomUUID(), new Draft(metadata, tasks)));
-        return scenarios.publish(representative, Long.parseLong(v.id()), v.revision());
+        return scenarios.publish(owner, Long.parseLong(v.id()), v.revision());
     }
 
     List<Item> items(Task task) {

@@ -8,6 +8,7 @@ import { usageMessages } from './usageMessages.js'
 import { landingRedesignMessages } from './landingRedesignMessages.js'
 import { simulationMessages } from './simulationMessages.js'
 import { workspaceMessages } from './workspaceMessages.js'
+import { enterpriseAnalyticsMessages } from './enterpriseAnalyticsMessages.js'
 
 // Existing shared labels retain their translations in other owners' features.
 const dictionary = {
@@ -21,6 +22,7 @@ const dictionary = {
   ...landingRedesignMessages,
   ...simulationMessages,
   ...workspaceMessages,
+  ...enterpriseAnalyticsMessages,
 }
 // Templates are presentation-only. Numbers, IDs and API payloads never change.
 const templates = [
