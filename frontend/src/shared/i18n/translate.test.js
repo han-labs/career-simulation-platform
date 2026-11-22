@@ -38,6 +38,20 @@ it('preserves future unknown content, technical code, numbers and data objects',
   expect(t('45 minutes')).toBe('45 phút')
   expect(t('Show all 12')).toBe('Xem tất cả 12')
 })
+it('uses career-experience terminology consistently while retaining English names and authored technical text', () => {
+  for (const [key, expected] of [
+    ['Career Simulation Platform', 'Nền tảng trải nghiệm nghề nghiệp'],
+    ['Career Simulations', 'Trải nghiệm nghề'],
+    ['View Simulation', 'Xem bài trải nghiệm'],
+    ['Simulation results', 'Kết quả bài trải nghiệm'],
+    ['Search simulations', 'Tìm bài trải nghiệm'],
+    ['Simulation history', 'Lịch sử bài trải nghiệm'],
+  ]) {
+    expect(t(key)).toBe(expected)
+    expect(createTranslator('en')(key)).toBe(key)
+  }
+  expect(t('Nội dung riêng: mô phỏng một giao dịch TCP.')).toBe('Nội dung riêng: mô phỏng một giao dịch TCP.')
+})
 it('contains valid non-empty translations without combining-mark corruption', () => {
   for (const [source, target] of Object.entries({ ...messages, ...contentMessages, ...simulationMessages, ...workspaceMessages })) {
     expect(source.length).toBeGreaterThan(0)

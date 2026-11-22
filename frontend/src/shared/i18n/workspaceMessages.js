@@ -53,7 +53,7 @@ You are not allowed to perform this action. ⇢ Bạn không có quyền thực 
 The requested resource was not found. ⇢ Không tìm thấy tài nguyên được yêu cầu.
 One or more fields are invalid. ⇢ Một hoặc nhiều trường không hợp lệ.
 The request could not be completed. Please try again later. ⇢ Chưa thể hoàn tất yêu cầu. Vui lòng thử lại sau.
-Career Simulations ⇢ Mô phỏng
+Career Simulations ⇢ Trải nghiệm nghề
 Career Quizzes ⇢ Trắc nghiệm
 For Enterprise ⇢ Doanh nghiệp
 How It Works ⇢ Cách sử dụng

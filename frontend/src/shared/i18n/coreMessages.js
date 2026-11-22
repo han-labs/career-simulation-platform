@@ -9,7 +9,7 @@ The server has a newer version of this task. Your local work is preserved. ⇢ M
 The latest server revision was loaded. Review your preserved work and try again. ⇢ Đã tải phiên bản mới nhất từ máy chủ. Hãy kiểm tra bài làm được giữ lại rồi thử lại.
 Complete all required deliverables to submit this task as final. ⇢ Hoàn thành tất cả sản phẩm bắt buộc để nộp chính thức nhiệm vụ này.
 Ordered task list ⇢ Danh sách nhiệm vụ theo thứ tự
-Career simulation ⇢ Mô phỏng nghề nghiệp
+Career simulation ⇢ Trải nghiệm nghề nghiệp
 Task overview ⇢ Tổng quan nhiệm vụ
 Here is the background information on your task ⇢ Thông tin bối cảnh cho nhiệm vụ của bạn
 What you'll learn ⇢ Bạn sẽ học gì
@@ -37,17 +37,17 @@ Submit this task as final? ⇢ Nộp chính thức nhiệm vụ này?
 A final submission becomes read only and cannot be changed. ⇢ Bài nộp chính thức sẽ chỉ có thể xem và không thể chỉnh sửa.
 Confirm final submission ⇢ Xác nhận nộp chính thức
 Your results ⇢ Kết quả của bạn
-Simulation results ⇢ Kết quả mô phỏng
+Simulation results ⇢ Kết quả bài trải nghiệm
 Something needs your attention ⇢ Có nội dung cần bạn kiểm tra
 Progress update ⇢ Cập nhật tiến độ
 All required tasks are complete ⇢ Bạn đã hoàn thành tất cả nhiệm vụ bắt buộc
-Finish the simulation to view your completion record. ⇢ Hoàn tất mô phỏng để xem hồ sơ hoàn thành của bạn.
-Complete simulation ⇢ Hoàn tất mô phỏng
-Loading simulation results… ⇢ Đang tải kết quả mô phỏng…
-Simulation results could not be loaded. Please try again. ⇢ Không thể tải kết quả mô phỏng. Vui lòng thử lại.
+Finish the simulation to view your completion record. ⇢ Hoàn tất bài trải nghiệm để xem hồ sơ hoàn thành của bạn.
+Complete simulation ⇢ Hoàn tất bài trải nghiệm
+Loading simulation results… ⇢ Đang tải kết quả bài trải nghiệm…
+Simulation results could not be loaded. Please try again. ⇢ Không thể tải kết quả bài trải nghiệm. Vui lòng thử lại.
 Retry results ⇢ Tải lại kết quả
-You do not have permission to view these simulation results. ⇢ Bạn không có quyền xem kết quả mô phỏng này.
-Return to my simulation history ⇢ Về lịch sử mô phỏng của tôi
+You do not have permission to view these simulation results. ⇢ Bạn không có quyền xem kết quả bài trải nghiệm này.
+Return to my simulation history ⇢ Về lịch sử bài trải nghiệm của tôi
 Please complete the required task response before submitting. ⇢ Vui lòng hoàn thành các nội dung bắt buộc trước khi nộp.
 Your submission could not be confirmed. Please try again. ⇢ Chưa thể xác nhận bài nộp. Vui lòng thử lại.
 Please confirm your self-review before continuing. ⇢ Vui lòng xác nhận tự đối chiếu trước khi tiếp tục.
@@ -120,16 +120,16 @@ Submit this task? ⇢ Nộp nhiệm vụ này?
 View model answer ⇢ Xem đáp án mẫu
 Model answer ⇢ Đáp án mẫu
 No model answer was provided. ⇢ Không có đáp án mẫu cho nhiệm vụ này.
-Simulation completed ⇢ Đã hoàn thành mô phỏng
+Simulation completed ⇢ Đã hoàn thành bài trải nghiệm
 Completion record ⇢ Hồ sơ hoàn thành
-This records simulation participation, not professional competence. ⇢ Bản ghi xác nhận việc tham gia mô phỏng, không chứng nhận năng lực chuyên môn.
+This records simulation participation, not professional competence. ⇢ Bản ghi xác nhận việc tham gia bài trải nghiệm, không chứng nhận năng lực chuyên môn.
 Fixed resume snippet ⇢ Đoạn mô tả CV cố định
 View certificate ⇢ Xem giấy xác nhận
 Dashboard ⇢ Bảng tiến độ
 Assessment results ⇢ Kết quả đánh giá
-Enrollments ⇢ Các mô phỏng đang tham gia
+Enrollments ⇢ Các bài trải nghiệm đang tham gia
 Practiced skills ⇢ Kỹ năng đã thực hành
-Completions ⇢ Các mô phỏng đã hoàn thành
+Completions ⇢ Các bài trải nghiệm đã hoàn thành
 Legacy evaluations (historical scores) ⇢ Đánh giá cũ (điểm lịch sử)
 Content version unknown ⇢ Không xác định phiên bản nội dung
 Plan title ⇢ Tên kế hoạch
@@ -142,13 +142,13 @@ Finalize this task before viewing its model answer. ⇢ Nộp nhiệm vụ này 
 All required deliverables must be supplied. ⇢ Cần cung cấp đủ sản phẩm bắt buộc.
 The draft changed. Reload before saving. ⇢ Bản nháp đã thay đổi. Hãy tải lại trước khi lưu.
 The request requires an authenticated session. ⇢ Yêu cầu cần một phiên đăng nhập.
-No simulations are published yet. ⇢ Chưa có mô phỏng nào được công bố.
+No simulations are published yet. ⇢ Chưa có bài trải nghiệm nào được công bố.
 Enterprise workspace ⇢ Không gian doanh nghiệp
 Publishing permission is separate from enterprise registration. ⇢ Quyền xuất bản được cấp riêng sau khi đăng ký doanh nghiệp.
-Scenario version ⇢ Phiên bản mô phỏng
-New scenario draft ⇢ Bản nháp mô phỏng mới
+Scenario version ⇢ Phiên bản bài trải nghiệm
+New scenario draft ⇢ Bản nháp bài trải nghiệm mới
 Clone as new draft ⇢ Sao chép thành bản nháp mới
-Scenario draft ⇢ Bản nháp mô phỏng
+Scenario draft ⇢ Bản nháp bài trải nghiệm
 Slug ⇢ Đường dẫn định danh
 Difficulty ⇢ Độ khó
 Estimated minutes ⇢ Thời lượng dự kiến (phút)
@@ -176,41 +176,41 @@ Publish reviewed version ⇢ Xuất bản phiên bản đã rà soát
 Aggregate participation ⇢ Thống kê tham gia tổng hợp
 Only aggregate counts are shown; private student evidence requires separate consent. ⇢ Chỉ hiển thị số liệu tổng hợp; minh chứng riêng tư của sinh viên cần sự đồng ý riêng.
 Participants ⇢ Người tham gia
-Search simulations ⇢ Tìm mô phỏng
-Explore published IT simulations through representative workplace tasks. ⇢ Khám phá các mô phỏng công nghệ đã công bố qua nhiệm vụ công việc tiêu biểu.
+Search simulations ⇢ Tìm bài trải nghiệm
+Explore published IT simulations through representative workplace tasks. ⇢ Khám phá các bài trải nghiệm công nghệ đã công bố qua nhiệm vụ công việc tiêu biểu.
 Search by title, role, or summary ⇢ Tìm theo tiêu đề, vai trò hoặc tóm tắt
 All levels ⇢ Mọi cấp độ
 Clear filters ⇢ Xóa bộ lọc
 Industry ⇢ Lĩnh vực
 Information technology ⇢ Công nghệ thông tin
-Simulation catalogue pages ⇢ Các trang danh sách mô phỏng
-The simulation catalogue could not be loaded. Please try again. ⇢ Không thể tải danh sách mô phỏng. Vui lòng thử lại.
-No simulations are currently available. Please check back later. ⇢ Hiện chưa có mô phỏng nào. Vui lòng quay lại sau.
-No simulations match your search. Try changing the filters. ⇢ Không có mô phỏng phù hợp với tìm kiếm. Hãy thử thay đổi bộ lọc.
-This simulation is unavailable. ⇢ Mô phỏng này hiện không khả dụng.
-Simulation details could not be loaded. Please try again. ⇢ Không thể tải thông tin mô phỏng. Vui lòng thử lại.
+Simulation catalogue pages ⇢ Các trang danh sách bài trải nghiệm
+The simulation catalogue could not be loaded. Please try again. ⇢ Không thể tải danh sách bài trải nghiệm. Vui lòng thử lại.
+No simulations are currently available. Please check back later. ⇢ Hiện chưa có bài trải nghiệm nào. Vui lòng quay lại sau.
+No simulations match your search. Try changing the filters. ⇢ Không có bài trải nghiệm phù hợp với tìm kiếm. Hãy thử thay đổi bộ lọc.
+This simulation is unavailable. ⇢ Bài trải nghiệm này hiện không khả dụng.
+Simulation details could not be loaded. Please try again. ⇢ Không thể tải thông tin bài trải nghiệm. Vui lòng thử lại.
 CareerSim partner ⇢ Đối tác CareerSim
 Search and filters ⇢ Tìm kiếm và bộ lọc
 Hide search and filters ⇢ Ẩn tìm kiếm và bộ lọc
-Start free simulation ⇢ Bắt đầu mô phỏng miễn phí
+Start free simulation ⇢ Bắt đầu bài trải nghiệm miễn phí
 Starting… ⇢ Đang bắt đầu…
 Sign in is required to save your progress. ⇢ Cần đăng nhập để lưu tiến độ.
 Overview ⇢ Tổng quan
 Video ⇢ Video giới thiệu
 Tasks ⇢ Nhiệm vụ
-Simulation information ⇢ Thông tin mô phỏng
-Simulation overview video ⇢ Video tổng quan mô phỏng
-No overview video is available for this simulation. ⇢ Mô phỏng này không có video tổng quan.
-Simulation tasks ⇢ Các nhiệm vụ mô phỏng
-Why complete this Job Simulation ⇢ Vì sao nên hoàn thành mô phỏng công việc này
+Simulation information ⇢ Thông tin bài trải nghiệm
+Simulation overview video ⇢ Video tổng quan bài trải nghiệm
+No overview video is available for this simulation. ⇢ Bài trải nghiệm này không có video tổng quan.
+Simulation tasks ⇢ Các nhiệm vụ bài trải nghiệm
+Why complete this Job Simulation ⇢ Vì sao nên hoàn thành bài trải nghiệm công việc này
 Available Achievements ⇢ Kết quả có thể đạt được
-Complete the simulation to record your participation and the skills you practiced. This does not certify professional competence. ⇢ Hoàn thành mô phỏng để ghi nhận việc tham gia và các kỹ năng bạn đã thực hành. Kết quả này không chứng nhận năng lực chuyên môn.
+Complete the simulation to record your participation and the skills you practiced. This does not certify professional competence. ⇢ Hoàn thành bài trải nghiệm để ghi nhận việc tham gia và các kỹ năng bạn đã thực hành. Kết quả này không chứng nhận năng lực chuyên môn.
 How it works ⇢ Cách thức hoạt động
 Work through self-paced tasks in order and save your submissions. Example answers unlock after a valid final submission; self-review advances the ordered progression. ⇢ Thực hiện các nhiệm vụ theo thứ tự với tốc độ phù hợp và lưu bài nộp. Đáp án mẫu chỉ mở sau khi nộp chính thức hợp lệ; tự đối chiếu giúp chuyển sang bước tiếp theo.
 Skills you will learn and practice ⇢ Kỹ năng bạn sẽ học và thực hành
-Skill information is not available for this simulation. ⇢ Chưa có thông tin kỹ năng cho mô phỏng này.
+Skill information is not available for this simulation. ⇢ Chưa có thông tin kỹ năng cho bài trải nghiệm này.
 All ⇢ Tất cả
-Sort simulations ⇢ Sắp xếp mô phỏng
+Sort simulations ⇢ Sắp xếp bài trải nghiệm
 Publication order ⇢ Thứ tự xuất bản
 Newest first ⇢ Mới nhất trước
 Search ⇢ Tìm kiếm
@@ -255,7 +255,7 @@ License or authorship statement ⇢ Giấy phép hoặc xác nhận tác giả
 Source URL ⇢ Đường dẫn nguồn
 I have reviewed the content, answers and publication rights. ⇢ Tôi đã rà soát nội dung, đáp án và quyền xuất bản.
 Select an answer ⇢ Chọn câu trả lời
-Enrollment not found. ⇢ Không tìm thấy lượt tham gia mô phỏng.
+Enrollment not found. ⇢ Không tìm thấy lượt tham gia bài trải nghiệm.
 Account is not active. ⇢ Tài khoản không ở trạng thái hoạt động.
 Access or CSRF validation denied. ⇢ Truy cập hoặc xác thực CSRF bị từ chối.
 `.trim().split('\n').map(line => line.split(' ⇢ ')))

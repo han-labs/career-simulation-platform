@@ -7,7 +7,7 @@ import { localized } from '../../../shared/api/coreApi.js'
 function SimulationCatalog({ status, simulations, onRetry, onClear, emptyState = 'empty', variant = 'legacy' }) {
   const { t, locale } = useI18n()
   if (status === 'loading') {
-    return <div className="catalog-grid" aria-label={t("Loading simulations")}>
+    return <div className="catalog-grid" aria-label={t("Loading simulations")} aria-busy="true">
       {[1, 2, 3].map((item) => <div className="catalog-skeleton" key={item} aria-hidden="true" />)}
     </div>
   }
@@ -32,7 +32,7 @@ function SimulationCatalog({ status, simulations, onRetry, onClear, emptyState =
 
   return <div className="catalog-grid">
     {simulations.map((simulation) => variant === 'core' ? (
-      <Link className="catalog-card catalog-card--link" key={simulation.id} to={`/simulations/${simulation.id}`}>
+      <Link className="catalog-card catalog-card--link" data-difficulty={simulation.difficulty} key={simulation.id} to={`/simulations/${simulation.id}`}>
         <div className="catalog-card__media" aria-hidden="true">
           {simulation.media?.cardImageUrl
             ? <img src={simulation.media.cardImageUrl} alt="" loading="lazy" />
@@ -50,7 +50,7 @@ function SimulationCatalog({ status, simulations, onRetry, onClear, emptyState =
         <div className="catalog-meta" aria-label={t('Simulation information')}>
           <span aria-label={`${t('Role')}: ${localized(simulation, locale, 'targetRole')}`}><BriefcaseBusiness size={14} aria-hidden="true" /> {localized(simulation, locale, 'targetRole')}</span>
           <span aria-label={`${t('Duration')}: ${t(`${simulation.estimatedMinutes} minutes`)}`}><Clock3 size={14} aria-hidden="true" /> {t(`${simulation.estimatedMinutes} minutes`)}</span>
-          <span aria-label={`${t('Difficulty')}: ${t(simulation.difficulty)}`}><Gauge size={14} aria-hidden="true" /> {t(simulation.difficulty)}</span>
+          <span className="catalog-card__difficulty" aria-label={`${t('Difficulty')}: ${t(simulation.difficulty)}`}><Gauge size={14} aria-hidden="true" /> {t(simulation.difficulty)}</span>
         </div>
       </Link>
     ) : (

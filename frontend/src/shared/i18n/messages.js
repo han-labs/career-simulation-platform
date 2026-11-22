@@ -12,13 +12,13 @@ You are not allowed to perform this action. ⇢ Bạn không được phép th�
 Reviewed resources ⇢ Tài liệu đã rà soát
 Draft plan ⇢ Bản nháp kế hoạch
 Website language ⇢ Ngôn ngữ website
-Career Simulation Platform ⇢ Nền tảng mô phỏng nghề nghiệp
-Ho Chi Minh City University of Technology and Engineering (HCM-UTE) · Career Simulation Platform ⇢ Đại học Công nghệ Kỹ thuật TP. HCM · Nền tảng mô phỏng nghề nghiệp
+Career Simulation Platform ⇢ Nền tảng trải nghiệm nghề nghiệp
+Ho Chi Minh City University of Technology and Engineering (HCM-UTE) · Career Simulation Platform ⇢ Đại học Công nghệ Kỹ thuật TP. HCM · Nền tảng trải nghiệm nghề nghiệp
 Ho Chi Minh City University of Technology and Engineering (HCM-UTE). Developed for OOSE / Scientific Research Project. ⇢ Đại học Công nghệ Kỹ thuật TP. HCM. Phát triển cho môn OOSE / Dự án nghiên cứu khoa học.
 Ho Chi Minh City University of Technology and Engineering - HCM-UTE Logo ⇢ Logo Đại học Công nghệ Kỹ thuật TP. HCM - HCM-UTE
 Empowering students to explore tech careers and shape their future ⇢ Đồng hành cùng sinh viên khám phá nghề công nghệ và định hướng tương lai
 Explore careers through practical tasks, career assessment and guidance from Ho Chi Minh City University of Technology and Engineering (HCM-UTE). ⇢ Khám phá nghề nghiệp qua nhiệm vụ thực tế, đánh giá sở thích và hướng dẫn từ Đại học Công nghệ Kỹ thuật TP. HCM.
-HCM-UTE Career Simulation Platform Home ⇢ Trang chủ nền tảng mô phỏng nghề nghiệp HCM-UTE
+HCM-UTE Career Simulation Platform Home ⇢ Trang chủ nền tảng trải nghiệm nghề nghiệp HCM-UTE
 How It Works ⇢ Cách hoạt động
 IT Career Tracks ⇢ Hướng nghề công nghệ
 Career Assessment ⇢ Đánh giá hướng nghiệp
@@ -28,7 +28,7 @@ Close menu ⇢ Đóng menu
 Footer navigation links ⇢ Liên kết ở cuối trang
 Objective scores · Guidance you control ⇢ Điểm số khách quan · Bạn chủ động lựa chọn
 Career Exploration ⇢ Khám phá nghề nghiệp
-IT Career Simulations ⇢ Mô phỏng nghề công nghệ
+IT Career Simulations ⇢ Trải nghiệm nghề công nghệ
 Starter Projects ⇢ Dự án khởi đầu
 Learning Journey ⇢ Hành trình học tập
 Progress Dashboard ⇢ Bảng theo dõi tiến độ
@@ -40,7 +40,7 @@ Explore career assessments ⇢ Khám phá các bài đánh giá hướng nghiệ
 Experience IT careers before choosing your ⇢ Trải nghiệm nghề công nghệ trước khi chọn
 direction. ⇢ hướng đi.
 View Career Assessment Results ⇢ Xem kết quả đánh giá hướng nghiệp
-Browse IT simulations ⇢ Xem mô phỏng công nghệ
+Browse IT simulations ⇢ Xem bài trải nghiệm công nghệ
 Career exploration roadmap ⇢ Lộ trình khám phá nghề nghiệp
 Your Exploration Roadmap ⇢ Lộ trình khám phá của bạn
 3-step process ⇢ Quy trình 3 bước
@@ -57,7 +57,7 @@ Three ways to explore your career options. ⇢ Ba cách để khám phá lựa c
 Explore six interest areas with the Holland RIASEC questionnaire. ⇢ Khám phá sáu nhóm sở thích qua bảng hỏi Holland RIASEC.
 Clear scores and directions to explore ⇢ Điểm số rõ ràng và hướng đi để khám phá
 Save progress and continue later ⇢ Lưu tiến độ và tiếp tục sau
-Authentic IT Job Simulations ⇢ Mô phỏng công việc công nghệ
+Authentic IT Job Simulations ⇢ Bài trải nghiệm công việc công nghệ
 Try a focused task in Frontend, Backend, Data, QA or Cybersecurity. ⇢ Thử nhiệm vụ về Frontend, Backend, dữ liệu, kiểm thử hoặc an ninh mạng.
 Short, focused workplace scenarios ⇢ Tình huống công việc ngắn, có trọng tâm
 Objective task results and feedback ⇢ Kết quả nhiệm vụ và phản hồi khách quan
@@ -78,7 +78,7 @@ Identify Interests & Personality ⇢ Nhận diện sở thích & Đặc điểm 
 Answer 42 questions to explore your interests across six RIASEC areas. ⇢ Trả lời 42 câu hỏi để tìm hiểu sở thích trong sáu nhóm RIASEC.
 Experience Authentic IT Tasks ⇢ Trải nghiệm nhiệm vụ công nghệ thực tế
 Experience how tech roles approach everyday workplace tasks. ⇢ Trải nghiệm cách các vai trò công nghệ xử lý công việc hằng ngày.
-Explore IT Simulations ⇢ Khám phá mô phỏng công nghệ
+Explore IT Simulations ⇢ Khám phá bài trải nghiệm công nghệ
 Analyze Evidence & Plan Next Steps ⇢ Phân tích kết quả & Lên kế hoạch tiếp theo
 Open Dashboard ⇢ Mở bảng tiến độ
 Diverse Specializations ⇢ Đa dạng chuyên ngành
@@ -106,20 +106,20 @@ Regression Testing ⇢ Kiểm thử hồi quy
 Access Control ⇢ Kiểm soát truy cập
 Vulnerability Triage ⇢ Phân loại lỗ hổng
 Security Principles ⇢ Nguyên tắc bảo mật
-Try Simulation ⇢ Thử mô phỏng
+Try Simulation ⇢ Thử bài trải nghiệm
 Not sure which specialization fits you best? ⇢ Chưa biết nên khám phá chuyên ngành nào?
-Featured Simulation Catalog ⇢ Các mô phỏng nổi bật
-Try a career simulation ⇢ Thử mô phỏng nghề nghiệp
+Featured Simulation Catalog ⇢ Các bài trải nghiệm nổi bật
+Try a career simulation ⇢ Thử trải nghiệm nghề nghiệp
 Pick a role and experience a practical task. ⇢ Chọn vai trò và trải nghiệm một nhiệm vụ thực tế.
-Showing sample simulation data while the backend server is starting up. ⇢ Đang hiển thị mô phỏng mẫu trong lúc máy chủ khởi động.
-View All Simulations ⇢ Xem tất cả mô phỏng
-View Simulation ⇢ Xem mô phỏng
+Showing sample simulation data while the backend server is starting up. ⇢ Đang hiển thị bài trải nghiệm mẫu trong lúc máy chủ khởi động.
+View All Simulations ⇢ Xem tất cả bài trải nghiệm
+View Simulation ⇢ Xem bài trải nghiệm
 Ready to explore? ⇢ Sẵn sàng khám phá?
 Start exploring your future ⇢ Bắt đầu khám phá tương lai
 Ready to Start Your Career Exploration? ⇢ Bạn đã sẵn sàng khám phá nghề nghiệp?
 Begin Discovering Your IT Potential Today ⇢ Bắt đầu khám phá tiềm năng công nghệ của bạn hôm nay
 Start with a 42-question RIASEC self-reflection, then explore possible IT directions at your own pace. ⇢ Bắt đầu với 42 câu hỏi RIASEC để tự suy ngẫm, rồi khám phá các hướng nghề công nghệ theo nhịp độ của bạn.
-Start with your interests, then try a career simulation. ⇢ Bắt đầu từ sở thích, sau đó thử một mô phỏng nghề nghiệp.
+Start with your interests, then try a career simulation. ⇢ Bắt đầu từ sở thích, sau đó thử một trải nghiệm nghề nghiệp.
 Browse Roles ⇢ Xem các vai trò
 Intelligent Companion ⇢ Trợ lý đồng hành
 Your learning journey ⇢ Hành trình học tập của bạn
@@ -150,10 +150,10 @@ The result is incomplete. You can return and take the assessment again. ⇢ Kế
 RIASEC results ⇢ Kết quả RIASEC
 Highest-scoring interest dimensions ⇢ Các nhóm sở thích có điểm cao nhất
 Directions to explore ⇢ Các hướng để khám phá
-Try an IT simulation to experience a sample task, then reflect on how it felt to you. ⇢ Thử một mô phỏng công nghệ để trải nghiệm nhiệm vụ mẫu, rồi suy ngẫm về cảm nhận của bạn.
+Try an IT simulation to experience a sample task, then reflect on how it felt to you. ⇢ Thử một bài trải nghiệm công nghệ để trải nghiệm nhiệm vụ mẫu, rồi suy ngẫm về cảm nhận của bạn.
 Your six interest dimensions ⇢ Sáu nhóm sở thích của bạn
 Each score is the sum of your answers in that dimension, from 7 to 35. ⇢ Điểm của mỗi nhóm là tổng điểm các câu trả lời trong nhóm đó, từ 7 đến 35.
-Explore IT simulations ⇢ Khám phá mô phỏng công nghệ
+Explore IT simulations ⇢ Khám phá bài trải nghiệm công nghệ
 Keep your results in perspective ⇢ Hiểu đúng ý nghĩa của kết quả
 This is a self-reflection tool, not a psychological diagnosis or a measure of ability. The scores do not determine whether a career is right for you or predict your future. Your interests may change as you gain experience. ⇢ Đây là công cụ tự suy ngẫm, không phải chẩn đoán tâm lý hay thước đo năng lực. Điểm số không xác định một nghề có phù hợp với bạn hay dự đoán tương lai của bạn. Sở thích có thể thay đổi khi bạn có thêm trải nghiệm.
 Loading... ⇢ Đang tải...
@@ -215,25 +215,25 @@ Failed to submit assessment ⇢ Không gửi được bài đánh giá
 Failed to fetch ⇢ Không thể kết nối máy chủ
 The request could not be completed. Please try again later. ⇢ Không thể hoàn tất yêu cầu. Vui lòng thử lại sau.
 Explore by doing ⇢ Khám phá qua thực hành
-Career simulations ⇢ Mô phỏng nghề nghiệp
-Career simulation ⇢ Mô phỏng nghề nghiệp
+Career simulations ⇢ Trải nghiệm nghề nghiệp
+Career simulation ⇢ Trải nghiệm nghề nghiệp
 Explore IT career paths through representative tasks ⇢ Khám phá hướng nghề công nghệ qua nhiệm vụ tiêu biểu
-Loading simulations ⇢ Đang tải mô phỏng
-Loading simulation... ⇢ Đang tải mô phỏng...
-No simulations yet ⇢ Chưa có mô phỏng
+Loading simulations ⇢ Đang tải bài trải nghiệm
+Loading simulation... ⇢ Đang tải bài trải nghiệm...
+No simulations yet ⇢ Chưa có bài trải nghiệm
 New representative IT tasks will appear here when they are ready. ⇢ Nhiệm vụ công nghệ mới sẽ xuất hiện tại đây khi sẵn sàng.
-Simulations are unavailable ⇢ Không tải được mô phỏng
-Try loading the local catalog again. ⇢ Hãy thử tải lại danh sách mô phỏng.
+Simulations are unavailable ⇢ Không tải được bài trải nghiệm
+Try loading the local catalog again. ⇢ Hãy thử tải lại danh sách bài trải nghiệm.
 Try again ⇢ Thử lại
-Simulation not found ⇢ Không tìm thấy mô phỏng
-Back to catalog ⇢ Về danh sách mô phỏng
-Back to simulations ⇢ Về các mô phỏng
-Catalog ⇢ Danh sách mô phỏng
+Simulation not found ⇢ Không tìm thấy bài trải nghiệm
+Back to catalog ⇢ Về danh sách bài trải nghiệm
+Back to simulations ⇢ Về các bài trải nghiệm
+Catalog ⇢ Danh sách bài trải nghiệm
 Breadcrumb ⇢ Đường dẫn điều hướng
 Duration ⇢ Thời lượng
 Tasks ⇢ Nhiệm vụ
 What you will work on ⇢ Những nhiệm vụ bạn sẽ thực hiện
-Start simulation ⇢ Bắt đầu mô phỏng
+Start simulation ⇢ Bắt đầu bài trải nghiệm
 Start ⇢ Bắt đầu
 Level: ⇢ Mức độ:
 min ⇢ phút
@@ -261,51 +261,51 @@ Task workspace ⇢ Khu vực thực hiện nhiệm vụ
 Task navigation ⇢ Điều hướng nhiệm vụ
 Task ⇢ Nhiệm vụ
 of ⇢ trên
-Your choices are evaluated only when you submit the completed simulation. ⇢ Lựa chọn chỉ được chấm khi bạn gửi bài mô phỏng đã hoàn thành.
+Your choices are evaluated only when you submit the completed simulation. ⇢ Lựa chọn chỉ được chấm khi bạn gửi bài trải nghiệm đã hoàn thành.
 This task needs an answer before you can submit. ⇢ Bạn cần trả lời nhiệm vụ này trước khi gửi bài.
 An answer is required for this task. ⇢ Vui lòng chọn câu trả lời cho nhiệm vụ này.
 Experience three representative backend tasks. Your result appears after you submit. ⇢ Trải nghiệm ba nhiệm vụ tiêu biểu. Kết quả sẽ xuất hiện sau khi bạn gửi bài.
 API submit failed; showing the local deterministic result. ⇢ Gửi bài qua API thất bại; đang hiển thị kết quả theo quy tắc cục bộ.
-Submit evaluates this mock attempt. ⇢ Gửi bài để chấm lượt mô phỏng này.
+Submit evaluates this mock attempt. ⇢ Gửi bài để chấm lượt trải nghiệm này.
 Submit answers ⇢ Gửi câu trả lời
 Previous ⇢ Trước
 Next ⇢ Tiếp
-Submit simulation? ⇢ Gửi bài mô phỏng?
+Submit simulation? ⇢ Gửi bài trải nghiệm?
 After submitting, you cannot change your answers. Your result will be shown immediately. ⇢ Sau khi gửi, bạn không thể thay đổi câu trả lời. Kết quả sẽ hiển thị ngay.
 Cancel ⇢ Hủy
 Confirm submit ⇢ Xác nhận gửi
 Objective result ⇢ Kết quả khách quan
 tasks correct ⇢ nhiệm vụ trả lời đúng
-These outcomes are generated by deterministic mock rules for this Phase 1 interface. ⇢ Kết quả được tính theo quy tắc cố định của giao diện mô phỏng giai đoạn 1.
+These outcomes are generated by deterministic mock rules for this Phase 1 interface. ⇢ Kết quả được tính theo quy tắc cố định của giao diện trải nghiệm giai đoạn 1.
 Correct. ⇢ Đúng.
 Needs review. ⇢ Cần xem lại.
 Detail page state: ⇢ Trạng thái trang chi tiết:
-Slug: ⇢ Mã mô phỏng:
+Slug: ⇢ Mã bài trải nghiệm:
 Dashboard ⇢ Bảng tiến độ
 Dashboard unavailable ⇢ Không tải được bảng tiến độ
 We could not load your exploration data. Please try again. ⇢ Không tải được dữ liệu khám phá của bạn. Vui lòng thử lại.
 Loading your dashboard… ⇢ Đang tải bảng tiến độ…
 Your progress, interests, and recent practice at a glance. ⇢ Tổng quan tiến độ, sở thích và hoạt động thực hành gần đây của bạn.
-Browse simulations ⇢ Xem các mô phỏng
+Browse simulations ⇢ Xem các bài trải nghiệm
 Preview data — sign-in integration is still pending. ⇢ Dữ liệu xem trước — tính năng đăng nhập đang chờ tích hợp.
 Exploration progress ⇢ Tiến độ khám phá
 Top interest signals ⇢ Nhóm sở thích nổi bật
 Complete the RIASEC assessment to see your signals. ⇢ Hoàn thành bài đánh giá RIASEC để xem nhóm sở thích.
 View assessment ⇢ Xem bài đánh giá
 Skills practised ⇢ Kỹ năng đã thực hành
-Completed simulations will build your evidence here. ⇢ Kết quả mô phỏng đã hoàn thành sẽ được tổng hợp tại đây.
+Completed simulations will build your evidence here. ⇢ Kết quả bài trải nghiệm đã hoàn thành sẽ được tổng hợp tại đây.
 Observed strength ⇢ Điểm mạnh ghi nhận được
 Practised ⇢ Đã thực hành
 Needs more evidence ⇢ Cần thêm dữ liệu thực hành
-Simulation history ⇢ Lịch sử mô phỏng
+Simulation history ⇢ Lịch sử bài trải nghiệm
 Latest ⇢ Mới nhất
-Completed simulation ⇢ Mô phỏng đã hoàn thành
-Latest simulation ⇢ Mô phỏng gần nhất
+Completed simulation ⇢ Bài trải nghiệm đã hoàn thành
+Latest simulation ⇢ Bài trải nghiệm gần nhất
 Show less ⇢ Thu gọn
-Your completed simulations will appear here. ⇢ Các mô phỏng đã hoàn thành sẽ xuất hiện tại đây.
+Your completed simulations will appear here. ⇢ Các bài trải nghiệm đã hoàn thành sẽ xuất hiện tại đây.
 Current plan ⇢ Kế hoạch hiện tại
 Explore backend problem solving ⇢ Khám phá cách giải quyết vấn đề Backend
-Try one more debugging-focused simulation and reflect on the evidence. ⇢ Thử thêm một mô phỏng tập trung vào gỡ lỗi và nhìn lại kết quả.
+Try one more debugging-focused simulation and reflect on the evidence. ⇢ Thử thêm một bài trải nghiệm tập trung vào gỡ lỗi và nhìn lại kết quả.
 API response analysis ⇢ Phân tích phản hồi API
 Backend error diagnosis ⇢ Chẩn đoán lỗi Backend
 SQL querying ⇢ Truy vấn SQL
@@ -319,7 +319,7 @@ Please try again later. ⇢ Vui lòng thử lại sau.
 The service is temporarily unavailable. ⇢ Dịch vụ tạm thời không khả dụng.
 The request is invalid. ⇢ Yêu cầu không hợp lệ.
 One or more fields are invalid. ⇢ Một hoặc nhiều trường dữ liệu không hợp lệ.
-Published simulation was not found. ⇢ Không tìm thấy mô phỏng đã được công bố.
+Published simulation was not found. ⇢ Không tìm thấy bài trải nghiệm đã được công bố.
 Answers must not be empty. ⇢ Câu trả lời không được để trống.
-Simulation evaluation data is invalid. ⇢ Dữ liệu chấm mô phỏng không hợp lệ.
-Simulation result could not be saved. ⇢ Không lưu được kết quả mô phỏng.`.trim().split('\n').map(line => line.split(' ⇢ ')))
+Simulation evaluation data is invalid. ⇢ Dữ liệu chấm bài trải nghiệm không hợp lệ.
+Simulation result could not be saved. ⇢ Không lưu được kết quả bài trải nghiệm.`.trim().split('\n').map(line => line.split(' ⇢ ')))

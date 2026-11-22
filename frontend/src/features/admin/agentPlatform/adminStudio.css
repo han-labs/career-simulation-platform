@@ -24,7 +24,7 @@
 .cs-ui .admin-nav-icon { display: flex; flex: 0 0 20px; }
 .cs-ui .admin-nav-label { min-width: 0; overflow-wrap: anywhere; }
 .cs-ui .admin-nav-link:hover { background: var(--cs-surface-muted); }
-.cs-ui .admin-nav-link[aria-current] { background: var(--cs-selected-bg); color: var(--cs-primary); font-weight: 600; border-color: var(--cs-primary); }
+.cs-ui .admin-nav-link[aria-current] { background: var(--cs-primary); color: #fff; font-weight: 700; border-color: var(--cs-primary); }
 .cs-ui.admin-sidebar--collapsed .admin-sidebar-heading { padding: 0; justify-content: center; }
 .cs-ui.admin-sidebar--collapsed .admin-sidebar-heading > span,
 .cs-ui.admin-sidebar--collapsed .admin-nav-label { display: none; }

@@ -304,6 +304,6 @@ it('denies a foreign enrollment without showing its workspace and offers own his
 it('keeps new workspace and results controls available in Vietnamese', async () => {
   apiRequest.mockImplementation(path => path === '/v2/scenarios/test' ? Promise.resolve({ enterpriseName: 'Example Company' }) : workspaceApi(path))
   resultsPage('vi')
-  expect(await screen.findByRole('heading', { name: 'Kết quả mô phỏng' })).toBeTruthy()
+  expect(await screen.findByRole('heading', { name: 'Kết quả bài trải nghiệm' })).toBeTruthy()
   expect(await screen.findByText('Chưa ghi nhận kỹ năng đã thực hành.')).toBeTruthy()
 })
